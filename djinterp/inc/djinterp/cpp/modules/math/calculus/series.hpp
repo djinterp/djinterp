@@ -14,20 +14,34 @@
 *   taylor_eval<N>(e, c, x)      - degree-N Taylor approx of e about c, at x
 *   maclaurin_eval<N>(e, x)      - taylor_eval<N>(e, 0, x)
 *
+* LEVELS (step 31, 5c)
+*   C++11 is the floor, as for expression.hpp, and the header is empty below
+* it. From C++11 the infinite geometric sum, the arithmetic sum and the
+* Taylor and Maclaurin evaluations are constant expressions, the last two
+* wherever the expression's derivatives evaluate as one (a polynomial from
+* C++11; exp, sin, cos, tan, sqrt, log and atan from C++14, where the C
+* core's kernels are). sum, partial_sum and geometric_sum loop as many times
+* as their bounds or count say: constant expressions from C++14, and at
+* C++11 the same loops at run time, with the same bits.
+*
 *
 * path:      /inc/djinterp/cpp/modules/math/calculus/series.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.20
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.23
 *******************************************************************************/
 
 #ifndef DJINTERP_MATH_CALCULUS_SERIES_HPP
 #define DJINTERP_MATH_CALCULUS_SERIES_HPP 1
 
+// djinterp
+#include "../../../djinterp.hpp"
+
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+
 // std
 #include <cstddef>
 // djinterp
-#include "../../../djinterp.hpp"
 #include "./sequence.hpp"
 #include "./differentiation.hpp"
 
@@ -43,7 +57,7 @@ NS_MATH
 //   sum_{k=lo}^{hi} f(k), inclusive. Constexpr when f is (use a functor; a
 // lambda is not constexpr before C++17).
 template<typename _F>
-D_CONSTEXPR
+D_CONSTEXPR_CPP14
 auto sum(
     _F   _f,
     long _lo,
@@ -65,7 +79,7 @@ auto sum(
 //   sum of the first _count terms (indices 0 .. _count-1) of any sequence
 // exposing value_type and term().
 template<typename _Seq>
-D_CONSTEXPR
+D_CONSTEXPR_CPP14
 typename _Seq::value_type partial_sum(
     const _Seq& _s,
     std::size_t _count
@@ -88,7 +102,7 @@ typename _Seq::value_type partial_sum(
 
 // geometric_sum: a0 (1 - r^count) / (1 - r), or count*a0 when r == 1.
 template<typename _T>
-D_CONSTEXPR
+D_CONSTEXPR_CPP14
 _T geometric_sum(
     _T          _a0,
     _T          _r,
@@ -122,8 +136,8 @@ _T arithmetic_sum(
     std::size_t _count
 )
 {
-    _T n = static_cast<_T>(_count);
-    return n * _a0 + _d * static_cast<_T>(_count * (_count - 1) / 2);
+    return static_cast<_T>(_count) * _a0
+         + _d * static_cast<_T>(_count * (_count - 1) / 2);
 }
 
 
@@ -134,7 +148,8 @@ _T arithmetic_sum(
 NS_INTERNAL
 
     // taylor_helper: accumulate sum_{k=K}^{N} f^(k)(c)/k! * (x-c)^k, carrying
-    // the running power (x-c)^k and factorial k! to avoid recomputation.
+    // the running power (x-c)^k and factorial k! to avoid recomputation; one
+    // return each, so that each is a constant expression from C++11.
     template<std::size_t _K, std::size_t _N>
     struct taylor_helper
     {
@@ -148,8 +163,8 @@ NS_INTERNAL
             double    _fact
         )
         {
-            const double term = (nth_derivative<0, _K>(_e)(_c) / _fact) * _pow;
-            return term
+            return static_cast<double>(
+                       (nth_derivative<0, _K>(_e)(_c) / _fact) * _pow)
                  + taylor_helper<_K + 1, _N>::apply(
                        _e, _c, _x,
                        _pow * (_x - _c),
@@ -196,6 +211,9 @@ double maclaurin_eval(
 
 NS_END  // math
 NS_END  // djinterp
+
+
+#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 
 #endif  // DJINTERP_MATH_CALCULUS_SERIES_HPP

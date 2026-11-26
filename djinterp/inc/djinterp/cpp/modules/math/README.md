@@ -20,9 +20,9 @@ feature by feature.
 ## Quick start
 
 Include the header of each part you use, as below, from C++11; `math.hpp`
-includes every header of the module, from C++14, where the function and
-calculus headers still begin (the compile-time core itself is C++11's
-since chunk 53).
+includes every header of the module, at every level, each part from the
+level it begins at: the compile-time core, the forms on it and the
+calculus headers from C++11 (chunks 53, 56 and 58), empty below it.
 
 ```cpp
 #include "djinterp/cpp/modules/math/expr/expr.hpp"              // the language
@@ -81,7 +81,7 @@ step chained after it.
 
 ---
 
-## 1. Status (2026.11.22)
+## 1. Status (2026.11.23)
 
 | Part | Headers | Compiles from | Notes |
 |---|---|---|---|
@@ -93,7 +93,7 @@ step chained after it.
 | `constants.hpp`, `quaternion.hpp`, `math_common.hpp` | 3 | ISO strict C++98 | named constants are constant expressions from C++11; the one quaternion, `math::quaternion<T>`, which `linalg::quaternion<T>` names (chunk 48, S398), takes every function of `quat.h`, the accurate forms by default, constant expressions from C++14, and the `_fast` forms for a renderer (chunk 44) |
 | `expression.hpp` | 1 | C++11, empty below | the compile-time core (chunk 53, step 29, S430): the nodes, + - * /, `squared`, `abs` and `dot` constant expressions from C++11; `exp`, `sin`, `cos`, `tan` and `sqrt` the C core's `_c` kernels, one answer at every level, constant expressions from C++14; the placeholders `x` to `phi` in `math::variables` (S403) |
 | `values.hpp`, `function/function.hpp`, `functional.hpp` | 3 | C++11, empty below | on the compile-time core (chunk 56, step 30, S441 to S445): relations, logic, implicit functions and level sets constant expressions from C++11, piecewise, vector-valued and parametric forms and `math_function`'s calls from a `std::array`, a `std::tuple` or a system's point from C++14, where `std::get` and a point's constructors are constant expressions; `math_function` takes a coordinate system's point, a `linalg::vector` (S443); `sample` from C++11, `sample_over` from C++14, at an interval's members (S444); the bridge's adapters with the functional subframework itself |
-| calculus (6), `math.hpp` | 7 | C++14 | to be C++11 (owner's N1, steps 31 and 33); calculus's own kernels to move onto the C core (N3, step 31); `math.hpp` includes every header of the module, `expr/` and `linear_algebra/` among them (chunk 48, S399), clean under `-Wshadow` since chunk 53 (S403) |
+| calculus (6), `math.hpp` | 7 | C++11, empty below; `math.hpp` at every level | the calculus from C++11 (chunk 58, steps 31 and 33, S450 to S454): derivatives, the gradient, the 5-point rule, Taylor evaluation, the arithmetic sequence and sums and the scalar helpers that are one return constant expressions from C++11, the quadrature rules, sums, sequences' loops, `binomial`, `horner` and the transcendentals from C++14, every form's bits as before but `log`'s and `atan`'s, now the C core's kernels, the logarithm correctly rounded, one answer at every level (N3, S453); a rule for a new node `derivative(wrt<I>, const node&)` (S452); `math.hpp` includes every header of the module, `expr/` and `linear_algebra/` among them (chunk 48, S399), clean under `-Wshadow` since chunk 53 (S403), and compiles at every rung |
 | `numeric_compare.hpp` | 1 | ISO strict C++98 | numbers written as text compared exactly (chunk 21, M3) |
 | `value.hpp` | 1 | ISO strict C++98 | the generic value's face (chunk 25): `math::value` holds any kind, a box as an `int` holds its number; `inline_value`'s operations are constant expressions from C++14, `math::value`'s from C++20; a complex value's modulus squared, exact where it is (chunk 43) |
 | `number_traits.hpp` | 1 | ISO strict C++98 | the static side (chunk 26): what generic code needs of a number type, the type two numbers combine to, and from C++20 the concept `number`; the field's and the order's traits, the magnitude, the epsilon and a relative tolerance (chunk 38); `number_modulus_squared`, \|x\|^2, which a type of numbers not all real overloads (chunk 43) |
@@ -1035,6 +1035,24 @@ one hyphen for a dash: the lane's files have it too, and so do the strings
 the generator writes its headers' comments from, so that its `--check`
 holds on his main again (S448). No C or C++ token changed.
 
+**The calculus from C++11.** Chunk 58 (S450 to S455), step 31 (5c), and
+with it step 33 (5e): the six calculus headers compile at every level, each
+empty below C++11 as the core they stand on, and `math.hpp` compiles at
+every rung with them, so that the ladder needs no math line (S450). A form
+that is one return is a constant expression from C++11: each derivative,
+the higher derivatives and the gradient, the 5-point rule, the Taylor and
+Maclaurin evaluations, the arithmetic sequence and sums, `factorial` by
+halving its product and `gcd` by Euclid's steps; one that loops as many
+times as an argument says, reads a `std::array` or calls a transcendental
+is one from C++14, the same code at run time below it, so that every form
+keeps its bits but `log` and `atan` (S451). Each derivative rule takes
+`wrt<I>`, so that its type is deduced from its arguments, as GCC needs at
+C++11 (S452). `log` and `atan` are the C core's kernels: the header's own
+logarithm was not correctly rounded at a third of 20,000 arguments, and at
+the smallest subnormal had 13 of its 53 bits right; its arctangent was 4.25
+ulps off (S453). `t_calculus_face.cpp` checks the six headers at every rung
+(S454).
+
 **Decimal text.** `decimal.h` reads a decimal number of any length as the
 nearest `float`, `double` or `long double`, ties to even, whatever the
 rounding mode, and says when the result overflowed to an infinity or
@@ -1437,7 +1455,8 @@ lane's own deliveries (S440); chunk 56's goes over his main of 2026.11.21
 with chunks 52's and 55's zips laid over it, and holds chunk 56's files
 alone (S446). Both were cut again on his main of 2026.11.23, Friday's over
 Wednesday's, their files at the tree's root as his merge window reads a
-zip (S447, S449).
+zip (S447, S449); chunk 58's goes over that main with both laid over it, in
+order (S455).
 From 2026.11.18 the lane's notes and deliveries go out once a day.
 
 Outside `cpp/modules/math/`, `c/modules/math/` and their tests, this lane

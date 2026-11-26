@@ -4,8 +4,7 @@
 * Sequences.
 *   A sequence maps an index n (0-based) to a term value. A general sequence
 * wraps any index->value functor; named sequences (arithmetic, geometric,
-* power, Fibonacci) provide closed-form terms and partial sums. All term
-* access is constexpr.
+* power, Fibonacci) provide closed-form terms and partial sums.
 *
 *   sequence<Gen>                 - wrap a functor n -> value
 *   make_sequence(gen)            - deduce and build one
@@ -14,20 +13,33 @@
 *   power_sequence<T>(p)          - n^p (integer p)
 *   fibonacci_sequence            - 0,1,1,2,3,5,...
 *
+* LEVELS (step 31, 5c)
+*   C++11 is the floor, as for expression.hpp, and the header is empty below
+* it. From C++11 the arithmetic sequence's term and partial sum, and each
+* sequence's construction and term of a constexpr functor, are constant
+* expressions. A term or partial sum that loops as many times as its index
+* or count says (the general sequence's partial sum, the geometric, power
+* and Fibonacci terms, the geometric partial sum) is a constant expression
+* from C++14, where a constexpr function may loop; at C++11 it is the same
+* loop at run time, so its bits are the same at every level.
+*
 *
 * path:      /inc/djinterp/cpp/modules/math/calculus/sequence.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.20
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.23
 *******************************************************************************/
 
 #ifndef DJINTERP_MATH_CALCULUS_SEQUENCE_HPP
 #define DJINTERP_MATH_CALCULUS_SEQUENCE_HPP 1
 
-// std
-#include <cstddef>
 // djinterp
 #include "../../../djinterp.hpp"
+
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+
+// std
+#include <cstddef>
 
 
 NS_DJINTERP
@@ -56,7 +68,7 @@ struct sequence
     { return term(_n); }
 
     // partial_sum: sum of the first _count terms (indices 0 .. _count-1).
-    D_CONSTEXPR value_type partial_sum(std::size_t _count) const
+    D_CONSTEXPR_CPP14 value_type partial_sum(std::size_t _count) const
     {
         value_type acc = value_type(0);
         for (std::size_t n = 0; n < _count; ++n) { acc += term(n); }
@@ -97,8 +109,7 @@ struct arithmetic_sequence
     // partial_sum: first _count terms, n(2 a0 + (n-1) d) / 2.
     D_CONSTEXPR _T partial_sum(std::size_t _count) const
     {
-        _T n = static_cast<_T>(_count);
-        return n * a0
+        return static_cast<_T>(_count) * a0
              + d * static_cast<_T>(_count * (_count - 1) / 2);
     }
 };
@@ -118,18 +129,18 @@ struct geometric_sequence
 
     D_CONSTEXPR geometric_sequence(_T _a0, _T _r) : a0(_a0), r(_r) {}
 
-    D_CONSTEXPR _T term(std::size_t _n) const
+    D_CONSTEXPR_CPP14 _T term(std::size_t _n) const
     {
         _T p = _T(1);
         for (std::size_t i = 0; i < _n; ++i) { p *= r; }
         return a0 * p;
     }
 
-    D_CONSTEXPR _T operator[](std::size_t _n) const
+    D_CONSTEXPR_CPP14 _T operator[](std::size_t _n) const
     { return term(_n); }
 
     // partial_sum: a0 (1 - r^count) / (1 - r), or count*a0 when r == 1.
-    D_CONSTEXPR _T partial_sum(std::size_t _count) const
+    D_CONSTEXPR_CPP14 _T partial_sum(std::size_t _count) const
     {
         if (r == _T(1)) { return static_cast<_T>(_count) * a0; }
 
@@ -153,7 +164,7 @@ struct power_sequence
 
     D_CONSTEXPR explicit power_sequence(unsigned _p) : p(_p) {}
 
-    D_CONSTEXPR _T term(std::size_t _n) const
+    D_CONSTEXPR_CPP14 _T term(std::size_t _n) const
     {
         _T acc = _T(1);
         _T base = static_cast<_T>(_n);
@@ -161,7 +172,7 @@ struct power_sequence
         return acc;
     }
 
-    D_CONSTEXPR _T operator[](std::size_t _n) const
+    D_CONSTEXPR_CPP14 _T operator[](std::size_t _n) const
     { return term(_n); }
 };
 
@@ -169,7 +180,7 @@ struct fibonacci_sequence
 {
     using value_type = unsigned long long;
 
-    D_CONSTEXPR
+    D_CONSTEXPR_CPP14
     value_type term(
         std::size_t _n
     ) const
@@ -185,12 +196,15 @@ struct fibonacci_sequence
         return a;
     }
 
-    D_CONSTEXPR value_type operator[](std::size_t _n) const
+    D_CONSTEXPR_CPP14 value_type operator[](std::size_t _n) const
     { return term(_n); }
 };
 
 NS_END  // math
 NS_END  // djinterp
+
+
+#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 
 #endif  // DJINTERP_MATH_CALCULUS_SEQUENCE_HPP

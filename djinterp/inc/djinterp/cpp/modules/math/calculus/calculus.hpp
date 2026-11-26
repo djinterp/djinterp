@@ -16,11 +16,17 @@
 * djinterp::math::fn namespace, constants in djinterp::math::constants), and
 * builds on the value-holding expression core (expression.hpp / function.hpp).
 *
+* LEVELS (step 31, 5c)
+*   C++11 is the floor, as for the expression core: below it each calculus
+* header is empty, and this one brings the constants alone. Each header's
+* banner says which of its forms are constant expressions from C++11 and
+* which from C++14.
+*
 *
 * path:      /inc/djinterp/cpp/modules/math/calculus/calculus.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.20
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.23
 *******************************************************************************/
 
 #ifndef DJINTERP_MATH_CALCULUS_CALCULUS_HPP

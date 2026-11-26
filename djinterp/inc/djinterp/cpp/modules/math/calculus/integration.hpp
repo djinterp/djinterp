@@ -13,23 +13,34 @@
 *   romberg<Levels>(f, a, b)  - Romberg / Richardson extrapolation
 *   integrate(expr, a, b, n)  - Simpson over a univariate expression (arg 0)
 *
+* LEVELS (step 31, 5c)
+*   C++11 is the floor, as for expression.hpp, and the header is empty below
+* it. From C++11 gauss_legendre5 is a constant expression wherever its
+* integrand is, one return over its five points, summed in their order as
+* the loop did, with its bits wherever double is evaluated as double (on a
+* 32-bit x87 the sum is kept wider, as the loop's was not). trapezoid, simpson, romberg and integrate loop as many times
+* as their subintervals or levels say: constant expressions from C++14, and
+* at C++11 the same loops at run time, with the same bits.
+*
 *
 * path:      /inc/djinterp/cpp/modules/math/calculus/integration.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.20
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.23
 *******************************************************************************/
 
 #ifndef DJINTERP_MATH_CALCULUS_INTEGRATION_HPP
 #define DJINTERP_MATH_CALCULUS_INTEGRATION_HPP 1
 
+// djinterp
+#include "../../../djinterp.hpp"
+
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+
 // std
-#include <array>
-#include <cmath>
 #include <cstddef>
 #include <type_traits>
 // djinterp
-#include "../../../djinterp.hpp"
 #include "../expression.hpp"
 
 
@@ -43,7 +54,7 @@ NS_MATH
 // trapezoid
 //   composite trapezoidal rule with _n subintervals.
 template<typename _F>
-D_CONSTEXPR
+D_CONSTEXPR_CPP14
 double trapezoid(
     _F          _f,
     double      _a,
@@ -67,7 +78,7 @@ double trapezoid(
 // simpson
 //   composite Simpson's rule; _n is rounded up to the next even number.
 template<typename _F>
-D_CONSTEXPR
+D_CONSTEXPR_CPP14
 double simpson(
     _F          _f,
     double      _a,
@@ -90,6 +101,36 @@ double simpson(
     return sum * h / 3.0;
 }
 
+NS_INTERNAL
+
+    // gauss_legendre5_on
+    //   the 5-point rule about _mid with half-width _half: the loop's sum,
+    // from 0.0, each weighted point added in order, then times _half; the
+    // loop's bits wherever double is evaluated as double, fused or not.
+    template<typename _F>
+    D_CONSTEXPR
+    double gauss_legendre5_on(
+        _F     _f,
+        double _mid,
+        double _half
+    )
+    {
+        return _half *
+            ( ( ( ( ( 0.0
+                    + 0.236926885056189087514264
+                    * _f(_mid + _half * -0.906179845938663992797627) )
+                  + 0.478628670499366468041292
+                  * _f(_mid + _half * -0.538469310105683091036314) )
+                + 0.568888888888888888888889
+                * _f(_mid + _half * 0.0) )
+              + 0.478628670499366468041292
+              * _f(_mid + _half * 0.538469310105683091036314) )
+            + 0.236926885056189087514264
+            * _f(_mid + _half * 0.906179845938663992797627) );
+    }
+
+NS_END  // internal
+
 // gauss_legendre5
 //   5-point Gauss-Legendre on [a, b]; exact for polynomials up to degree 9.
 template<typename _F>
@@ -100,38 +141,14 @@ double gauss_legendre5(
     double _b
 )
 {
-    const double nodes[5] = {
-        -0.906179845938663992797627,
-        -0.538469310105683091036314,
-         0.0,
-         0.538469310105683091036314,
-         0.906179845938663992797627
-    };
-    const double weights[5] = {
-        0.236926885056189087514264,
-        0.478628670499366468041292,
-        0.568888888888888888888889,
-        0.478628670499366468041292,
-        0.236926885056189087514264
-    };
-
-    const double mid   = 0.5 * (_a + _b);
-    const double half  = 0.5 * (_b - _a);
-    double       sum   = 0.0;
-
-    for (int i = 0; i < 5; ++i)
-    {
-        sum += weights[i] * _f(mid + half * nodes[i]);
-    }
-
-    return half * sum;
+    return internal::gauss_legendre5_on(_f, 0.5 * (_a + _b), 0.5 * (_b - _a));
 }
 
 // romberg
 //   Romberg integration: _Levels rows of trapezoidal refinement combined by
 // Richardson extrapolation. Higher _Levels -> higher accuracy.
 template<std::size_t _Levels = 6, typename _F>
-D_CONSTEXPR double
+D_CONSTEXPR_CPP14 double
 romberg(_F _f, double _a, double _b)
 {
     static_assert(_Levels >= 1, "romberg: need at least one level.");
@@ -200,7 +217,7 @@ NS_END  // internal
 // using composite Simpson's rule.
 template<typename _Expr,
          typename std::enable_if<is_expression<_Expr>::value, int>::type = 0>
-D_CONSTEXPR double
+D_CONSTEXPR_CPP14 double
 integrate(const _Expr& _e, double _a, double _b, std::size_t _n = 128)
 {
     return simpson(internal::expr_eval1<_Expr>{_e}, _a, _b, _n);
@@ -208,6 +225,9 @@ integrate(const _Expr& _e, double _a, double _b, std::size_t _n = 128)
 
 NS_END  // math
 NS_END  // djinterp
+
+
+#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 
 #endif  // DJINTERP_MATH_CALCULUS_INTEGRATION_HPP

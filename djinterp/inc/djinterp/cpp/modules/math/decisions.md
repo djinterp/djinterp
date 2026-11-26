@@ -1,4 +1,4 @@
-# djinterp math: the lane's decisions, S1 to S449
+# djinterp math: the lane's decisions, S1 to S455
 
 Every decision the math lane has taken, in the words of the record that took
 it, with the alternative it set aside. The numbers run across the lane's
@@ -28,10 +28,12 @@ went on while he weighs them. S441 to S446 are chunk 56's, open too: step 30
 (5b), `function.hpp`, `functional.hpp` and `values.hpp` from C++11, with two
 of their own failures fixed. S447 to S449 are chunk 57's, open too: chunks
 55's and 56's zips cut again on his push of 2026.11.23, the lane's prose and
-the generator's strings with one hyphen for a dash. His word of 2026.11.14
-on the language's names, which kept them flat in `djinterp::math`, is
-S397's. Where a later decision changes an earlier one, the later one says
-so; the earlier one stays here as it was taken.
+the generator's strings with one hyphen for a dash. S450 to S455 are chunk
+58's, open too: step 31 (5c), the calculus headers from C++11, and with them
+step 33 (5e), `math.hpp` at every rung. His word of 2026.11.14 on the
+language's names, which kept them flat in `djinterp::math`, is S397's. Where
+a later decision changes an earlier one, the later one says so; the earlier
+one stays here as it was taken.
 
 A decision names files as they were when it was taken. Chunk 48 merged the
 two quaternion classes (S398) and renamed or split five of the language's
@@ -66,7 +68,7 @@ C6 and N1 to N6, are in the consolidation's record
 followed it; his rulings on them are the roadmap's principles and items
 (`roadmap.md`). From chunk 34 on, each chunk's delivery brings this file,
 its own decisions added at the end. This file is made by
-`_handoffs/math98_chunk57_2026.11.23/tools/decisions_c57.py`.
+`_handoffs/math98_chunk58_2026.11.23/tools/decisions_c58.py`.
 
 ## 1. Outstanding decisions
 
@@ -74,7 +76,7 @@ The 21 flagged decisions: those whose review recommends what is not yet
 done, or names a significant drawback of what was. Each gives when it is
 due, by the roadmap's steps, its flag and its review's recommendation; the
 decision itself and its whole review are in its record's part of section 2.
-The groups and the steps are `decisions_outstanding_c57.md`'s, in chunk 57's
+The groups and the steps are `decisions_outstanding_c58.md`'s, in chunk 58's
 record.
 
 ### 1.1 The expression language
@@ -9867,3 +9869,151 @@ before (S440).
 > on exactly what is sent. Against: a layout unlike the lane's earlier zips.
 > The alternative: the folder, unwrapped by hand. Recommended: as taken.
 > Taken.
+
+### S450 to S455: chunk 58, 2026.11.23
+
+The record: `_handoffs/math98_chunk58_2026.11.23/README.md`.
+
+Chunk 58's decisions, S450 to S455: step 31 (5c), the calculus headers
+from C++11, as the owner's N1 asks and as chunks 53 and 56 brought the
+compile-time core and the forms on it; and with it step 33 (5e), since
+`math.hpp`, which includes them, then compiles at every rung. Chunks 55's
+to 57's decisions are open, with the owner's rulings 12 to 15; nothing here
+rests on them but the zip's base (S455).
+
+**S450. The six calculus headers, `calculus.hpp`, `differentiation.hpp`,
+`elementary.hpp`, `integration.hpp`, `sequence.hpp` and `series.hpp`,
+compile at every level, each empty below C++11, as `expression.hpp` is
+(N1, S430); `math.hpp`, which includes them, compiles at every level with
+them, so that step 33 (5e) is done with step 31 (5c), step 32 (5d) still to
+come.** Below C++11 the umbrella brings the constants alone. The ladder,
+which failed all seven at C++98, strict C++98 and C++11, now passes them
+at every rung, plain and testing, with g++ and clang++: their seven lines of
+`scripts/ci/ladder_known.txt`, the owner's shared file, can go, and with the
+four the notes since 11-20 ask for, the punch list has no math line.
+- Alternative: steps 31 and 33 apart, `math.hpp` taken with step 33 in a
+  chunk of its own: a chunk with no change of its own to make.
+
+> **Review.** Taken: for, every calculus header and math.hpp at every rung,
+> the punch list's last math lines free to go, step 33 taken where it costs
+> nothing. Against: steps 31 and 33 done before 32, out of the roadmap's
+> order. The alternative: math.hpp in a chunk of its own, with nothing of
+> its own to change. Recommended: as taken. Taken.
+
+**S451. A form is a constant expression from C++11 where it is one return:
+each derivative's tree, the higher derivatives and the gradient, the 5-point
+rule, the Taylor and Maclaurin evaluations, the arithmetic sequence and
+sums, and the scalar helpers abs to degrees, factorial by halving its
+product and gcd and lcm by Euclid's steps, each as deep as its type allows.
+A form that loops as many times as an argument says (the trapezoid,
+Simpson and Romberg rules and `integrate`, `sum`, `partial_sum`,
+`geometric_sum`, the geometric, power and Fibonacci terms and the partial
+sums that loop, `binomial`), reads a `std::array` (`horner`,
+`numeric_partial`) or calls exp, sin, cos, tan, sqrt, log or atan is a
+constant expression from C++14, and at C++11 the same code at run time.**
+So every form keeps its bits at every level: a program compiled before and
+after the step gives the same results, form by form, at C++14 and C++20,
+where double is evaluated as double, log and atan apart (S453). The 5-point
+rule's one return adds its points in the loop's order, from 0.0, and gives
+the loop's bits at run time, fused or not; on a 32-bit x87 its sum is kept
+wider, as the loop's was not. `numeric_partial` reads its point through
+`std::array`'s const operator[], a constant expression from C++14, where its
+copy and `+=` needed C++17's.
+- Alternative: every loop a recursion, so that every form is a constant
+  expression from C++11: a recursion as deep as an argument at run time,
+  which a large count overflows, or a pairwise sum, whose bits differ from
+  the loop's.
+- Alternative: every form from C++14 and C++11 given the declarations only:
+  less than C++11 can express, against N1.
+
+> **Review.** Taken: for, each form a constant expression wherever C++11 can
+> make it one in one return, and every form's bits kept at every level.
+> Against: the quadrature rules, the sums and the sequences' loops constant
+> expressions only from C++14. The alternatives: recursion for every loop,
+> deep or reordered; or every form from C++14, less than N1 asks.
+> Recommended: as taken. Taken.
+
+**S452. Each derivative rule takes a tag, `wrt<I>` (with respect to
+argument I), as its first parameter, and its recursive calls name no
+template argument, so that each rule's type, its one return's
+(`-> decltype`), is deduced from its arguments alone; `derivative<I>(e)`
+calls the rules and is the spelling callers use, as before.** GCC
+substituted an explicit template argument into each rule's trailing return
+type before deducing the rest, and so into the rules that type named, past
+900 levels, where the rules named `derivative<_I>(...)`. A rule for a new
+node is the overload `derivative(wrt<I>, const node&)` in the node's
+namespace, found by argument-dependent lookup as the old overloads were.
+- Alternative: a trait, one specialization per node with its type and its
+  builder: no lookup to go wrong, but a new node's rule a specialization of
+  an internal template.
+- Alternative: the rules as they were, with deduced return types: C++14
+  only, against N1.
+
+> **Review.** Taken: for, the rules' types deduced from their arguments,
+> which GCC needs at C++11, callers' spelling unchanged, a new node's rule
+> still found by argument-dependent lookup. Against: a tag, wrt<I>, added to
+> the public names, which a new node's rule must take. The alternatives: a
+> trait of internal specializations; or the deduced return types, C++14
+> only. Recommended: as taken. Taken.
+
+**S453. `log` and `atan` are the C core's kernels, `d_math_log_c` and
+`d_math_atan_c`, at compile time and at run time alike, as `exp`, `sin`,
+`cos`, `tan` and `sqrt` are since step 29 (N3, S430): this header's own
+kernels and its dispatch to the C library go.** The own logarithm divided
+its argument by e as many times as its size asked, and at 20,000 arguments
+spread over the doubles it was not correctly rounded at 6,972, a third, the
+worst normal one 1.73 ulps off and a subnormal 8.2e11; the own arctangent
+was not at 10,395 of 20,000, the worst 4.25 ulps off; and from C++20 the
+run time took the C library's, a second answer. Now the logarithm is the
+double family's correctly rounded one and the arctangent the C core's,
+within half an ulp at each of the 40,000, one answer at every level. On a
+32-bit x87, where double is evaluated wider, `log` refuses to compile, as
+`exp` does (S418, S426). The header's constants are `constants::of<double>`'s,
+one spelling at every level, where the variable templates are C++14's.
+- Alternative: the own kernels kept to step 36 (6a): two answers across
+  levels a step longer, and a logarithm whose answer at the smallest
+  subnormal has 13 of its 53 bits right.
+
+> **Review.** Taken: for, one answer at every level, the logarithm correctly
+> rounded where the own one missed a third of its arguments and had 13 bits
+> of 53 right at the smallest subnormal, the arctangent within half an ulp
+> where the own one was 4.25 ulps off. Against: log refused on a 32-bit x87,
+> as exp is. The alternative: the own kernels to step 36, wrong and
+> two-answered a step longer. Recommended: as taken. Taken.
+
+**S454. A face test, `t_calculus_face.cpp`, checks the six headers at every
+rung: 1 check below C++11, 22 at C++11 and 26 from C++14, 18 and 21 on the
+32-bit x87, where the checks of `exp` and `log` and of the 5-point rule's
+bits are left out; 64 of 64 builds of the full tier and 4 of 4 of the fused
+tier pass.** It checks each constant expression of S451 at its level, the
+derivatives of the transcendentals bit for bit as the C core's kernels
+composed by their rules, `log` and `atan` bit for bit `d_math_log_c` and
+`d_math_atan_c`, the 5-point rule's bits against the loop's at 200
+intervals, and each form at compile time against its run time's bits from
+C++14. The old program `test_calc.cpp`, which no runner builds, passes its
+45 checks on the new headers at C++14, 17 and 20, by g++ and clang++, and
+stays as it is.
+- Alternative: `test_calc.cpp` brought into the runner: a program of
+  approximate checks, from C++14 alone, with no check below it.
+
+> **Review.** Taken: for, the six headers checked at every rung, their
+> constant expressions at their levels, the kernels bit for bit, the old
+> program's checks passing on the new headers. Against: on the x87 the
+> checks of exp, log and the 5-point rule's bits left out. The alternative:
+> the old program in the runner, approximate and from C++14 alone.
+> Recommended: as taken. Taken.
+
+**S455. Chunk 58's zip is cut over the owner's main of 2026.11.23,
+`6ee9dce1`, with Wednesday's and Friday's zips laid over it, in that order,
+and holds chunk 58's files alone, at the tree's root (S449).** It goes after
+Friday's zip, in the window after it: its three documents carry chunks 53
+to 57's text. Should a window land chunks 53 to 56 other than as their zips,
+chunk 58 is cut again over that commit.
+- Alternative: one zip of chunks 56 to 58 for Friday's window, in place of
+  Friday's: a zip already gated and given out changed two days before its
+  window.
+
+> **Review.** Taken: for, Friday's zip unchanged, chunk 58's own zip after
+> it, the gates run over the three in order. Against: chunk 58 right only
+> over Wednesday's and Friday's zips laid in order. The alternative:
+> Friday's zip changed to carry chunk 58. Recommended: as taken. Taken.
