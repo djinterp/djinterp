@@ -128,10 +128,14 @@ jobs:
       - name: the outside libraries
         if: runner.os == 'Linux'
         working-directory: .
+        env:
+          # with GCC, MinGW-w64 too: the file tree's leaf compiles its
+          # Windows backend with it, as C++17 and C++20
+          MORE: ${{ matrix.name == 'gcc' && 'g++-mingw-w64-x86-64-posix' || '' }}
         run: |
           sudo apt-get update
           sudo apt-get install -y libssl-dev libcurl4-openssl-dev \
-                                  libssh2-1-dev zlib1g-dev
+                                  libssh2-1-dev zlib1g-dev $MORE
 
       - name: configure
         id: configure
