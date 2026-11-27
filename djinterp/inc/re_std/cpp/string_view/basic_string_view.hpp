@@ -31,11 +31,21 @@
 * the iostream subsystem. The C++20 Traits::comparison_category hook is
 * not consulted; operator<=> yields strong_ordering directly.
 *
+*   FROM A STD::STRING:
+*   std::basic_string_view takes a std::basic_string through the
+* string's own conversion operator, which re_std cannot add to the
+* standard's type; so re_std's view has a converting constructor from
+* std::basic_string<CharT, T, A> instead, at every level from C++98. It
+* takes a string whose traits are the view's, or std::char_traits<CharT>
+* when the view has re_std's own char_traits<CharT>, which compare
+* characters alike: re_std::string_view takes a std::string.
+*
 *   DEPENDENCIES:
 *   ./char_traits.hpp (default traits + the operations used here),
 * ../iterator/reverse_iterator.hpp (rbegin / rend), <cstddef> for
-* size_t / ptrdiff_t, and <stdexcept> (when available) for the
-* out_of_range thrown by at / substr / copy.
+* size_t / ptrdiff_t, <string> for the std::basic_string a view can be
+* made from, and <stdexcept> (when available) for the out_of_range
+* thrown by at / substr / copy.
 *
 *
 * path:      /inc/re_std/cpp/string_view/basic_string_view.hpp
@@ -47,8 +57,8 @@
 /*
 TABLE OF CONTENTS
 =================
-1.  INTERNAL: ERROR PATH
-    --------------------
+1.  INTERNAL: ERROR PATH, STD'S TRAITS
+    ---------------------------------
 2.  BASIC_STRING_VIEW
     -----------------
 */
@@ -64,9 +74,9 @@ TABLE OF CONTENTS
 #include "./char_traits.hpp"
 #include "../iterator/reverse_iterator.hpp"
 
-// std (fundamental types only)
 // std
 #include <cstddef>
+#include <string>
 
 #if defined(RE_STD_HAS_EXCEPTIONS) && RE_STD_HAS_EXCEPTIONS
     // std
@@ -82,7 +92,7 @@ namespace re_std
 
 
 //==============================================================================
-// 1.  INTERNAL: ERROR PATH
+// 1.  INTERNAL: ERROR PATH, STD'S TRAITS
 //==============================================================================
 
 namespace internal
@@ -104,6 +114,26 @@ namespace internal
         std::abort();
     #endif
     }
+
+    // sv_std_traits
+    //   struct: the traits a std::basic_string may carry, besides the
+    // view's own, for a view with traits Traits to take it. For re_std's
+    // char_traits<CharT>, std::char_traits<CharT>, whose comparisons are
+    // the same; for any other Traits, a type no string carries, so only a
+    // string with Traits itself converts.
+    template<typename CharT,
+             typename Traits>
+    struct sv_std_traits
+    {
+        struct none {};
+        typedef none type;
+    };
+
+    template<typename CharT>
+    struct sv_std_traits<CharT, char_traits<CharT> >
+    {
+        typedef std::char_traits<CharT> type;
+    };
 
 }  // internal
 
@@ -193,6 +223,35 @@ public:
     basic_string_view(
         decltype(nullptr)
     ) = delete;
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
+
+    // basic_string_view(const std::basic_string<CharT, Traits, Alloc>&)
+    //   function: view a std::basic_string's characters, as
+    // std::basic_string_view takes one. The view is valid while the string
+    // is alive and unchanged.
+    template<typename Alloc>
+    basic_string_view(
+        const std::basic_string<CharT, Traits, Alloc>&  _s
+    ) RE_STD_NOEXCEPT
+        : m_data(_s.data())
+        , m_size(_s.size())
+    {}
+
+    // basic_string_view(const std::basic_string<CharT, std's traits, Alloc>&)
+    //   function: the same, for a string with std::char_traits<CharT>
+    // when the view has re_std's char_traits<CharT>: a std::string.
+    template<typename Alloc>
+    basic_string_view(
+        const std::basic_string<CharT,
+                                typename internal::sv_std_traits<CharT,
+                                                                 Traits>::type,
+                                Alloc>&  _s
+    ) RE_STD_NOEXCEPT
+        : m_data(_s.data())
+        , m_size(_s.size())
+    {}
+
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
     // operator=
     //   function: copy assignment — defaulted, trivial. Below C++11 the
