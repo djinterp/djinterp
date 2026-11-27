@@ -288,10 +288,13 @@ the correctly rounded one (chunk 66, step 54 of 62).
 library's, by a knob of the build or an argument at run time (chunk 68).
 Chunks 55 to 67 are on the owner's main since 2026.11.25
 (<code>29c0e4f4</code>); chunk 68 is cut on his main of 2026.11.26
-(<code>527a9661</code>). <code>reify</code> (chunk 59) makes a
-compile-time expression a term of the run-time language, which prints,
-simplifies and evaluates it by name. Linear algebra has an opt-in lazy
-type from C++11 (chunk 60), each element the eager bits.</p>
+(<code>527a9661</code>). Step 55 is begun (chunk 69): the double
+reduction by pi/2, its r a pair within 2^-102 at every finite x, and an
+angle wrapped into one turn, correctly rounded, in radians and degrees.
+<code>reify</code> (chunk 59) makes a compile-time expression a term of
+the run-time language, which prints, simplifies and evaluates it by
+name. Linear algebra has an opt-in lazy type from C++11 (chunk 60), each
+element the eager bits.</p>
 <p>The framework's shared expression core,
 <code>parse/expression/</code>, has a term type, folds, a parser, a
 renderer and a compile-time term. P0 (chunk 27) fixed what stopped each
@@ -1841,9 +1844,19 @@ operations and its slow phases out of line, the same bits, 1.6 to 2.6
 times glibc's time where it took 2.4 to 3.6 (S495); within about twice,
 so the plain double log is <code>log_c</code>, the C library's only on
 the x87 (S496, S497).</label></li>
-<li><label><input type="checkbox" /><strong>T4</strong> (step 55)
-Stumpff functions and exact angle wrapping, with sin and cos in 6a
-(ruling 15).</label></li>
+</ul>
+<ul>
+<li>[~] <strong>T4</strong> (step 55) Stumpff functions and exact angle
+wrapping, with sin and cos in 6a (ruling 15). In three chunks (S515).
+The first, chunk 69: <code>circular.h</code>, the double reduction by
+pi/2 - Cody and Waite's below 2^31, Payne and Hanek's in fixed point
+past it, r a pair within 2^-102 at every finite x (S511, S512) - and the
+wraps, x's angle in [-pi, pi] and [0, 2 pi), correctly rounded at every
+finite x, and in degrees (S513, S514). Next, the sine and cosine
+correctly rounded on that reduction, with <code>sincos</code>; then the
+Stumpff functions.</li>
+</ul>
+<ul class="task-list">
 <li><label><input type="checkbox" /><strong>T5</strong> (step 56) erf,
 erfc and the inverse normal, with gamma, at the elementary block's end
 (S203, ruling 15).</label></li>
@@ -2024,10 +2037,12 @@ recommended; and chunk 67, as his decision 71 of then asked, a fast log
 beside <code>log_c</code> (S500 to S504), which stand by his rulings of
 17:52 the same day, each as recommended; and chunk 68, as his note on
 the first of them asked, each fast form ours or the C library's by a
-knob or at run time (S505 to S508). The work rulings 12 to 15 make is
-Phase 9, below, in ruling 15's order. The outstanding decisions of
-<code>decisions.html</code>, its section 1, by group and urgency, and the
-suggestions of <code>comparison.html</code>'s section 9 are the owner's to
-take or leave before then.</p>
+knob or at run time (S505 to S510), which stand by his rulings of
+2026.11.27 at 10:05, each as recommended; and chunk 69 began step 55,
+the reduction by pi/2 and the wraps (S511 to S517). The work rulings 12
+to 15 make is Phase 9, below, in ruling 15's order. The outstanding
+decisions of <code>decisions.html</code>, its section 1, by group and
+urgency, and the suggestions of <code>comparison.html</code>'s section 9
+are the owner's to take or leave before then.</p>
 </body>
 </html>

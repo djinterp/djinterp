@@ -6,6 +6,7 @@ from .common import (CORE, ROOT, align_params, no_contract, os)
 from .float_order import (float_order, interval_float)
 from .elementary import (elementary)
 from .exponential import (exponential)
+from .circular import (circular)
 from .tangent import (tangent)
 from .hyperbolic import (hyperbolic)
 from .power import (power)
@@ -33,6 +34,7 @@ OUTPUTS = {
     "interval_float.h": interval_float,
     "elementary.h": elementary,
     "exponential.h": exponential,
+    "circular.h": circular,
     "tangent.h": tangent,
     "hyperbolic.h": hyperbolic,
     "power.h": power,

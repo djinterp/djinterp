@@ -165,15 +165,15 @@
   </style>
 </head>
 <body>
-<h1 id="djinterp-math-the-lanes-decisions-s1-to-s510">djinterp math: the
-lane's decisions, S1 to S510</h1>
+<h1 id="djinterp-math-the-lanes-decisions-s1-to-s517">djinterp math: the
+lane's decisions, S1 to S517</h1>
 <p>Every decision the math lane has taken, in the words of the record
 that took it, with the alternative it set aside. The numbers run across
 the lane's records from S1 (slice 3, 2026.10.08); each record's section
 of decisions is here as its README has it, its own first lines among it.
 A decision was the lane's to take within the owner's rulings, and stands
 once his next word on its delivery, his "continue", has accepted it: S1
-to S504 stand, his own rulings of 2026.10.27 on complex numbers and
+to S510 stand, his own rulings of 2026.10.27 on complex numbers and
 quaternions, S265 to S278, the design of steps 22 to 24, and his choice
 of 2026.11.07, S383, among them. His rulings of 2026.11.03 and
 2026.11.04 on the flagged decisions are in the reviews they rule, each
@@ -220,17 +220,18 @@ by his rulings of 08:38 the same day, each as recommended; and chunk
 of 14:42 the same day, each as recommended; and chunk 67's,
 <code>d_math_d_log_fast</code>, a fast log beside <code>log_c</code>, as
 his decision 71 asked, by his rulings of 17:52 the same day, each as
-recommended, with a note on the first. His rulings 12 to 15 of
-2026.11.24 are in chunk 63's opening lines. Chunks 55 and 56 are on his
-main since 2026.11.24, and chunks 58 to 67 since 2026.11.25
-(<code>29c0e4f4</code>). S505 to S510 are chunk 68's, open until his
-word on them: each fast form djinterp's own or the C library's, by a
-knob of the build or at run time, as his note of 17:52 asked, cut on his
-main of 2026.11.26, its generator and documents brought to it. His word
-of 2026.11.14 on the language's names, which kept them flat in
-<code>djinterp::math</code>, is S397's. Where a later decision changes
-an earlier one, the later one says so; the earlier one stays here as it
-was taken.</p>
+recommended, with a note on the first; and chunk 68's, each fast form
+djinterp's own or the C library's, by a knob of the build or at run
+time, as his note of 17:52 asked, cut on his main of 2026.11.26, by his
+rulings of 2026.11.27 at 10:05, each as recommended. His rulings 12 to
+15 of 2026.11.24 are in chunk 63's opening lines. Chunks 55 and 56 are
+on his main since 2026.11.24, and chunks 58 to 67 since 2026.11.25
+(<code>29c0e4f4</code>). S511 to S517 are chunk 69's, open until his
+word on them: step 55 begun, the double family's reduction by pi/2 and
+the wrapping of an angle into one turn. His word of 2026.11.14 on the
+language's names, which kept them flat in <code>djinterp::math</code>,
+is S397's. Where a later decision changes an earlier one, the later one
+says so; the earlier one stays here as it was taken.</p>
 <p>A decision names files as they were when it was taken. Chunk 48
 merged the two quaternion classes (S398) and renamed or split five of
 the language's headers (S400, S401): <code>expr/complex.hpp</code> is
@@ -267,14 +268,14 @@ the notes that followed it; his rulings on them are the roadmap's
 principles and items (<code>roadmap.html</code>). From chunk 34 on, each
 chunk's delivery brings this file, its own decisions added at the end.
 This file is made by
-<code>_handoffs/math98_chunk68_2026.11.25/tools/decisions_c68.py</code>.</p>
+<code>_handoffs/math98_chunk69_2026.11.27/tools/decisions_c69.py</code>.</p>
 <h2 id="1-outstanding-decisions">1. Outstanding decisions</h2>
 <p>The 21 flagged decisions: those whose review recommends what is not
 yet done, or names a significant drawback of what was. Each gives when
 it is due, by the roadmap's steps, its flag and its review's
 recommendation; the decision itself and its whole review are in its
 record's part of section 2. The groups and the steps are
-<code>decisions_outstanding_c68.md</code>'s, in chunk 68's record.</p>
+<code>decisions_outstanding_c69.md</code>'s, in chunk 69's record.</p>
 <h3 id="11-the-expression-language">1.1 The expression language</h3>
 <ul>
 <li>S190. When: before step 25 (4a): decided on 2026.11.06 with lane F,
@@ -14327,6 +14328,253 @@ made from the records. Against: a second form, the Markdown, kept beside
 the pages outside the tree, and pandoc and the tree's hyphen pass in the
 lane's path. The alternatives: pages edited by hand; Markdown in the
 tree, against his rule. Recommended: as taken. Taken.</p>
+</blockquote>
+<h3 id="s511-to-s517-chunk-69-20261127">S511 to S517: chunk 69,
+2026.11.27</h3>
+<p>The record:
+<code>_handoffs/math98_chunk69_2026.11.27/README.md</code>.</p>
+<p>Chunk 69's decisions, S511 to S517: step 55 (T4) begun, the first of
+its three chunks - the double family's reduction by pi/2, which the sine
+and cosine need, and the wrapping of an angle into one turn, which the
+terps asked for beside them (ruling 15). The owner's rulings of
+2026.11.27 at 10:05 accepted chunk 68's decisions, S505 to S510, each as
+recommended.</p>
+<p><strong>S511. The reduction by pi/2, x = (4 j + q) pi/2 + r, in two
+paths, its constants computed by the generator with integers alone: pi
+by Machin's formula, 16 atan(1/5) - 4 atan(1/239), each series' error
+bounded, each value taken where both ends of its interval agree. Below
+2^31, Cody and Waite's: k, the integer nearest x 2/pi, from the exact
+product's high part by the shift 1.5 2^52, so that no compiler fuses it
+with the shift; pi/2 in four doubles, C0 + C1 + C2 + C3 within 2^-217.7;
+each product by k an exact pair by dd.h's two_product, the high part of
+x - k C0 exact, every sum that cancels an exact TwoSum, the small rests
+summed as a pair and added by AccurateDWPlusDW: within 2^-104.4 of r,
+relatively, stated as 2^-103. At any finite x, Payne and Hanek's in
+fixed point: x's significand in four 16-bit limbs times the 290 bits of
+2/pi its exponent reaches, 19 limbs read from a string of 320
+hexadecimal digits, in integer columns where no product passes 32 bits
+and no column 2^19, the lowest 64 bits and those from 2^2 up dropped:
+the fraction f within 1 + 2^-11 units of 2^-224, as the units of
+<code>exponential_d.h</code>'s fixed point, whose routines it takes. No
+double lies nearer a multiple of pi/2 than 2^-60.89 - 6381956970095103
+2^797, the known worst case, found again binade by binade by continued
+fractions - nor nearer than 2^-60.49 below 2^31, so each path keeps r to
+its stated bound.</strong> The bounds are computed in exact arithmetic
+from the generator's own constants (chunk 69's record,
+<code>proofs/reduce_bounds.py</code>); the worst cases by
+<code>tools/worst_reduce_c69.py</code>. Measured:
+<code>reduce_half_pi</code> 15 to 33 ns a call below 2^31 and 224 to 318
+ns past it, where the C library's sin takes 14 to 57 ns
+(<code>raw/timing_c69_1.txt</code> and <code>_2.txt</code>: gcc and
+clang at -O2, two runs, a 2.10 GHz Xeon).</p>
+<ul>
+<li>Alternative: Payne and Hanek's in doubles, as glibc's branred does
+it: some 50 ns past 2^31 where the fixed path takes some 230 to 320, at
+the cost of a third reduction to prove; for the sine's step, if its
+speed needs it.</li>
+<li>Alternative: the long double reduction elementary.h has: long double
+in the double family, which its contract (ruling 2) leaves out.</li>
+<li>Alternative: pi/2 in three doubles below 2^31: three fewer
+operations, and 2^-55 less of r where x lies nearest a multiple.</li>
+</ul>
+<blockquote>
+<p><strong>Review.</strong> Taken: for, r good to its own last bits at
+every finite x, however near a multiple of pi/2, in double arithmetic
+and integers alone, the constants computed by the generator and the
+bounds in exact arithmetic from them, the worst case found again; Cody
+and Waite's path fast below 2^31, which holds nearly every angle a
+simulation turns through. Against: the fixed path costs some hundreds of
+nanoseconds past 2^31, where glibc's sine reduces in some 50; a
+320-digit string and <code>exponential_d.h</code>'s fixed point taken
+into a second header. The alternatives: Payne and Hanek's in doubles, a
+third reduction to prove; the long double reduction, against the
+family's contract; pi/2 in three parts, less margin. Recommended: as
+taken, the far path's speed revisited with the sine if its plain form
+needs it. Taken.</p>
+</blockquote>
+<p><strong>S512. <code>d_math_d_reduce_half_pi(x, &amp;q)</code>,
+public: r as a <code>dj_math_dd</code> pair (dd.h), within 2^-102 of x -
+k pi/2, relatively, at every finite x, and q, k mod 4, in [0, 4); |x| at
+most pi/4's double is (x, 0) and q 0; NaN and the infinities give NaN
+and q 0. Below 2^31 by Cody and Waite's path; past it by the fixed
+path's f as a pair, its first 53 bits exact and the rest rounded, times
+pi/2 as C0 + C1 by dd.h's product: within 2^-102.8. The same bits
+wherever it compiles, fused or not, since every operation is exact or
+one of dd.h's, and k is taken from an exact product. Where double is
+evaluated wider than double, a 32-bit x87, it refuses to compile, as
+exp_c and log_c do (ruling 4).</strong> A constant expression from
+C++14. The quadrant and the pair are what a sine, a cosine or an angle
+needs; simterp may take them for its own kernels.</p>
+<ul>
+<li>Alternative: the reduction kept internal until the sine needs it: no
+public name to freeze, and the terps' own kernels left to reduce for
+themselves.</li>
+<li>Alternative: r as one double: half the information, and the sine's
+phases need the pair.</li>
+<li>Alternative: on the x87, the fixed path for every x: it would
+compile there, its bits the same, at some 230 to 320 a call; the family
+refuses the x87 instead (ruling 4).</li>
+</ul>
+<blockquote>
+<p><strong>Review.</strong> Taken: for, the reduction the sine will
+take, public now for the terps' own kernels, with a stated bound and the
+same bits wherever it compiles. Against: a name and a pair type frozen
+at release; refused on the x87, where the wraps still work. The
+alternatives: internal until the sine; r as one double; the fixed path
+on the x87. Recommended: as taken. Taken.</p>
+</blockquote>
+<p><strong>S513. <code>d_math_d_wrap_pi(x)</code>, x's angle in [-pi,
+pi], x - 2 pi n for n the integer nearest x / (2 pi), and
+<code>d_math_d_wrap_two_pi(x)</code>, in [0, 2 pi), n the greatest
+integer at most x / (2 pi): each the double nearest the angle, at every
+finite x. pi and 2 pi are not doubles, and the double nearest each lies
+below it, so no result passes either end and no angle is pi itself; |x|
+at most pi's double is x, x in [0, 2 pi's double] is x, a zero's sign
+kept, and x in (-2^-60, 0) is 2 pi's double. The angle is the
+reduction's r as a pair plus c pi/2, c from -2 to 4 as q and r's sign
+give it, as a pair within 2^-102.3 of it, rounded where the interval of
+2^-100 rounds one way, as Ziv's method has it; where it does not, the
+fixed path: (q + f) pi/2 in fixed point, within 6.6 units of 2^-224,
+2^-160.4 of the angle at its least, rounded once. Where double is
+evaluated wider than double, a 32-bit x87, every x takes the fixed path,
+integer arithmetic and exact conversions: the same bits.</strong> That
+no double's angle lies within 2^-160.4 of a rounding boundary is not
+proven: of some 2^63 doubles, each might come some 2^-116 near by count,
+and the closest-vector search found the nearest it could, 2^-108.1, at
+0x1.270266022749ap+50 (S516). NaN and the infinities give NaN. A
+constant expression from C++14. Measured: <code>wrap_pi</code> 22 to 30
+ns a call and <code>wrap_two_pi</code> 19 to 49 ns below 2^31, 233 to
+366 ns past it, where the C library's remainder by 2 pi's double takes 8
+to 22 ns below 2^31 and up to 394 ns at 10^300.</p>
+<ul>
+<li>Alternative: <code>remainder(x, 2 pi)</code> with 2 pi's double, as
+most code does: wrong by n times 2 pi's error, which is already some
+2^-51 at n = 1 and a whole turn's worth past 2^52.</li>
+<li>Alternative: wrap_pi in [-pi, pi) or (-pi, pi]: the same, since no
+angle is pi; the double nearest pi is below it.</li>
+<li>Alternative: an exhaustive or lattice search for the hardest angle,
+to prove the fixed path's bound enough: some days of machine time, as
+the elementary functions' searches took; later, if the owner wants proof
+rather than count.</li>
+</ul>
+<blockquote>
+<p><strong>Review.</strong> Taken: for, the angle the needs list asks
+for, correctly rounded at every finite x, in some 20 to 25 ns below
+2^31, where the usual remainder by 2 pi's double is wrong by n times its
+error; the same bits on the x87 by the fixed path; 242 arguments within
+2^-100 of a midpoint checked, each declined by the pair path where it
+must be. Against: the fixed path's sufficiency rests on a count, not a
+proof, as no search has covered every double; the fixed path costs some
+hundreds of nanoseconds. The alternatives: the remainder by 2 pi's
+double; the other end of the turn, the same function; an exhaustive
+search, days of machine time. Recommended: as taken; a proof by search
+if the owner wants one. Taken.</p>
+</blockquote>
+<p><strong>S514. <code>d_math_d_wrap_180(x)</code>, x's angle in degrees
+in (-180, 180]: the exact remainder by 360 (<code>remainder.h</code>'s,
+pure arithmetic), in [-180, 180], with -180 taken as 180, so that each
+angle has one value; exact, a zero's sign kept.
+<code>d_math_d_wrap_360(x)</code>, in [0, 360): the exact remainder with
+x's sign (fmod), 360 more where it is negative, rounded once there, and
+a result that rounds to 360, the same angle as 0, given as +0. NaN and
+the infinities give NaN.</strong> Constant expressions from C++14.
+Degrees cost a remainder, and no reduction, 360 being a double:
+measured, 3 to 21 ns a call to 10^3, 37 to 126 ns at 10^6 to 10^9, and
+1.5 to 3.2 us at 10^300, where <code>remainder.h</code>'s exact
+remainder reduces a bit at a time.</p>
+<ul>
+<li>Alternative: radians alone, as the needs list names them: degrees
+then each caller's own, where a careless <code>fmod</code> gives -0 to
+360 the wrong way.</li>
+<li>Alternative: wrap_180 in [-180, 180), as some libraries give it: the
+same rule, the other end; (-180, 180] keeps 180 for the antimeridian, as
+maps write it.</li>
+<li>Alternative: the C library's remainder at run time: some 340 ns at
+10^300, where the pure one takes microseconds, and no constant
+expression.</li>
+</ul>
+<blockquote>
+<p><strong>Review.</strong> Taken: for, degrees with one value per
+angle, exact for (-180, 180] and rounded once for [0, 360), at a
+remainder's cost. Against: two more names the needs list did not ask for
+by name. The alternatives: radians alone; [-180, 180). Recommended: as
+taken. Taken.</p>
+</blockquote>
+<p><strong>S515. A new header, <code>c/modules/math/circular.h</code>,
+generated, the double family alone, the first part of step 55; it
+includes <code>exponential_d.h</code> for its fixed point and
+<code>remainder.h</code> for the degrees. Step 55 is done in three
+chunks: this one, the reduction and the wraps; the next, the sine and
+cosine correctly rounded, their phases on this reduction, and
+<code>sincos</code>, the plain forms switched where ruling 12 allows;
+the third, the Stumpff functions on them. The roadmap marks step 55
+begun and stays 36 of 62.</strong> <code>circular.h</code> holds 900
+lines; the sine's phases will take it past the owner's 4,000 only if
+split, as <code>exponential.h</code> was (S436).</p>
+<ul>
+<li>Alternative: the reduction in <code>exponential_d.h</code>, where
+the fixed point is: a file about exponentials holding the circle's
+reduction.</li>
+<li>Alternative: step 55 in one chunk: the sine's three phases and their
+proofs, the Stumpff functions and the wraps together, a zip too large to
+review at once.</li>
+</ul>
+<blockquote>
+<p><strong>Review.</strong> Taken: for, the circle's functions in a
+header of their own, beginning where the sine needs its reduction, step
+55 in three reviewable chunks. Against: a header that includes the
+exponential's part for its fixed point; the roadmap's count waits for
+the third chunk. The alternatives: the reduction in
+<code>exponential_d.h</code>; step 55 in one chunk. Recommended: as
+taken. Taken.</p>
+</blockquote>
+<p><strong>S516. The tests: <code>t_circular.c</code>, new, with
+<code>math_tests_circular_refs.h</code>, 1,137 arguments with their
+angles, quadrants and pairs from 1,400 bits by mpmath
+(<code>tools/refs_circular_c69.py</code>): 640 random over every binade,
+220 near multiples of pi/2, 242 whose angle lies within 2^-100 of a
+rounding midpoint, 35 edges. Each wrap exact at each, the fixed path
+alone at every argument it takes, the pair path wherever it decides and
+declining the 192 within 2^-100.5; the reduction's quadrant and its pair
+within 2^-102; at a million random arguments below 2^40 and 200,000 over
+the whole range, each wrap the fixed path's value; below 2^31, the
+reduction's two paths within 2^-101 of each other at a million; the
+degree wraps against the C library's remainder and fmod at a million;
+the specials; from C++14, each function a constant expression with the
+run time's bits, through each path. The hard arguments were found by a
+closest-vector search in each binade
+(<code>tools/hard_wrap_c69.py</code>).</strong> Measured: the 16 builds
+of the full tier and the 6 of the fused tier pass (in 89 and 33
+seconds).</p>
+<ul>
+<li>Alternative: random arguments alone: none of a million below 2^40
+comes within 2^-100 of a midpoint, so the fixed path would never be
+shown to decide.</li>
+</ul>
+<blockquote>
+<p><strong>Review.</strong> Taken: for, every path checked alone at
+every argument it takes, the hard arguments found where random ones
+never reach and the pair path shown to decline them, the references made
+at 1,400 bits, not by the code's method; constant expressions through
+each path. Against: 242 hard arguments from the binades the search
+covers, x from 2^40 to 2^54; the count, not the references, carries the
+fixed path's sufficiency. The alternative: random arguments alone.
+Recommended: as taken. Taken.</p>
+</blockquote>
+<p><strong>S517. The delivery: chunk 69's zip over the owner's main
+<code>527a9661</code> with chunk 68's zip laid first, as chunk 68 has
+not landed; it holds chunk 69's files alone, at the tree's root, and
+goes after chunk 68's.</strong> The merge window is run as
+<code>--base-of</code>, chunk 68's zip over main, then chunk 69's.</p>
+<ul>
+<li>Alternative: one zip of both chunks: chunk 68's zip, already sent,
+sent again inside the second.</li>
+</ul>
+<blockquote>
+<p><strong>Review.</strong> Taken: for, the zip lays over main as chunk
+68's leaves it, chunk 69's own files alone. Against: it waits for chunk
+68's. The alternative: one zip of both, chunk 68's sent twice.
+Recommended: as taken. Taken.</p>
 </blockquote>
 </body>
 </html>

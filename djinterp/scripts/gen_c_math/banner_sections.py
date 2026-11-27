@@ -136,6 +136,19 @@ SECTIONS = {
         "None: the two forms give the same bits, so which runs changes "
         "nothing.",
         LEVELS),
+    "circular.h": (
+        "Include it from C or C++. d_math_d_reduce_half_pi gives x's "
+        "quadrant and its remainder by pi/2 as a dj_math_dd pair (dd.h); "
+        "d_math_d_wrap_pi and d_math_d_wrap_two_pi give x's angle in "
+        "[-pi, pi] and [0, 2 pi), d_math_d_wrap_180 and d_math_d_wrap_360 "
+        "in (-180, 180] and [0, 360). Double alone: the double family's "
+        "work in 6a (S511).",
+        "None: each function has one form, and its path is the argument's, "
+        "not the caller's; the bits are the same either way.",
+        PURE + " Where double is evaluated wider than double, a 32-bit "
+        "x87, d_math_d_reduce_half_pi needs -msse2 -mfpmath=sse, and the "
+        "wraps take their fixed path (math_common.h's "
+        "D_MATH_DBL_EVAL_WIDE)."),
     "scalar.h": (
         "Include it from C or C++. d_math_d_abs, _copysign and _is_finite, "
         "d_math_d_min and _max, IEEE 754-2019's minimum and maximum, "

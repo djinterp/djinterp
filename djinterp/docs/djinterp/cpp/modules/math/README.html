@@ -1978,6 +1978,31 @@ run by hand with each knob set (S507). Cut on the owner's main of
 renumbering gave 34 parts, so that <code>--check</code> passes there
 again (S509), and writes this module's documents as HTML in
 <code>docs/</code>, as his rule on file kinds has them (S510).</p>
+<p><strong>The reduction by pi/2 and the wraps.</strong> Chunk 69 (S511
+to S517), step 55 begun, the first of its three chunks, as ruling 15
+places the angle's wrapping with the sine and cosine.
+<code>c/modules/math/circular.h</code>, new and generated, the double
+family alone, in double arithmetic and integers - no long double and no
+C library - and constant expressions from C++14.
+<code>d_math_d_reduce_half_pi(x, &amp;q)</code> gives x = (4 j + q) pi/2
++ r as the quadrant q and r as a <code>dj_math_dd</code> pair within
+2^-102 of itself, relatively, at every finite x, however near a multiple
+of pi/2: Cody and Waite's way below 2^31, pi/2 in four doubles and every
+cancelling sum exact, and Payne and Hanek's past it, in integer columns
+of 16-bit limbs against 290 bits of 2/pi, the constants computed by the
+generator with integers alone (S511, S512).
+<code>d_math_d_wrap_pi</code> and <code>d_math_d_wrap_two_pi</code> give
+x's angle in [-pi, pi] and in [0, 2 pi), each the double nearest it, at
+every finite x: the reduction's pair, rounded where its bound allows,
+and the fixed path where it does not; 242 arguments within 2^-100 of a
+rounding midpoint, found by a closest-vector search, the nearest
+2^-108.1, check it (S513, S516). <code>d_math_d_wrap_180</code> and
+<code>d_math_d_wrap_360</code> give the angle in degrees in (-180, 180],
+exactly, and in [0, 360), rounded once (S514). Where double is evaluated
+wider than double, a 32-bit x87, the wraps take their fixed path, the
+same bits, and the reduction refuses to compile. The next chunks give
+the sine and cosine, correctly rounded on this reduction, and the
+Stumpff functions (S515).</p>
 <p><strong>Decimal text.</strong> <code>decimal.h</code> reads a decimal
 number of any length as the nearest <code>float</code>,
 <code>double</code> or <code>long double</code>, ties to even, whatever
@@ -2038,6 +2063,8 @@ is unordered with everything, as a NaN is.</p>
                        knob or at run time (chunk 68); in parts
   dd.h                 pairs of doubles: exact sums and products, proven
                        bounds (chunk 51)
+  circular.h           the double reduction by pi/2, and an angle wrapped
+                       into one turn, in radians and degrees (chunk 69)
   self_test.h          the double family&#39;s start-up self-test; whether the
                        build fuses (chunk 51)
   tangent.h            tan, atan, atan2
@@ -2531,6 +2558,11 @@ log's speed, next</td>
 fast log ours or the C library's by a knob or a run-time option, for the
 most a user can configure</td>
 </tr>
+<tr class="even">
+<td>2026.11.27</td>
+<td>chunk 68's decisions ruled, each as recommended (10:05): step 55
+next</td>
+</tr>
 </tbody>
 </table>
 <hr />
@@ -2593,14 +2625,14 @@ chunk 65's after chunk 64's (S493), chunk 66's after chunk 65's (S499),
 and chunk 67's after chunk 66's (S504). Chunks 55 and 56 landed on his
 main on 2026.11.24, each as its zip, and chunks 58 to 67 in his main
 <code>29c0e4f4</code> on 2026.11.25, each as cut; chunk 68's goes over
-his main of 2026.11.26, <code>527a9661</code>, alone (S508). From
-2026.11.18 the lane's notes and deliveries go out once a day. From
-2026.11.26 the module's documents are HTML pages in
-<code>docs/djinterp/cpp/modules/math/</code>, as the owner's rule on
-file kinds has them; the lane keeps their Markdown with its records and
-writes each page from it by pandoc and the tree's hyphen pass, as his
-conversion did, the pages of his main coming out byte for byte
-(S510).</p>
+his main of 2026.11.26, <code>527a9661</code>, alone (S508), and chunk
+69's after chunk 68's (S517). From 2026.11.18 the lane's notes and
+deliveries go out once a day. From 2026.11.26 the module's documents are
+HTML pages in <code>docs/djinterp/cpp/modules/math/</code>, as the
+owner's rule on file kinds has them; the lane keeps their Markdown with
+its records and writes each page from it by pandoc and the tree's hyphen
+pass, as his conversion did, the pages of his main coming out byte for
+byte (S510).</p>
 <p>Outside <code>cpp/modules/math/</code>, <code>c/modules/math/</code>
 and their tests, this lane changed:</p>
 <ul>
