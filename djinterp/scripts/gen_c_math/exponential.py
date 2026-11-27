@@ -1079,6 +1079,7 @@ TABLE OF CONTENTS
 #include "./elementary.h"    // d_internal_math_ld_two_sum, *_round_pair
 #include "./float_order.h"   // d_internal_math_*_pow2, *_binade_of
 #include "./math_common.h"   // D_MATH_FN
+#include "../../../config/c/modules/math/cfg_exponential.h"  // D_CFG_MATH_*_FAST
 """
 
 EXPONENTIAL_TAIL = r"""
@@ -1122,15 +1123,16 @@ def exponential():
         "are the C library's (S479, S497); its exp_fast and log_fast are e^x",
         "within 0.511 of an ulp and log x within 0.53 of one, at the C library's",
         "time, for a caller who wants that time rather than the correct rounding",
-        "(S490, S500). The other _c forms are computed once, in long double, by",
-        "kernels that carry their reduced argument and last sum as exact pairs,",
-        "and rounded once to the family: a long double result is within an ulp of",
-        "the exact one, exp's, log1p's and expm1's within 0.53 of one, a float or",
-        "double result correctly rounded but where the exact value lies within",
-        "the kernel's error of a midpoint. C++ before C++11 has no exp2, log2,",
-        "log1p or expm1, and there the plain forms are the _c ones. No overflow",
-        "is evaluated, as a constant expression forbids: an infinity is HUGE_VAL,",
-        "a NaN NAN.",
+        "(S490, S500), or the C library's exp and log, as a knob of the build or",
+        "an argument at run time chooses (S505, S506). The other _c forms are",
+        "computed once, in long double, by kernels that carry their reduced",
+        "argument and last sum as exact pairs, and rounded once to the family: a",
+        "long double result is within an ulp of the exact one, exp's, log1p's and",
+        "expm1's within 0.53 of one, a float or double result correctly rounded",
+        "but where the exact value lies within the kernel's error of a midpoint.",
+        "C++ before C++11 has no exp2, log2, log1p or expm1, and there the plain",
+        "forms are the _c ones. No overflow is evaluated, as a constant",
+        "expression forbids: an infinity is HUGE_VAL, a NaN NAN.",
     ]
     text = banner("exponential.h", lines, "2026.10.08", "2026.11.25")
     text += "\n" + EXPONENTIAL_HEAD

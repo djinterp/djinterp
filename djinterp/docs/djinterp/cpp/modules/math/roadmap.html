@@ -284,7 +284,11 @@ glibc's time within 0.511 of an ulp (chunk 65, step 53 of 62).
 <code>log_c</code> is faster, the same bits, and the plain double log is
 the correctly rounded one (chunk 66, step 54 of 62).
 <code>d_math_d_log_fast</code> gives glibc's time within 0.53 of an ulp
-(chunk 67, before step 55). <code>reify</code> (chunk 59) makes a
+(chunk 67, before step 55). Each fast form is djinterp's own or the C
+library's, by a knob of the build or an argument at run time (chunk 68).
+Chunks 55 to 67 are on the owner's main since 2026.11.25
+(<code>29c0e4f4</code>); chunk 68 is cut on his main of 2026.11.26
+(<code>527a9661</code>). <code>reify</code> (chunk 59) makes a
 compile-time expression a term of the run-time language, which prints,
 simplifies and evaluates it by name. Linear algebra has an opt-in lazy
 type from C++11 (chunk 60), each element the eager bits.</p>
@@ -1755,7 +1759,10 @@ normalize, sincos, exp. For exp the owner asked for one on 2026.11.24,
 unless <code>exp_c</code> can be made as fast as glibc's (T2, step 53;
 S487): it could not, and the double <code>d_math_d_exp_fast</code> is
 done (chunk 65, S490); the double <code>d_math_d_log_fast</code> beside
-it, as the owner's decision 71 asked (chunk 67, S500).</label></li>
+it, as the owner's decision 71 asked (chunk 67, S500); each ours or the
+C library's by <code>cfg_exponential.h</code>'s knobs or
+<code>_with</code> at run time, as his note on <code>log_fast</code>'s
+ruling asked (chunk 68, S505, S506).</label></li>
 </ul>
 <h2 id="phase-7--comparison-with-other-libraries-decision-5">Phase 7 —
 Comparison with other libraries (decision 5)</h2>
@@ -2014,8 +2021,11 @@ his rulings of 08:38 the same day, each as recommended; and chunk 66
 made step 54, log's speed step and the plain log correctly rounded (S495
 to S499), which stand by his rulings of 14:42 the same day, each as
 recommended; and chunk 67, as his decision 71 of then asked, a fast log
-beside <code>log_c</code> (S500 to S504). The work rulings 12 to 15 make
-is Phase 9, below, in ruling 15's order. The outstanding decisions of
+beside <code>log_c</code> (S500 to S504), which stand by his rulings of
+17:52 the same day, each as recommended; and chunk 68, as his note on
+the first of them asked, each fast form ours or the C library's by a
+knob or at run time (S505 to S508). The work rulings 12 to 15 make is
+Phase 9, below, in ruling 15's order. The outstanding decisions of
 <code>decisions.html</code>, its section 1, by group and urgency, and the
 suggestions of <code>comparison.html</code>'s section 9 are the owner's to
 take or leave before then.</p>

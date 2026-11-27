@@ -912,7 +912,10 @@ d_math_d_log(
 // x, log_c's answer, and log_c's too where the language cannot read a
 // double's bits (D_INTERNAL_MATH_D_LN_BITS); where double is evaluated wider
 // than double, the C library's log. Double alone: no float, long double or
-// C++ overload, and never a constant expression (S501).
+// C++ overload, and never a constant expression (S501). It is the C
+// library's log too where cfg_exponential.h's D_CFG_MATH_LOG_FAST says so,
+// for the build; d_math_d_log_fast_with takes either form call by call, at
+// run time, as its argument names it (S505, S506).
 
 // D_INTERNAL_MATH_D_LN_FAST_TABLE
 //   log_fast's: for i from 0 to 127, row i holding z in [0x1.6p-1 + i 2^-8,
@@ -1064,14 +1067,15 @@ d_internal_math_d_ln_fast_near(
 #endif  // D_INTERNAL_MATH_D_LN_BITS
 }
 
-// d_math_d_log_fast
-//   log(_x) within @LFBOUND@ of an ulp, at the C library's time; see above.
+#if !D_MATH_DBL_EVAL_WIDE
+// d_internal_math_d_ln_fast
+//   log(_x) within @LFBOUND@ of an ulp, at the C library's time: log_fast's
+// own formula; see above.
 D_MATH_FN_RT double
-d_math_d_log_fast(
+d_internal_math_d_ln_fast(
     double _x
 )
 {
-#if !D_MATH_DBL_EVAL_WIDE
     if (d_internal_math_d_ln_fast_near(_x))
     {
         return d_internal_math_d_ln_fast_near1(_x);
@@ -1085,10 +1089,60 @@ d_math_d_log_fast(
 #endif  // D_INTERNAL_MATH_D_LN_BITS
 
     return d_math_d_log_c(_x);
-#elif defined(__cplusplus)
+}
+#endif  // !D_MATH_DBL_EVAL_WIDE
+
+// d_internal_math_d_ln_library
+//   log(_x) by the C library (std::log in C++).
+D_MATH_FN_RT double
+d_internal_math_d_ln_library(
+    double _x
+)
+{
+#ifdef __cplusplus
     return std::log(_x);
 #else
     return log(_x);
+#endif  // __cplusplus
+}
+
+// d_math_d_log_fast
+//   log(_x) at the C library's time: the own formula, within @LFBOUND@ of an
+// ulp, or the C library's log, as D_CFG_MATH_LOG_FAST says
+// (cfg_exponential.h); the C library's where double is evaluated wider than
+// double; see above.
+D_MATH_FN_RT double
+d_math_d_log_fast(
+    double _x
+)
+{
+#if ( (!D_MATH_DBL_EVAL_WIDE) &&                                              \
+      (D_CFG_MATH_LOG_FAST == D_CFG_MATH_FAST_OWN) )
+    return d_internal_math_d_ln_fast(_x);
+#else
+    return d_internal_math_d_ln_library(_x);
+#endif  // !D_MATH_DBL_EVAL_WIDE && D_CFG_MATH_LOG_FAST is the own form
+}
+
+// d_math_d_log_fast_with
+//   log(_x) by the form _form names, chosen at run time: the C library's log
+// where it is D_CFG_MATH_FAST_LIBRARY, the own formula for any other value,
+// D_CFG_MATH_FAST_OWN among them, whatever D_CFG_MATH_LOG_FAST says; the C
+// library's where double is evaluated wider than double.
+D_MATH_FN_RT double
+d_math_d_log_fast_with(
+    double _x,
+    int    _form
+)
+{
+#if !D_MATH_DBL_EVAL_WIDE
+    return (_form == D_CFG_MATH_FAST_LIBRARY)
+        ? d_internal_math_d_ln_library(_x)
+        : d_internal_math_d_ln_fast(_x);
+#else
+    (void)_form;
+
+    return d_internal_math_d_ln_library(_x);
 #endif  // !D_MATH_DBL_EVAL_WIDE
 }
 """

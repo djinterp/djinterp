@@ -55,6 +55,7 @@ TABLE OF CONTENTS
 #include "./elementary.h"    // d_internal_math_ld_two_sum, *_round_pair
 #include "./float_order.h"   // d_internal_math_*_pow2, *_binade_of
 #include "./math_common.h"   // D_MATH_FN
+#include "../../../config/c/modules/math/cfg_exponential.h"  // D_CFG_MATH_*_FAST
 
 // no multiply and add fused by the compiler in this header, where it can be
 // told; the including file's state is restored at the end (math_common.h,

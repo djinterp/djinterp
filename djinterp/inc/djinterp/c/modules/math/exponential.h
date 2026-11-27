@@ -17,15 +17,16 @@
 * are the C library's (S479, S497); its exp_fast and log_fast are e^x
 * within 0.511 of an ulp and log x within 0.53 of one, at the C library's
 * time, for a caller who wants that time rather than the correct rounding
-* (S490, S500). The other _c forms are computed once, in long double, by
-* kernels that carry their reduced argument and last sum as exact pairs,
-* and rounded once to the family: a long double result is within an ulp of
-* the exact one, exp's, log1p's and expm1's within 0.53 of one, a float or
-* double result correctly rounded but where the exact value lies within
-* the kernel's error of a midpoint. C++ before C++11 has no exp2, log2,
-* log1p or expm1, and there the plain forms are the _c ones. No overflow
-* is evaluated, as a constant expression forbids: an infinity is HUGE_VAL,
-* a NaN NAN.
+* (S490, S500), or the C library's exp and log, as a knob of the build or
+* an argument at run time chooses (S505, S506). The other _c forms are
+* computed once, in long double, by kernels that carry their reduced
+* argument and last sum as exact pairs, and rounded once to the family: a
+* long double result is within an ulp of the exact one, exp's, log1p's and
+* expm1's within 0.53 of one, a float or double result correctly rounded
+* but where the exact value lies within the kernel's error of a midpoint.
+* C++ before C++11 has no exp2, log2, log1p or expm1, and there the plain
+* forms are the _c ones. No overflow is evaluated, as a constant
+* expression forbids: an infinity is HUGE_VAL, a NaN NAN.
 *
 *   Its text is in 6 parts, each a header that stands alone, included
 * below in order (S436).
@@ -47,15 +48,21 @@
 * -------
 *   Which form runs is the caller's, by name: the _c form, a constant
 * expression, the plain one on the C library, or for double's exponential and
-* logarithm the fast one; nothing is chosen at run time.
+* logarithm the fast one. d_math_d_exp_fast_with and d_math_d_log_fast_with
+* take the fast form's own formula or the C library's, as their argument,
+* D_CFG_MATH_FAST_OWN or D_CFG_MATH_FAST_LIBRARY, names it at run time (S506);
+* nothing else is chosen at run time.
 *
 * CONFIGURATION
 * -------------
-*   None of its own: it compiles as C, and as C++ from ISO strict C++98; its _c
-* forms and its pure kernels are constant expressions from C++14
-* (math_common.h's D_MATH_FN). Where double is evaluated wider than double, a
-* 32-bit x87, the double family's correctly rounded forms need -msse2
-* -mfpmath=sse (math_common.h's D_MATH_DBL_EVAL_WIDE).
+*   Three knobs (config/c/modules/math/cfg_exponential.h): D_CFG_MATH_EXP_FAST
+* and D_CFG_MATH_LOG_FAST, whether d_math_d_exp_fast and d_math_d_log_fast are
+* djinterp's own formulas, the default, or the C library's exp and log, and
+* D_CFG_MATH_FAST, both at once (S505). The header compiles as C, and as C++
+* from ISO strict C++98; its _c forms and its pure kernels are constant
+* expressions from C++14 (math_common.h's D_MATH_FN). Where double is evaluated
+* wider than double, a 32-bit x87, the double family's correctly rounded forms
+* need -msse2 -mfpmath=sse (math_common.h's D_MATH_DBL_EVAL_WIDE).
 *
 *
 * path:      /inc/djinterp/c/modules/math/exponential.h

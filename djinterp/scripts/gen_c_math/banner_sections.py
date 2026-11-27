@@ -93,9 +93,17 @@ SECTIONS = {
         + FAMILY,
         "Which form runs is the caller's, by name: the _c form, a constant "
         "expression, the plain one on the C library, or for double's "
-        "exponential and logarithm the fast one; nothing is chosen at run "
-        "time.",
-        LEVELS + WIDE),
+        "exponential and logarithm the fast one. d_math_d_exp_fast_with "
+        "and d_math_d_log_fast_with take the fast form's own formula or "
+        "the C library's, as their argument, D_CFG_MATH_FAST_OWN or "
+        "D_CFG_MATH_FAST_LIBRARY, names it at run time (S506); nothing "
+        "else is chosen at run time.",
+        "Three knobs (config/c/modules/math/cfg_exponential.h): "
+        "D_CFG_MATH_EXP_FAST and D_CFG_MATH_LOG_FAST, whether "
+        "d_math_d_exp_fast and d_math_d_log_fast are djinterp's own "
+        "formulas, the default, or the C library's exp and log, and "
+        "D_CFG_MATH_FAST, both at once (S505). The header "
+        + BUILD[len("it "):] + WIDE),
     "tangent.h": (
         "Include it from C or C++. d_math_d_tan, _atan and _atan2 call the "
         "C library; their _c forms compute the same in pure arithmetic. "

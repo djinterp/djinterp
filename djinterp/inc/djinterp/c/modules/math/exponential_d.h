@@ -52,6 +52,7 @@ TABLE OF CONTENTS
 #include "./elementary.h"    // d_internal_math_ld_two_sum, *_round_pair
 #include "./float_order.h"   // d_internal_math_*_pow2, *_binade_of
 #include "./math_common.h"   // D_MATH_FN
+#include "../../../config/c/modules/math/cfg_exponential.h"  // D_CFG_MATH_*_FAST
 // the parts before this one whose names it uses
 #include "./exponential_kernels.h"
 
@@ -226,7 +227,10 @@ d_internal_math_d_log_arg_of(
 // the table's pair, rounded once; the bound proven by Gappa whether or not
 // the compiler fuses a multiply and an add (chunk 65's record, proofs/).
 // Outside 2^-53 < |x| <= 708 it is exp_c, and where double is evaluated
-// wider than double, the C library's exp (S490).
+// wider than double, the C library's exp (S490). It is the C library's exp
+// too where cfg_exponential.h's D_CFG_MATH_EXP_FAST says so, for the build;
+// d_math_d_exp_fast_with takes either form call by call, at run time, as
+// its argument names it (S505, S506).
 
 #define D_INTERNAL_MATH_D_EXP_TABLE                                            \
     {                                                                          \
@@ -1759,18 +1763,19 @@ d_math_d_exp(
 #endif  // !D_MATH_DBL_EVAL_WIDE
 }
 
-// d_math_d_exp_fast
-//   e^_x within 0.511 of an ulp, at the C library's time; see above. r is
+#if !D_MATH_DBL_EVAL_WIDE
+// d_internal_math_d_exp_fast_own
+//   e^_x within 0.511 of an ulp, at the C library's time: exp_fast's own
+// formula; see above. r is
 // x - k L1 - k L2F rounded, within 2^-62 of x - k ln2/128, |r| < 0.00271;
 // T (1 + p) is thi + (tlo + thi p), within 2^-58.5 of it before its last
 // rounding where it is at least 1, and 2^-59.7 where it is below; the
 // product by 2^e is exact, the result normal and finite, as exp_c's is.
 D_MATH_FN_RT double
-d_math_d_exp_fast(
+d_internal_math_d_exp_fast_own(
     double _x
 )
 {
-#if !D_MATH_DBL_EVAL_WIDE
     // 128/ln2; ln2/128 = L1 + L2F but for 2^-98.4, L1 of 35 bits
     const double invl  = (3248660424278399.0 / 17592186044416.0);
     const double l1    = (23816355775.0 / 4398046511104.0);
@@ -1803,10 +1808,59 @@ d_math_d_exp_fast(
     }
 
     return d_math_d_exp_c(_x);
-#elif defined(__cplusplus)
+}
+#endif  // !D_MATH_DBL_EVAL_WIDE
+
+// d_internal_math_d_exp_library
+//   e^_x by the C library (std::exp in C++).
+D_MATH_FN_RT double
+d_internal_math_d_exp_library(
+    double _x
+)
+{
+#ifdef __cplusplus
     return std::exp(_x);
 #else
     return exp(_x);
+#endif  // __cplusplus
+}
+
+// d_math_d_exp_fast
+//   e^_x at the C library's time: the own formula, within 0.511 of an ulp,
+// or the C library's exp, as D_CFG_MATH_EXP_FAST says (cfg_exponential.h);
+// the C library's where double is evaluated wider than double; see above.
+D_MATH_FN_RT double
+d_math_d_exp_fast(
+    double _x
+)
+{
+#if ( (!D_MATH_DBL_EVAL_WIDE) &&                                              \
+      (D_CFG_MATH_EXP_FAST == D_CFG_MATH_FAST_OWN) )
+    return d_internal_math_d_exp_fast_own(_x);
+#else
+    return d_internal_math_d_exp_library(_x);
+#endif  // !D_MATH_DBL_EVAL_WIDE && D_CFG_MATH_EXP_FAST is the own form
+}
+
+// d_math_d_exp_fast_with
+//   e^_x by the form _form names, chosen at run time: the C library's exp
+// where it is D_CFG_MATH_FAST_LIBRARY, the own formula for any other value,
+// D_CFG_MATH_FAST_OWN among them, whatever D_CFG_MATH_EXP_FAST says; the C
+// library's where double is evaluated wider than double.
+D_MATH_FN_RT double
+d_math_d_exp_fast_with(
+    double _x,
+    int    _form
+)
+{
+#if !D_MATH_DBL_EVAL_WIDE
+    return (_form == D_CFG_MATH_FAST_LIBRARY)
+        ? d_internal_math_d_exp_library(_x)
+        : d_internal_math_d_exp_fast_own(_x);
+#else
+    (void)_form;
+
+    return d_internal_math_d_exp_library(_x);
 #endif  // !D_MATH_DBL_EVAL_WIDE
 }
 

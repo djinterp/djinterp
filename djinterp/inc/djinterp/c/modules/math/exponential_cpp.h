@@ -49,6 +49,7 @@ TABLE OF CONTENTS
 #include "./elementary.h"    // d_internal_math_ld_two_sum, *_round_pair
 #include "./float_order.h"   // d_internal_math_*_pow2, *_binade_of
 #include "./math_common.h"   // D_MATH_FN
+#include "../../../config/c/modules/math/cfg_exponential.h"  // D_CFG_MATH_*_FAST
 // the parts before this one whose names it uses
 #include "./exponential_f.h"
 #include "./exponential_d.h"

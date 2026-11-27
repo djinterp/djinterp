@@ -734,8 +734,10 @@ and <code>mat.h</code> in four - each part a header that stands alone,
 named for its header and what it holds (<code>decomp_f.h</code>,
 <code>decomp_f_eigen_c.h</code>, ..., <code>decomp_cpp.h</code>), and
 the header of the name includes them in order, so that an includer sees
-the same code in the same order (S436). It aligns each parameter list's
-names (S435).</p>
+the same code in the same order (S436). A part that holds a section box
+of its own opens with a table of contents, as the owner's renumbering of
+2026.11.25 gave it (S509). It aligns each parameter list's names
+(S435).</p>
 <p><strong>Exact rationals.</strong> <code>rational.h</code> holds
 rationals over the widest integer, <code>dj_math_imax</code>, in one
 reduced form. Each kernel either stores the exact result or stores
@@ -1949,6 +1951,33 @@ their own, <code>exponential_d_log.h</code> (S502).
 and within each path's bound of the exact value at ten million
 arguments, about nine seams, and <code>log_c</code>'s value where it
 hands over (S503).</p>
+<p><strong>The fast forms' knob.</strong> Chunk 68 (S505 to S508), as
+the owner's note on his ruling of <code>log_fast</code> asked: ours or
+the C library's, by a knob of the build or an option at run time, for
+the most a user can configure. A new
+<code>config/c/modules/math/cfg_exponential.h</code> holds three knobs:
+<code>D_CFG_MATH_EXP_FAST</code> and <code>D_CFG_MATH_LOG_FAST</code>,
+whether <code>d_math_d_exp_fast</code> and
+<code>d_math_d_log_fast</code> are djinterp's own formulas, the default
+(<code>D_CFG_MATH_FAST_OWN</code>), or the C library's exp and log
+(<code>D_CFG_MATH_FAST_LIBRARY</code>), and
+<code>D_CFG_MATH_FAST</code>, both at once; a misspelled value is
+refused at compile time (S505). At run time,
+<code>d_math_d_exp_fast_with(x, form)</code> and
+<code>d_math_d_log_fast_with(x, form)</code> take either form call by
+call, whatever the knobs say: no setting is held by the library, whose
+inline functions are static in each C translation unit, so the caller
+keeps its choice where it likes; the own form through them costs a few
+hundredths of a nanosecond more, a quarter at most in the runs timed
+(S506). On a 32-bit x87 both are the C library's, as before; the plain
+exp and log stay correctly rounded, as ruling 12 has them.
+<code>t_exponential</code> checks each form bit for bit at a million
+arguments, and the plain fast names the forms their knobs name; it was
+run by hand with each knob set (S507). Cut on the owner's main of
+2026.11.26, it teaches the generator the tables of contents the
+renumbering gave 34 parts, so that <code>--check</code> passes there
+again (S509), and writes this module's documents as HTML in
+<code>docs/</code>, as his rule on file kinds has them (S510).</p>
 <p><strong>Decimal text.</strong> <code>decimal.h</code> reads a decimal
 number of any length as the nearest <code>float</code>,
 <code>double</code> or <code>long double</code>, ties to even, whatever
@@ -2005,7 +2034,8 @@ is unordered with everything, as a NaN is.</p>
                        arithmetic (chunks 51 and 52), the plain double
                        exp and log those (chunks 63 and 66); the double
                        exp_fast and log_fast within 0.511 and 0.53 of an
-                       ulp (chunks 65 and 67); in parts
+                       ulp (chunks 65 and 67), or the C library&#39;s, by a
+                       knob or at run time (chunk 68); in parts
   dd.h                 pairs of doubles: exact sums and products, proven
                        bounds (chunk 51)
   self_test.h          the double family&#39;s start-up self-test; whether the
@@ -2071,11 +2101,16 @@ inc/djinterp/cpp/modules/math/          the C++ faces
                        a map of them; expr, the handle, which includes
                        them all
   math.hpp             umbrella: every header of the module
+
+docs/djinterp/cpp/modules/math/     the module&#39;s documents, HTML (S510)
   README.html, roadmap.html, decisions.html, comparison.html
 
 inc/djinterp/config/c/modules/math/     the C core&#39;s knobs
   cfg_value.h          how every box counts its holders
   cfg_value_wide.h     where the wide integer&#39;s boxes are stored
+  cfg_mat.h            how far the matrices&#39; solve refines (chunk 49)
+  cfg_exponential.h    the fast exp and log: djinterp&#39;s or the C
+                       library&#39;s (chunk 68)
 
 inc/djinterp/config/cpp/modules/math/expr/
   cfg_expr.h           the language&#39;s knobs: a compiled term&#39;s stack
@@ -2490,6 +2525,12 @@ log's speed, next</td>
 <td>chunk 66's decisions ruled, each as recommended (14:42); decision
 71: a fast log next, in chunk 67, before step 55</td>
 </tr>
+<tr class="odd">
+<td>2026.11.25</td>
+<td>chunk 67's decisions ruled, each as recommended (17:52); on 72, the
+fast log ours or the C library's by a knob or a run-time option, for the
+most a user can configure</td>
+</tr>
 </tbody>
 </table>
 <hr />
@@ -2549,8 +2590,17 @@ chunk 58's laid too (S462), and chunk 60's after chunk 59's (S468),
 chunk 61's after chunk 60's (S473), chunk 62's after chunk 61's (S477),
 chunk 63's after chunk 62's (S482), chunk 64's after chunk 63's (S488),
 chunk 65's after chunk 64's (S493), chunk 66's after chunk 65's (S499),
-and chunk 67's after chunk 66's (S504). From 2026.11.18 the lane's notes
-and deliveries go out once a day.</p>
+and chunk 67's after chunk 66's (S504). Chunks 55 and 56 landed on his
+main on 2026.11.24, each as its zip, and chunks 58 to 67 in his main
+<code>29c0e4f4</code> on 2026.11.25, each as cut; chunk 68's goes over
+his main of 2026.11.26, <code>527a9661</code>, alone (S508). From
+2026.11.18 the lane's notes and deliveries go out once a day. From
+2026.11.26 the module's documents are HTML pages in
+<code>docs/djinterp/cpp/modules/math/</code>, as the owner's rule on
+file kinds has them; the lane keeps their Markdown with its records and
+writes each page from it by pandoc and the tree's hyphen pass, as his
+conversion did, the pages of his main coming out byte for byte
+(S510).</p>
 <p>Outside <code>cpp/modules/math/</code>, <code>c/modules/math/</code>
 and their tests, this lane changed:</p>
 <ul>
@@ -2568,7 +2618,10 @@ there do;</li>
 <li><code>scripts/gen_c_math_float.py</code> (new), and its modules,
 <code>scripts/gen_c_math/</code> (new, S439);</li>
 <li><code>config/c/modules/math/cfg_value_wide.h</code> (new), the wide
-integer's allocation hooks;</li>
+integer's allocation hooks, and its neighbours <code>cfg_value.h</code>,
+<code>cfg_mat.h</code> and <code>cfg_exponential.h</code> (new, chunk
+68), with <code>config/cpp/modules/math/expr/cfg_expr.h</code>, math's
+other knobs;</li>
 <li><code>cpp/modules/parse/expression/</code>'s four headers
 <code>expression_ops.hpp</code>, <code>expression_parse.hpp</code>,
 <code>expression_render.hpp</code> and

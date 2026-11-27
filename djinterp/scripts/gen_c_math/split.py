@@ -194,6 +194,35 @@ def guard_of(name):
     return "DJINTERP_C_MATH_" + re.sub(r"\W", "_", name[:-2]).upper() + "_H"
 
 
+def part_contents(piece):
+    """The table of contents dcheck --renumber gave each part on main
+    (112915f3), as the style guide's Tables of Contents has it: each
+    section box's heading in the part, a rule under it, the subsections
+    under it by their numbers and a subsection's numbered items by their
+    names; nothing where the part has no section box of its own."""
+    lines = piece.split("\n")
+    rows = []
+    for i, line in enumerate(lines):
+        m = re.match(r"// (\d+)\.  (\S.*)$", line)
+        if m and (i > 0) and lines[i - 1].startswith("//===="):
+            rows += [m.group(1) + ".  " + m.group(2),
+                     "    " + "-" * len(m.group(2))]
+            continue
+        if not rows:
+            continue
+        m = re.match(r"// \d+\.(\d+)    (\S.*)$", line)
+        if m:
+            rows.append("    %s.  %s" % (m.group(1), m.group(2)))
+            continue
+        m = re.match(r"// \d+\.\d+\.(\d+)$", line)
+        if m and (i + 1 < len(lines)) and lines[i + 1].startswith("// "):
+            rows.append("         %s.  %s" % (m.group(1), lines[i + 1][3:]))
+    if not rows:
+        return ""
+    return ("/*\nTABLE OF CONTENTS\n=================\n" +
+            "\n".join(rows) + "\n*/\n\n")
+
+
 def split_header(name, text, spec):
     """{file: text}: the header of <name>, which includes its parts, and
     each part, from the generated <text> and the parts' <spec>."""
@@ -268,7 +297,7 @@ def split_header(name, text, spec):
                    + lines_[1:], PART_CREATED_AT.get(part, PART_CREATED),
                    PART_REVISED.get(part, PART_DATE),
                    tuple(t % {"header": name, "count": NUMBERS[len(spec)]}
-                         for t in PART)) + "\n\n" +
+                         for t in PART)) + "\n\n" + part_contents(piece) +
             "#ifndef %s\n#define %s 1\n\n" % (guard_p, guard_p) +
             includes + own + NO_CONTRACT_OPEN + lead + "\n\n" +
             piece.strip("\n") + "\n" + tail + NO_CONTRACT_CLOSE +

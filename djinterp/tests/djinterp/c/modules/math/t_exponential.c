@@ -30,8 +30,13 @@
 * seams; log_fast (S500) must be within an ulp of log_c there and, where long
 * double holds 64 bits, within 0.52 of an ulp of the exact value as logl gives
 * it near 1 and 0.53 elsewhere, within an ulp of log_c about its seams, and
-* log_c itself where it hands over. The family's self-test must give 0
-* (self_test.h). Ten million random
+* log_c itself where it hands over; those checks take the own formulas by
+* the run-time forms with D_CFG_MATH_FAST_OWN, whatever cfg_exponential.h's
+* knobs make of the plain fast names. At a million arguments each, the
+* run-time forms are the C library's exp and log given
+* D_CFG_MATH_FAST_LIBRARY, the own formula given any other value, and the
+* plain fast names the forms their knobs name, bit for bit (S505, S506).
+* The family's self-test must give 0 (self_test.h). Ten million random
 * arguments each: exp_c over its whole finite range and past both ends, log_c
 * over random positive patterns (the subnormals included) and over 1 + d, d
 * down to 2^-53. Both must be within an ulp of exp and log, the library's; how
@@ -497,10 +502,110 @@ d_tests_double(void)
     return;
 }
 
+// d_tests_double_fast_forms
+//   the fast functions' two forms (S505, S506), at a million random
+// arguments each - exp's across [-746, 710], log's random patterns, the
+// subnormals, the negatives and NaN among them: d_math_d_exp_fast_with and
+// d_math_d_log_fast_with given D_CFG_MATH_FAST_LIBRARY are the C library's
+// exp and log, bit for bit; given D_CFG_MATH_FAST_OWN, 0 or 3, one form,
+// the own formula, where double is evaluated wider than double the
+// library's too; and d_math_d_exp_fast and d_math_d_log_fast are the forms
+// cfg_exponential.h's knobs name, D_CFG_MATH_EXP_FAST and
+// D_CFG_MATH_LOG_FAST, bit for bit. Prints what the knobs name.
+static void
+d_tests_double_fast_forms(void)
+{
+    long i = 0;
+
+    for (i = 0; i < 1000000; ++i)
+    {
+        // stored, so x is a double, as d_tests_double's are
+        volatile double stored = -746.0 + (1456.0 * d_tests_unit());
+        const double    x      = stored;
+        double          p      = 0.0;
+        double          own    = 0.0;
+
+        d_tests_pattern_d(&p, 1);
+
+        own = d_math_d_exp_fast_with(x, D_CFG_MATH_FAST_OWN);
+        D_TESTS_EXPECT(d_tests_same_d(d_math_d_exp_fast_with(
+                                          x, D_CFG_MATH_FAST_LIBRARY),
+                                      g_exp(x)),
+                       "d exp_fast_with the library's form is exp", x);
+        D_TESTS_EXPECT( (d_tests_same_d(d_math_d_exp_fast_with(x, 0), own)) &&
+                        (d_tests_same_d(d_math_d_exp_fast_with(x, 3), own)),
+                        "d exp_fast_with any other value is the own form",
+                        x);
+        D_TESTS_EXPECT(d_tests_same_d(d_math_d_exp_fast(x),
+                                      d_math_d_exp_fast_with(
+                                          x, D_CFG_MATH_EXP_FAST)),
+                       "d exp_fast is the form its knob names", x);
+#if D_MATH_DBL_EVAL_WIDE
+        D_TESTS_EXPECT(d_tests_same_d(own, g_exp(x)),
+                       "d exp_fast_with is the library's where double is "
+                       "evaluated wider", x);
+#endif  // D_MATH_DBL_EVAL_WIDE
+
+        own = d_math_d_log_fast_with(p, D_CFG_MATH_FAST_OWN);
+        D_TESTS_EXPECT(d_tests_same_d(d_math_d_log_fast_with(
+                                          p, D_CFG_MATH_FAST_LIBRARY),
+                                      g_log(p)),
+                       "d log_fast_with the library's form is log", p);
+        D_TESTS_EXPECT( (d_tests_same_d(d_math_d_log_fast_with(p, 0), own)) &&
+                        (d_tests_same_d(d_math_d_log_fast_with(p, 3), own)),
+                        "d log_fast_with any other value is the own form",
+                        p);
+        D_TESTS_EXPECT(d_tests_same_d(d_math_d_log_fast(p),
+                                      d_math_d_log_fast_with(
+                                          p, D_CFG_MATH_LOG_FAST)),
+                       "d log_fast is the form its knob names", p);
+#if D_MATH_DBL_EVAL_WIDE
+        D_TESTS_EXPECT(d_tests_same_d(own, g_log(p)),
+                       "d log_fast_with is the library's where double is "
+                       "evaluated wider", p);
+#endif  // D_MATH_DBL_EVAL_WIDE
+    }
+
+#if !D_MATH_DBL_EVAL_WIDE
+    printf("double: exp_fast_with and log_fast_with, each form, at 1000000 "
+           "arguments; exp_fast %s, log_fast %s\n",
+           (D_CFG_MATH_EXP_FAST == D_CFG_MATH_FAST_LIBRARY)
+               ? "the C library's" : "the own formula",
+           (D_CFG_MATH_LOG_FAST == D_CFG_MATH_FAST_LIBRARY)
+               ? "the C library's" : "the own formula");
+#else
+    printf("double: exp_fast_with and log_fast_with, each form, at 1000000 "
+           "arguments; exp_fast and log_fast the C library's, double "
+           "evaluated wider than double\n");
+#endif  // !D_MATH_DBL_EVAL_WIDE
+
+    return;
+}
+
 // where double is evaluated wider than double, a 32-bit x87, the double
 // family's exp_c and log_c refuse to compile (S418): their checks are left
 // out
 #if !D_MATH_DBL_EVAL_WIDE
+
+// d_tests_exp_fast_own, d_tests_log_fast_own
+//   the fast forms' own formulas, whatever cfg_exponential.h's knobs make of
+// d_math_d_exp_fast and d_math_d_log_fast (S505): the run-time forms with
+// D_CFG_MATH_FAST_OWN, the forms the checks of their bounds hold to.
+static double
+d_tests_exp_fast_own(
+    double _x
+)
+{
+    return d_math_d_exp_fast_with(_x, D_CFG_MATH_FAST_OWN);
+}
+
+static double
+d_tests_log_fast_own(
+    double _x
+)
+{
+    return d_math_d_log_fast_with(_x, D_CFG_MATH_FAST_OWN);
+}
 
 // d_tests_double_edges
 //   the logarithm's correctly rounded values, from a 300-bit computation, at
@@ -673,7 +778,7 @@ d_tests_double_exp_paths(void)
             : (-708.0 + (1416.0 * d_tests_unit()));
         const double    x      = stored;
         const double    c      = d_math_d_exp_c(x);
-        const double    f      = d_math_d_exp_fast(x);
+        const double    f      = d_tests_exp_fast_own(x);
 
         if ( (x > tiny) || (x < -tiny) )
         {
@@ -714,7 +819,7 @@ d_tests_double_exp_paths(void)
             D_TESTS_EXPECT(d_tests_same_d(d_math_d_exp_c(x),
                                           d_tests_exp_by_phases(x)),
                            "d exp_c about a common path's end", x);
-            D_TESTS_EXPECT(D_TESTS_ULPS_D(d_math_d_exp_fast(x),
+            D_TESTS_EXPECT(D_TESTS_ULPS_D(d_tests_exp_fast_own(x),
                                           d_math_d_exp_c(x)) <= 1.0,
                            "d exp_fast about a common path's end", x);
             x = nextafter(x, ((i % 2) == 0) ? 1000.0 : -1000.0);
@@ -732,15 +837,15 @@ d_tests_double_exp_paths(void)
 
         for (j = 0; j < (sizeof(outside) / sizeof(outside[0])); ++j)
         {
-            D_TESTS_EXPECT(d_tests_same_d(d_math_d_exp_fast(outside[j]),
+            D_TESTS_EXPECT(d_tests_same_d(d_tests_exp_fast_own(outside[j]),
                                           d_math_d_exp_c(outside[j])),
                            "d exp_fast is exp_c outside the common path",
                            outside[j]);
         }
 
-        D_TESTS_EXPECT( (isnan(d_math_d_exp_fast(nan("")))) &&
-                        (d_tests_same_d(d_math_d_exp_fast(inf), inf)) &&
-                        (d_tests_same_d(d_math_d_exp_fast(-inf), 0.0)),
+        D_TESTS_EXPECT( (isnan(d_tests_exp_fast_own(nan("")))) &&
+                        (d_tests_same_d(d_tests_exp_fast_own(inf), inf)) &&
+                        (d_tests_same_d(d_tests_exp_fast_own(-inf), 0.0)),
                         "d exp_fast of NaN and the infinities", 0);
     }
 
@@ -946,7 +1051,7 @@ d_tests_double_log_fast(void)
             continue;
         }
 
-        f = d_math_d_log_fast(x);
+        f = d_tests_log_fast_own(x);
         D_TESTS_EXPECT(D_TESTS_ULPS_D(f, d_math_d_log_c(x)) <= 1.0,
                        "d log_fast within an ulp of log_c", x);
         diff += d_tests_same_d(f, d_math_d_log_c(x)) ? 0 : 1;
@@ -991,7 +1096,7 @@ d_tests_double_log_fast(void)
         {
             if (x <= DBL_MAX)
             {
-                D_TESTS_EXPECT(D_TESTS_ULPS_D(d_math_d_log_fast(x),
+                D_TESTS_EXPECT(D_TESTS_ULPS_D(d_tests_log_fast_own(x),
                                               d_math_d_log_c(x)) <= 1.0,
                                "d log_fast about a seam", x);
             }
@@ -1010,19 +1115,19 @@ d_tests_double_log_fast(void)
 
         for (j = 0; j < (sizeof(where) / sizeof(where[0])); ++j)
         {
-            D_TESTS_EXPECT( (d_tests_same_d(d_math_d_log_fast(where[j]),
+            D_TESTS_EXPECT( (d_tests_same_d(d_tests_log_fast_own(where[j]),
                                             d_math_d_log_c(where[j]))) ||
-                            ( (isnan(d_math_d_log_fast(where[j]))) &&
+                            ( (isnan(d_tests_log_fast_own(where[j]))) &&
                               (isnan(d_math_d_log_c(where[j]))) ),
                             "d log_fast is log_c where it hands over",
                             where[j]);
         }
 
-        D_TESTS_EXPECT( (isnan(d_math_d_log_fast(nan("")))) &&
-                        (isnan(d_math_d_log_fast(-inf))) &&
-                        (d_tests_same_d(d_math_d_log_fast(inf), inf)) &&
-                        (d_tests_same_d(d_math_d_log_fast(0.0), -inf)) &&
-                        (d_tests_same_d(d_math_d_log_fast(1.0), 0.0)),
+        D_TESTS_EXPECT( (isnan(d_tests_log_fast_own(nan("")))) &&
+                        (isnan(d_tests_log_fast_own(-inf))) &&
+                        (d_tests_same_d(d_tests_log_fast_own(inf), inf)) &&
+                        (d_tests_same_d(d_tests_log_fast_own(0.0), -inf)) &&
+                        (d_tests_same_d(d_tests_log_fast_own(1.0), 0.0)),
                         "d log_fast of NaN, the infinities, 0 and 1", 0);
     }
 
@@ -2554,6 +2659,7 @@ main(int _argc, char** _argv)
     d_tests_kernels_wide();
     d_tests_log1p_expm1_random();
     d_tests_log1p_expm1_specials();
+    d_tests_double_fast_forms();
 #if defined(__cplusplus)
     d_tests_overloads();
 #endif

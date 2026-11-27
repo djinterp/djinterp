@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <title>djinterp math: the lane's decisions, S1 to S504</title>
+  <title>djinterp math: the lane's decisions, S1 to S510</title>
   <style>
     html {
       color: #1a1a1a;
@@ -165,15 +165,15 @@
   </style>
 </head>
 <body>
-<h1 id="djinterp-math-the-lanes-decisions-s1-to-s504">djinterp math: the
-lane's decisions, S1 to S504</h1>
+<h1 id="djinterp-math-the-lanes-decisions-s1-to-s510">djinterp math: the
+lane's decisions, S1 to S510</h1>
 <p>Every decision the math lane has taken, in the words of the record
 that took it, with the alternative it set aside. The numbers run across
 the lane's records from S1 (slice 3, 2026.10.08); each record's section
 of decisions is here as its README has it, its own first lines among it.
 A decision was the lane's to take within the owner's rulings, and stands
 once his next word on its delivery, his "continue", has accepted it: S1
-to S499 stand, his own rulings of 2026.10.27 on complex numbers and
+to S504 stand, his own rulings of 2026.10.27 on complex numbers and
 quaternions, S265 to S278, the design of steps 22 to 24, and his choice
 of 2026.11.07, S383, among them. His rulings of 2026.11.03 and
 2026.11.04 on the flagged decisions are in the reviews they rule, each
@@ -217,14 +217,20 @@ the fast exp his note on S478 asked for, and S359's precedent corrected,
 by his rulings of 08:38 the same day, each as recommended; and chunk
 66's, step 54, <code>log_c</code>'s speed step and the plain double
 <code>log</code> correctly rounded, as ruling 12 has it, by his rulings
-of 14:42 the same day, each as recommended. His rulings 12 to 15 of
-2026.11.24 are in chunk 63's opening lines. S500 to S504 are chunk 67's,
-open until his word on them: <code>d_math_d_log_fast</code>, a fast log
-beside <code>log_c</code>, as his decision 71 of 14:42 asked, before
-step 55. His word of 2026.11.14 on the language's names, which kept them
-flat in <code>djinterp::math</code>, is S397's. Where a later decision
-changes an earlier one, the later one says so; the earlier one stays
-here as it was taken.</p>
+of 14:42 the same day, each as recommended; and chunk 67's,
+<code>d_math_d_log_fast</code>, a fast log beside <code>log_c</code>, as
+his decision 71 asked, by his rulings of 17:52 the same day, each as
+recommended, with a note on the first. His rulings 12 to 15 of
+2026.11.24 are in chunk 63's opening lines. Chunks 55 and 56 are on his
+main since 2026.11.24, and chunks 58 to 67 since 2026.11.25
+(<code>29c0e4f4</code>). S505 to S510 are chunk 68's, open until his
+word on them: each fast form djinterp's own or the C library's, by a
+knob of the build or at run time, as his note of 17:52 asked, cut on his
+main of 2026.11.26, its generator and documents brought to it. His word
+of 2026.11.14 on the language's names, which kept them flat in
+<code>djinterp::math</code>, is S397's. Where a later decision changes
+an earlier one, the later one says so; the earlier one stays here as it
+was taken.</p>
 <p>A decision names files as they were when it was taken. Chunk 48
 merged the two quaternion classes (S398) and renamed or split five of
 the language's headers (S400, S401): <code>expr/complex.hpp</code> is
@@ -261,14 +267,14 @@ the notes that followed it; his rulings on them are the roadmap's
 principles and items (<code>roadmap.html</code>). From chunk 34 on, each
 chunk's delivery brings this file, its own decisions added at the end.
 This file is made by
-<code>_handoffs/math98_chunk67_2026.11.25/tools/decisions_c67.py</code>.</p>
+<code>_handoffs/math98_chunk68_2026.11.25/tools/decisions_c68.py</code>.</p>
 <h2 id="1-outstanding-decisions">1. Outstanding decisions</h2>
 <p>The 21 flagged decisions: those whose review recommends what is not
 yet done, or names a significant drawback of what was. Each gives when
 it is due, by the roadmap's steps, its flag and its review's
 recommendation; the decision itself and its whole review are in its
 record's part of section 2. The groups and the steps are
-<code>decisions_outstanding_c67.md</code>'s, in chunk 67's record.</p>
+<code>decisions_outstanding_c68.md</code>'s, in chunk 68's record.</p>
 <h3 id="11-the-expression-language">1.1 The expression language</h3>
 <ul>
 <li>S190. When: before step 25 (4a): decided on 2026.11.06 with lane F,
@@ -10925,24 +10931,23 @@ taken. Ruled 2026.11.16: as recommended (decision 7, B).</li>
 </blockquote>
 <p><strong>S415. The double family's contract (ruling 2, A): one result,
 the correctly rounded one, on every platform, under the ruling's eight
-rules - no long double inside; no C library calls; no fused
-multiply-add made by the compiler that changes a result, with a start-up
-self-test that says if one did; plain double arithmetic, so no x87; no
-dependence on a C library at all (wasm32); correctly rounded; within 2
-to 3 times st_math's speed; and C's standard answers outside the domain.
-The roadmap's principle 4 and gate G6 say so.</strong> It holds for each
-of the family's functions as its rewrite lands, <code>exp_c</code> in
-this chunk (S416), and for <code>dd.h</code>'s exact sums and products,
-exact in every build, its other results within their proven bounds,
-fused or not (S417). The plain formulas - every kernel written as its
-formula, the <code>_fast</code> forms among them - follow the build:
-where it fuses, their last bits may differ from an ISO build's, as
-ruling 7 has it, and <code>d_math_formulas_fuse()</code> says whether
-the translation unit's build fuses (S419). The float and long double
-families keep their contract until their turn, float from the double
-kernels (ruling 1); the plain double forms, <code>d_math_d_exp</code>
-among them, call the C library until ruling 12, due in early
-December.</p>
+rules - no long double inside; no C library calls; no fused multiply-add
+made by the compiler that changes a result, with a start-up self-test
+that says if one did; plain double arithmetic, so no x87; no dependence
+on a C library at all (wasm32); correctly rounded; within 2 to 3 times
+st_math's speed; and C's standard answers outside the domain. The
+roadmap's principle 4 and gate G6 say so.</strong> It holds for each of
+the family's functions as its rewrite lands, <code>exp_c</code> in this
+chunk (S416), and for <code>dd.h</code>'s exact sums and products, exact
+in every build, its other results within their proven bounds, fused or
+not (S417). The plain formulas - every kernel written as its formula,
+the <code>_fast</code> forms among them - follow the build: where it
+fuses, their last bits may differ from an ISO build's, as ruling 7 has
+it, and <code>d_math_formulas_fuse()</code> says whether the translation
+unit's build fuses (S419). The float and long double families keep their
+contract until their turn, float from the double kernels (ruling 1); the
+plain double forms, <code>d_math_d_exp</code> among them, call the C
+library until ruling 12, due in early December.</p>
 <ul>
 <li>Alternative: correct rounding alone, without the speed and
 no-long-double rules (the ruling's B): the same bits eventually, at 10
@@ -12024,7 +12029,7 @@ Recommended: as taken. Taken.</p>
 <p><strong>S439. The generator,
 <code>scripts/gen_c_math_float.py</code>, 32,498 lines, is a package,
 <code>scripts/gen_c_math/</code>, of 26 modules of 3,741 lines and fewer
--- <code>common</code> for what every header's text shares, one module
+- <code>common</code> for what every header's text shares, one module
 for a header's text or two (<code>decomp_text</code> and
 <code>decomp</code>, <code>cplx_text</code> and <code>cplx</code>, where
 one module would pass the limit), <code>split</code> for S436's parts,
@@ -14096,6 +14101,232 @@ undo the earlier zips' lines in them.</li>
 the zip in its order. Against, none. The alternative: the zip alone,
 undoing the earlier zips' lines in the documents. Recommended: as taken.
 Taken.</p>
+</blockquote>
+<h3 id="s505-to-s510-chunk-68-20261125">S505 to S510: chunk 68,
+2026.11.25</h3>
+<p>The record:
+<code>_handoffs/math98_chunk68_2026.11.25/README.md</code>.</p>
+<p>Chunk 68's decisions, S505 to S510: the owner's note on his ruling of
+<code>log_fast</code> (decision 72, 2026.11.25, 17:52), "A or B as per
+control knob/runtime option to allow maximum configurability by the
+user": each fast form djinterp's own formula or the C library's, chosen
+by a knob of the build or at run time; and the chunk cut on his main of
+2026.11.26, the generator and the documents brought to it. The same
+rulings accepted chunk 67's decisions, S500 to S504, each as
+recommended.</p>
+<p><strong>S505. The knob of the build: a new
+<code>cfg_exponential.h</code> (<code>config/c/modules/math/</code>),
+hand-written, as math's other configuration headers are, with two
+values, <code>D_CFG_MATH_FAST_OWN</code> (1) and
+<code>D_CFG_MATH_FAST_LIBRARY</code> (2), and three knobs:
+<code>D_CFG_MATH_EXP_FAST</code> and <code>D_CFG_MATH_LOG_FAST</code>,
+which form <code>d_math_d_exp_fast</code> and
+<code>d_math_d_log_fast</code> take, and <code>D_CFG_MATH_FAST</code>,
+both at once, each #ifndef-guarded so that a definition before the first
+include wins, each knob of one function <code>D_CFG_MATH_FAST</code> by
+default and that <code>D_CFG_MATH_FAST_OWN</code>; a misspelled value,
+or any other, refused at compile time by the tree's
+<code>D_CFG_IS_INT_LITERAL</code> and a test of the two values. The own
+form is the default, as ruling 72 has it. Both fast functions, not the
+log's alone: the note is on 72, but <code>exp_fast</code> sits where
+<code>log_fast</code> does (S501), and a build that wants the platform's
+log likely wants its exp. On a 32-bit x87 both stay the C library's
+whatever the knobs say. The plain exp and log stay correctly rounded, as
+ruling 12 has them: no knob for them.</strong> Each part of
+<code>exponential.h</code> includes the header, as each part of
+<code>mat.h</code> and <code>cmat.h</code> includes
+<code>cfg_mat.h</code>. <code>dconfig.h</code>, the owner's shared file,
+which includes math's four other configuration headers, is not changed:
+its line,
+<code>#include "djinterp/config/c/modules/math/cfg_exponential.h"</code>,
+is his to add, and the note offers it. <code>exponential.h</code>'s
+banner names the knobs in CONFIGURATION.</p>
+<ul>
+<li>Alternative: a knob for <code>log_fast</code> alone, as the note
+names it: <code>exp_fast</code> then fixed where <code>log_fast</code>
+is configurable.</li>
+<li>Alternative: a knob for the plain exp and log too: ruling 12 made
+them correctly rounded, and a knob would let a build undo it; his to
+ask.</li>
+<li>Alternative: <code>dconfig.h</code> changed now, so that it includes
+this header as it includes the other four: his shared file in the zip
+for a line that changes nothing a build sees.</li>
+</ul>
+<blockquote>
+<p><strong>Review.</strong> Taken: for, the note answered at build time:
+each fast form djinterp's own, proven, or the platform's, per function
+or both at once, the own form the default as ruling 72 has it, a wrong
+value refused rather than read as one of the two; both fast functions
+configured alike. Against: a fourth knob header's worth of names; a
+build that sets a knob gives a fast form whose bits are the platform's,
+and the tiers build none so. The alternatives: the log's knob alone; a
+knob for the plain forms, against ruling 12; dconfig.h changed, his
+shared file for no effect. Recommended: as taken. Taken.</p>
+</blockquote>
+<p><strong>S506. The option at run time:
+<code>d_math_d_exp_fast_with(x, form)</code> and
+<code>d_math_d_log_fast_with(x, form)</code>, <code>form</code> one of
+the knobs' values: the C library's exp or log where it is
+<code>D_CFG_MATH_FAST_LIBRARY</code>, the own formula for any other
+value, whatever the knobs make of the plain names; on a 32-bit x87 the
+library's for every value. A choice made call by call, by an argument,
+not a setting the library holds: the C core is header-only, and in C its
+inline functions are static in each translation unit, so a setting kept
+inside them would be one per translation unit; one setting for the
+program needs its definition placed in one translation unit, and
+changing it while another thread reads it is a data race, neither C99
+nor C++98 having atomics. With the argument the caller keeps its choice
+where it likes - one variable of its own, one a thread, one an object -
+and a constant argument folds away. Measured
+(<code>tools/timing_c68.c</code>, three runs on chunk 68's tree over his
+main, on a 2.30 GHz machine): the own form through <code>_with</code>,
+its form read from a variable, within -0.14 and +0.25 ns of the plain
+fast name, by pointer and inline, +0.04 ns the median; the library's
+form through it +0.30 to +1.13 ns by pointer, a wrapper's call before
+the library's, and -0.88 to +0.47 ns inline. (The first cut's two runs,
+on the 2.10 GHz machine before it: -0.05 to +0.12 ns; +0.75 to +1.89 and
+-0.35 to +0.56.)</strong> The internal forms are
+<code>d_internal_math_d_exp_fast_own</code> and
+<code>d_internal_math_d_ln_fast</code>, the chunks 65 and 67 bodies
+renamed, and <code>d_internal_math_d_exp_library</code> and
+<code>d_internal_math_d_ln_library</code>; the plain fast names pick
+between them by the knobs, at compile time.</p>
+<ul>
+<li>Alternative: a setting the library holds,
+<code>d_math_fast_set(form)</code>: one per translation unit in C, or a
+definition to place and a race between threads.</li>
+<li>Alternative: a function pointer chosen at run time,
+<code>d_math_d_log_fast_fn(form)</code>: a call by pointer at every use,
+where the argument inlines.</li>
+</ul>
+<blockquote>
+<p><strong>Review.</strong> Taken: for, the run-time half of the note:
+either form call by call, whatever the knobs say, with no state in the
+library, so nothing to race and nothing per translation unit; the own
+form through it costs a few hundredths of a nanosecond, a quarter at
+most. Against: the caller must carry its choice to each call; the
+library's form through it costs a call more by pointer. The
+alternatives: a setting held by the library, one per translation unit in
+C or a race between threads; a function pointer, a call by pointer at
+every use. Recommended: as taken. Taken.</p>
+</blockquote>
+<p><strong>S507. The tests: <code>t_exponential</code>'s new
+<code>d_tests_double_fast_forms</code> checks, at a million random
+arguments each - exp's across [-746, 710], log's random patterns, the
+subnormals, the negatives and NaN among them - that <code>_with</code>
+given <code>D_CFG_MATH_FAST_LIBRARY</code> is the C library's exp and
+log, bit for bit; that given <code>D_CFG_MATH_FAST_OWN</code>, 0 or 3 it
+is one form, the own formula, the library's on the x87; and that
+<code>d_math_d_exp_fast</code> and <code>d_math_d_log_fast</code> are
+the forms their knobs name, bit for bit. The checks of the own formulas'
+bounds and seams take them by <code>_with</code> and
+<code>D_CFG_MATH_FAST_OWN</code>, so that they hold whatever the knobs
+say. Its 16 builds of the full tier and 6 of the fused tier pass, 270.7
+million checks each, 182.8 million on the x87, where chunk 67's ran
+264.7 and 174.8. It was run by hand with <code>D_CFG_MATH_FAST</code>,
+<code>D_CFG_MATH_EXP_FAST</code> and <code>D_CFG_MATH_LOG_FAST</code>
+each set to <code>D_CFG_MATH_FAST_LIBRARY</code>, by gcc at C99 and g++
+at C++14, and on the x87, every check passing; a misspelled value and a
+value out of range each stop the build.</strong></p>
+<ul>
+<li>Alternative: the knobs checked by the tiers too: each tier builds
+with the defaults; a build a knob setting would add to the full tier's
+16.</li>
+</ul>
+<blockquote>
+<p><strong>Review.</strong> Taken: for, each form held to its definition
+bit for bit, the knobs' forms to the plain names, and the bounds' checks
+to the own formulas whatever the knobs say; each knob setting run by
+hand, the x87 among them. Against: the knob settings are checked by
+hand, not by a tier. The alternative: a tier build per setting.
+Recommended: as taken. Taken.</p>
+</blockquote>
+<p><strong>S508. Chunk 68 is done as the note on 72 asks, before step
+55: no step of the roadmap's, which still reads 36 of 62; its 6e and
+status say each fast form is ours or the C library's. Chunks 55 and 56
+landed on the owner's main on 2026.11.24, each as its zip, and chunks 58
+to 67 in his main <code>29c0e4f4</code> on 2026.11.25, each as cut;
+Friday's window then ran over it, to his main of 2026.11.26,
+<code>527a9661</code>, which he sent. Chunk 68's zip goes over that main
+alone, cut on it, as the notes of 2026.11.25 ask of every zip now. Step
+55 (T4) is next.</strong></p>
+<ul>
+<li>Alternative: the zip as first cut, after chunk 67's over
+<code>6ee9dce1</code>, to be merged three ways: its documents are
+Markdown in <code>inc/</code>, where his rule on file kinds allows none,
+and its headers would lose the tables of contents his renumbering gave
+them.</li>
+</ul>
+<blockquote>
+<p><strong>Review.</strong> Taken: for, the note done in its place and
+the zip cut on the main he sent, as the notes ask, so that it lays as
+cut. Against: chunk 68 cut twice, its first zip, sent this evening,
+withdrawn. The alternative: the first zip, merged three ways, its
+documents in a folder his rule refuses and its headers without their
+tables. Recommended: as taken. Taken.</p>
+</blockquote>
+<p><strong>S509. The generator writes each part's table of contents, as
+the owner's renumbering of 2026.11.25 (<code>dcheck --renumber</code>,
+in his main since <code>112915f3</code>) gave 34 parts of the eight
+largest headers: a part that holds a section box of its own opens, after
+its banner, with a table of the section's heading, a rule as long, the
+subsections under it by their numbers and a subsection's numbered items
+by their names, as the style guide's Tables of Contents has them; a part
+with no section box of its own has none, as on his main. On his main the
+generator wrote every header but those 34 as they are, and
+<code>--check</code> failed on those; with <code>split.py</code>'s new
+<code>part_contents</code> it writes all of them byte for byte, so that
+a chunk's regenerated headers keep the tables and <code>--check</code>
+passes again.</strong> The renumbering's other changes in math's files,
+and the hyphen pass's, were to hand-written files and to the documents,
+none of them the generator's.</p>
+<ul>
+<li>Alternative: the tables dropped, the parts written as before: the
+renumbering undone in 34 files at each regeneration, and the tree
+numbered two ways.</li>
+<li>Alternative: the renumbering run after the generator, in its own
+step: the generator's output and the tree out of step between the
+two.</li>
+</ul>
+<blockquote>
+<p><strong>Review.</strong> Taken: for, the generator and his main agree
+again, byte for byte, and a chunk's regeneration keeps the renumbering.
+Against: the generator now copies a rule of dcheck's, the tables' form,
+and must follow it if the style guide's form changes. The alternatives:
+the tables dropped at each regeneration; the renumbering as a step after
+the generator. Recommended: as taken. Taken.</p>
+</blockquote>
+<p><strong>S510. From his main of 2026.11.26 the module's four documents
+are HTML pages in <code>docs/djinterp/cpp/modules/math/</code>, as the
+owner's rule on file kinds has them, the conversion his
+<code>20e0e034f</code> (pandoc, GitHub's Markdown) and the hyphen pass
+his <code>527a9661</code>. The lane keeps each document's Markdown with
+its records (chunk 68's <code>docs_md/</code>) and writes the page from
+it as his conversion did: pandoc to a standalone page titled by the
+first heading, the references to the four documents renamed
+<code>.html</code> in the page, a record's path or a file kept outside
+the tree left as written, and the tree's
+<code>check_hyphens.py --write</code> over it
+(<code>tools/docs_html_c68.py</code>). Chunk 67's Markdown, so turned,
+gives his main's four pages byte for byte; chunk 68's gives them with
+its own changes alone. <code>decisions.html</code>, made by the lane's
+tool from its records, becomes <code>decisions.html</code> the same
+way.</strong></p>
+<ul>
+<li>Alternative: the pages edited as HTML by hand: each chunk's changes
+written twice, and <code>decisions.html</code> no longer made by the
+tool from the records.</li>
+<li>Alternative: the Markdown kept in the tree beside the pages: refused
+by his rule and its gate.</li>
+</ul>
+<blockquote>
+<p><strong>Review.</strong> Taken: for, the pages as his rule has them
+and his conversion made them, proven byte for byte against his main,
+each chunk's change made once, in the Markdown, and decisions.html still
+made from the records. Against: a second form, the Markdown, kept beside
+the pages outside the tree, and pandoc and the tree's hyphen pass in the
+lane's path. The alternatives: pages edited by hand; Markdown in the
+tree, against his rule. Recommended: as taken. Taken.</p>
 </blockquote>
 </body>
 </html>
