@@ -3,7 +3,7 @@
 *
 * Unit test suite for lifetime.hpp - the compile-time / runtime lifetime
 * vocabulary, its lattice algebra, and the type classifier built on it.
-*   Two faces, selected by DTEST_SPEC_MODE (see djinterp_testing.md S3):
+*   Two faces, selected by DTEST_SPEC_MODE (see djinterp_testing.html S3):
 *
 *     - normal mode (the section TUs): pulls in the header under test and
 *       exposes the fixtures + the D_LT_CHECK macro.

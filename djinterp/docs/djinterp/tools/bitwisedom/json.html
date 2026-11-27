@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>bitwis(e)dom's JSON</title>
+  <style>
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+    /* CSS for syntax highlighting */
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+</head>
+<body>
+<h1 id="bitwisedoms-json">bitwis(e)dom's JSON</h1>
+<p>bitwis(e)dom reads three shapes of JSON, told apart by their
+<code>format</code>, and writes all three:</p>
+<table>
+<thead>
+<tr class="header">
+<th><code>format</code></th>
+<th>what it is</th>
+<th>written by</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>bitwisedom.sheet</code></td>
+<td>the window's own file: the bitfield and every setting the window
+keeps with it - the grid, its colours, its widths - to open as it was
+left</td>
+<td>File &gt; Save</td>
+</tr>
+<tr class="even">
+<td><code>bitwisedom.bitfield</code></td>
+<td>the bitfield alone, as a person would write it: its width, its
+affixes and its rows, each in as few keys as say what it is</td>
+<td>File &gt; Export the bitfield as JSON;
+<code>bitwisedom-gen --bitfield</code></td>
+</tr>
+<tr class="odd">
+<td><code>bitwisedom.export</code></td>
+<td>everything about it: the sheet whole, every row as it resolves - its
+macro name, bits, value, the integer C knows it by, its error - the
+issues, and the header</td>
+<td>File &gt; Export everything as JSON (Ctrl+Shift+E);
+<code>bitwisedom-gen --export</code></td>
+</tr>
+</tbody>
+</table>
+<p>Any of the three opens with File &gt; Open, dropped on the window, or
+pasted with File &gt; New sheet from the clipboard;
+<code>bitwisedom-gen</code> reads any of them in place of a sheet file.
+A sheet file opens as itself. A bitfield or an export becomes a new
+sheet beside the file it came from, named for it
+(<code>uart_cr.bitfield.json</code> gives
+<code>uart_cr.bitwisedom.json</code>), and not yet saved. An object that
+names no <code>format</code> is read as a bitfield, so the smallest
+bitfield is a width and its rows:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span> <span class="dt">&quot;width&quot;</span><span class="fu">:</span> <span class="dv">8</span><span class="fu">,</span> <span class="dt">&quot;rows&quot;</span><span class="fu">:</span> <span class="ot">[</span> <span class="fu">{</span> <span class="dt">&quot;name&quot;</span><span class="fu">:</span> <span class="st">&quot;READY&quot;</span><span class="fu">,</span> <span class="dt">&quot;bit&quot;</span><span class="fu">:</span> <span class="dv">0</span> <span class="fu">}</span> <span class="ot">]</span> <span class="fu">}</span></span></code></pre></div>
+<p>Numbers are JSON integers, or strings in any base C has -
+<code>"0x0F00"</code>, <code>"0b101"</code>, <code>"017"</code>,
+<code>"-3"</code> - of any width. A number past 2^53, which a reader
+that holds numbers as doubles would round, is written as a string of its
+digits.</p>
+<h3 id="embedded-preprocessor-sources">Embedded preprocessor
+sources</h3>
+<p>A sheet or bitfield may contain a <code>definitions</code> array of
+source objects, each with <code>path</code>, <code>text</code> and
+optional <code>show_other</code>. The imported text contributes
+preprocessor macros to expression evaluation; it is stored with the
+sheet and shown in a separate main-editor tab. <code>show_other</code>
+controls whether non-preprocessor source and comments are expanded in
+that tab.</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="er">&quot;definitions&quot;:</span> <span class="ot">[</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">{</span> <span class="dt">&quot;path&quot;</span><span class="fu">:</span> <span class="st">&quot;constants.h&quot;</span><span class="fu">,</span> <span class="dt">&quot;text&quot;</span><span class="fu">:</span> <span class="st">&quot;#define EXT_CONSTANT 42</span><span class="ch">\n</span><span class="st">&quot;</span><span class="fu">,</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;show_other&quot;</span><span class="fu">:</span> <span class="kw">false</span> <span class="fu">}</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="ot">]</span></span></code></pre></div>
+<hr />
+<h2 id="a-bitfield">A bitfield</h2>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;format&quot;</span><span class="fu">:</span> <span class="st">&quot;bitwisedom.bitfield&quot;</span><span class="fu">,</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;version&quot;</span><span class="fu">:</span> <span class="dv">1</span><span class="fu">,</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;title&quot;</span><span class="fu">:</span> <span class="st">&quot;uart_cr&quot;</span><span class="fu">,</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;width&quot;</span><span class="fu">:</span> <span class="dv">32</span><span class="fu">,</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;prefix&quot;</span><span class="fu">:</span> <span class="st">&quot;UART_CR_&quot;</span><span class="fu">,</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;rows&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">{</span> <span class="dt">&quot;group&quot;</span><span class="fu">:</span> <span class="st">&quot;Enables&quot;</span><span class="fu">,</span> <span class="dt">&quot;note&quot;</span><span class="fu">:</span> <span class="st">&quot;Switches for the UART&#39;s two halves.&quot;</span><span class="fu">,</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;rows&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>        <span class="fu">{</span> <span class="dt">&quot;name&quot;</span><span class="fu">:</span> <span class="st">&quot;EN&quot;</span><span class="fu">,</span> <span class="dt">&quot;bit&quot;</span><span class="fu">:</span> <span class="dv">0</span><span class="fu">,</span> <span class="dt">&quot;note&quot;</span><span class="fu">:</span> <span class="st">&quot;enables the UART&quot;</span> <span class="fu">}</span><span class="ot">,</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>        <span class="fu">{</span> <span class="dt">&quot;name&quot;</span><span class="fu">:</span> <span class="st">&quot;TXEN&quot;</span><span class="fu">,</span> <span class="dt">&quot;bit&quot;</span><span class="fu">:</span> <span class="dv">1</span> <span class="fu">}</span></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>      <span class="ot">]</span> <span class="fu">}</span><span class="ot">,</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">{</span> <span class="dt">&quot;group&quot;</span><span class="fu">:</span> <span class="st">&quot;Format&quot;</span><span class="fu">,</span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;rows&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>        <span class="fu">{</span> <span class="dt">&quot;name&quot;</span><span class="fu">:</span> <span class="st">&quot;PARITY&quot;</span><span class="fu">,</span> <span class="dt">&quot;bits&quot;</span><span class="fu">:</span> <span class="st">&quot;4..5&quot;</span><span class="fu">,</span> <span class="dt">&quot;note&quot;</span><span class="fu">:</span> <span class="st">&quot;the parity mode&quot;</span><span class="fu">,</span></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>          <span class="dt">&quot;values&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;PARITY_NONE&quot;</span><span class="fu">:</span> <span class="dv">0</span><span class="fu">,</span> <span class="dt">&quot;PARITY_EVEN&quot;</span><span class="fu">:</span> <span class="dv">2</span><span class="fu">,</span></span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>                      <span class="dt">&quot;PARITY_ODD&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;number&quot;</span><span class="fu">:</span> <span class="dv">3</span><span class="fu">,</span> <span class="dt">&quot;note&quot;</span><span class="fu">:</span> <span class="st">&quot;odd parity&quot;</span> <span class="fu">}</span> <span class="fu">}</span> <span class="fu">}</span><span class="ot">,</span></span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>        <span class="fu">{</span> <span class="dt">&quot;name&quot;</span><span class="fu">:</span> <span class="st">&quot;DIV&quot;</span><span class="fu">,</span> <span class="dt">&quot;lsb&quot;</span><span class="fu">:</span> <span class="dv">16</span><span class="fu">,</span> <span class="dt">&quot;width&quot;</span><span class="fu">:</span> <span class="dv">12</span> <span class="fu">}</span><span class="ot">,</span></span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>        <span class="fu">{</span> <span class="dt">&quot;name&quot;</span><span class="fu">:</span> <span class="st">&quot;DIV_115200&quot;</span><span class="fu">,</span> <span class="dt">&quot;field&quot;</span><span class="fu">:</span> <span class="st">&quot;DIV&quot;</span><span class="fu">,</span> <span class="dt">&quot;number&quot;</span><span class="fu">:</span> <span class="dv">54</span> <span class="fu">}</span></span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>      <span class="ot">]</span> <span class="fu">}</span><span class="ot">,</span></span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>    <span class="fu">{</span> <span class="dt">&quot;name&quot;</span><span class="fu">:</span> <span class="st">&quot;DEFAULT&quot;</span><span class="fu">,</span> <span class="dt">&quot;expr&quot;</span><span class="fu">:</span> <span class="st">&quot;EN | TXEN | PARITY_NONE&quot;</span> <span class="fu">}</span><span class="ot">,</span></span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>    <span class="fu">{</span> <span class="dt">&quot;name&quot;</span><span class="fu">:</span> <span class="st">&quot;MAGIC&quot;</span><span class="fu">,</span> <span class="dt">&quot;value&quot;</span><span class="fu">:</span> <span class="st">&quot;0x0F00&quot;</span> <span class="fu">}</span><span class="ot">,</span></span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>    <span class="fu">{</span> <span class="dt">&quot;name&quot;</span><span class="fu">:</span> <span class="st">&quot;IS_ENABLED&quot;</span><span class="fu">,</span> <span class="dt">&quot;params&quot;</span><span class="fu">:</span> <span class="st">&quot;x&quot;</span><span class="fu">,</span> <span class="dt">&quot;body&quot;</span><span class="fu">:</span> <span class="st">&quot;(((x) &amp; {EN}) != 0)&quot;</span> <span class="fu">}</span></span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a>  <span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;generator&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;file_name&quot;</span><span class="fu">:</span> <span class="st">&quot;uart_cr.h&quot;</span> <span class="fu">}</span></span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<h3 id="the-bitfields-keys">The bitfield's keys</h3>
+<table>
+<thead>
+<tr class="header">
+<th>key</th>
+<th>is</th>
+<th>if left out</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>format</code></td>
+<td><code>"bitwisedom.bitfield"</code></td>
+<td>read as one</td>
+</tr>
+<tr class="even">
+<td><code>version</code></td>
+<td><code>1</code></td>
+<td>1</td>
+</tr>
+<tr class="odd">
+<td><code>title</code></td>
+<td>the sheet's name</td>
+<td><code>"untitled"</code></td>
+</tr>
+<tr class="even">
+<td><code>width</code></td>
+<td>its bits, 1 to 65,536; past 64 the header keeps it in arrays of
+words (README, <em>Sheets wider than 64 bits</em>)</td>
+<td>- it must be there</td>
+</tr>
+<tr class="odd">
+<td><code>prefix</code>, <code>suffix</code></td>
+<td>the start and the end of every macro name</td>
+<td>none</td>
+</tr>
+<tr class="even">
+<td><code>trim_both</code>, <code>trim_left</code>,
+<code>trim_right</code></td>
+<td>comma-separated exact tokens removed repeatedly from both, leading
+or trailing ends of each node name <em>before</em> joining prefixes</td>
+<td>none</td>
+</tr>
+<tr class="odd">
+<td><code>numbering</code></td>
+<td><code>"lsb0"</code> or <code>"msb0"</code>: how the window numbers
+the bits (the header always counts from the least significant)</td>
+<td><code>"lsb0"</code></td>
+</tr>
+<tr class="even">
+<td><code>msb_left</code></td>
+<td>whether the grid draws the most significant bit at the left</td>
+<td><code>true</code></td>
+</tr>
+<tr class="odd">
+<td><code>byte_order</code></td>
+<td><code>"little"</code> or <code>"big"</code>: how the window numbers
+bytes</td>
+<td><code>"little"</code></td>
+</tr>
+<tr class="even">
+<td><code>probe</code></td>
+<td>the probe's value, a number of any width</td>
+<td>0</td>
+</tr>
+<tr class="odd">
+<td><code>environment</code></td>
+<td><code>#define</code>s the macros are evaluated in, which the header
+does not write</td>
+<td>none</td>
+</tr>
+<tr class="even">
+<td><code>rows</code></td>
+<td>its groups and symbols, in order</td>
+<td>none</td>
+</tr>
+<tr class="odd">
+<td><code>segments</code></td>
+<td>the grid's named runs of columns, each
+<code>{"name", "bits", "collapsed", "colour"}</code></td>
+<td>one every few bits, as a new sheet has</td>
+</tr>
+<tr class="even">
+<td><code>generator</code></td>
+<td>the header's settings, as a sheet file holds them -
+<code>file_name</code>, <code>level</code> (<code>"c99"</code> ...
+<code>"cpp23"</code>), <code>form</code> (<code>"macros"</code>,
+<code>"constants"</code>), <code>style</code> (<code>"djinterp"</code>,
+<code>"plain"</code>), <code>radix</code>, <code>int_suffix</code>,
+<code>word</code>, <code>templates</code> and the rest; only those that
+differ from a new sheet's</td>
+<td>a new sheet's</td>
+</tr>
+</tbody>
+</table>
+<h3 id="rows">Rows</h3>
+<p>A row is a <strong>group</strong> -
+<code>{"group": NAME, "rows": [...]}</code> - or a
+<strong>symbol</strong>, <code>{"name": NAME}</code> and one
+definition:</p>
+<table>
+<thead>
+<tr class="header">
+<th>kind</th>
+<th>its definition</th>
+<th>for example</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>bit</td>
+<td><code>bit</code>: its number</td>
+<td><code>{"name": "EN", "bit": 0}</code></td>
+</tr>
+<tr class="even">
+<td>range</td>
+<td><code>bits</code>: <code>"lowest..highest"</code> (either way
+round), <code>"5"</code> for one bit, or <code>[lowest, highest]</code>;
+or <code>lsb</code> and <code>width</code> (1 if left out).
+<code>values</code> names its values</td>
+<td><code>{"name": "MODE", "bits": "4..6", "values": {"SLOW": 1, "FAST": 2}}</code></td>
+</tr>
+<tr class="odd">
+<td>value in a range</td>
+<td><code>number</code>, with <code>field</code>, the range by its name
+or its macro name - or with <code>bits</code> of its own;
+<code>encoding</code> and <code>bias</code></td>
+<td><code>{"name": "GAIN_DOWN", "field": "GAIN", "number": -1, "encoding": "twos_complement"}</code></td>
+</tr>
+<tr class="even">
+<td>literal</td>
+<td><code>value</code>: a number, which may be negative and is then
+written as the number it is</td>
+<td><code>{"name": "MAGIC", "value": "0x0F00"}</code></td>
+</tr>
+<tr class="odd">
+<td>expression</td>
+<td><code>expr</code>: other symbols, by their names or macro names,
+with C's operators</td>
+<td><code>{"name": "ALL", "expr": "EN | MODE"}</code></td>
+</tr>
+<tr class="even">
+<td>macro</td>
+<td><code>body</code>, with <code>{NAME}</code> for any symbol's macro
+name; <code>params</code>; <code>callable</code> to write one with no
+parameters as <code>NAME()</code></td>
+<td><code>{"name": "IS_ON", "params": "x", "body": "(((x) &amp; {EN}) != 0)"}</code></td>
+</tr>
+</tbody>
+</table>
+<p>A range's <strong><code>values</code></strong> are an object, each
+member a value in it, made a row after it in the same group and named by
+its key - its own name, so <code>"FAST"</code> is <code>FAST</code> with
+the prefixes around it, not <code>MODE_FAST</code>. A member is the
+value's number, or an object with its <code>number</code> and any of
+<code>encoding</code>, <code>bias</code> and the keys below. The
+encodings are <code>"unsigned"</code>, <code>"twos_complement"</code>,
+<code>"ones_complement"</code>, <code>"sign_magnitude"</code> and
+<code>"offset_binary"</code> (with <code>bias</code>).</p>
+<p>Every row may have:</p>
+<table>
+<thead>
+<tr class="header">
+<th>key</th>
+<th>is</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>note</code></td>
+<td>its brief, in the header and the inspector</td>
+</tr>
+<tr class="even">
+<td><code>short</code></td>
+<td>a short form of its name, for the grid when the name does not
+fit</td>
+</tr>
+<tr class="odd">
+<td><code>prefix</code>, <code>suffix</code></td>
+<td>its own affixes</td>
+</tr>
+<tr class="even">
+<td><code>colour</code></td>
+<td><code>"#RRGGBB"</code> or <code>"#RRGGBBAA"</code></td>
+</tr>
+<tr class="odd">
+<td><code>emit</code></td>
+<td><code>false</code> to leave it out of the header</td>
+</tr>
+<tr class="even">
+<td><code>radix</code></td>
+<td><code>"hex"</code>, <code>"dec"</code>, <code>"oct"</code>,
+<code>"bin"</code> or <code>"shift"</code>; <code>"inherit"</code> (the
+default) takes its group's</td>
+</tr>
+<tr class="odd">
+<td><code>int_suffix</code></td>
+<td><code>"none"</code>, <code>"u"</code>, <code>"ul"</code> or
+<code>"ull"</code>; <code>"inherit"</code> (the default) takes its
+group's</td>
+</tr>
+<tr class="even">
+<td><code>digits</code></td>
+<td>the fewest digits its literal is written with</td>
+</tr>
+</tbody>
+</table>
+<p>and a group, besides:</p>
+<table>
+<thead>
+<tr class="header">
+<th>key</th>
+<th>is</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>exclusive</code></td>
+<td><code>false</code> lets its bits and ranges share bits; otherwise
+two claiming one bit collide</td>
+</tr>
+<tr class="even">
+<td><code>isolate</code></td>
+<td><code>true</code> for <em>own names only</em>: its rows take none of
+the affixes of the groups around it</td>
+</tr>
+<tr class="odd">
+<td><code>name_children</code></td>
+<td><code>true</code> prepends this group's local name (after trimming)
+to each child's, cascading for nested groups; default
+<code>false</code></td>
+</tr>
+<tr class="even">
+<td><code>collapsed</code></td>
+<td><code>true</code> to show it closed</td>
+</tr>
+</tbody>
+</table>
+<h3 id="reading-one">Reading one</h3>
+<p>What a bitfield does not say keeps its default. A key a row does not
+have is passed over and noted, with where it was, on the Issues page and
+from <code>bitwisedom-gen</code>:</p>
+<pre><code>rows[5] (TOP): &quot;nmae&quot; is not a key it has, and was passed over</code></pre>
+<p>What it says wrongly is refused, with where, and nothing is made of
+the file:</p>
+<pre><code>rows[0].rows[0] (BAD): two definitions, &quot;bit&quot; and &quot;expr&quot;: a row has one
+rows[1].rows[2] (DIV_115200): its &quot;field&quot;, DIVISOR, names no row: unknown name &#39;DIVISOR&#39;
+width: a bitfield&#39;s width is a number of bits, 1 to 65536</code></pre>
+<p>What is wrong with the bitfield itself - two bits that collide, a
+value that does not fit its range, an expression's unknown name - is the
+sheet's business, and is on the Issues page as it would be for a
+sheet.</p>
+<p><a href="bitfield.schema.json"><code>bitfield.schema.json</code></a>
+is a JSON Schema (draft 2020-12) of the bitfield, for an editor that
+checks JSON as it is typed. It is stricter than the reader: it refuses a
+key the reader would pass over, so that a misspelt one shows at
+once.</p>
+<h3 id="writing-one">Writing one</h3>
+<p>A bitfield is written with every key the defaults would give left
+out: a bit is <code>{"name": "EN", "bit": 0}</code>. A range takes the
+values that follow it in its group as its <code>values</code>; a value
+elsewhere names its range by its macro name. The grid's and the colours'
+settings stay in the sheet file; the generator's that differ from a new
+sheet's are kept. Read back, a bitfield writes the same header as the
+sheet it was written from.</p>
+<h3 id="how-it-is-laid-out">How it is laid out</h3>
+<p>All three shapes are written four spaces to an indent, an array of
+numbers or strings on one line, and any other array or object on one
+line where the line - a hundred columns, the comma after it included -
+has room for it, and a member or an item to a line where not. A
+bitfield's row is a line, note and all, unless its note is long:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>        <span class="fu">{</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;group&quot;</span><span class="fu">:</span> <span class="st">&quot;Control&quot;</span><span class="fu">,</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;prefix&quot;</span><span class="fu">:</span> <span class="st">&quot;CTL_&quot;</span><span class="fu">,</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;rows&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>                <span class="fu">{</span> <span class="dt">&quot;name&quot;</span><span class="fu">:</span> <span class="st">&quot;EN&quot;</span><span class="fu">,</span> <span class="dt">&quot;bit&quot;</span><span class="fu">:</span> <span class="dv">0</span><span class="fu">,</span> <span class="dt">&quot;note&quot;</span><span class="fu">:</span> <span class="st">&quot;on&quot;</span> <span class="fu">}</span><span class="ot">,</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>                <span class="fu">{</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>                    <span class="dt">&quot;name&quot;</span><span class="fu">:</span> <span class="st">&quot;MODE&quot;</span><span class="fu">,</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>                    <span class="dt">&quot;bits&quot;</span><span class="fu">:</span> <span class="st">&quot;4..6&quot;</span><span class="fu">,</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>                    <span class="dt">&quot;values&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;SLOW&quot;</span><span class="fu">:</span> <span class="dv">1</span><span class="fu">,</span> <span class="dt">&quot;FAST&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;number&quot;</span><span class="fu">:</span> <span class="dv">2</span><span class="fu">,</span> <span class="dt">&quot;note&quot;</span><span class="fu">:</span> <span class="st">&quot;fast&quot;</span> <span class="fu">}</span> <span class="fu">}</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>                <span class="fu">}</span><span class="ot">,</span></span></code></pre></div>
+<p>so a bitfield of a thousand rows is about a thousand lines, and a
+diff of two says which rows changed. The reader takes any layout. <a
+href="../../../../scripts/bitwisedom/bitfield_json.py"><code>tools/bitfield_json.py</code></a>
+lays JSON out the same way, for a script that writes bitfields: what it
+writes is what <code>bitwisedom-gen --bitfield</code> writes back of it,
+byte for byte.</p>
+<h3 id="two-large-ones">Two large ones</h3>
+<p><code>res/djinterp/tools/bitwisedom/examples/large</code> holds two
+bitfields made by scripts, which the window has on File &gt; Examples
+&gt; Large and <code>bitwisedom-gen --example</code> has by name:</p>
+<table>
+<thead>
+<tr class="header">
+<th>file</th>
+<th>what it is</th>
+<th>made by</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><a
+href="../../../../res/djinterp/tools/bitwisedom/examples/large/win32_hresults.bitfield.json"><code>win32_hresults.bitfield.json</code></a></td>
+<td>every HRESULT MinGW-w64's <code>winerror.h</code> defines, 1,376
+codes, each a literal in a closed group for its facility, under the
+fields that make them: 1,424 rows</td>
+<td><a
+href="../../../../scripts/bitwisedom/winerror_to_bitfield.py"><code>tools/winerror_to_bitfield.py</code></a>,
+from that header</td>
+</tr>
+<tr class="even">
+<td><a
+href="../../../../res/djinterp/tools/bitwisedom/examples/large/x86_cpuid.bitfield.json"><code>x86_cpuid.bitfield.json</code></a></td>
+<td>ten of CPUID's feature registers end to end, 320 bits: 212 flags, a
+5-bit field, and x86-64's microarchitecture levels as expressions over
+them, the probe set to <code>x86-64-v3</code></td>
+<td><a
+href="../../../../scripts/bitwisedom/x86_cpuid_bitfield.py"><code>tools/x86_cpuid_bitfield.py</code></a>,
+from its own table</td>
+</tr>
+</tbody>
+</table>
+<p>Each script writes the platform check beside its bitfield --
+<code>tests/platform/win32_hresults.c</code>, every code and facility
+against the <code>winerror.h</code> a Windows build has;
+<code>tests/platform/x86_cpuid.c</code>, every flag against GCC's and
+Clang's <code>&lt;cpuid.h&gt;</code> - and the tests read each file and
+write it back as a bitfield, which must give the same bytes.</p>
+<hr />
+<h2 id="an-export">An export</h2>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;format&quot;</span><span class="fu">:</span> <span class="st">&quot;bitwisedom.export&quot;</span><span class="fu">,</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;version&quot;</span><span class="fu">:</span> <span class="dv">1</span><span class="fu">,</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;title&quot;</span><span class="fu">:</span> <span class="st">&quot;uart_cr&quot;</span><span class="fu">,</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;layout&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;width&quot;</span><span class="fu">:</span> <span class="dv">32</span><span class="fu">,</span> <span class="dt">&quot;numbering&quot;</span><span class="fu">:</span> <span class="st">&quot;lsb0&quot;</span><span class="fu">,</span> <span class="dt">&quot;msb_left&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>              <span class="dt">&quot;byte_order&quot;</span><span class="fu">:</span> <span class="st">&quot;little&quot;</span> <span class="fu">},</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;symbols&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">{</span> <span class="dt">&quot;id&quot;</span><span class="fu">:</span> <span class="dv">1</span><span class="fu">,</span> <span class="dt">&quot;kind&quot;</span><span class="fu">:</span> <span class="st">&quot;group&quot;</span><span class="fu">,</span> <span class="dt">&quot;name&quot;</span><span class="fu">:</span> <span class="st">&quot;Enables&quot;</span><span class="fu">,</span> <span class="dt">&quot;path&quot;</span><span class="fu">:</span> <span class="ot">[]</span><span class="fu">,</span></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;note&quot;</span><span class="fu">:</span> <span class="st">&quot;Switches for the UART&#39;s two halves.&quot;</span><span class="fu">,</span> <span class="dt">&quot;bits&quot;</span><span class="fu">:</span> <span class="st">&quot;bits 0..3&quot;</span> <span class="fu">}</span><span class="ot">,</span></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">{</span> <span class="dt">&quot;id&quot;</span><span class="fu">:</span> <span class="dv">2</span><span class="fu">,</span> <span class="dt">&quot;kind&quot;</span><span class="fu">:</span> <span class="st">&quot;bit&quot;</span><span class="fu">,</span> <span class="dt">&quot;name&quot;</span><span class="fu">:</span> <span class="st">&quot;EN&quot;</span><span class="fu">,</span> <span class="dt">&quot;macro&quot;</span><span class="fu">:</span> <span class="st">&quot;UART_CR_EN&quot;</span><span class="fu">,</span></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;path&quot;</span><span class="fu">:</span> <span class="ot">[</span><span class="st">&quot;Enables&quot;</span><span class="ot">]</span><span class="fu">,</span> <span class="dt">&quot;note&quot;</span><span class="fu">:</span> <span class="st">&quot;enables the UART&quot;</span><span class="fu">,</span></span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;lsb&quot;</span><span class="fu">:</span> <span class="dv">0</span><span class="fu">,</span> <span class="dt">&quot;msb&quot;</span><span class="fu">:</span> <span class="dv">0</span><span class="fu">,</span> <span class="dt">&quot;width&quot;</span><span class="fu">:</span> <span class="dv">1</span><span class="fu">,</span></span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;bits&quot;</span><span class="fu">:</span> <span class="st">&quot;bit 0&quot;</span><span class="fu">,</span> <span class="dt">&quot;value&quot;</span><span class="fu">:</span> <span class="st">&quot;0x1&quot;</span><span class="fu">,</span> <span class="dt">&quot;integer&quot;</span><span class="fu">:</span> <span class="st">&quot;1&quot;</span> <span class="fu">}</span><span class="ot">,</span></span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">{</span> <span class="dt">&quot;id&quot;</span><span class="fu">:</span> <span class="dv">9</span><span class="fu">,</span> <span class="dt">&quot;kind&quot;</span><span class="fu">:</span> <span class="st">&quot;value&quot;</span><span class="fu">,</span> <span class="dt">&quot;name&quot;</span><span class="fu">:</span> <span class="st">&quot;PARITY_EVEN&quot;</span><span class="fu">,</span></span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;macro&quot;</span><span class="fu">:</span> <span class="st">&quot;UART_CR_PARITY_EVEN&quot;</span><span class="fu">,</span> <span class="dt">&quot;path&quot;</span><span class="fu">:</span> <span class="ot">[</span><span class="st">&quot;Format&quot;</span><span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;lsb&quot;</span><span class="fu">:</span> <span class="dv">4</span><span class="fu">,</span> <span class="dt">&quot;msb&quot;</span><span class="fu">:</span> <span class="dv">5</span><span class="fu">,</span> <span class="dt">&quot;width&quot;</span><span class="fu">:</span> <span class="dv">2</span><span class="fu">,</span> <span class="dt">&quot;bits&quot;</span><span class="fu">:</span> <span class="st">&quot;bit 5&quot;</span><span class="fu">,</span> <span class="dt">&quot;value&quot;</span><span class="fu">:</span> <span class="st">&quot;0x20&quot;</span><span class="fu">,</span></span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;integer&quot;</span><span class="fu">:</span> <span class="st">&quot;32&quot;</span><span class="fu">,</span> <span class="dt">&quot;number&quot;</span><span class="fu">:</span> <span class="dv">2</span><span class="fu">,</span> <span class="dt">&quot;encoding&quot;</span><span class="fu">:</span> <span class="st">&quot;unsigned&quot;</span> <span class="fu">}</span></span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>  <span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;issues&quot;</span><span class="fu">:</span> <span class="ot">[]</span><span class="fu">,</span></span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;header&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;file_name&quot;</span><span class="fu">:</span> <span class="st">&quot;uart_cr.h&quot;</span><span class="fu">,</span> <span class="dt">&quot;level&quot;</span><span class="fu">:</span> <span class="st">&quot;c99&quot;</span><span class="fu">,</span> <span class="dt">&quot;form&quot;</span><span class="fu">:</span> <span class="st">&quot;macros&quot;</span><span class="fu">,</span></span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a>              <span class="dt">&quot;macros&quot;</span><span class="fu">:</span> <span class="dv">35</span><span class="fu">,</span> <span class="dt">&quot;skipped&quot;</span><span class="fu">:</span> <span class="dv">0</span><span class="fu">,</span> <span class="dt">&quot;notes&quot;</span><span class="fu">:</span> <span class="ot">[]</span><span class="fu">,</span> <span class="dt">&quot;text&quot;</span><span class="fu">:</span> <span class="st">&quot;...&quot;</span> <span class="fu">},</span></span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;sheet&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;format&quot;</span><span class="fu">:</span> <span class="st">&quot;bitwisedom.sheet&quot;</span><span class="fu">,</span> <span class="dt">&quot;...&quot;</span><span class="fu">:</span> <span class="st">&quot;the sheet file, whole&quot;</span> <span class="fu">}</span></span>
+<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<table>
+<thead>
+<tr class="header">
+<th>key</th>
+<th>is</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>layout</code></td>
+<td><code>width</code>, <code>numbering</code>, <code>msb_left</code>
+and <code>byte_order</code>; and, for a sheet wider than 64 bits,
+<code>words</code>: the header's array words' <code>bits</code>, their
+<code>count</code>, and the prefix of the array <code>macros</code></td>
+</tr>
+<tr class="even">
+<td><code>symbols</code></td>
+<td>every row, groups too, in the tree's order</td>
+</tr>
+<tr class="odd">
+<td><code>issues</code></td>
+<td>each with its <code>level</code> (<code>"error"</code>,
+<code>"warning"</code>, <code>"note"</code>), the <code>symbol</code> it
+is about by macro name (<code>null</code> for the sheet's own), and its
+<code>message</code></td>
+</tr>
+<tr class="even">
+<td><code>header</code></td>
+<td>what the generator wrote: its <code>file_name</code>,
+<code>level</code>, <code>form</code>, how many <code>macros</code>, how
+many symbols <code>skipped</code> for their errors, its
+<code>notes</code>, and its <code>text</code></td>
+</tr>
+<tr class="odd">
+<td><code>sheet</code></td>
+<td>the sheet, as its file holds it: what an export is read back as</td>
+</tr>
+</tbody>
+</table>
+<p>A row of <code>symbols</code> has:</p>
+<table>
+<thead>
+<tr class="header">
+<th>key</th>
+<th>is</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>id</code></td>
+<td>its number in the sheet, which other rows' <code>field</code>
+use</td>
+</tr>
+<tr class="even">
+<td><code>kind</code></td>
+<td><code>"group"</code>, <code>"bit"</code>, <code>"range"</code>,
+<code>"value"</code>, <code>"literal"</code>, <code>"expression"</code>
+or <code>"macro"</code></td>
+</tr>
+<tr class="odd">
+<td><code>name</code>, <code>macro</code></td>
+<td>its own name, and its macro name (not for a group)</td>
+</tr>
+<tr class="even">
+<td><code>path</code></td>
+<td>the names of the groups it is in, outermost first</td>
+</tr>
+<tr class="odd">
+<td><code>note</code>, <code>emit</code></td>
+<td>its brief; <code>emit</code> only when <code>false</code></td>
+</tr>
+<tr class="even">
+<td><code>lsb</code>, <code>msb</code>, <code>width</code></td>
+<td>its bits' span: a bit's, a range's, a value's range's</td>
+</tr>
+<tr class="odd">
+<td><code>bits</code></td>
+<td>its bits as runs, for a person: <code>"bits 4..5"</code>,
+<code>"bits 0, 3 and 70"</code></td>
+</tr>
+<tr class="even">
+<td><code>value</code></td>
+<td>its bits, in hex, of any width: <code>"0x30"</code></td>
+</tr>
+<tr class="odd">
+<td><code>integer</code></td>
+<td>the integer C knows it by, in decimal: its value, or - a negative
+literal - the number; in a sheet wider than 64 bits, a bit's or range's
+place, the bits a value's field holds, a literal's number. None for an
+expression of a wide sheet, nor a literal past bit 63</td>
+</tr>
+<tr class="even">
+<td><code>number</code>, <code>encoding</code>, <code>bias</code></td>
+<td>a value's number and how its range holds it</td>
+</tr>
+<tr class="odd">
+<td><code>negative</code></td>
+<td>a literal written as the negative number it is</td>
+</tr>
+<tr class="even">
+<td><code>expr</code></td>
+<td>an expression's text</td>
+</tr>
+<tr class="odd">
+<td><code>params</code>, <code>body</code>, <code>ctype</code>,
+<code>expansion</code></td>
+<td>a macro's parameters and body, the C type of what it evaluates to,
+and its name fully expanded</td>
+</tr>
+<tr class="even">
+<td><code>error</code></td>
+<td>why it is left out of the header</td>
+</tr>
+</tbody>
+</table>
+<h2 id="nested-ranges-and-symbolic-expressions">Nested ranges and
+symbolic expressions</h2>
+<p>A range can own nested ranges, bits, and expressions by using a
+<code>rows</code> array. Every nested bit or range must lie entirely
+within its parent's bit interval (both endpoints inclusive). Nested
+ranges and their containing ranges intentionally overlap; non-contained
+sibling intersections still produce a warning.
+<code>name_children: true</code> prepends that range's name to all
+descendants, and defaults to false for existing sheets.</p>
+<p>For example, a range called <code>D_ERR_</code> may contain a range
+<code>ARRAY_</code>, which contains <code>INDEX_</code> and then an
+expression <code>OOB</code> with generated name
+<code>D_ERR_ARRAY_INDEX_OOB</code>. A symbol's <code>expr</code> can
+name other symbols and uses C integer operators and precedence. A
+backslash-newline continuation in an expression is accepted, and the
+generator emits a C <code>#define</code> containing the symbolic
+references.</p>
+<p><code>transparent: true</code> on a symbol or group disables its
+colored cell fill -- its set bits are drawn plain, in the theme's text -
+and is what a row added with <strong>New rows' colour</strong> at
+<em>none</em> has; this is separate from <code>colour</code> being
+unspecified (automatic palette). The <strong>New</strong> command
+creates a 32-bit sheet with a full-width range named <code>root</code>,
+with no fill (<code>transparent: true</code>), holding one bit,
+<code>FLAG</code>, at bit 0, ready to receive more nested rows. A sheet
+file's <code>grid</code> keeps <code>square_cells</code>, whether rows
+follow the cells' width - proportional cells - and
+<code>cell_ratio</code>, as what share of it, <code>0.8</code> by
+default, <code>1.0</code> square; a file without them - one written
+before them - opens with proportional rows four fifths of a cell's
+width. <code>lines_past_rows</code> is whether the bits' lines run on
+below the last row; a file without it stops them where the rows do. It
+keeps <code>names_by_value</code> too, whether the symbols column lists
+each row by its value rather than by a name; with it off,
+<code>full_names</code> chooses the symbol (macro) name or the row's
+own, as before, and a file without it opens listing rows by name.
+<code>names_value_form</code> says how the values are then written:
+<code>written</code>, as the header writes them, where the names would
+be; or every row alike, lined up at the column's right -
+<code>hex</code>, <code>dec</code>, <code>bin</code>, <code>shift</code>
+(a shifted run, <code>0x3 &lt;&lt; 4</code>) or <code>bits</code> (the
+bits set, <code>bits 5:4</code>). A file without it, or with a word it
+does not know, writes them as the header does.
+<strong>Shift+drag</strong> on the grid selects a rectangle of cells and
+rows without editing their bit definitions. Binary values in the
+inspector and grid tooltip are ungrouped.</p>
+<p>The grid keeps the order its rows are shown in: <code>sort_by</code>
+- <code>sheet</code>, the sheet's own, or <code>symbol</code>,
+<code>name</code>, <code>short_name</code>, <code>value</code>,
+<code>lowest</code>, <code>width</code>, <code>kind</code> or
+<code>note</code> - and <code>sort_descending</code>. The rows stay in
+<code>rows</code> in the sheet's own order, which the header follows; a
+file without them shows the sheet's order. <code>show_colours</code> is
+whether the rows' colours are drawn in their cells, as
+<code>show_digits</code> and <code>show_labels</code> are whether digits
+and names across ranges are; a file without it draws them. And
+<code>rules</code>, the display rules, show or hide those three in parts
+of the grid, each</p>
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span> <span class="dt">&quot;rows&quot;</span><span class="fu">:</span> <span class="ot">[</span> <span class="dv">7</span><span class="ot">,</span> <span class="dv">12</span> <span class="ot">]</span><span class="fu">,</span> <span class="dt">&quot;lsb&quot;</span><span class="fu">:</span> <span class="dv">4</span><span class="fu">,</span> <span class="dt">&quot;msb&quot;</span><span class="fu">:</span> <span class="dv">11</span><span class="fu">,</span> <span class="dt">&quot;digits&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span> <span class="dt">&quot;colour&quot;</span><span class="fu">:</span> <span class="kw">false</span> <span class="fu">}</span></span></code></pre></div>
+<p>-- rows by <code>id</code>, each with every row inside it; none for
+every row - by bits <code>lsb</code> to <code>msb</code>, every bit when
+<code>msb</code> is below <code>lsb</code> (<code>-1</code>); with only
+the parts it sets, <code>digits</code>, <code>names</code> and
+<code>colour</code>, each <code>true</code> to show and
+<code>false</code> to hide. Rules apply in order, and the last over a
+cell wins.</p>
+<p><code>specials</code> are the grid's probe and usage rows, in their
+order, each where it is shown:</p>
+<div class="sourceCode" id="cb9"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="er">&quot;specials&quot;:</span> <span class="ot">[</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">{</span> <span class="dt">&quot;kind&quot;</span><span class="fu">:</span> <span class="st">&quot;probe&quot;</span><span class="fu">,</span> <span class="dt">&quot;place&quot;</span><span class="fu">:</span> <span class="st">&quot;top&quot;</span> <span class="fu">}</span><span class="ot">,</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">{</span> <span class="dt">&quot;kind&quot;</span><span class="fu">:</span> <span class="st">&quot;usage&quot;</span><span class="fu">,</span> <span class="dt">&quot;place&quot;</span><span class="fu">:</span> <span class="st">&quot;tree&quot;</span><span class="fu">,</span> <span class="dt">&quot;parent&quot;</span><span class="fu">:</span> <span class="dv">1</span><span class="fu">,</span> <span class="dt">&quot;before&quot;</span><span class="fu">:</span> <span class="dv">0</span> <span class="fu">}</span><span class="ot">,</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">{</span> <span class="dt">&quot;kind&quot;</span><span class="fu">:</span> <span class="st">&quot;usage&quot;</span><span class="fu">,</span> <span class="dt">&quot;place&quot;</span><span class="fu">:</span> <span class="st">&quot;bottom&quot;</span> <span class="fu">}</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="ot">]</span></span></code></pre></div>
+<p>-- <code>kind</code>, <code>probe</code> or <code>usage</code>;
+<code>place</code>, <code>bottom</code> (pinned below every row),
+<code>top</code> (above every row) or <code>tree</code> (among the rows:
+just before the row whose <code>id</code> is <code>before</code>, or,
+with none, at the end of the rows of the group or range
+<code>parent</code> - 0, the sheet's own). A usage row in a group counts
+the group's rows. Every row of a kind is shown or hidden with the grid's
+<code>show_probe</code> or <code>show_usage</code>; a file without
+<code>specials</code> has one of each, at the bottom, and an anchor to a
+row the sheet does not have is let go of.</p>
+</body>
+</html>

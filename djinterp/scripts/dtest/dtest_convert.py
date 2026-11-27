@@ -3,7 +3,7 @@
 # djinterp [test]  -  scripts/dtest/dtest_convert.py
 #
 #   Converts C test sources in DTest's old forms to its frozen C face,
-# c/modules/test/test_suite.h (docs/djinterp_testing.md, the migration
+# c/modules/test/test_suite.h (docs/djinterp_testing.html, the migration
 # guide). Three old forms:
 #
 #   bridge   the dtest_* C ABI the filesys suite was written against
@@ -42,7 +42,7 @@
 # in the code, the includes, the guards and the banners; each file is renamed
 # when its new name is free, and one whose new name a C-face suite already
 # has is reported, to merge by hand. A name a register test already has, a
-# runner and a CMake leaf are the suite's own work (docs/djinterp_testing.md,
+# runner and a CMake leaf are the suite's own work (docs/djinterp_testing.html,
 # the migration guide).
 #
 # usage:

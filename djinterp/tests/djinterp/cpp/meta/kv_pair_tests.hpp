@@ -2,7 +2,7 @@
 * djinterp [cpp][meta]                                         kv_pair_tests.hpp
 *
 * Unit test suite for kv_pair.hpp - the minimal key-value pair.
-*   Two faces, selected by DTEST_SPEC_MODE (see djinterp_testing.md S3):
+*   Two faces, selected by DTEST_SPEC_MODE (see djinterp_testing.html S3):
 *
 *     - normal mode (the section TUs): pulls in the header under test and
 *       exposes the fixtures + the D_KV_CHECK macro.

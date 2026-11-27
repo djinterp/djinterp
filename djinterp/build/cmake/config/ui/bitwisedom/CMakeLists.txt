@@ -1,7 +1,7 @@
 #*******************************************************************************
 # bitwisedom [ui]                                                 CMakeLists.txt
 #
-# bitwisedom's window: the module `bitwisedom gui` loads (GRAMMAR.md, section
+# bitwisedom's window: the module `bitwisedom gui` loads (GRAMMAR.html, section
 # 7), made on uxoxo and Dear ImGui outside the djinterp tree - its sources
 # in inc/ui, src/ui and tests/ui.
 #   A top-level build: it builds djinterp's bitwisedom

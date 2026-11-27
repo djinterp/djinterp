@@ -1,0 +1,2199 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>restd — Compatibility Reference</title>
+  <style>
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+</head>
+<body>
+<h1 id="re_std--compatibility-reference">re_std — Compatibility
+Reference</h1>
+<blockquote>
+<p><strong>⚠ THE C++98/03 COLUMNS BELOW ARE HISTORICAL.</strong></p>
+<p><code>core/djinterp.hpp</code> <strong>hard-errors below
+C++11</strong>, and its own comment states the policy outright:
+<em>"C++98 is not a supported tier, so a module must not carry a C++98
+fallback 'just in case' — an unreachable branch is a second
+implementation nobody compiles."</em></p>
+<p>A ✅ in a C++98/03 column therefore means <em>"this code has no
+C++11-only construct"</em>, not <em>"this configuration is
+buildable"</em>. It is not: the core header refuses to compile before it
+is reached.</p>
+<p>The columns are kept because they still record real information —
+which symbols would survive a floor drop — and because 240 catalogued
+symbols still claim a C++98 minimum. Both go away together if
+<code>versions[0]</code> in <code>_config.json</code> moves to
+<code>"C++11"</code>. See <code>README.html</code>, "The tier floor".</p>
+</blockquote>
+<blockquote>
+<p><strong>Last updated:</strong> 2026-05-07 <strong>Covers:</strong>
+<code>type_traits.hpp</code>, <code>any.hpp</code>,
+<code>any_cast.hpp</code>, <code>any_swap.hpp</code>,
+<code>bad_any_cast.hpp</code>, <code>make_any.hpp</code>,
+<code>utility/swap.hpp</code>, <code>utility/move.hpp</code>,
+<code>utility/forward.hpp</code>, <code>utility/declval.hpp</code>,
+<code>utility/pair.hpp</code>, <code>utility/make_pair.hpp</code>,
+<code>functional/</code> (33 symbols — see §7)</p>
+</blockquote>
+<hr />
+<h2 id="how-to-read-this-document">How to Read This Document</h2>
+<p>Each table below lists every public symbol exposed by a re_std
+module. Columns describe behavior at each C++ standard tier. The
+<strong>Compiler Intrinsic</strong> column marks traits that require a
+compiler builtin — all other traits are pure template metaprogramming
+and work on any conforming compiler.</p>
+<h3 id="legend">Legend</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Symbol</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>✓</td>
+<td>Fully functional</td>
+</tr>
+<tr class="even">
+<td>constexpr</td>
+<td>Available and constexpr-qualified</td>
+</tr>
+<tr class="odd">
+<td>✗</td>
+<td>Not available / omitted at this tier</td>
+</tr>
+<tr class="even">
+<td>fallback</td>
+<td>Available with reduced functionality (see notes)</td>
+</tr>
+<tr class="odd">
+<td>intrinsic</td>
+<td>Requires compiler builtin (see Compiler Intrinsic column)</td>
+</tr>
+<tr class="even">
+<td>gated</td>
+<td>Conditionally compiled; availability depends on env detection</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="1-type_traitshpp--trait-availability">1
+<code>type_traits.hpp</code> — Trait Availability</h2>
+<h3 id="11-foundation-types">1.1 Foundation Types</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Symbol</th>
+<th>Kind</th>
+<th>C++98/03</th>
+<th>C++11</th>
+<th>C++14+</th>
+<th>Compiler Intrinsic</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>integral_constant&lt;T,V&gt;</code></td>
+<td>trait</td>
+<td>✓ (static const)</td>
+<td>✓ (static constexpr)</td>
+<td>✓</td>
+<td>No</td>
+</tr>
+<tr class="even">
+<td><code>true_type</code></td>
+<td>typedef</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>No</td>
+</tr>
+<tr class="odd">
+<td><code>false_type</code></td>
+<td>typedef</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>No</td>
+</tr>
+</tbody>
+</table>
+<h3 id="12-sfinae-support">1.2 SFINAE Support</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Symbol</th>
+<th>Kind</th>
+<th>C++98/03</th>
+<th>C++11</th>
+<th>C++14+</th>
+<th>Compiler Intrinsic</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>enable_if&lt;B,T&gt;</code></td>
+<td>trait</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>No</td>
+</tr>
+<tr class="even">
+<td><code>enable_if_t&lt;B,T&gt;</code></td>
+<td>alias</td>
+<td>✗</td>
+<td>✓</td>
+<td>✓</td>
+<td>No</td>
+</tr>
+</tbody>
+</table>
+<h3 id="13-type-modification">1.3 Type Modification</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Symbol</th>
+<th>Kind</th>
+<th>C++98/03</th>
+<th>C++11</th>
+<th>C++14+</th>
+<th>Compiler Intrinsic</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>remove_const&lt;T&gt;</code></td>
+<td>trait</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>No</td>
+</tr>
+<tr class="even">
+<td><code>remove_const_t&lt;T&gt;</code></td>
+<td>alias</td>
+<td>✗</td>
+<td>✓</td>
+<td>✓</td>
+<td>No</td>
+</tr>
+<tr class="odd">
+<td><code>remove_volatile&lt;T&gt;</code></td>
+<td>trait</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>No</td>
+</tr>
+<tr class="even">
+<td><code>remove_volatile_t&lt;T&gt;</code></td>
+<td>alias</td>
+<td>✗</td>
+<td>✓</td>
+<td>✓</td>
+<td>No</td>
+</tr>
+<tr class="odd">
+<td><code>remove_cv&lt;T&gt;</code></td>
+<td>trait</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>No</td>
+</tr>
+<tr class="even">
+<td><code>remove_cv_t&lt;T&gt;</code></td>
+<td>alias</td>
+<td>✗</td>
+<td>✓</td>
+<td>✓</td>
+<td>No</td>
+</tr>
+<tr class="odd">
+<td><code>remove_pointer&lt;T&gt;</code></td>
+<td>trait</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>No</td>
+</tr>
+<tr class="even">
+<td><code>remove_pointer_t&lt;T&gt;</code></td>
+<td>alias</td>
+<td>✗</td>
+<td>✓</td>
+<td>✓</td>
+<td>No</td>
+</tr>
+</tbody>
+</table>
+<h3 id="14-type-comparison">1.4 Type Comparison</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Symbol</th>
+<th>Kind</th>
+<th>C++98/03</th>
+<th>C++11</th>
+<th>C++14+</th>
+<th>Compiler Intrinsic</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>is_same&lt;A,B&gt;</code></td>
+<td>trait</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>No</td>
+</tr>
+<tr class="even">
+<td><code>is_same_v&lt;A,B&gt;</code></td>
+<td>variable</td>
+<td>✗</td>
+<td>✗</td>
+<td>✓ (C++14)</td>
+<td>No</td>
+</tr>
+<tr class="odd">
+<td><code>is_const&lt;T&gt;</code></td>
+<td>trait</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>No</td>
+</tr>
+<tr class="even">
+<td><code>is_const_v&lt;T&gt;</code></td>
+<td>variable</td>
+<td>✗</td>
+<td>✗</td>
+<td>✓ (C++14)</td>
+<td>No</td>
+</tr>
+</tbody>
+</table>
+<h3 id="15-primary-type-categories">1.5 Primary Type Categories</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Symbol</th>
+<th>Kind</th>
+<th>C++98/03</th>
+<th>C++11</th>
+<th>C++14+</th>
+<th>Compiler Intrinsic</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>is_integral&lt;T&gt;</code></td>
+<td>trait</td>
+<td>✓</td>
+<td>✓ (+char16/32_t)</td>
+<td>✓</td>
+<td>No</td>
+</tr>
+<tr class="even">
+<td><code>is_integral_v&lt;T&gt;</code></td>
+<td>variable</td>
+<td>✗</td>
+<td>✗</td>
+<td>✓ (C++14)</td>
+<td>No</td>
+</tr>
+<tr class="odd">
+<td><code>is_floating_point&lt;T&gt;</code></td>
+<td>trait</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>No</td>
+</tr>
+<tr class="even">
+<td><code>is_floating_point_v&lt;T&gt;</code></td>
+<td>variable</td>
+<td>✗</td>
+<td>✗</td>
+<td>✓ (C++14)</td>
+<td>No</td>
+</tr>
+<tr class="odd">
+<td><code>is_pointer&lt;T&gt;</code></td>
+<td>trait</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>No</td>
+</tr>
+<tr class="even">
+<td><code>is_pointer_v&lt;T&gt;</code></td>
+<td>variable</td>
+<td>✗</td>
+<td>✗</td>
+<td>✓ (C++14)</td>
+<td>No</td>
+</tr>
+<tr class="odd">
+<td><code>is_function&lt;T&gt;</code></td>
+<td>trait</td>
+<td>✓ (arity ≤10)</td>
+<td>✓ (all arities)</td>
+<td>✓</td>
+<td>No</td>
+</tr>
+<tr class="even">
+<td><code>is_function_v&lt;T&gt;</code></td>
+<td>variable</td>
+<td>✗</td>
+<td>✗</td>
+<td>✓ (C++14)</td>
+<td>No</td>
+</tr>
+<tr class="odd">
+<td><code>is_enum&lt;T&gt;</code></td>
+<td>trait</td>
+<td>intrinsic</td>
+<td>intrinsic</td>
+<td>intrinsic</td>
+<td><strong>Yes</strong> — <code>__is_enum</code></td>
+</tr>
+<tr class="even">
+<td><code>is_enum_v&lt;T&gt;</code></td>
+<td>variable</td>
+<td>✗</td>
+<td>✗</td>
+<td>intrinsic (C++14)</td>
+<td><strong>Yes</strong></td>
+</tr>
+</tbody>
+</table>
+<h3 id="16-sign-detection">1.6 Sign Detection</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Symbol</th>
+<th>Kind</th>
+<th>C++98/03</th>
+<th>C++11</th>
+<th>C++14+</th>
+<th>Compiler Intrinsic</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>is_signed&lt;T&gt;</code></td>
+<td>trait</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>No</td>
+</tr>
+<tr class="even">
+<td><code>is_signed_v&lt;T&gt;</code></td>
+<td>variable</td>
+<td>✗</td>
+<td>✗</td>
+<td>✓ (C++14)</td>
+<td>No</td>
+</tr>
+<tr class="odd">
+<td><code>is_unsigned&lt;T&gt;</code></td>
+<td>trait</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>No</td>
+</tr>
+<tr class="even">
+<td><code>is_unsigned_v&lt;T&gt;</code></td>
+<td>variable</td>
+<td>✗</td>
+<td>✗</td>
+<td>✓ (C++14)</td>
+<td>No</td>
+</tr>
+</tbody>
+</table>
+<h3 id="17-enum-support">1.7 Enum Support</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Symbol</th>
+<th>Kind</th>
+<th>C++98/03</th>
+<th>C++11</th>
+<th>C++14+</th>
+<th>Compiler Intrinsic</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>underlying_type&lt;T&gt;</code></td>
+<td>trait</td>
+<td>intrinsic</td>
+<td>intrinsic</td>
+<td>intrinsic</td>
+<td><strong>Yes</strong> — <code>__underlying_type</code></td>
+</tr>
+<tr class="even">
+<td><code>underlying_type_t&lt;T&gt;</code></td>
+<td>alias</td>
+<td>✗</td>
+<td>intrinsic</td>
+<td>intrinsic</td>
+<td><strong>Yes</strong></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="2-type_traitshpp--compiler-intrinsic-availability">2
+<code>type_traits.hpp</code> — Compiler Intrinsic Availability</h2>
+<p>The following table shows the minimum compiler version at which each
+intrinsic becomes available. These are available in <strong>all language
+modes</strong>, including C++98/03.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Intrinsic</th>
+<th>GCC</th>
+<th>Clang</th>
+<th>MSVC</th>
+<th>Intel</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>__is_enum(T)</code></td>
+<td>4.3+</td>
+<td>All</td>
+<td>2012+ (v11)</td>
+<td>13.0+</td>
+<td><code>is_enum</code> implementation</td>
+</tr>
+<tr class="even">
+<td><code>__underlying_type(T)</code></td>
+<td>4.7+</td>
+<td>All</td>
+<td>2012+ (v11)</td>
+<td>13.0+</td>
+<td><code>underlying_type</code> implementation</td>
+</tr>
+</tbody>
+</table>
+<h3 id="fallback-behavior-when-intrinsics-are-absent">Fallback Behavior
+When Intrinsics Are Absent</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Trait</th>
+<th>Fallback</th>
+<th>Effect on <code>any</code></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>is_enum&lt;T&gt;</code></td>
+<td>Always <code>false_type</code></td>
+<td>Enum values route to heap storage (functional but no SBO)</td>
+</tr>
+<tr class="even">
+<td><code>underlying_type&lt;T&gt;</code></td>
+<td>Not defined</td>
+<td>Never instantiated (gated behind <code>is_enum::value</code>)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="detection-macros">Detection Macros</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Macro</th>
+<th>Value</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>D_RE_STD_HAS_IS_ENUM</code></td>
+<td>0 or 1</td>
+<td>Whether <code>is_enum</code> uses a real intrinsic vs. false
+fallback</td>
+</tr>
+<tr class="even">
+<td><code>D_RE_STD_HAS_UNDERLYING_TYPE</code></td>
+<td>0 or 1</td>
+<td>Whether <code>underlying_type</code> is defined at all</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="3-anyhpp--feature-availability">3 <code>any.hpp</code> — Feature
+Availability</h2>
+<h3 id="31-storage-paths">3.1 Storage Paths</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Feature</th>
+<th>C++98/03</th>
+<th>C++11</th>
+<th>C++14+</th>
+<th>C++20+</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>SBO: bool</td>
+<td>✓</td>
+<td>✓</td>
+<td>constexpr</td>
+<td>constexpr</td>
+</tr>
+<tr class="even">
+<td>SBO: signed integrals</td>
+<td>✓</td>
+<td>✓</td>
+<td>constexpr</td>
+<td>constexpr</td>
+</tr>
+<tr class="odd">
+<td>SBO: unsigned integrals</td>
+<td>✓</td>
+<td>✓</td>
+<td>constexpr</td>
+<td>constexpr</td>
+</tr>
+<tr class="even">
+<td>SBO: floating point</td>
+<td>✓</td>
+<td>✓</td>
+<td>constexpr</td>
+<td>constexpr</td>
+</tr>
+<tr class="odd">
+<td>SBO: non-const pointer</td>
+<td>✓</td>
+<td>✓</td>
+<td>constexpr</td>
+<td>constexpr</td>
+</tr>
+<tr class="even">
+<td>SBO: const pointer</td>
+<td>✓</td>
+<td>✓</td>
+<td>constexpr</td>
+<td>constexpr</td>
+</tr>
+<tr class="odd">
+<td>SBO: enum</td>
+<td>fallback¹</td>
+<td>✓²</td>
+<td>constexpr²</td>
+<td>constexpr²</td>
+</tr>
+<tr class="even">
+<td>Heap: class types</td>
+<td>gated³</td>
+<td>gated³</td>
+<td>gated³</td>
+<td>gated³</td>
+</tr>
+</tbody>
+</table>
+<p>¹ Requires <code>D_RE_STD_HAS_IS_ENUM</code>; otherwise enum → heap.
+² Requires <code>D_RE_STD_HAS_UNDERLYING_TYPE</code> for lossless
+round-trip. ³ Requires <code>D_ENV_CPP98_HAS_NEW</code>.</p>
+<h3 id="32-class-members">3.2 Class Members</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Member</th>
+<th>Kind</th>
+<th>C++98/03</th>
+<th>C++11</th>
+<th>C++14+</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>any()</code></td>
+<td>ctor</td>
+<td>✓</td>
+<td>✓</td>
+<td>constexpr</td>
+<td>Default (empty)</td>
+</tr>
+<tr class="even">
+<td><code>any(T)</code></td>
+<td>ctor</td>
+<td>✓</td>
+<td>✓</td>
+<td>constexpr (SBO)</td>
+<td>SBO or heap depending on T</td>
+</tr>
+<tr class="odd">
+<td><code>any(const any&amp;)</code></td>
+<td>ctor</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>Deep-copies heap values</td>
+</tr>
+<tr class="even">
+<td><code>any(any&amp;&amp;)</code></td>
+<td>ctor</td>
+<td>✗</td>
+<td>✓</td>
+<td>✓</td>
+<td>Gated on rvalue references</td>
+</tr>
+<tr class="odd">
+<td><code>operator=(const any&amp;)</code></td>
+<td>assign</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td></td>
+</tr>
+<tr class="even">
+<td><code>operator=(any&amp;&amp;)</code></td>
+<td>assign</td>
+<td>✗</td>
+<td>✓</td>
+<td>✓</td>
+<td>Gated on rvalue references</td>
+</tr>
+<tr class="odd">
+<td><code>~any()</code></td>
+<td>dtor</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>Calls reset()</td>
+</tr>
+<tr class="even">
+<td><code>has_value()</code></td>
+<td>observer</td>
+<td>✓</td>
+<td>✓</td>
+<td>constexpr</td>
+<td></td>
+</tr>
+<tr class="odd">
+<td><code>operator bool()</code></td>
+<td>observer</td>
+<td>fallback⁴</td>
+<td>✓ (explicit)</td>
+<td>constexpr</td>
+<td></td>
+</tr>
+<tr class="even">
+<td><code>category()</code></td>
+<td>observer</td>
+<td>✓</td>
+<td>✓</td>
+<td>constexpr</td>
+<td></td>
+</tr>
+<tr class="odd">
+<td><code>type()</code></td>
+<td>observer</td>
+<td>✓</td>
+<td>✓</td>
+<td>constexpr</td>
+<td>Returns <code>any_type_id</code></td>
+</tr>
+<tr class="even">
+<td><code>holds&lt;T&gt;()</code></td>
+<td>observer</td>
+<td>✓</td>
+<td>✓</td>
+<td>constexpr</td>
+<td></td>
+</tr>
+<tr class="odd">
+<td><code>is_sbo()</code></td>
+<td>observer</td>
+<td>✓</td>
+<td>✓</td>
+<td>constexpr</td>
+<td></td>
+</tr>
+<tr class="even">
+<td><code>get&lt;T&gt;()</code></td>
+<td>retrieval</td>
+<td>✓</td>
+<td>✓</td>
+<td>constexpr (SBO)</td>
+<td></td>
+</tr>
+<tr class="odd">
+<td><code>get_ref&lt;T&gt;()</code></td>
+<td>retrieval</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>Heap types only</td>
+</tr>
+<tr class="even">
+<td><code>reset()</code></td>
+<td>modifier</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td></td>
+</tr>
+<tr class="odd">
+<td><code>swap(any&amp;)</code></td>
+<td>modifier</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td></td>
+</tr>
+<tr class="even">
+<td><code>emplace&lt;T&gt;(args...)</code></td>
+<td>modifier</td>
+<td>✗</td>
+<td>✓</td>
+<td>✓</td>
+<td>Requires variadic templates</td>
+</tr>
+</tbody>
+</table>
+<p>⁴ C++98/03 uses safe-bool idiom instead of explicit operator
+bool.</p>
+<h3 id="33-type-identity">3.3 Type Identity</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Symbol</th>
+<th>Kind</th>
+<th>C++98/03</th>
+<th>C++11</th>
+<th>C++14+</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>any_type_id</code></td>
+<td>typedef</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+</tr>
+<tr class="even">
+<td><code>any_type_id_of&lt;T&gt;</code></td>
+<td>trait</td>
+<td>✓</td>
+<td>✓</td>
+<td>constexpr</td>
+</tr>
+<tr class="odd">
+<td><code>any_type_id_of_v&lt;T&gt;</code></td>
+<td>variable</td>
+<td>✗</td>
+<td>✗</td>
+<td>✓ (C++14)</td>
+</tr>
+<tr class="even">
+<td><code>DAnyCategory</code></td>
+<td>enum</td>
+<td>✓ (struct wrapper)</td>
+<td>✓ (enum class)</td>
+<td>✓</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="4-free-function-modules">4 Free Function Modules</h2>
+<h3 id="41-any_casthpp">4.1 <code>any_cast.hpp</code></h3>
+<table>
+<thead>
+<tr class="header">
+<th>Overload</th>
+<th>C++98/03</th>
+<th>C++11</th>
+<th>C++14+</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>any_cast&lt;T&gt;(any*)</code> → <code>T*</code></td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>nullptr on mismatch</td>
+</tr>
+<tr class="even">
+<td><code>any_cast&lt;T&gt;(const any*)</code> →
+<code>const T*</code></td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>nullptr on mismatch</td>
+</tr>
+<tr class="odd">
+<td><code>any_cast&lt;T&gt;(const any&amp;)</code> → <code>T</code></td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>Throws or UB (see below)</td>
+</tr>
+<tr class="even">
+<td><code>any_cast&lt;T&gt;(any&amp;)</code> → <code>T&amp;</code></td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>Throws or UB</td>
+</tr>
+<tr class="odd">
+<td><code>any_cast&lt;T&gt;(any&amp;&amp;)</code> → <code>T</code></td>
+<td>✗</td>
+<td>✓</td>
+<td>✓</td>
+<td>Requires rvalue references</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Exception behavior of reference overloads:</strong></p>
+<table>
+<thead>
+<tr class="header">
+<th>Condition</th>
+<th>Behavior</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>D_ENV_CPP98_HAS_TYPEINFO</code> = 1</td>
+<td>Throws <code>bad_any_cast</code> on mismatch</td>
+</tr>
+<tr class="even">
+<td><code>D_ENV_CPP98_HAS_EXCEPTION</code> = 1 (no typeinfo)</td>
+<td>Throws <code>bad_any_cast</code> on mismatch</td>
+</tr>
+<tr class="odd">
+<td>Neither available</td>
+<td>Unchecked — undefined behavior on mismatch</td>
+</tr>
+</tbody>
+</table>
+<h3 id="42-any_swaphpp">4.2 <code>any_swap.hpp</code></h3>
+<table>
+<thead>
+<tr class="header">
+<th>Symbol</th>
+<th>C++98/03</th>
+<th>C++11</th>
+<th>C++14+</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>swap(any&amp;, any&amp;)</code></td>
+<td>✓</td>
+<td>✓</td>
+<td>constexpr inline</td>
+</tr>
+</tbody>
+</table>
+<h3 id="43-bad_any_casthpp">4.3 <code>bad_any_cast.hpp</code></h3>
+<table>
+<thead>
+<tr class="header">
+<th>Condition</th>
+<th>Base Class</th>
+<th><code>what()</code></th>
+<th>Virtual?</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>D_ENV_CPP98_HAS_TYPEINFO</code> = 1</td>
+<td><code>std::bad_cast</code> → <code>std::exception</code></td>
+<td><code>"bad any_cast"</code></td>
+<td>Yes (override)</td>
+</tr>
+<tr class="even">
+<td><code>D_ENV_CPP98_HAS_EXCEPTION</code> = 1</td>
+<td><code>std::exception</code></td>
+<td><code>"bad any_cast"</code></td>
+<td>Yes (override)</td>
+</tr>
+<tr class="odd">
+<td>Neither</td>
+<td>Standalone (no base)</td>
+<td><code>"bad any_cast"</code></td>
+<td>No</td>
+</tr>
+</tbody>
+</table>
+<h3 id="44-make_anyhpp">4.4 <code>make_any.hpp</code></h3>
+<table>
+<thead>
+<tr class="header">
+<th>Overload</th>
+<th>C++98/03</th>
+<th>C++11</th>
+<th>C++14+</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>make_any&lt;T&gt;(args...)</code></td>
+<td>✗</td>
+<td>✓</td>
+<td>✓</td>
+<td>Requires variadic templates</td>
+</tr>
+<tr class="even">
+<td><code>make_any&lt;T&gt;(init_list, args...)</code></td>
+<td>✗</td>
+<td>✓</td>
+<td>✓</td>
+<td>Requires variadic templates + initializer_list</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="5-utility--feature-availability">5 <code>utility/*</code> —
+Feature Availability</h2>
+<h3 id="51-swaphpp">5.1 <code>swap.hpp</code></h3>
+<table>
+<thead>
+<tr class="header">
+<th>Overload</th>
+<th>C++98/03</th>
+<th>C++11</th>
+<th>C++14+</th>
+<th>C++20+</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>swap(T&amp;, T&amp;)</code></td>
+<td>✓ (copy)</td>
+<td>✓ (move, noexcept)</td>
+<td>constexpr</td>
+<td>constexpr</td>
+<td>Implementation switches to move-based on C++11+</td>
+</tr>
+<tr class="even">
+<td><code>swap(T(&amp;)[N], T(&amp;)[N])</code></td>
+<td>✓</td>
+<td>✓ (noexcept)</td>
+<td>constexpr</td>
+<td>constexpr</td>
+<td>Element-wise via the scalar overload</td>
+</tr>
+</tbody>
+</table>
+<p><strong><code>noexcept</code> qualification:</strong> conditional on
+C++11+, matching the standard's
+<code>noexcept(is_nothrow_move_constructible&lt;T&gt;::value &amp;&amp; is_nothrow_move_assignable&lt;T&gt;::value)</code>
+form. Because <code>is_nothrow_move_constructible</code> requires
+variadic templates, the conditional clause is gated on
+<code>D_ENV_CPP_FEATURE_LANG_VARIADIC_TEMPLATES</code>. On the rare
+rvalue-references-without-variadic-templates compiler, swap is
+unqualified rather than falsely <code>noexcept</code>. The array
+overload is unqualified pending <code>is_nothrow_swappable</code>.</p>
+<h3 id="52-movehpp">5.2 <code>move.hpp</code></h3>
+<table>
+<thead>
+<tr class="header">
+<th>Symbol</th>
+<th>C++98/03</th>
+<th>C++11</th>
+<th>C++14+</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>move(T&amp;&amp;)</code></td>
+<td>✗</td>
+<td>✓ (constexpr, noexcept)</td>
+<td>✓ (constexpr, noexcept)</td>
+<td>Requires rvalue references</td>
+</tr>
+</tbody>
+</table>
+<p>Header is empty when
+<code>D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES</code> is 0.</p>
+<h3 id="53-forwardhpp">5.3 <code>forward.hpp</code></h3>
+<table>
+<thead>
+<tr class="header">
+<th>Overload</th>
+<th>C++98/03</th>
+<th>C++11</th>
+<th>C++14+</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>forward&lt;T&gt;(remove_reference&lt;T&gt;::type&amp;)</code></td>
+<td>✗</td>
+<td>✓ (constexpr, noexcept)</td>
+<td>✓ (constexpr, noexcept)</td>
+<td>Lvalue overload</td>
+</tr>
+<tr class="even">
+<td><code>forward&lt;T&gt;(remove_reference&lt;T&gt;::type&amp;&amp;)</code></td>
+<td>✗</td>
+<td>✓ (constexpr, noexcept)</td>
+<td>✓ (constexpr, noexcept)</td>
+<td>Rvalue overload, includes <code>static_assert</code> against
+forwarding rvalue as lvalue</td>
+</tr>
+</tbody>
+</table>
+<p>Header is empty when
+<code>D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES</code> is 0.</p>
+<h3 id="54-declvalhpp">5.4 <code>declval.hpp</code></h3>
+<table>
+<thead>
+<tr class="header">
+<th>Symbol</th>
+<th>C++98/03</th>
+<th>C++11</th>
+<th>C++14+</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>declval&lt;T&gt;()</code></td>
+<td>✗</td>
+<td>✓ (declared only)</td>
+<td>✓ (declared only)</td>
+<td>Unevaluated contexts only; not defined</td>
+</tr>
+</tbody>
+</table>
+<p>Return type is <code>add_rvalue_reference&lt;T&gt;::type</code>, so
+<code>declval&lt;void&gt;()</code> is well-formed and yields a prvalue
+of type <code>void</code>, matching the standard library.</p>
+<h3 id="55-pairhpp">5.5 <code>pair.hpp</code></h3>
+<table>
+<thead>
+<tr class="header">
+<th>Member</th>
+<th>Kind</th>
+<th>C++98/03</th>
+<th>C++11</th>
+<th>C++14+</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>pair()</code></td>
+<td>ctor</td>
+<td>✓</td>
+<td>constexpr</td>
+<td>constexpr</td>
+<td>Value-initializes both members</td>
+</tr>
+<tr class="even">
+<td><code>pair(const T1&amp;, const T2&amp;)</code></td>
+<td>ctor</td>
+<td>✓</td>
+<td>constexpr</td>
+<td>constexpr</td>
+<td></td>
+</tr>
+<tr class="odd">
+<td><code>pair(const pair&lt;U1,U2&gt;&amp;)</code></td>
+<td>ctor</td>
+<td>✓</td>
+<td>constexpr</td>
+<td>constexpr</td>
+<td>Templated converting copy</td>
+</tr>
+<tr class="even">
+<td><code>pair(U1&amp;&amp;, U2&amp;&amp;)</code></td>
+<td>ctor</td>
+<td>✗</td>
+<td>constexpr</td>
+<td>constexpr</td>
+<td>Perfect-forwarding</td>
+</tr>
+<tr class="odd">
+<td><code>pair(pair&amp;&amp;)</code></td>
+<td>ctor</td>
+<td>✗</td>
+<td>constexpr</td>
+<td>constexpr</td>
+<td>Move; conditional <code>noexcept</code> (variadic-gated)</td>
+</tr>
+<tr class="even">
+<td><code>pair(pair&lt;U1,U2&gt;&amp;&amp;)</code></td>
+<td>ctor</td>
+<td>✗</td>
+<td>constexpr</td>
+<td>constexpr</td>
+<td>Templated converting move; conditional <code>noexcept</code></td>
+</tr>
+<tr class="odd">
+<td><code>operator=(const pair&amp;)</code></td>
+<td>assign</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>Member-wise copy</td>
+</tr>
+<tr class="even">
+<td><code>operator=(const pair&lt;U1,U2&gt;&amp;)</code></td>
+<td>assign</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>Templated converting copy assign</td>
+</tr>
+<tr class="odd">
+<td><code>operator=(pair&amp;&amp;)</code></td>
+<td>assign</td>
+<td>✗</td>
+<td>✓</td>
+<td>✓</td>
+<td>Member-wise move</td>
+</tr>
+<tr class="even">
+<td><code>operator=(pair&lt;U1,U2&gt;&amp;&amp;)</code></td>
+<td>assign</td>
+<td>✗</td>
+<td>✓</td>
+<td>✓</td>
+<td>Templated converting move assign</td>
+</tr>
+<tr class="odd">
+<td><code>swap(pair&amp;)</code></td>
+<td>member</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>Member-wise via <code>re_std::swap</code></td>
+</tr>
+<tr class="even">
+<td><code>first</code> / <code>second</code></td>
+<td>data</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>Public, by std convention</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Comparison operators</strong> (non-member, all
+<code>constexpr</code> on C++11+):</p>
+<table>
+<thead>
+<tr class="header">
+<th>Operator</th>
+<th>C++98/03</th>
+<th>C++11+</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>operator==</code></td>
+<td>✓</td>
+<td>constexpr</td>
+<td></td>
+</tr>
+<tr class="even">
+<td><code>operator!=</code></td>
+<td>✓</td>
+<td>constexpr</td>
+<td>Defined as <code>!(==)</code></td>
+</tr>
+<tr class="odd">
+<td><code>operator&lt;</code></td>
+<td>✓</td>
+<td>constexpr</td>
+<td>Lexicographic; uses <code>&lt;</code> only</td>
+</tr>
+<tr class="even">
+<td><code>operator&lt;=</code></td>
+<td>✓</td>
+<td>constexpr</td>
+<td>Defined as <code>!(rhs &lt; lhs)</code></td>
+</tr>
+<tr class="odd">
+<td><code>operator&gt;</code></td>
+<td>✓</td>
+<td>constexpr</td>
+<td>Defined as <code>rhs &lt; lhs</code></td>
+</tr>
+<tr class="even">
+<td><code>operator&gt;=</code></td>
+<td>✓</td>
+<td>constexpr</td>
+<td>Defined as <code>!(lhs &lt; rhs)</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Non-member swap:</strong>
+<code>swap(pair&amp;, pair&amp;)</code> — available on all tiers,
+delegates to the member swap.</p>
+<p><strong>Move-op <code>noexcept</code>:</strong> conditional, matching
+the standard.</p>
+<ul>
+<li>Move ctor:
+<code>noexcept(is_nothrow_move_constructible&lt;T1&gt; &amp;&amp; is_nothrow_move_constructible&lt;T2&gt;)</code>.
+Gated on <code>D_ENV_CPP_FEATURE_LANG_VARIADIC_TEMPLATES</code>; falls
+back to unqualified on rvalue-refs-without-variadic compilers.</li>
+<li>Move assignment:
+<code>noexcept(is_nothrow_move_assignable&lt;T1&gt; &amp;&amp; is_nothrow_move_assignable&lt;T2&gt;)</code>
+(always available on C++11+).</li>
+<li>Member <code>swap</code> and non-member <code>swap</code>:
+unqualified pending <code>is_nothrow_swappable</code>.</li>
+</ul>
+<p><strong>Not provided:</strong> <code>tuple_size</code> /
+<code>tuple_element</code> specializations (awaiting
+<code>&lt;tuple&gt;</code>); <code>piecewise_construct</code> (awaiting
+<code>&lt;tuple&gt;</code>); C++20 <code>&lt;=&gt;</code> (awaiting
+<code>&lt;compare&gt;</code>).</p>
+<h3 id="56-make_pairhpp">5.6 <code>make_pair.hpp</code></h3>
+<table>
+<thead>
+<tr class="header">
+<th>Overload</th>
+<th>C++98/03</th>
+<th>C++11</th>
+<th>C++14+</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>make_pair(T1, T2)</code></td>
+<td>✓</td>
+<td>✗</td>
+<td>✗</td>
+<td>Pass-by-value (C++98/03 path)</td>
+</tr>
+<tr class="even">
+<td><code>make_pair(T1&amp;&amp;, T2&amp;&amp;)</code></td>
+<td>✗</td>
+<td>✓ (constexpr)</td>
+<td>✓ (constexpr)</td>
+<td>Forwarding (C++11+ path)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Deviation from <code>std::make_pair</code>:</strong>
+<code>reference_wrapper</code> unwrapping is not performed (no
+<code>reference_wrapper</code> in re_std yet). Type decay (reference
+removal, cv-stripping, array-to-pointer, function-to-pointer) is now
+correct via <code>re_std::decay</code> on the C++11+ path.</p>
+<hr />
+<h2 id="6-dependency-map">6 Dependency Map</h2>
+<p>Shows which env detection macros gate which features.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Macro</th>
+<th>Source Header</th>
+<th>Gates</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>D_ENV_LANG_IS_CPP11_OR_HIGHER</code></td>
+<td><code>env.h</code></td>
+<td><code>&lt;type_traits&gt;</code> alternative, enum class,
+using-alias, noexcept</td>
+</tr>
+<tr class="even">
+<td><code>D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES</code></td>
+<td><code>env_cpp_features.h</code></td>
+<td>Move ctor/assign, <code>any_cast(any&amp;&amp;)</code>,
+<code>move</code>, <code>forward</code>, <code>declval</code>, pair move
+ops, forwarding <code>make_pair</code></td>
+</tr>
+<tr class="odd">
+<td><code>D_ENV_CPP_FEATURE_LANG_VARIADIC_TEMPLATES</code></td>
+<td><code>env_cpp_features.h</code></td>
+<td><code>is_function</code> variadic path, <code>make_any</code>,
+<code>emplace</code>, <code>is_nothrow_move_constructible</code>,
+conditional-<code>noexcept</code> clauses on <code>swap</code> and
+<code>pair</code>'s move ctor</td>
+</tr>
+<tr class="even">
+<td><code>D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES</code></td>
+<td><code>env_cpp_features.h</code></td>
+<td>All <code>_v</code> convenience variables</td>
+</tr>
+<tr class="odd">
+<td><code>D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES</code></td>
+<td><code>env_cpp_features.h</code></td>
+<td>All <code>_t</code> convenience aliases</td>
+</tr>
+<tr class="even">
+<td><code>D_ENV_CPP98_HAS_NEW</code></td>
+<td><code>env_cpp98.h</code></td>
+<td>Heap storage path</td>
+</tr>
+<tr class="odd">
+<td><code>D_ENV_CPP98_HAS_UTILITY</code></td>
+<td><code>env_cpp98.h</code></td>
+<td><code>&lt;utility&gt;</code> include</td>
+</tr>
+<tr class="even">
+<td><code>D_ENV_CPP98_HAS_TYPEINFO</code></td>
+<td><code>env_cpp98.h</code></td>
+<td><code>bad_any_cast</code> base class, checked
+<code>any_cast</code></td>
+</tr>
+<tr class="odd">
+<td><code>D_ENV_CPP98_HAS_EXCEPTION</code></td>
+<td><code>env_cpp98.h</code></td>
+<td><code>bad_any_cast</code> base class (fallback)</td>
+</tr>
+<tr class="even">
+<td><code>D_RE_STD_HAS_IS_ENUM</code></td>
+<td><code>type_traits.hpp</code></td>
+<td>Enum SBO path</td>
+</tr>
+<tr class="odd">
+<td><code>D_RE_STD_HAS_UNDERLYING_TYPE</code></td>
+<td><code>type_traits.hpp</code></td>
+<td><code>underlying_type</code> availability</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="7-functional--feature-availability">7 <code>functional/</code> —
+Feature Availability</h2>
+<p>The first batch ships 33 of the 44 surface symbols. The 11 deferred
+symbols are listed in §7.6.</p>
+<h3 id="71-function-objects">7.1 Function Objects</h3>
+<p>All 19 share the same shape: per-<code>_Type</code> primary template
+at the indicated tier, transparent-void specialisation at C++14+. Legacy
+<code>first/second_argument_type</code> and <code>result_type</code>
+typedefs are present on C++98 through C++17 and gated out from C++20
+(matching std's removal).</p>
+<table>
+<thead>
+<tr class="header">
+<th>Symbol</th>
+<th>Kind</th>
+<th>C++98/03</th>
+<th>C++11</th>
+<th>C++14+</th>
+<th>Compiler Intrinsic</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>plus&lt;T&gt;</code></td>
+<td>class</td>
+<td>✓</td>
+<td>✓ constexpr</td>
+<td>✓ constexpr (+ <code>plus&lt;&gt;</code>)</td>
+<td>No</td>
+</tr>
+<tr class="even">
+<td><code>minus&lt;T&gt;</code></td>
+<td>class</td>
+<td>✓</td>
+<td>✓ constexpr</td>
+<td>✓ constexpr (+ <code>minus&lt;&gt;</code>)</td>
+<td>No</td>
+</tr>
+<tr class="odd">
+<td><code>multiplies&lt;T&gt;</code></td>
+<td>class</td>
+<td>✓</td>
+<td>✓ constexpr</td>
+<td>✓ constexpr (+ <code>multiplies&lt;&gt;</code>)</td>
+<td>No</td>
+</tr>
+<tr class="even">
+<td><code>divides&lt;T&gt;</code></td>
+<td>class</td>
+<td>✓</td>
+<td>✓ constexpr</td>
+<td>✓ constexpr (+ <code>divides&lt;&gt;</code>)</td>
+<td>No</td>
+</tr>
+<tr class="odd">
+<td><code>modulus&lt;T&gt;</code></td>
+<td>class</td>
+<td>✓</td>
+<td>✓ constexpr</td>
+<td>✓ constexpr (+ <code>modulus&lt;&gt;</code>)</td>
+<td>No</td>
+</tr>
+<tr class="even">
+<td><code>negate&lt;T&gt;</code></td>
+<td>class</td>
+<td>✓</td>
+<td>✓ constexpr</td>
+<td>✓ constexpr (+ <code>negate&lt;&gt;</code>)</td>
+<td>No</td>
+</tr>
+<tr class="odd">
+<td><code>equal_to&lt;T&gt;</code></td>
+<td>class</td>
+<td>✓</td>
+<td>✓ constexpr</td>
+<td>✓ constexpr (+ <code>equal_to&lt;&gt;</code>)</td>
+<td>No</td>
+</tr>
+<tr class="even">
+<td><code>not_equal_to&lt;T&gt;</code></td>
+<td>class</td>
+<td>✓</td>
+<td>✓ constexpr</td>
+<td>✓ constexpr (+ <code>not_equal_to&lt;&gt;</code>)</td>
+<td>No</td>
+</tr>
+<tr class="odd">
+<td><code>greater&lt;T&gt;</code></td>
+<td>class</td>
+<td>✓</td>
+<td>✓ constexpr</td>
+<td>✓ constexpr (+ <code>greater&lt;&gt;</code>)</td>
+<td>No</td>
+</tr>
+<tr class="even">
+<td><code>less&lt;T&gt;</code></td>
+<td>class</td>
+<td>✓</td>
+<td>✓ constexpr</td>
+<td>✓ constexpr (+ <code>less&lt;&gt;</code>)</td>
+<td>No</td>
+</tr>
+<tr class="odd">
+<td><code>greater_equal&lt;T&gt;</code></td>
+<td>class</td>
+<td>✓</td>
+<td>✓ constexpr</td>
+<td>✓ constexpr (+ <code>greater_equal&lt;&gt;</code>)</td>
+<td>No</td>
+</tr>
+<tr class="even">
+<td><code>less_equal&lt;T&gt;</code></td>
+<td>class</td>
+<td>✓</td>
+<td>✓ constexpr</td>
+<td>✓ constexpr (+ <code>less_equal&lt;&gt;</code>)</td>
+<td>No</td>
+</tr>
+<tr class="odd">
+<td><code>logical_and&lt;T&gt;</code></td>
+<td>class</td>
+<td>✓</td>
+<td>✓ constexpr</td>
+<td>✓ constexpr (+ <code>logical_and&lt;&gt;</code>)</td>
+<td>No</td>
+</tr>
+<tr class="even">
+<td><code>logical_or&lt;T&gt;</code></td>
+<td>class</td>
+<td>✓</td>
+<td>✓ constexpr</td>
+<td>✓ constexpr (+ <code>logical_or&lt;&gt;</code>)</td>
+<td>No</td>
+</tr>
+<tr class="odd">
+<td><code>logical_not&lt;T&gt;</code></td>
+<td>class</td>
+<td>✓</td>
+<td>✓ constexpr</td>
+<td>✓ constexpr (+ <code>logical_not&lt;&gt;</code>)</td>
+<td>No</td>
+</tr>
+<tr class="even">
+<td><code>bit_and&lt;T&gt;</code></td>
+<td>class</td>
+<td>✗</td>
+<td>✓ constexpr</td>
+<td>✓ constexpr (+ <code>bit_and&lt;&gt;</code>)</td>
+<td>No</td>
+</tr>
+<tr class="odd">
+<td><code>bit_or&lt;T&gt;</code></td>
+<td>class</td>
+<td>✗</td>
+<td>✓ constexpr</td>
+<td>✓ constexpr (+ <code>bit_or&lt;&gt;</code>)</td>
+<td>No</td>
+</tr>
+<tr class="even">
+<td><code>bit_xor&lt;T&gt;</code></td>
+<td>class</td>
+<td>✗</td>
+<td>✓ constexpr</td>
+<td>✓ constexpr (+ <code>bit_xor&lt;&gt;</code>)</td>
+<td>No</td>
+</tr>
+<tr class="odd">
+<td><code>bit_not&lt;T&gt;</code></td>
+<td>class</td>
+<td>✗</td>
+<td>✓ constexpr (back-port)</td>
+<td>✓ constexpr (+ <code>bit_not&lt;&gt;</code>)</td>
+<td>No</td>
+</tr>
+</tbody>
+</table>
+<p>re_std is <code>constexpr</code> from C++11 on every primary
+template; std didn't make these constexpr until C++14. The
+transparent-void specialisations require <code>decltype</code> and
+perfect forwarding and so are C++14+ regardless.</p>
+<h3 id="72-reference-wrappers">7.2 Reference Wrappers</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Symbol</th>
+<th>Kind</th>
+<th>C++98/03</th>
+<th>C++11</th>
+<th>C++14+</th>
+<th>C++17+</th>
+<th>C++20+</th>
+<th>Compiler Intrinsic</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>reference_wrapper&lt;T&gt;</code></td>
+<td>class</td>
+<td>✗</td>
+<td>✓ constexpr (back-port)</td>
+<td>✓ constexpr</td>
+<td>✓ constexpr (+ deduction guide)</td>
+<td>✓ constexpr</td>
+<td>No</td>
+</tr>
+<tr class="even">
+<td><code>ref(t)</code></td>
+<td>factory</td>
+<td>✗</td>
+<td>✓ constexpr</td>
+<td>✓ constexpr</td>
+<td>✓ constexpr</td>
+<td>✓ constexpr</td>
+<td>No</td>
+</tr>
+<tr class="odd">
+<td><code>cref(t)</code></td>
+<td>factory</td>
+<td>✗</td>
+<td>✓ constexpr</td>
+<td>✓ constexpr</td>
+<td>✓ constexpr</td>
+<td>✓ constexpr</td>
+<td>No</td>
+</tr>
+<tr class="even">
+<td><code>unwrap_reference&lt;T&gt;</code></td>
+<td>trait</td>
+<td>✗</td>
+<td>✓ (back-port)</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>No</td>
+</tr>
+<tr class="odd">
+<td><code>unwrap_reference_t&lt;T&gt;</code></td>
+<td>alias</td>
+<td>✗</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>No</td>
+</tr>
+<tr class="even">
+<td><code>unwrap_ref_decay&lt;T&gt;</code></td>
+<td>trait</td>
+<td>✗</td>
+<td>✓ (back-port)</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>No</td>
+</tr>
+<tr class="odd">
+<td><code>unwrap_ref_decay_t&lt;T&gt;</code></td>
+<td>alias</td>
+<td>✗</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>No</td>
+</tr>
+<tr class="even">
+<td><code>is_reference_wrapper&lt;T&gt;</code></td>
+<td>trait (re_std extension)</td>
+<td>✗</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>No</td>
+</tr>
+<tr class="odd">
+<td><code>is_reference_wrapper_v&lt;T&gt;</code></td>
+<td>variable</td>
+<td>✗</td>
+<td>✗</td>
+<td>✓ (C++14)</td>
+<td>✓</td>
+<td>✓</td>
+<td>No</td>
+</tr>
+</tbody>
+</table>
+<p><code>reference_wrapper</code>'s rvalue ctor is explicitly deleted on
+every supporting tier. <code>is_reference_wrapper</code> is re_std's
+exposed name for the trait the standard uses internally; user code may
+use it for SFINAE.</p>
+<h3 id="73-invocation">7.3 Invocation</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Symbol</th>
+<th>Kind</th>
+<th>C++98/03</th>
+<th>C++11</th>
+<th>C++14+</th>
+<th>C++17+</th>
+<th>C++20+</th>
+<th>Compiler Intrinsic</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>invoke(f, args...)</code></td>
+<td>function</td>
+<td>✗</td>
+<td>✓ constexpr (back-port)</td>
+<td>✓ constexpr</td>
+<td>✓ constexpr</td>
+<td>✓ constexpr</td>
+<td>No</td>
+</tr>
+<tr class="even">
+<td><code>invoke_r&lt;R&gt;(f, args...)</code></td>
+<td>function (non-void R)</td>
+<td>✗</td>
+<td>✓ constexpr (back-port)</td>
+<td>✓ constexpr</td>
+<td>✓ constexpr</td>
+<td>✓ constexpr</td>
+<td>No</td>
+</tr>
+<tr class="odd">
+<td><code>invoke_r&lt;void&gt;(f, args...)</code></td>
+<td>function (void R)</td>
+<td>✗</td>
+<td>✓ (back-port, <em>not</em> constexpr)</td>
+<td>✓ constexpr</td>
+<td>✓ constexpr</td>
+<td>✓ constexpr</td>
+<td>No</td>
+</tr>
+<tr class="even">
+<td><code>mem_fn(pm)</code></td>
+<td>factory</td>
+<td>✗</td>
+<td>✓ constexpr</td>
+<td>✓ constexpr</td>
+<td>✓ constexpr</td>
+<td>✓ constexpr</td>
+<td>No</td>
+</tr>
+<tr class="odd">
+<td><code>not_fn(f)</code></td>
+<td>factory</td>
+<td>✗</td>
+<td>✓ constexpr (back-port)</td>
+<td>✓ constexpr</td>
+<td>✓ constexpr</td>
+<td>✓ constexpr</td>
+<td>No</td>
+</tr>
+<tr class="even">
+<td><code>identity</code></td>
+<td>class</td>
+<td>✗</td>
+<td>✓ constexpr (back-port)</td>
+<td>✓ constexpr</td>
+<td>✓ constexpr</td>
+<td>✓ constexpr</td>
+<td>No</td>
+</tr>
+</tbody>
+</table>
+<p>re_std makes all of these constexpr from C++11, even though the
+standard did not arrive at the same point until C++20 (P1065). The
+exception is <code>invoke_r&lt;void&gt;</code>: C++11 forbids constexpr
+void functions, so on C++11 that overload is <em>not</em> constexpr;
+from C++14 it is.</p>
+<h3 id="74-bind-support-traits-bad-function-call">7.4 Bind-Support
+Traits, Bad-Function-Call</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Symbol</th>
+<th>Kind</th>
+<th>C++98/03</th>
+<th>C++11</th>
+<th>C++14+</th>
+<th>C++17+</th>
+<th>Compiler Intrinsic</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>is_bind_expression&lt;T&gt;</code></td>
+<td>trait</td>
+<td>✗</td>
+<td>✓ (primary only)</td>
+<td>✓</td>
+<td>✓</td>
+<td>No</td>
+</tr>
+<tr class="even">
+<td><code>is_bind_expression_v&lt;T&gt;</code></td>
+<td>variable</td>
+<td>✗</td>
+<td>✗</td>
+<td>✓ (C++14)</td>
+<td>✓</td>
+<td>No</td>
+</tr>
+<tr class="odd">
+<td><code>is_placeholder&lt;T&gt;</code></td>
+<td>trait</td>
+<td>✗</td>
+<td>✓ (primary only)</td>
+<td>✓</td>
+<td>✓</td>
+<td>No</td>
+</tr>
+<tr class="even">
+<td><code>is_placeholder_v&lt;T&gt;</code></td>
+<td>variable</td>
+<td>✗</td>
+<td>✗</td>
+<td>✓ (C++14)</td>
+<td>✓</td>
+<td>No</td>
+</tr>
+<tr class="odd">
+<td><code>bad_function_call</code></td>
+<td>class</td>
+<td>✓ (standalone fallback)</td>
+<td>✓ (<code>std::exception</code> derived if
+<code>D_ENV_CPP98_HAS_EXCEPTION</code>)</td>
+<td>✓</td>
+<td>✓</td>
+<td>No</td>
+</tr>
+</tbody>
+</table>
+<p><code>is_bind_expression</code> and <code>is_placeholder</code> ship
+as primary templates only — the <code>bind</code> family that would
+specialise them is deferred. User code can still specialise these traits
+for its own custom binders / placeholders today.</p>
+<h3 id="75-hash">7.5 Hash</h3>
+<p>The primary template is empty (no <code>operator()</code>); using
+<code>hash&lt;UnsupportedKey&gt;</code> is ill-formed at instantiation,
+matching std's "disabled specialisation" idiom.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Specialisation</th>
+<th>C++98/03</th>
+<th>C++11</th>
+<th>C++14+</th>
+<th>C++17+</th>
+<th>C++20+</th>
+<th>constexpr in re_std</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>hash&lt;bool&gt;</code></td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>C++11</td>
+<td>identity cast</td>
+</tr>
+<tr class="even">
+<td><code>hash&lt;char&gt;</code></td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>C++11</td>
+<td>identity cast</td>
+</tr>
+<tr class="odd">
+<td><code>hash&lt;signed char&gt;</code></td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>C++11</td>
+<td></td>
+</tr>
+<tr class="even">
+<td><code>hash&lt;unsigned char&gt;</code></td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>C++11</td>
+<td></td>
+</tr>
+<tr class="odd">
+<td><code>hash&lt;wchar_t&gt;</code></td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>C++11</td>
+<td></td>
+</tr>
+<tr class="even">
+<td><code>hash&lt;short&gt;</code>, <code>hash&lt;int&gt;</code>,
+<code>hash&lt;long&gt;</code> (and unsigned forms)</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>C++11</td>
+<td></td>
+</tr>
+<tr class="odd">
+<td><code>hash&lt;long long&gt;</code>,
+<code>hash&lt;unsigned long long&gt;</code></td>
+<td>✗</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>C++11</td>
+<td></td>
+</tr>
+<tr class="even">
+<td><code>hash&lt;char16_t&gt;</code>,
+<code>hash&lt;char32_t&gt;</code></td>
+<td>✗</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>C++11</td>
+<td></td>
+</tr>
+<tr class="odd">
+<td><code>hash&lt;char8_t&gt;</code></td>
+<td>✗</td>
+<td>✗</td>
+<td>✗</td>
+<td>✗</td>
+<td>✓</td>
+<td>C++11 (where available)</td>
+<td></td>
+</tr>
+<tr class="even">
+<td><code>hash&lt;float&gt;</code>, <code>hash&lt;double&gt;</code>,
+<code>hash&lt;long double&gt;</code></td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>not constexpr</td>
+<td>bytewise via <code>memcpy</code>; -0.0 normalises to 0</td>
+</tr>
+<tr class="odd">
+<td><code>hash&lt;T*&gt;</code></td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>not constexpr</td>
+<td><code>reinterpret_cast</code> is non-constexpr</td>
+</tr>
+<tr class="even">
+<td><code>hash&lt;nullptr_t&gt;</code></td>
+<td>✗</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>C++11</td>
+<td>always returns 0</td>
+</tr>
+</tbody>
+</table>
+<p>Container/string-aware specialisations
+(<code>hash&lt;basic_string&gt;</code>,
+<code>hash&lt;unique_ptr&gt;</code>, <code>hash&lt;optional&gt;</code>,
+etc.) ship alongside their respective container modules.</p>
+<h3 id="76-deferred-symbols-not-yet-implemented">7.6 Deferred Symbols
+(NOT YET IMPLEMENTED)</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Symbol</th>
+<th>std introduced</th>
+<th>Blocked on</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>function&lt;Sig&gt;</code></td>
+<td>C++11</td>
+<td>type-erasure infrastructure</td>
+</tr>
+<tr class="even">
+<td><code>move_only_function</code></td>
+<td>C++23</td>
+<td><code>function</code> infrastructure + signature-qualifier
+parsing</td>
+</tr>
+<tr class="odd">
+<td><code>copyable_function</code></td>
+<td>C++26</td>
+<td><code>function</code> infrastructure</td>
+</tr>
+<tr class="even">
+<td><code>function_ref</code></td>
+<td>C++26</td>
+<td>type-erasure infrastructure (non-owning view)</td>
+</tr>
+<tr class="odd">
+<td><code>bind</code></td>
+<td>C++11</td>
+<td><code>re_std::tuple</code></td>
+</tr>
+<tr class="even">
+<td><code>bind_front</code></td>
+<td>C++20</td>
+<td><code>re_std::tuple</code></td>
+</tr>
+<tr class="odd">
+<td><code>bind_back</code></td>
+<td>C++23</td>
+<td><code>re_std::tuple</code></td>
+</tr>
+<tr class="even">
+<td><code>placeholders::_1</code>...<code>_N</code></td>
+<td>C++11</td>
+<td>ships with <code>bind</code></td>
+</tr>
+<tr class="odd">
+<td><code>default_searcher</code></td>
+<td>C++17</td>
+<td><code>re_std::algorithm</code> (<code>search</code> family)</td>
+</tr>
+<tr class="even">
+<td><code>boyer_moore_searcher</code></td>
+<td>C++17</td>
+<td><code>re_std::algorithm</code></td>
+</tr>
+<tr class="odd">
+<td><code>boyer_moore_horspool_searcher</code></td>
+<td>C++17</td>
+<td><code>re_std::algorithm</code></td>
+</tr>
+</tbody>
+</table>
+<p>These appear on the workbook's <em>Coverage Failures</em> and
+<em>Pending Dependencies</em> sheets. The roadmap entry for
+<code>&lt;functional&gt;</code> covers the follow-on milestone.</p>
+</body>
+</html>

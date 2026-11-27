@@ -3,7 +3,7 @@
 *
 *   The runner for dtuple_wrap_partition.hpp's suite: it selects the suite header's spec
 * face (DTEST_SPEC_MODE) and hands the spec to run_module, which runs the
-* tests and reports them (docs/djinterp_testing.md, section 5).
+* tests and reports them (docs/djinterp_testing.html, section 5).
 *
 *
 * path:      /build/cmake/config/testing/djinterp/cpp/meta/dtuple_wrap_partition/dtuple_wrap_partition_tests_runner.cpp

@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>env.db — Database Environment Detection</title>
+  <style>
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+</head>
+<body>
+<h1 id="envdb--database-environment-detection"><code>env.db</code> —
+Database Environment Detection</h1>
+<p>The database layer mirrors the core <code>env.h</code> design but for
+database systems. It has <strong>two tiers</strong>:</p>
+<ol type="1">
+<li><strong><code>env_db.h</code></strong> — a lightweight,
+self-contained <em>classifier</em>. It detects which database a
+translation unit is being built against (by probing vendor client
+macros), assigns it a unified id/name/version, a category bitmask, and a
+capability bitmask. This is all most code needs.</li>
+<li><strong>Per-vendor headers</strong> (<code>env_redis.h</code>,
+<code>env_postgres.h</code>, …) — <em>deep</em> detectors. Each pulls in
+its own config header, then <code>env_db.h</code>, then the vendor's
+client header, and exposes a large vendor-specific feature surface
+(client/driver version, target server version, edition/distribution, and
+dozens to ~150 capability flags). Each is documented in its own brief:
+<code>env_db_&lt;name&gt;.md</code>.</li>
+</ol>
+<p><code>env_db.h</code> does <strong>not</strong> include the
+per-vendor headers; you include a vendor header explicitly when you want
+its detailed surface, and it brings <code>env_db.h</code> along.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Module</th>
+<th>Header</th>
+<th>Brief</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Unified classifier (this file)</td>
+<td><code>env_db.h</code></td>
+<td><code>env_db.html</code></td>
+</tr>
+<tr class="even">
+<td>Redis / Valkey</td>
+<td><code>env_redis.h</code></td>
+<td><code>env_db_redis.html</code></td>
+</tr>
+<tr class="odd">
+<td>PostgreSQL</td>
+<td><code>env_postgres.h</code></td>
+<td><code>env_db_postgres.html</code></td>
+</tr>
+<tr class="even">
+<td>SQLite</td>
+<td><code>env_sqlite.h</code></td>
+<td><code>env_db_sqlite.html</code></td>
+</tr>
+<tr class="odd">
+<td>Oracle Database</td>
+<td><code>env_oracle.h</code></td>
+<td><code>env_db_oracle.html</code></td>
+</tr>
+<tr class="even">
+<td>MongoDB</td>
+<td><code>env_mongodb.h</code></td>
+<td><code>env_db_mongodb.html</code></td>
+</tr>
+<tr class="odd">
+<td>Oracle MySQL</td>
+<td><code>env_mysql.h</code></td>
+<td><code>env_db_mysql.html</code></td>
+</tr>
+<tr class="even">
+<td>MariaDB</td>
+<td><code>env_mariadb.h</code></td>
+<td><code>env_db_mariadb.md</code></td>
+</tr>
+<tr class="odd">
+<td>MySQL-family shared</td>
+<td><code>env_mysql_common.h</code></td>
+<td><code>env_db_mysql.html</code></td>
+</tr>
+<tr class="even">
+<td>IBM Db2</td>
+<td><code>env_db2.h</code></td>
+<td><code>env_db_db2.html</code></td>
+</tr>
+<tr class="odd">
+<td>Apache Cassandra</td>
+<td><code>env_cassandra.h</code></td>
+<td><code>env_db_cassandra.html</code></td>
+</tr>
+<tr class="even">
+<td>ArangoDB</td>
+<td><code>env_arangodb.h</code></td>
+<td><code>env_db_arangodb.html</code></td>
+</tr>
+<tr class="odd">
+<td>Amazon DynamoDB</td>
+<td><code>env_dynamodb.h</code></td>
+<td><code>env_db_dynamodb.html</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="configuration">Configuration</h2>
+<p><code>env_db.h</code> includes <code>env_db_config.h</code>, which
+defines <code>D_CFG_ENV_DB_CUSTOM</code>:</p>
+<ul>
+<li><code>0</code> (default) — automatic detection from vendor-provided
+preprocessor macros (<code>MARIADB_VERSION_ID</code>,
+<code>MYSQL_VERSION_ID</code>, <code>PG_VERSION_NUM</code>,
+<code>SQLITE_VERSION_NUMBER</code>, etc.).</li>
+<li><code>1</code> — skip detection; the host must pre-define a
+<code>D_ENV_DB_DETECTED_&lt;VENDOR&gt;</code> variable (e.g.
+<code>D_ENV_DB_DETECTED_POSTGRESQL</code>). Defining one of those also
+enables custom mode.</li>
+</ul>
+<p>Each per-vendor header has its own analogous
+<code>D_CFG_ENV_&lt;DB&gt;_CUSTOM</code> and
+<code>D_CFG_ENV_USING_&lt;DB&gt;</code> switches in its config
+header.</p>
+<h2 id="ii-database-system-identification">II. Database system
+identification</h2>
+<p>Each vendor gets a unique single-bit <code>D_ENV_DB_FLAG_*</code> id,
+so a build's database is identifiable and sets can be tested with
+bitwise ops.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Symbol</th>
+<th>Value</th>
+<th>Symbol</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>D_ENV_DB_FLAG_UNKNOWN</code></td>
+<td><code>0x0000</code></td>
+<td><code>D_ENV_DB_FLAG_MSSQL</code></td>
+<td><code>0x0100</code></td>
+</tr>
+<tr class="even">
+<td><code>D_ENV_DB_FLAG_MARIADB</code></td>
+<td><code>0x0001</code></td>
+<td><code>D_ENV_DB_FLAG_DB2</code></td>
+<td><code>0x0200</code></td>
+</tr>
+<tr class="odd">
+<td><code>D_ENV_DB_FLAG_MYSQL</code></td>
+<td><code>0x0002</code></td>
+<td><code>D_ENV_DB_FLAG_FIREBASE</code></td>
+<td><code>0x0400</code></td>
+</tr>
+<tr class="even">
+<td><code>D_ENV_DB_FLAG_POSTGRESQL</code></td>
+<td><code>0x0004</code></td>
+<td><code>D_ENV_DB_FLAG_CASSANDRA</code></td>
+<td><code>0x0800</code></td>
+</tr>
+<tr class="odd">
+<td><code>D_ENV_DB_FLAG_SQLITE</code></td>
+<td><code>0x0008</code></td>
+<td><code>D_ENV_DB_FLAG_COUCHDB</code></td>
+<td><code>0x1000</code></td>
+</tr>
+<tr class="even">
+<td><code>D_ENV_DB_FLAG_MONGODB</code></td>
+<td><code>0x0010</code></td>
+<td><code>D_ENV_DB_FLAG_NEO4J</code></td>
+<td><code>0x2000</code></td>
+</tr>
+<tr class="odd">
+<td><code>D_ENV_DB_FLAG_REDIS</code></td>
+<td><code>0x0020</code></td>
+<td><code>D_ENV_DB_FLAG_DYNAMODB</code></td>
+<td><code>0x4000</code></td>
+</tr>
+<tr class="even">
+<td><code>D_ENV_DB_FLAG_ARANGODB</code></td>
+<td><code>0x0040</code></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="odd">
+<td><code>D_ENV_DB_FLAG_ORACLE</code></td>
+<td><code>0x0080</code></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h2 id="iii-database-categorization">III. Database categorization</h2>
+<p><code>D_ENV_DB_CAT_*</code> is a bitmask (a DB may carry several
+categories). Primary models: <code>RELATIONAL</code>,
+<code>DOCUMENT</code>, <code>KEY_VALUE</code>, <code>GRAPH</code>,
+<code>COLUMN_FAMILY</code>, <code>TIME_SERIES</code>,
+<code>SEARCH_ENGINE</code>. Secondary traits: <code>IN_MEMORY</code>,
+<code>EMBEDDED</code>, <code>DISTRIBUTED</code>,
+<code>CLOUD_NATIVE</code>, <code>MULTI_MODEL</code>. SQL support:
+<code>SQL</code>, <code>NOSQL</code>.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Helper</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>D_ENV_DB_IS_RDBMS(cat)</code></td>
+<td>category has <code>RELATIONAL</code></td>
+</tr>
+<tr class="even">
+<td><code>D_ENV_DB_IS_NOSQL(cat)</code></td>
+<td>category has <code>NOSQL</code></td>
+</tr>
+<tr class="odd">
+<td><code>D_ENV_DB_IS_DOCUMENT(cat)</code></td>
+<td>category has <code>DOCUMENT</code></td>
+</tr>
+<tr class="even">
+<td><code>D_ENV_DB_IS_GRAPH(cat)</code></td>
+<td>category has <code>GRAPH</code></td>
+</tr>
+<tr class="odd">
+<td><code>D_ENV_DB_IS_IN_MEMORY(cat)</code></td>
+<td>category has <code>IN_MEMORY</code></td>
+</tr>
+<tr class="even">
+<td><code>D_ENV_DB_IS_EMBEDDED(cat)</code></td>
+<td>category has <code>EMBEDDED</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="iv-feature-detection-flags">IV. Feature detection flags</h2>
+<p><code>D_ENV_DB_SUPPORTS_*</code> is a 32-bit capability bitmask,
+grouped:</p>
+<ul>
+<li><strong>Transactions:</strong> <code>TRANSACTIONS</code>,
+<code>SAVEPOINTS</code>, <code>NESTED_TRANSACTIONS</code>,
+<code>TWO_PHASE_COMMIT</code></li>
+<li><strong>ACID:</strong> <code>ACID</code>, <code>ATOMICITY</code>,
+<code>CONSISTENCY</code>, <code>ISOLATION</code>,
+<code>DURABILITY</code></li>
+<li><strong>Query:</strong> <code>JOINS</code>, <code>SUBQUERIES</code>,
+<code>VIEWS</code>, <code>STORED_PROCEDURES</code>,
+<code>TRIGGERS</code>, <code>USER_FUNCTIONS</code></li>
+<li><strong>Indexing:</strong> <code>INDEXES</code>,
+<code>UNIQUE_CONSTRAINTS</code>, <code>FOREIGN_KEYS</code>,
+<code>FULL_TEXT_SEARCH</code></li>
+<li><strong>Replication/clustering:</strong> <code>REPLICATION</code>,
+<code>CLUSTERING</code>, <code>SHARDING</code>,
+<code>AUTO_FAILOVER</code></li>
+<li><strong>Advanced:</strong> <code>JSON</code>, <code>XML</code>,
+<code>SPATIAL_DATA</code>, <code>PARTITIONING</code></li>
+<li><strong>Security:</strong> <code>ENCRYPTION</code>,
+<code>SSL_TLS</code>, <code>ROW_LEVEL_SECURITY</code>,
+<code>AUDIT_LOGGING</code></li>
+</ul>
+<h2 id="v-detection-output-unified-surface">V. Detection output (unified
+surface)</h2>
+<p>When a database is detected (auto or custom), <code>env_db.h</code>
+defines:</p>
+<table>
+<thead>
+<tr class="header">
+<th>Symbol</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>D_ENV_DB_ID</code></td>
+<td>The detected <code>D_ENV_DB_FLAG_*</code> value</td>
+</tr>
+<tr class="even">
+<td><code>D_ENV_DB_NAME</code></td>
+<td>Human-readable name (<code>"PostgreSQL"</code>)</td>
+</tr>
+<tr class="odd">
+<td><code>D_ENV_DB_VERSION_MAJOR</code> / <code>_MINOR</code> /
+<code>_PATCH</code></td>
+<td>Decomposed version (when the vendor exposes one)</td>
+</tr>
+<tr class="even">
+<td><code>D_ENV_DB_VERSION_ID</code></td>
+<td>Encoded version (<code>MAJOR*10000 + MINOR*100 + PATCH</code>)</td>
+</tr>
+<tr class="odd">
+<td><code>D_ENV_DB_CATEGORY</code></td>
+<td>The DB's <code>D_ENV_DB_CAT_*</code> bitmask</td>
+</tr>
+<tr class="even">
+<td><code>D_ENV_DB_FEATURES</code></td>
+<td>The DB's <code>D_ENV_DB_SUPPORTS_*</code> bitmask</td>
+</tr>
+</tbody>
+</table>
+<p>Detection order matters: MariaDB is probed before MySQL (it defines
+MySQL's macros too). Vendors without a compile-time version (e.g. SQLite
+via <code>SQLITE_VERSION_NUMBER</code> notwithstanding, and the
+NoSQL/cloud engines) may omit the <code>D_ENV_DB_VERSION_*</code>
+family.</p>
+<h2 id="vi-convenience-macros">VI. Convenience macros</h2>
+<table>
+<thead>
+<tr class="header">
+<th>Symbol</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>D_ENV_DB_HAS_FEATURE(f)</code></td>
+<td><code>1</code> if <code>D_ENV_DB_FEATURES</code> includes feature
+<code>f</code></td>
+</tr>
+<tr class="even">
+<td><code>D_ENV_DB_IS_CATEGORY(c)</code></td>
+<td><code>1</code> if <code>D_ENV_DB_CATEGORY</code> includes category
+<code>c</code></td>
+</tr>
+<tr class="odd">
+<td><code>D_ENV_DB_IS_DBMS</code></td>
+<td><code>1</code> if any database was detected
+(<code>D_ENV_DB_ID != UNKNOWN</code>)</td>
+</tr>
+<tr class="even">
+<td><code>D_ENV_DB_VERSION_AT_LEAST(maj,min,pat)</code></td>
+<td><code>1</code> if version ≥ given (only when
+<code>D_ENV_DB_VERSION_ID</code> exists)</td>
+</tr>
+<tr class="odd">
+<td><code>D_ENV_DB_VERSION_BELOW(maj,min,pat)</code></td>
+<td><code>1</code> if version &lt; given (same guard)</td>
+</tr>
+</tbody>
+</table>
+<h2 id="vii-feature-combination-shortcuts">VII. Feature combination
+shortcuts</h2>
+<table>
+<thead>
+<tr class="header">
+<th>Symbol</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>D_ENV_DB_IS_FULLY_ACID</code></td>
+<td>All four ACID properties supported</td>
+</tr>
+<tr class="even">
+<td><code>D_ENV_DB_SUPPORTS_ADVANCED_TRANSACTIONS</code></td>
+<td>Transactions <strong>and</strong> (savepoints or nested)</td>
+</tr>
+<tr class="odd">
+<td><code>D_ENV_DB_SUPPORTS_RELATIONAL_INTEGRITY</code></td>
+<td>Unique constraints <strong>and</strong> foreign keys</td>
+</tr>
+<tr class="even">
+<td><code>D_ENV_DB_SUPPORTS_HIGH_AVAILABILITY</code></td>
+<td>Replication <strong>and</strong> (clustering or auto-failover)</td>
+</tr>
+<tr class="odd">
+<td><code>D_ENV_DB_SUPPORTS_SCALE_OUT</code></td>
+<td>Sharding <strong>or</strong> partitioning</td>
+</tr>
+</tbody>
+</table>
+<h2 id="consumer-compatibility-layer">Consumer compatibility layer</h2>
+<p>Each per-vendor header contributes a small set of
+<code>D_ENV_DB_HAS_&lt;VENDOR&gt;_CLIENT_C</code> /
+<code>_CLIENT_CPP</code> flags (e.g.
+<code>D_ENV_DB_HAS_POSTGRESQL_CLIENT_C</code>,
+<code>D_ENV_DB_HAS_MONGODB_CLIENT_CPP</code>) that report whether the
+vendor's client library/driver was found. These live in the shared
+<code>D_ENV_DB_*</code> namespace so code can branch on client
+availability without depending on the full per-vendor surface.</p>
+</body>
+</html>

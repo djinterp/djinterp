@@ -3,7 +3,7 @@
 *
 * The command-line kit's streams, terminals and files.
 *   A program's result goes to standard output and everything said about it
-* to standard error (GRAMMAR.md, R17), and both through the sinks here: on a
+* to standard error (GRAMMAR.html, R17), and both through the sinks here: on a
 * Windows console, text is written through the console's wide interface so
 * that it reads correctly whatever the code page; elsewhere, and redirected,
 * it is UTF-8 bytes, its lines ended by LF on every system (R18) - the
@@ -105,7 +105,7 @@ enum dj_cli_stream
 //------------------------------------------------------------------------------
 // 1.2.1
 // dj_cli_colour
-//   enum: `--color`'s three words (GRAMMAR.md, section 6).
+//   enum: `--color`'s three words (GRAMMAR.html, section 6).
 enum dj_cli_colour
 {
     D_CLI_COLOUR_AUTO   = 0,
@@ -177,7 +177,7 @@ D_CLI_API bool d_cli_colour_wanted(
 //------------------------------------------------------------------------------
 // 2.1.1
 // d_cli_is_standard
-//   query: whether a name is `-`, a standard stream (GRAMMAR.md, R11); false
+//   query: whether a name is `-`, a standard stream (GRAMMAR.html, R11); false
 // for NULL. Does not fail.
 D_CLI_API bool d_cli_is_standard(
     const char* _path

@@ -7,7 +7,7 @@
 * a function that does the work, the request owned by the work, so that it
 * lives as long as the program does. A command whose answer has structure
 * gives it as text a person reads, or with `--format=json` as JSON a script
-* reads (GRAMMAR.md, R19); the JSON's keys only ever grow.
+* reads (GRAMMAR.html, R19); the JSON's keys only ever grow.
 *   A command that answers a question says no with exit status 1: gen and
 * check for a sheet with errors, decode for a value that sets bits no symbol
 * names, eval for an expression that does not evaluate.

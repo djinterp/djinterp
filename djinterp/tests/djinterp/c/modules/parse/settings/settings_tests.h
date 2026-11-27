@@ -2,7 +2,7 @@
 * djinterp [c][parse]                                           settings_tests.h
 *
 * Parse's settings group (settings.h) in DTest's C face (c/modules/test/
-* test_suite.h), by lane E's checklist (knob_and_option.md): the defaults
+* test_suite.h), by lane E's checklist (knob_and_option.html): the defaults
 * from the knobs, each source, the standing, a forced value, the named depth,
 * a misspelling's suggestion, and the parse that reads the rows.
 *   Each test registers the djin in a registry of its own and takes it off
@@ -25,7 +25,7 @@
 *
 *
 * path:      /tests/djinterp/c/modules/parse/settings/settings_tests.h
-* link(s):   /docs/djinterp/option/knob_and_option.md
+* link(s):   /docs/djinterp/c/option/knob_and_option.html
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.12
 *                                                            revised: 2026.11.23
 *******************************************************************************/

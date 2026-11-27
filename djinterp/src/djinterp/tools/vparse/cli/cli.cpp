@@ -129,7 +129,7 @@ const char* const DEFAULT_ROOT = "vparse_runs";
 
 // RESPONSE_FILES
 //   constant: what the root's help ends with: how an `@FILE`, which the
-// kit's options list (GRAMMAR.md, R14), is split, and why vparse reads one.
+// kit's options list (GRAMMAR.html, R14), is split, and why vparse reads one.
 const char* const RESPONSE_FILES =
     "An @FILE is split as GCC splits a response file -- as cl splits one, "
     "on Windows -- and an argument after -- is never read so: a match over "
@@ -137,7 +137,7 @@ const char* const RESPONSE_FILES =
 
 // CHECK_ANSWERS ... COMPARE_ANSWERS
 //   constants: what each subcommand's exit status answers, and what -q
-// leaves out of what it prints, as its help ends (GRAMMAR.md, section 8: a
+// leaves out of what it prints, as its help ends (GRAMMAR.html, section 8: a
 // command documents what it answers).
 const char* const CHECK_ANSWERS =
     "Exit status: 0 when the grammar is accepted; 1 when it is refused, the "
@@ -1019,7 +1019,7 @@ void define_compare(
 
 /**
  * @brief Makes the whole command tree on the program: the nine commands,
- *        and `gui`, the window's module (GRAMMAR.md, section 7).
+ *        and `gui`, the window's module (GRAMMAR.html, section 7).
  *
  * @param[in,out] _program  the program, made.
  * @param[in]     _context  what the handlers read and write.

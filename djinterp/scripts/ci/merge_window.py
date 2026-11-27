@@ -82,8 +82,7 @@ LISTS = {'scripts/ci/crt_known.txt': 1,
          'tests/dawk/clang_tokens_known.txt': 0}
 TOPS = {'inc', 'src', 'tests', 'docs', 'build', 'scripts', 'tools', 'res',
         'platform',
-        'lib', 'bin', '.gitattributes', '.gitignore', 'README.md',
-        'README.html'}
+        'lib', 'bin', '.gitattributes', '.gitignore', 'README.html'}
 BINARY = ('.png', '.jpg', '.jpeg', '.gif', '.ico', '.bmp', '.zip', '.gz',
           '.7z', '.pdf', '.ttf', '.otf', '.woff', '.woff2', '.exe', '.dll',
           '.so', '.a', '.lib', '.obj', '.o', '.bin', '.dat', '.db', '.sqlite',

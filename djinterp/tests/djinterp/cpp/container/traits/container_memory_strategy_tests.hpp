@@ -2,7 +2,7 @@
 * djinterp [cpp][container]                  container_memory_strategy_tests.hpp
 *
 * Unit tests for container_memory_strategy.hpp.  This is a spec-mode suite (see
-* djinterp_testing.md): a two-faced header whose normal face (the section TUs)
+* djinterp_testing.html): a two-faced header whose normal face (the section TUs)
 * pulls in the code under test and the fixtures, and whose spec face (the
 * runner) exposes the container_memory_strategy_spec() provider.  The
 * bool tests_*() declarations are visible in both.

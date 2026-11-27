@@ -1,0 +1,1262 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>restd — Agent Implementation Guide</title>
+  <style>
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+    /* CSS for syntax highlighting */
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+</head>
+<body>
+<h1 id="re_std--agent-implementation-guide">re_std — Agent
+Implementation Guide</h1>
+<blockquote>
+<p><strong>Version:</strong> 0.1.0 <strong>Last updated:</strong>
+2026-04-14 <strong>Status:</strong> Active development —
+<code>type_traits</code> and <code>any</code> modules complete</p>
+</blockquote>
+<hr />
+<h2 id="what-is-re_std">What Is re_std?</h2>
+<p>re_std is a portable, header-only reimplementation of the C++
+standard library (<code>std</code>). It exists so that code can be
+written against a single interface — <code>re_std::</code> — and compile
+correctly on any C++ compiler from C++98 through C++26, degrading
+gracefully when language features are unavailable.</p>
+<p>re_std is <strong>not</strong> a polyfill or a shim. It does not wrap
+<code>std</code>. Every symbol is a self-contained implementation that
+uses zero standard library headers for its core functionality. Where the
+standard library provides something equivalent, re_std will match the
+interface and semantics exactly.</p>
+<h3 id="goals-in-priority-order">Goals (in priority order)</h3>
+<ol type="1">
+<li><p><strong>Portability.</strong> Code using re_std compiles on C++98
+through C++26 and on GCC, Clang, MSVC, and Intel compilers. No feature
+may cause a hard compilation failure on any supported tier — unsupported
+functionality is omitted or degraded, never errored.</p></li>
+<li><p><strong>Backwards compatibility.</strong> Features introduced in
+later standards are available on earlier standards whenever the language
+permits. For example, <code>re_std::any</code> provides SBO storage on
+C++98, even though <code>std::any</code> requires C++17.</p></li>
+<li><p><strong>Constexpr maximization.</strong> Anything that can be
+constexpr, is. If a function is constexpr on C++14+ but not C++11, it
+has both paths. The <code>D_CONSTEXPR</code> macro handles the
+qualification automatically.</p></li>
+<li><p><strong>Granularity.</strong> Every public symbol lives in its
+own header file ("module"). Users include only what they need. Umbrella
+headers (matching <code>std</code>'s header names) are provided for
+convenience but are never required.</p></li>
+</ol>
+<hr />
+<h2 id="architecture">Architecture</h2>
+<h3 id="namespace-layout">Namespace Layout</h3>
+<p>re_std mirrors <code>std</code>'s namespace structure exactly:</p>
+<pre><code>re_std::                          ← flat (like std::)
+re_std::chrono::                  ← mirrors std::chrono::
+re_std::filesystem::              ← mirrors std::filesystem::
+re_std::ranges::                  ← mirrors std::ranges::
+re_std::views::                   ← mirrors std::views::
+re_std::execution::               ← mirrors std::execution::
+re_std::pmr::                     ← mirrors std::pmr::
+re_std::literals::                ← mirrors std::literals::
+re_std::numbers::                 ← mirrors std::numbers::
+re_std::this_thread::             ← mirrors std::this_thread::
+re_std::internal::                ← implementation details (no std equivalent)</code></pre>
+<p><strong>Everything that lives in <code>std::</code> lives in
+<code>re_std::</code> directly.</strong> There is no
+<code>re_std::any::</code> sub-namespace. <code>any</code>,
+<code>any_cast</code>, <code>bad_any_cast</code>, and
+<code>make_any</code> all live directly in <code>re_std::</code>.</p>
+<h3 id="file-layout">File Layout</h3>
+<pre><code>re_std/
+├── config.h                         ← configuration, read by both languages
+├── config.hpp                       ← C++ configuration (includes config.h)
+├── c/                               ← the C tree: .h and .c files only
+│   └── cstdint/
+│       └── dstdint.h                ←   &lt;stdint.h&gt; + &lt;inttypes.h&gt; formats
+└── cpp/                             ← the C++ tree: everything below
+
+re_std/cpp/
+├── any                              ← umbrella header (#include &quot;any/...&quot;)
+├── type_traits                      ← umbrella header
+├── utility                          ← umbrella header
+├── ...
+│
+├── any/                             ← granular modules
+│   ├── any.hpp                      ←   class any
+│   ├── any_cast.hpp                 ←   any_cast overloads
+│   ├── bad_any_cast.hpp             ←   bad_any_cast exception
+│   ├── make_any.hpp                 ←   make_any factory
+│   └── any_swap.hpp                 ←   swap(any&amp;, any&amp;) specialization
+│
+├── type_traits/                     ← granular modules
+│   ├── type_traits.hpp              ←   umbrella; ~110 granular headers beside it
+│   └── ...
+│
+└── internal/                        ← shared implementation details
+    └── ...</code></pre>
+<p><strong>Umbrella naming is not uniform, and that is fine.</strong>
+Three forms are in use: extensionless (<code>ratio/ratio</code>,
+<code>span/span</code>, <code>bit/bit</code>), <code>.hpp</code>
+(<code>type_traits/type_traits.hpp</code>,
+<code>memory/memory.hpp</code>), and <code>_umbrella</code>
+(<code>array/array_umbrella</code>, <code>new/new_umbrella</code>).
+Match whatever the module you are touching already does. Note that the
+extensionless form is invisible to an <code>*.hpp</code> glob — a rename
+pass once skipped all 17 of them for exactly that reason, so walk by
+content, not by extension.</p>
+<p><strong>Granularity has one documented exception.</strong>
+<code>numbers/numbers.hpp</code> holds all thirteen constants rather
+than thirteen two-line files. Granularity exists to narrow compile-time
+dependencies, and a table of literals has nothing to narrow. If you
+break the rule, say why in the umbrella.</p>
+<p><strong>The granularity rule:</strong> every public symbol gets its
+own <code>.hpp</code> file. This includes free functions, classes, type
+traits, constants, and specializations. A user who only needs
+<code>re_std::is_integral</code> should be able to include a single
+small header, not all of <code>&lt;type_traits&gt;</code>.</p>
+<p><strong>Umbrella headers</strong> have no extension (matching
+<code>#include &lt;any&gt;</code> style) and simply
+<code>#include</code> all the granular modules for that standard
+header.</p>
+<h3 id="dependency-rules">Dependency Rules</h3>
+<ol type="1">
+<li><strong>No circular includes.</strong> The dependency graph must be
+a DAG.</li>
+<li><strong>No <code>&lt;type_traits&gt;</code> or other standard trait
+headers.</strong> Use
+<code>re_std/cpp/type_traits/type_traits.hpp</code> instead.</li>
+<li><strong>Standard headers for fundamental types only:</strong>
+<code>&lt;cstddef&gt;</code> (for <code>size_t</code>,
+<code>nullptr_t</code>) and <code>&lt;new&gt;</code> /
+<code>&lt;initializer_list&gt;</code> when gated on availability macros.
+Fixed-width integers come from re_std itself, at every level:
+<code>re_std/cpp/cstdint/cstdint.hpp</code>, never
+<code>&lt;cstdint&gt;</code> (C++11) or <code>&lt;stdint.h&gt;</code> -
+only <code>re_std/c/cstdint/dstdint.h</code> includes those.</li>
+<li><strong>Granular modules may include other granular
+modules.</strong> For example, <code>any_cast.hpp</code> includes
+<code>any.hpp</code> and <code>bad_any_cast.hpp</code>.</li>
+<li><strong>Always include the core header:</strong> every re_std module
+includes <code>djinterp.hpp</code> (or the re_std core equivalent when
+extracted) for macro infrastructure.</li>
+</ol>
+<hr />
+<h2 id="environment-detection">Environment Detection</h2>
+<p>re_std uses the djinterp env detection system. Key macros you will
+use:</p>
+<h3 id="language-standard-tiers">Language Standard Tiers</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Macro</th>
+<th>True when</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>D_ENV_LANG_IS_CPP11_OR_HIGHER</code></td>
+<td>C++11 or later</td>
+</tr>
+<tr class="even">
+<td><code>D_ENV_LANG_IS_CPP14_OR_HIGHER</code></td>
+<td>C++14 or later</td>
+</tr>
+<tr class="odd">
+<td><code>D_ENV_LANG_IS_CPP17_OR_HIGHER</code></td>
+<td>C++17 or later</td>
+</tr>
+<tr class="even">
+<td><code>D_ENV_LANG_IS_CPP20_OR_HIGHER</code></td>
+<td>C++20 or later</td>
+</tr>
+<tr class="odd">
+<td><code>D_ENV_LANG_IS_CPP23_OR_HIGHER</code></td>
+<td>C++23 or later</td>
+</tr>
+</tbody>
+</table>
+<h3 id="feature-level-detection">Feature-Level Detection</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Macro</th>
+<th>Feature</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES</code></td>
+<td>Move semantics</td>
+</tr>
+<tr class="even">
+<td><code>D_ENV_CPP_FEATURE_LANG_VARIADIC_TEMPLATES</code></td>
+<td><code>typename...</code> packs</td>
+</tr>
+<tr class="odd">
+<td><code>D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES</code></td>
+<td><code>using X = ...</code> aliases</td>
+</tr>
+<tr class="even">
+<td><code>D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES</code></td>
+<td><code>template&lt;&gt; T v = ...</code></td>
+</tr>
+<tr class="odd">
+<td><code>D_ENV_CPP_FEATURE_LANG_IF_CONSTEXPR</code></td>
+<td><code>if constexpr (...)</code></td>
+</tr>
+<tr class="even">
+<td><code>D_ENV_CPP_FEATURE_LANG_CONSTEXPR</code></td>
+<td><code>constexpr</code> keyword at all</td>
+</tr>
+<tr class="odd">
+<td><code>D_ENV_CPP_FEATURE_LANG_FOLD_EXPRESSIONS</code></td>
+<td><code>(args + ...)</code></td>
+</tr>
+<tr class="even">
+<td><code>D_ENV_CPP_FEATURE_LANG_CONCEPTS</code></td>
+<td><code>concept</code> / <code>requires</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="header-availability">Header Availability</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Macro</th>
+<th>Header</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>D_ENV_CPP98_HAS_NEW</code></td>
+<td><code>&lt;new&gt;</code></td>
+</tr>
+<tr class="even">
+<td><code>D_ENV_CPP98_HAS_UTILITY</code></td>
+<td><code>&lt;utility&gt;</code></td>
+</tr>
+<tr class="odd">
+<td><code>D_ENV_CPP98_HAS_TYPEINFO</code></td>
+<td><code>&lt;typeinfo&gt;</code></td>
+</tr>
+<tr class="even">
+<td><code>D_ENV_CPP98_HAS_EXCEPTION</code></td>
+<td><code>&lt;exception&gt;</code></td>
+</tr>
+<tr class="odd">
+<td><code>D_ENV_CPP98_HAS_STDEXCEPT</code></td>
+<td><code>&lt;stdexcept&gt;</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="compiler-detection">Compiler Detection</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Macro</th>
+<th>Compiler</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>D_ENV_COMPILER_GCC</code></td>
+<td>GCC</td>
+</tr>
+<tr class="even">
+<td><code>D_ENV_COMPILER_CLANG</code></td>
+<td>Clang/LLVM</td>
+</tr>
+<tr class="odd">
+<td><code>D_ENV_COMPILER_MSVC</code></td>
+<td>Microsoft Visual C++</td>
+</tr>
+<tr class="even">
+<td><code>D_ENV_COMPILER_INTEL</code></td>
+<td>Intel C++</td>
+</tr>
+<tr class="odd">
+<td><code>D_ENV_COMPILER_VERSION_AT_LEAST(maj,min,patch)</code></td>
+<td>Version check</td>
+</tr>
+</tbody>
+</table>
+<h3 id="portable-qualifier-macros">Portable Qualifier Macros</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Macro</th>
+<th>Expands to</th>
+<th>Fallback</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>D_CONSTEXPR</code></td>
+<td><code>constexpr</code></td>
+<td>empty (C++98/03)</td>
+</tr>
+<tr class="even">
+<td><code>D_STATIC</code></td>
+<td><code>static</code></td>
+<td>stripped under <code>D_TESTING</code></td>
+</tr>
+<tr class="odd">
+<td><code>D_INLINE</code></td>
+<td>forced inline</td>
+<td><code>inline</code> on unknown compilers</td>
+</tr>
+<tr class="even">
+<td><code>D_CONSTEXPR_INLINE</code></td>
+<td><code>constexpr inline</code></td>
+<td><code>inline</code> on C++98/03</td>
+</tr>
+<tr class="odd">
+<td><code>D_STATIC_CONSTEXPR</code></td>
+<td><code>static constexpr</code></td>
+<td><code>static</code> on C++98/03</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="coding-conventions">Coding Conventions</h2>
+<h3 id="style-guide-summary">Style Guide Summary</h3>
+<p>re_std follows the djinterp C++ style guide. Key points for
+implementation:</p>
+<p><strong>Naming:</strong></p>
+<ul>
+<li>Types, traits, functions: <code>snake_case</code> (e.g.,
+<code>is_integral</code>, <code>any_cast</code>)</li>
+<li>Internal helpers: suffix <code>_helper</code> or <code>_base</code>,
+in <code>internal::</code> namespace</li>
+<li>Type aliases: suffix <code>_t</code> (e.g.,
+<code>enable_if_t</code>)</li>
+<li>Value aliases: suffix <code>_v</code> (e.g.,
+<code>is_same_v</code>)</li>
+<li>Detection macros: <code>D_RE_STD_HAS_*</code></li>
+<li>Template parameters: <code>_PascalCase</code> with leading
+underscore (e.g., <code>_Type</code>, <code>_Value</code>)</li>
+<li>Private members: <code>m_</code> prefix</li>
+</ul>
+<p><strong>Formatting:</strong></p>
+<ul>
+<li>Spaces, not tabs</li>
+<li><code>{</code> on its own line (Allman style)</li>
+<li>Multi-condition booleans: each condition on its own line, enclosed
+in outer parens</li>
+<li>Template parameters: one per line, aligned on <code>_</code>
+character</li>
+<li>Always <code>typename</code>, never <code>class</code>, for type
+parameters</li>
+<li>Void functions: explicit <code>return;</code> at end</li>
+<li>Comments: <code>//</code> style, lowercase first letter</li>
+</ul>
+<p><strong>Comments (brief format):</strong></p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co">// symbol_name</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="co">//   category: brief description.</span></span></code></pre></div>
+<p>Where category is one of: <code>trait</code>, <code>type</code>,
+<code>typedef</code>, <code>function</code>, <code>class</code>,
+<code>struct</code>, <code>enum</code>, <code>constant</code>,
+<code>variable</code>, <code>alias</code>.</p>
+<h3 id="trait-implementation-pattern">Trait Implementation Pattern</h3>
+<p>Every trait follows this structure:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co">// =============================================================================</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="co">// SECTION HEADER</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="co">// =============================================================================</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>NS_INTERNAL</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>    <span class="co">// foo_base</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>    <span class="co">//   trait: internal helper for foo (primary template).</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>    <span class="kw">template</span><span class="op">&lt;</span><span class="kw">typename</span> _Type<span class="op">&gt;</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>    <span class="kw">struct</span> foo_base <span class="op">:</span> <span class="dt">false_type</span></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>    <span class="op">{};</span></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>    <span class="co">// foo_base&lt;specialized&gt;</span></span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>    <span class="co">//   trait: specialization for [description].</span></span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>    <span class="kw">template</span><span class="op">&lt;&gt;</span></span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>    <span class="kw">struct</span> foo_base<span class="op">&lt;</span><span class="dt">int</span><span class="op">&gt;</span> <span class="op">:</span> <span class="dt">true_type</span></span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>    <span class="op">{};</span></span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>NS_END  <span class="co">// internal</span></span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a><span class="co">// foo</span></span>
+<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a><span class="co">//   trait: true if _Type is [description].</span></span>
+<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">typename</span> _Type<span class="op">&gt;</span></span>
+<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> foo</span>
+<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a>    <span class="op">:</span> internal<span class="op">::</span>foo_base<span class="op">&lt;</span><span class="kw">typename</span> remove_cv<span class="op">&lt;</span>_Type<span class="op">&gt;::</span>type<span class="op">&gt;</span></span>
+<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a><span class="op">{};</span></span>
+<span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-28"><a href="#cb4-28" aria-hidden="true" tabindex="-1"></a><span class="co">// foo_v (C++14+)</span></span>
+<span id="cb4-29"><a href="#cb4-29" aria-hidden="true" tabindex="-1"></a><span class="pp">#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES</span></span>
+<span id="cb4-30"><a href="#cb4-30" aria-hidden="true" tabindex="-1"></a>    <span class="kw">template</span><span class="op">&lt;</span><span class="kw">typename</span> _Type<span class="op">&gt;</span></span>
+<span id="cb4-31"><a href="#cb4-31" aria-hidden="true" tabindex="-1"></a>    D_CONSTEXPR <span class="dt">bool</span> foo_v <span class="op">=</span> foo<span class="op">&lt;</span>_Type<span class="op">&gt;::</span>value<span class="op">;</span></span>
+<span id="cb4-32"><a href="#cb4-32" aria-hidden="true" tabindex="-1"></a><span class="pp">#endif</span></span></code></pre></div>
+<p><strong>Key points:</strong></p>
+<ul>
+<li>Primary classification logic goes in
+<code>internal::foo_base</code>.</li>
+<li>The public <code>foo</code> strips cv-qualifiers (when appropriate
+for the trait) and delegates.</li>
+<li><code>_v</code> aliases are gated on
+<code>D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES</code>.</li>
+<li><code>_t</code> aliases are gated on
+<code>D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES</code>.</li>
+</ul>
+<h3 id="tiered-implementation-pattern">Tiered Implementation
+Pattern</h3>
+<p>When functionality varies by standard tier, use this structure:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#if D_ENV_LANG_IS_CPP20_OR_HIGHER</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">// best path: uses C++20 features</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    <span class="co">// ...</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="pp">#elif D_ENV_LANG_IS_CPP14_OR_HIGHER</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    <span class="co">// good path: constexpr-capable</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    <span class="co">// ...</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="pp">#elif D_ENV_LANG_IS_CPP11_OR_HIGHER</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>    <span class="co">// adequate path: uses C++11 features</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>    <span class="co">// ...</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a><span class="pp">#else</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>    <span class="co">// C++98/03 fallback</span></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>    <span class="co">// ...</span></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a><span class="pp">#endif</span></span></code></pre></div>
+<p><strong>Rules for tiering:</strong></p>
+<ul>
+<li>The most capable tier goes first (top).</li>
+<li>Each tier must be self-contained — no fallthrough.</li>
+<li>If a function signature changes between tiers (e.g., gains
+<code>noexcept</code>), all variants must have the same name and be in
+the same namespace.</li>
+<li>Never <code>#error</code> on a missing feature. Degrade or
+omit.</li>
+</ul>
+<h3 id="compiler-intrinsic-pattern">Compiler Intrinsic Pattern</h3>
+<p>For traits that need compiler magic:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co">// D_RE_STD_HAS_FOO</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="co">//   constant: 1 if __foo compiler intrinsic is available.</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="pp">#ifndef D_RE_STD_HAS_FOO</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    <span class="pp">#if defined(__foo)</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>        <span class="pp">#define D_RE_STD_HAS_FOO  </span><span class="dv">1</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>    <span class="pp">#elif ( defined(D_ENV_COMPILER_GCC) &amp;&amp;                    \</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="pp">            D_ENV_COMPILER_VERSION_AT_LEAST(x, y, z) )</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>        <span class="pp">#define D_RE_STD_HAS_FOO  </span><span class="dv">1</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>    <span class="pp">#elif defined(D_ENV_COMPILER_CLANG)</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>        <span class="pp">#define D_RE_STD_HAS_FOO  </span><span class="dv">1</span></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>    <span class="pp">#elif ( defined(D_ENV_COMPILER_MSVC) &amp;&amp;                   \</span></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a><span class="pp">            D_ENV_COMPILER_VERSION_AT_LEAST(x, y, z) )</span></span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>        <span class="pp">#define D_RE_STD_HAS_FOO  </span><span class="dv">1</span></span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>    <span class="pp">#else</span></span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>        <span class="pp">#define D_RE_STD_HAS_FOO  </span><span class="dv">0</span></span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>    <span class="pp">#endif</span></span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a><span class="pp">#endif</span></span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a><span class="pp">#if D_RE_STD_HAS_FOO</span></span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a>    <span class="co">// real implementation using __foo</span></span>
+<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a><span class="pp">#else</span></span>
+<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a>    <span class="co">// safe fallback (false_type, omission, or degraded behavior)</span></span>
+<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a><span class="pp">#endif</span></span></code></pre></div>
+<p><strong>Rules:</strong></p>
+<ul>
+<li>Detection macro is <code>D_RE_STD_HAS_*</code>, always
+<code>#ifndef</code>-guarded so users can override.</li>
+<li>Test for the builtin name directly first
+(<code>defined(__foo)</code>), then fall back to compiler+version
+checks.</li>
+<li>The fallback must never cause a compilation error.</li>
+</ul>
+<hr />
+<h3 id="marking-re-exports">Marking re-exports</h3>
+<p>Some symbols <strong>cannot be reimplemented as portable re_std
+code</strong> — they are provided by the language runtime, the C++ ABI,
+or the compiler itself, and re_std surfaces them in-namespace via an
+identity-preserving re-export (<code>using std::X;</code> or a typedef
+alias) so that <code>re_std::X</code> <strong>is</strong>
+<code>std::X</code>. Examples: <code>operator new</code> / placement
+<code>new</code>, <code>type_info</code>, <code>bad_cast</code> /
+<code>bad_typeid</code>, the <code>std::exception</code> and
+<code>std::logic_error</code> / <code>runtime_error</code> hierarchies,
+and the <code>exception_ptr</code> / nested-exception families.
+Re-export is the <em>correct</em> design here, not a shortcut: a
+distinct <code>re_std::bad_cast</code> would not be caught by a
+language-emitted <code>throw</code>, and <code>typeid</code> could not
+bind to it.</p>
+<p>When a symbol is such a re-export, set
+<strong><code>"reexport": true</code></strong> in its coverage JSON
+(Phase 2). This is what feeds the workbook's <strong>Re-exports</strong>
+sheet.</p>
+<p>Keep three cases distinct:</p>
+<ul>
+<li><strong><code>reexport: true</code></strong> — re_std contributes
+only the in-namespace alias; the entity is
+runtime/ABI/compiler/language-provided. <code>re_std::X</code> is
+<code>std::X</code> (type identity preserved).</li>
+<li><strong><code>intrinsic_required: true</code></strong> — re_std
+<em>owns</em> the symbol (<code>re_std::is_class</code> is its own
+trait), but its implementation needs a compiler builtin. Set
+<code>reexport: false</code>.</li>
+<li><strong>A back-port</strong>
+(<code>secondary_min &lt; std_in</code>) — re_std provides its own
+implementation on tiers where std lacks the symbol (e.g.
+<code>get_terminate</code>, <code>bad_array_new_length</code>,
+<code>uncaught_exceptions</code>). Set <code>reexport: false</code>,
+even if the symbol is a thin <code>using</code>-declaration on its
+<em>upper</em> tiers; the back-port is a genuine re_std
+implementation.</li>
+</ul>
+<p>A <code>reexport</code> symbol's <code>secondary_min</code> equals
+its <code>primary_in</code> (re_std adds nothing but the namespace
+alias), and its <code>notes</code> should say what it re-exports and why
+it cannot be reimplemented.</p>
+<hr />
+<h2 id="how-to-implement-a-new-module">How to Implement a New
+Module</h2>
+<h3 id="step-by-step">Step-by-step</h3>
+<p><strong>1. Identify the std symbol(s).</strong></p>
+<p>Determine exactly which symbols from the standard header you're
+implementing. Example: <code>&lt;optional&gt;</code> has
+<code>optional&lt;T&gt;</code>, <code>nullopt_t</code>,
+<code>nullopt</code>, <code>bad_optional_access</code>,
+<code>make_optional</code>, and a <code>swap</code> specialization.</p>
+<p><strong>2. Create one file per symbol.</strong></p>
+<pre><code>re_std/cpp/optional/
+├── optional.hpp              ← class optional&lt;T&gt;
+├── nullopt.hpp               ← nullopt_t + nullopt constant
+├── bad_optional_access.hpp   ← exception class
+├── make_optional.hpp         ← factory function
+└── optional_swap.hpp         ← swap(optional&amp;, optional&amp;)</code></pre>
+<p><strong>3. Determine minimum viable standard tier.</strong></p>
+<p>For each symbol, identify the lowest C++ standard at which a
+meaningful implementation is possible. Document this in the file header.
+Common blockers:</p>
+<table>
+<thead>
+<tr class="header">
+<th>Feature needed</th>
+<th>Minimum</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Variadic templates</td>
+<td>C++11</td>
+</tr>
+<tr class="even">
+<td>Rvalue references / move semantics</td>
+<td>C++11</td>
+</tr>
+<tr class="odd">
+<td><code>constexpr</code> (basic)</td>
+<td>C++11</td>
+</tr>
+<tr class="even">
+<td><code>constexpr</code> (relaxed — locals, loops)</td>
+<td>C++14</td>
+</tr>
+<tr class="odd">
+<td><code>if constexpr</code></td>
+<td>C++17</td>
+</tr>
+<tr class="even">
+<td>Concepts / requires</td>
+<td>C++20</td>
+</tr>
+<tr class="odd">
+<td><code>constexpr</code> dynamic allocation</td>
+<td>C++20</td>
+</tr>
+<tr class="even">
+<td>Deducing <code>this</code></td>
+<td>C++23</td>
+</tr>
+</tbody>
+</table>
+<p><strong>4. Write the file header.</strong></p>
+<p>Every file starts with the standard djinterp block comment:</p>
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co">/***********************************************************************</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="co">* re_std                                                  symbol_name.hpp</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="co">*</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="co">* brief description header:</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="co">*   Extended description of what this module provides, any tiered</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a><span class="co">* behavior, and portability notes.</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a><span class="co">*</span></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a><span class="co">*</span></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a><span class="co">* path:      /inc/re_std/cpp/header_group/symbol_name.hpp</span></span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a><span class="co">* link(s):   TBA</span></span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a><span class="co">* author(s): Your Name                                  date: YYYY.MM.DD</span></span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a><span class="co">***********************************************************************/</span></span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a><span class="pp">#ifndef DJINTERP_RESTD_HEADER_GROUP_SYMBOL_NAME_</span></span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a><span class="pp">#define DJINTERP_RESTD_HEADER_GROUP_SYMBOL_NAME_ </span><span class="dv">1</span></span></code></pre></div>
+<p><strong>5. Implement with tiered <code>#if</code>
+guards.</strong></p>
+<p>Start from the highest tier and work down. Ensure each tier compiles
+independently.</p>
+<p><strong>6. Write the umbrella header.</strong></p>
+<pre><code>re_std/optional   ← no extension</code></pre>
+<p>This file includes all granular modules for that standard header.</p>
+<p><strong>7. Update documentation.</strong></p>
+<p>Add entries to:</p>
+<ul>
+<li><code>re_std_compatibility.html</code> — the per-symbol
+version/compiler table</li>
+<li><code>re_std_modules.html</code> — the detailed module
+documentation</li>
+<li>This file's "Current Status" section below</li>
+</ul>
+<blockquote>
+<p>The coverage JSON + workbook regeneration (the data behind
+<code>re_std_cpp_coverage.xlsx</code>) is a separate, canonical workflow
+— see <code>MODULE_WORKFLOW.html</code>, phases 2–3. The workbook is
+rebuilt with <code>python3 scripts/re_std/re_std.py build</code>;
+re_std's config lives in <code>re_std.py</code>
+(<code>RE_STD_CONFIG</code>), and data sheets are discovered by globbing
+<code>docs/re_std/cpp/data/*.json</code>.</p>
+</blockquote>
+<h3 id="checklist-for-every-new-symbol">Checklist for Every New
+Symbol</h3>
+<ul class="task-list">
+<li><label><input type="checkbox" />Lives in <code>re_std::</code> (or
+appropriate sub-namespace like
+<code>re_std::chrono::</code>)</label></li>
+<li><label><input type="checkbox" />Has its own <code>.hpp</code> file
+in the correct subdirectory</label></li>
+<li><label><input type="checkbox" />Include guard follows
+<code>RE_STD_GROUP_SYMBOLNAME_</code> pattern</label></li>
+<li><label><input type="checkbox" />Includes the re_std core header (for
+macros)</label></li>
+<li><label><input type="checkbox" />Uses <code>re_std::</code> type
+traits, not <code>std::</code> type traits</label></li>
+<li><label><input type="checkbox" />Uses <code>D_CONSTEXPR</code>,
+<code>D_STATIC</code>, <code>D_INLINE</code> macros (not raw
+keywords)</label></li>
+<li><label><input type="checkbox" /><code>reexport: true</code> set if
+the symbol is a runtime/ABI/compiler/language re-export (see "Marking
+re-exports")</label></li>
+<li><label><input type="checkbox" />Uses <code>typedef</code> (not
+<code>using</code>) when C++98 support is needed</label></li>
+<li><label><input type="checkbox" />Uses <code>static const</code> (not
+<code>static constexpr</code>) for C++98 trait values</label></li>
+<li><label><input type="checkbox" />Move semantics gated on
+<code>D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES</code></label></li>
+<li><label><input type="checkbox" />Variadic templates gated on
+<code>D_ENV_CPP_FEATURE_LANG_VARIADIC_TEMPLATES</code></label></li>
+<li><label><input type="checkbox" /><code>_t</code> aliases gated on
+<code>D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES</code></label></li>
+<li><label><input type="checkbox" /><code>_v</code> variables gated on
+<code>D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES</code></label></li>
+<li><label><input type="checkbox" /><code>noexcept</code> gated or uses
+a <code>D_NOEXCEPT</code> macro</label></li>
+<li><label><input type="checkbox" /><code>enum class</code> replaced
+with struct-wrapper for C++98/03</label></li>
+<li><label><input type="checkbox" /><code>nullptr</code> avoided or
+replaced with <code>0</code> / <code>NULL</code> for
+C++98/03</label></li>
+<li><label><input
+type="checkbox" /><code>explicit operator bool()</code> uses safe-bool
+idiom for C++98/03</label></li>
+<li><label><input type="checkbox" />No <code>#error</code> on missing
+features — always degrade or omit</label></li>
+<li><label><input type="checkbox" />Umbrella header updated to include
+the new file</label></li>
+<li><label><input type="checkbox" />Compatibility table entry
+added</label></li>
+<li><label><input type="checkbox" />Module documentation entry
+added</label></li>
+</ul>
+<hr />
+<h2 id="current-status">Current Status</h2>
+<h3 id="implemented">Implemented</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Module</th>
+<th>Symbols</th>
+<th>Min Standard</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>type_traits</code></td>
+<td><code>integral_constant</code>, <code>true_type</code>,
+<code>false_type</code>, <code>enable_if</code>,
+<code>remove_const</code>, <code>remove_volatile</code>,
+<code>remove_cv</code>, <code>remove_pointer</code>,
+<code>is_same</code>, <code>is_const</code>, <code>is_integral</code>,
+<code>is_floating_point</code>, <code>is_pointer</code>,
+<code>is_function</code>, <code>is_enum</code>, <code>is_signed</code>,
+<code>is_unsigned</code>, <code>underlying_type</code></td>
+<td>C++98</td>
+</tr>
+<tr class="even">
+<td><code>any</code></td>
+<td><code>any</code>, <code>any_type_id</code>,
+<code>any_type_id_of</code>, <code>DAnyCategory</code></td>
+<td>C++11 (C++98 planned)</td>
+</tr>
+<tr class="odd">
+<td><code>any</code></td>
+<td><code>any_cast</code> (5 overloads)</td>
+<td>C++11 (C++98 planned)</td>
+</tr>
+<tr class="even">
+<td><code>any</code></td>
+<td><code>swap(any&amp;, any&amp;)</code></td>
+<td>C++11 (C++98 planned)</td>
+</tr>
+<tr class="odd">
+<td><code>any</code></td>
+<td><code>bad_any_cast</code></td>
+<td>C++98</td>
+</tr>
+<tr class="even">
+<td><code>any</code></td>
+<td><code>make_any</code> (2 overloads)</td>
+<td>C++11</td>
+</tr>
+<tr class="odd">
+<td><code>functional</code></td>
+<td><code>plus</code>, <code>minus</code>, <code>multiplies</code>,
+<code>divides</code>, <code>modulus</code>, <code>negate</code>
+(arithmetic), <code>equal_to</code>, <code>not_equal_to</code>,
+<code>greater</code>, <code>less</code>, <code>greater_equal</code>,
+<code>less_equal</code> (compare), <code>logical_and</code>,
+<code>logical_or</code>, <code>logical_not</code></td>
+<td>C++98</td>
+</tr>
+<tr class="even">
+<td><code>functional</code></td>
+<td><code>bit_and</code>, <code>bit_or</code>, <code>bit_xor</code>,
+<code>bit_not</code></td>
+<td>C++11 (<code>bit_not</code> back-ported from C++14)</td>
+</tr>
+<tr class="odd">
+<td><code>functional</code></td>
+<td><code>reference_wrapper</code>, <code>ref</code>, <code>cref</code>,
+<code>unwrap_reference</code>, <code>unwrap_ref_decay</code></td>
+<td>C++11 (back-ported from C++20 for the latter two)</td>
+</tr>
+<tr class="even">
+<td><code>functional</code></td>
+<td><code>invoke</code>, <code>invoke_r</code>, <code>mem_fn</code>,
+<code>not_fn</code>, <code>identity</code></td>
+<td>C++11 (back-ported from C++17/20/23)</td>
+</tr>
+<tr class="odd">
+<td><code>functional</code></td>
+<td><code>bad_function_call</code>, <code>is_bind_expression</code>,
+<code>is_placeholder</code>, <code>hash</code> (primary + scalar
+specs)</td>
+<td>C++98 / C++11</td>
+</tr>
+</tbody>
+</table>
+<h3 id="not-yet-implemented-partial-list-of-high-value-targets">Not Yet
+Implemented (partial list of high-value targets)</h3>
+<table>
+<thead>
+<tr class="header">
+<th>std Header</th>
+<th>Key Symbols</th>
+<th>Estimated Min</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>&lt;utility&gt;</code></td>
+<td><code>swap</code>, <code>move</code>, <code>forward</code>,
+<code>pair</code>, <code>declval</code></td>
+<td>C++98 (swap, pair), C++11 (move, forward, declval)</td>
+</tr>
+<tr class="even">
+<td><code>&lt;optional&gt;</code></td>
+<td><code>optional&lt;T&gt;</code>, <code>nullopt</code>,
+<code>bad_optional_access</code>, <code>make_optional</code></td>
+<td>C++11</td>
+</tr>
+<tr class="odd">
+<td><code>&lt;variant&gt;</code></td>
+<td><code>variant&lt;Ts...&gt;</code>, <code>visit</code>,
+<code>get</code>, <code>holds_alternative</code>,
+<code>bad_variant_access</code></td>
+<td>C++11</td>
+</tr>
+<tr class="even">
+<td><code>&lt;tuple&gt;</code></td>
+<td><code>tuple&lt;Ts...&gt;</code>, <code>get</code>,
+<code>make_tuple</code>, <code>tie</code>, <code>tuple_size</code>,
+<code>tuple_element</code></td>
+<td>C++11</td>
+</tr>
+<tr class="odd">
+<td><code>&lt;functional&gt;</code></td>
+<td><code>function&lt;Sig&gt;</code>, <code>move_only_function</code>,
+<code>copyable_function</code>, <code>function_ref</code>,
+<code>bind</code>, <code>bind_front</code>, <code>bind_back</code>,
+<code>placeholders::_N</code>, <code>default_searcher</code>,
+<code>boyer_moore_searcher</code>,
+<code>boyer_moore_horspool_searcher</code></td>
+<td>C++11 (function family); <code>bind</code> family blocked on
+<code>&lt;tuple&gt;</code>; searchers blocked on
+<code>&lt;algorithm&gt;</code></td>
+</tr>
+<tr class="even">
+<td><code>&lt;memory&gt;</code></td>
+<td><code>unique_ptr</code>, <code>shared_ptr</code>,
+<code>weak_ptr</code>, <code>make_unique</code>,
+<code>make_shared</code></td>
+<td>C++11</td>
+</tr>
+<tr class="odd">
+<td><code>&lt;string_view&gt;</code></td>
+<td><code>basic_string_view&lt;CharT&gt;</code></td>
+<td>C++11</td>
+</tr>
+<tr class="even">
+<td><code>&lt;span&gt;</code></td>
+<td><code>span&lt;T&gt;</code></td>
+<td>C++11</td>
+</tr>
+<tr class="odd">
+<td><code>&lt;expected&gt;</code></td>
+<td><code>expected&lt;T,E&gt;</code>,
+<code>unexpected&lt;E&gt;</code></td>
+<td>C++11</td>
+</tr>
+<tr class="even">
+<td><code>&lt;algorithm&gt;</code></td>
+<td><code>find</code>, <code>sort</code>, <code>transform</code>,
+<code>for_each</code>, ...</td>
+<td>C++98</td>
+</tr>
+<tr class="odd">
+<td><code>&lt;array&gt;</code></td>
+<td><code>array&lt;T,N&gt;</code></td>
+<td>C++98</td>
+</tr>
+<tr class="even">
+<td><code>&lt;type_traits&gt;</code></td>
+<td>Remaining ~100 traits</td>
+<td>C++98 (most)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="known-issues">Known Issues</h3>
+<table>
+<thead>
+<tr class="header">
+<th>File</th>
+<th>Issue</th>
+<th>Severity</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>any_cast.hpp:95</code></td>
+<td>Typo: <code>D_ENV_CPP98_HAS_TypeYPEINFO</code> should be
+<code>D_ENV_CPP98_HAS_TYPEINFO</code></td>
+<td>Bug — checked overloads don't compile on typeinfo-only systems</td>
+</tr>
+<tr class="even">
+<td><code>make_any.hpp:57</code></td>
+<td><code>_Type::initializer_list&lt;_U&gt;</code> should be
+<code>std::initializer_list&lt;_U&gt;</code></td>
+<td>Bug — initializer_list overload doesn't compile</td>
+</tr>
+<tr class="odd">
+<td><code>any.hpp</code></td>
+<td>Entire file gated on C++11; needs C++98 path</td>
+<td>Planned work</td>
+</tr>
+<tr class="even">
+<td><code>any.hpp</code></td>
+<td><code>swap()</code> member uses copy-and-swap; suboptimal for
+heap</td>
+<td>Optimization</td>
+</tr>
+<tr class="odd">
+<td><code>any.hpp</code></td>
+<td><code>emplace&lt;T&gt;()</code> not yet implemented</td>
+<td>Missing feature</td>
+</tr>
+<tr class="even">
+<td><code>any.hpp</code></td>
+<td><code>get_ref&lt;T&gt;()</code> not yet implemented</td>
+<td>Missing feature</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="frequently-asked-questions">Frequently Asked Questions</h2>
+<h3 id="why-not-just-use-boost">Why not just use Boost?</h3>
+<p>Boost's implementations are excellent but come with significant
+transitive dependencies. <code>boost::any</code> alone pulls in multiple
+Boost headers. re_std has zero external dependencies beyond a C++98
+compiler and the re_std core header.</p>
+<h3 id="why-not-wrap-std-when-available">Why not wrap <code>std</code>
+when available?</h3>
+<p>Because behavioral differences between vendor implementations would
+leak through. <code>std::is_trivially_copyable</code> has had bugs on
+specific MSVC versions. <code>std::any</code>'s SBO threshold varies
+between libstdc++, libc++, and MSVC's STL. re_std provides one
+implementation with one behavior, tested everywhere.</p>
+<h3 id="why-typedef-instead-of-using-in-traits">Why <code>typedef</code>
+instead of <code>using</code> in traits?</h3>
+<p><code>using</code> aliases require C++11
+(<code>__cpp_alias_templates</code>). Since the core traits must work on
+C++98, they use <code>typedef</code>. The <code>_t</code> convenience
+aliases (which do use <code>using</code>) are gated on the alias
+templates feature macro.</p>
+<h3 id="why-are-_v-variables-gated-on-c14-not-c11">Why are
+<code>_v</code> variables gated on C++14, not C++11?</h3>
+<p>Variable templates
+(<code>template&lt;typename T&gt; constexpr bool v = ...</code>) are a
+C++14 feature (<code>__cpp_variable_templates</code>). C++11 has no
+equivalent — you must use <code>::value</code>.</p>
+<h3 id="can-i-mix-re_std-and-std-types">Can I mix <code>re_std::</code>
+and <code>std::</code> types?</h3>
+<p>Yes, but they are distinct types. <code>re_std::any</code> is not
+<code>std::any</code>. You cannot pass a <code>re_std::any</code> to a
+function expecting <code>std::any</code>. Within a project, pick one and
+use it consistently.</p>
+<hr />
+<h2 id="hard-won-rules-read-before-writing-a-header">Hard-won rules
+(read before writing a header)</h2>
+<p>Eight bugs have been found in headers the coverage workbook called
+<em>shipped</em>. Every one parsed cleanly. Every one was found by the
+first code that actually <strong>instantiated</strong> it. These are the
+specific traps.</p>
+<h3 id="1-the-namespace-is-top-level-re_std-via-ns_restd-alone">1. The
+namespace is top-level <code>re_std</code>, via <code>NS_RESTD</code>
+alone</h3>
+<p>Do <strong>not</strong> wrap it in <code>NS_DJINTERP</code>.
+<code>NS_RESTD</code> expands to <code>namespace re_std {</code> on its
+own; nesting it inside <code>NS_DJINTERP</code> produces
+<code>djinterp::re_std</code>, a <em>different namespace</em> from the
+one every other header lives in. Ninety-five files were written that way
+and none of them could see <code>re_std::invoke</code>.</p>
+<p>The macro name <code>NS_RESTD</code> is frozen and keeps the old
+spelling. Everything else — guards, <code>D_RE_STD_*</code> macros,
+<code>path:</code> fields — uses <code>RE_STD</code> /
+<code>re_std</code>.</p>
+<h3 id="2-in-c11-constexpr-on-a-member-function-implies-const">2. In
+C++11, <code>constexpr</code> on a member function implies
+<code>const</code></h3>
+<p>This has caused three separate bugs. A <code>constexpr</code>
+non-const accessor and its <code>const</code> twin collapse into two
+functions differing only in return type; a <code>constexpr</code>
+<code>&amp;</code>-qualified <code>operator()</code> collides with the
+<code>const &amp;</code> one. C++14 dropped the implicit const.</p>
+<p><strong>Rule:</strong> the non-const half of any accessor or
+call-operator pair gets <code>D_CONSTEXPR_CPP14</code>, never
+<code>D_CONSTEXPR</code>.</p>
+<h3
+id="3-enable_if-must-depend-on-the-members-own-template-parameters">3.
+<code>enable_if</code> must depend on the <em>member's</em> own template
+parameters</h3>
+<div class="sourceCode" id="cb10"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co">// WRONG -- sizeof...(_Tail) is fixed once the class is instantiated, so</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="co">// enable_if&lt;false, ...&gt; is a hard error instead of removing the overload</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">typename</span> _U1<span class="op">,</span> <span class="kw">typename</span> _U2<span class="op">&gt;</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="kw">typename</span> enable_if<span class="op">&lt;</span><span class="kw">sizeof</span><span class="op">...(</span>_Tail<span class="op">)</span> <span class="op">==</span> <span class="dv">1</span><span class="op">,</span> tuple<span class="op">&amp;&gt;::</span>type <span class="kw">operator</span><span class="op">=(...);</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a><span class="co">// RIGHT -- _N is a parameter of this member, so the condition is dependent</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">typename</span> _U1<span class="op">,</span> <span class="kw">typename</span> _U2<span class="op">,</span> <span class="bu">std::</span>size_t _N <span class="op">=</span> <span class="kw">sizeof</span><span class="op">...(</span>_Tail<span class="op">)&gt;</span></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a><span class="kw">typename</span> enable_if<span class="op">&lt;</span>_N <span class="op">==</span> <span class="dv">1</span><span class="op">,</span> tuple<span class="op">&amp;&gt;::</span>type <span class="kw">operator</span><span class="op">=(...);</span></span></code></pre></div>
+<p>The wrong form made every <code>tuple&lt;A,B&gt;</code> ill-formed on
+instantiation, at every tier.</p>
+<h3 id="4-declaring-a-move-operation-deletes-the-copy-constructor">4.
+Declaring a move operation deletes the copy constructor</h3>
+<p><code>tuple</code> declared <code>operator=(tuple&amp;&amp;)</code>
+and nothing else. That <em>deletes</em> the implicit copy constructor —
+no <code>re_std::tuple</code> was copyable. If you declare any move
+operation, explicitly <code>= default</code> the copy operations you
+still want.</p>
+<h3 id="5-both-arms-of-a-ternary-are-instantiated-in-a-template">5. Both
+arms of a ternary are instantiated in a template</h3>
+<p>A self-referential ternary recurses forever at compile time
+regardless of which branch the value selects. Drive compile-time
+recursion through a <strong>bool-dispatched helper</strong> with two
+partial specialisations. See <code>ratio/ratio_less.hpp</code>.</p>
+<h3 id="6-narrow-types-promote-to-int-before-shifting">6. Narrow types
+promote to <code>int</code> before shifting</h3>
+<p><code>x &lt;&lt; r</code> on a <code>uint8_t</code> promotes, so bits
+shifted off the top survive in the promoted value. Cast every
+sub-expression back to <code>_T</code>. Without it,
+<code>rotl(uint8_t(0x80), 1)</code> gives <code>0x101</code> instead of
+<code>0x01</code>.</p>
+<h3 id="7-a-variadic-overload-can-hijack-copy-construction">7. A
+variadic overload can hijack copy construction</h3>
+<p><code>template&lt;typename _G, typename... _B&gt; ctor(_G&amp;&amp;, _B&amp;&amp;...)</code>
+out-matches the implicit copy constructor for a non-const lvalue of the
+class's own type. Add a leading tag parameter. See
+<code>functional/bind_front.hpp</code>.</p>
+<h3 id="8-check-an-access-specifier-actually-reopens">8. Check an access
+specifier actually reopens</h3>
+<p><code>shared_ptr</code>'s primary template opened
+<code>private:</code> for its construction section and never returned to
+<code>public:</code>. Every constructor, the destructor,
+<code>get()</code>, <code>reset()</code> and <code>use_count()</code>
+were inaccessible. The class parsed.</p>
+<h3 id="9-void_t-is-an-alias-template--it-has-no-type">9.
+<code>void_t</code> is an alias template — it has no
+<code>::type</code></h3>
+<p><code>typename void_t&lt;...&gt;::type</code> is ill-formed. Write
+<code>void_t&lt;...&gt;</code>.</p>
+<hr />
+<h2 id="include-and-layout-rules">Include and layout rules</h2>
+<ul>
+<li><strong>Core header:</strong>
+<code>#include "../../core/djinterp.hpp"</code> from a module directory.
+Three other spellings exist in the corpus and all three are wrong:
+<code>"djinterp.hpp"</code> needs an extra <code>-I</code>, and
+<code>"../djinterp.hpp"</code> and <code>"../../djinterp.hpp"</code>
+both point at paths that do not exist.</li>
+<li><strong>Sibling modules:</strong> file-relative
+(<code>"../tuple/tuple.hpp"</code>), not root-relative.</li>
+<li><strong>Invert dependencies rather than adding heavy ones.</strong>
+<code>span</code> must not include <code>&lt;ranges&gt;</code>; the
+ranges opt-in lives in its own <code>span/span_range_opt_in.hpp</code>
+so only callers that want it pay.</li>
+</ul>
+<h2 id="the-tier-floor">The tier floor</h2>
+<p><code>core/djinterp.hpp</code> <strong>hard-errors below
+C++11</strong>, and its own comment forbids carrying C++98 fallbacks:
+<em>"an unreachable branch is a second implementation nobody
+compiles."</em></p>
+<p>The workbook still floors at C++98 and 240 symbols still claim a
+C++98 minimum. Until <code>versions[0]</code> in
+<code>_config.json</code> changes, a new C++11-floor symbol renders as
+<em>uncovered</em> and needs a <code>failure_reason</code> saying so. Do
+not invent C++98 fallbacks to make the number look better.</p>
+<h2 id="every-symbol-needs-a-test-that-instantiates-it">Every symbol
+needs a test that instantiates it</h2>
+<p>Not a syntax check — an instantiation. A <code>static_assert</code>
+on the deduced type counts; <code>-fsyntax-only</code> on the header
+does not. All eight bugs above survived because nothing instantiated the
+code.</p>
+</body>
+</html>

@@ -3,7 +3,7 @@
 *
 * string_fn.h's suite in DTest's C face (c/modules/test/test_suite.h).
 *   The first block holds the register's decisions on string_fn (#11, #12 and
-* #30 of docs/djinterp_decisions.md, Part B), each with a regression test.
+* #30 of docs/djinterp_decisions.html, Part B), each with a regression test.
 *
 *
 * TABLE OF CONTENTS

@@ -2,7 +2,7 @@
 * djinterp [c][parse]                                                 settings.h
 *
 * Parse's settings group: the djin `parse`, whose rows are the settings an
-* option of 0 stands for (lane E's knob-and-option pattern, knob_and_option.md
+* option of 0 stands for (lane E's knob-and-option pattern, knob_and_option.html
 * section 2; the design's section 11).
 *   Six rows, flat, each defaulting to its knob:
 *     expr_max_depth    1 to 65535, or `unbounded`  D_CFG_PARSE_EXPR_MAX_DEPTH
@@ -48,8 +48,8 @@
 *
 *
 * path:      /inc/djinterp/c/modules/parse/settings.h
-* link(s):   /docs/djinterp/parse/expression_core_v2.md
-*            /docs/djinterp/option/knob_and_option.md
+* link(s):   /docs/djinterp/c/modules/parse/expr/expression_core_v2.html
+*            /docs/djinterp/c/option/knob_and_option.html
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.12
 *                                                            revised: 2026.11.27
 *******************************************************************************/

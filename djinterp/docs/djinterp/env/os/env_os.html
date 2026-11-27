@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>OS Modules — envlinux/windows/apple/bsd/ios.h</title>
+  <style>
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+</head>
+<body>
+<h1 id="os-modules--env_linuxwindowsapplebsdiosh">OS Modules —
+<code>env_linux/windows/apple/bsd/ios.h</code></h1>
+<p>OS detection happens in two layers:</p>
+<ol type="1">
+<li><strong>Classification</strong> in <code>env.h</code> assigns the
+host an 8-bit <code>D_ENV_OS_FLAG_*</code> id and exposes block/range
+helper macros (documented in <code>env.html</code>, §VI).</li>
+<li><strong>Per-OS detail</strong> lives in one of the headers below,
+pulled in automatically by <code>env.h</code>'s callers once the OS is
+known. These are deep, version-gated probes for that platform's kernel,
+runtime, frameworks, and headers.</li>
+</ol>
+<p>All per-OS headers require <code>env.h</code> first and follow the
+convention
+<code>D_ENV_&lt;PREFIX&gt;_&lt;CATEGORY&gt;_&lt;FEATURE&gt;</code> —
+<code>1</code> if available, <code>0</code> otherwise — plus
+string/version constants and a handful of
+<code>D_ENV_&lt;PREFIX&gt;_IS_*()</code> convenience macros. The tables
+below summarize <strong>categories</strong>, not every leaf macro (each
+module defines dozens to ~150).</p>
+<h2 id="selecting-the-right-header">Selecting the right header</h2>
+<table>
+<thead>
+<tr class="header">
+<th>Detected OS</th>
+<th>Condition (<code>env.h</code>)</th>
+<th>Header</th>
+<th>Prefix(es)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Linux</td>
+<td><code>D_ENV_OS_ID == D_ENV_OS_FLAG_LINUX</code></td>
+<td><code>env_linux.h</code></td>
+<td><code>D_ENV_LINUX_</code></td>
+</tr>
+<tr class="even">
+<td>Windows</td>
+<td><code>D_ENV_IS_OS_WINDOWS(D_ENV_OS_ID)</code></td>
+<td><code>env_windows.h</code></td>
+<td><code>D_ENV_WIN_</code></td>
+</tr>
+<tr class="odd">
+<td>macOS / Apple desktop</td>
+<td><code>D_ENV_IS_OS_FLAG_IN_BLOCK(D_ENV_OS_ID, 0x0)</code></td>
+<td><code>env_apple.h</code></td>
+<td><code>D_ENV_APPLE_</code>, <code>D_ENV_MACOS_</code></td>
+</tr>
+<tr class="even">
+<td>iOS / tvOS / watchOS / visionOS</td>
+<td><code>D_ENV_OS_ID == D_ENV_OS_FLAG_IOS</code></td>
+<td><code>env_ios.h</code> (includes <code>env_apple.h</code>)</td>
+<td><code>D_ENV_IOS_</code>, <code>D_ENV_TVOS_</code>,
+<code>D_ENV_WATCHOS_</code>, <code>D_ENV_VISOS_</code>,
+<code>D_ENV_MOBILE_</code></td>
+</tr>
+<tr class="odd">
+<td>BSD family</td>
+<td><code>D_ENV_IS_OS_FLAG_IN_BLOCK(D_ENV_OS_ID, 0x4)</code></td>
+<td><code>env_bsd.h</code></td>
+<td><code>D_ENV_BSD_</code>, <code>D_ENV_FBSD_</code>,
+<code>D_ENV_OBSD_</code>, <code>D_ENV_NBSD_</code>,
+<code>D_ENV_DBSD_</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="env_linuxh--prefix-d_env_linux_"><code>env_linux.h</code> —
+prefix <code>D_ENV_LINUX_</code></h2>
+<p>Detects glibc/musl/uClibc/Bionic, kernel-version targeting, GNU
+feature-test macros, and a broad sweep of Linux kernel APIs.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Section</th>
+<th>Category</th>
+<th>Representative symbols</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>I</td>
+<td>Kernel version</td>
+<td>version constants + detected <code>LINUX_VERSION_CODE</code></td>
+</tr>
+<tr class="even">
+<td>II</td>
+<td>C library</td>
+<td>glibc / musl / uClibc / Bionic detection + classification</td>
+</tr>
+<tr class="odd">
+<td>III</td>
+<td>GNU feature-test macros</td>
+<td><code>_GNU_SOURCE</code>, <code>_DEFAULT_SOURCE</code>
+configuration</td>
+</tr>
+<tr class="even">
+<td>IV</td>
+<td>glibc feature availability</td>
+<td>version-gated glibc API flags</td>
+</tr>
+<tr class="odd">
+<td>V</td>
+<td>Kernel APIs</td>
+<td>epoll, <code>io_uring</code>, inotify, eventfd, memory/process/file
+ops</td>
+</tr>
+<tr class="even">
+<td>VI</td>
+<td>Security frameworks</td>
+<td>seccomp, capabilities, namespaces, Landlock</td>
+</tr>
+<tr class="odd">
+<td>VII</td>
+<td>Filesystem / VFS</td>
+<td><code>/proc</code>, <code>/sys</code>, cgroups, fanotify, statx</td>
+</tr>
+<tr class="even">
+<td>VIII</td>
+<td>Networking</td>
+<td>Linux-specific socket/network features</td>
+</tr>
+<tr class="odd">
+<td>IX</td>
+<td>Display server</td>
+<td>X11, Wayland indicators</td>
+</tr>
+<tr class="even">
+<td>X</td>
+<td>Init system</td>
+<td>systemd detection</td>
+</tr>
+<tr class="odd">
+<td>XI</td>
+<td>Headers</td>
+<td>Linux-specific header availability</td>
+</tr>
+<tr class="even">
+<td>XII</td>
+<td>Toolchain</td>
+<td>compiler/toolchain integration</td>
+</tr>
+<tr class="odd">
+<td>XIII</td>
+<td>Runtime functions</td>
+<td>runtime detection helpers</td>
+</tr>
+<tr class="even">
+<td>XIV</td>
+<td>Convenience</td>
+<td><code>D_ENV_LINUX_IS_MODERN()</code>, <code>_IS_EMBEDDED()</code>,
+<code>_IS_HARDENED()</code>, <code>_HAS_MODERN_IO()</code>,
+<code>_HAS_SANDBOXING()</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="env_windowsh--prefix-d_env_win_"><code>env_windows.h</code> —
+prefix <code>D_ENV_WIN_</code></h2>
+<p>Detects Windows version/SDK targeting, bitness, Unicode config,
+CRT/UCRT, COM/WinRT, and security APIs.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Section</th>
+<th>Category</th>
+<th>Representative symbols</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>I</td>
+<td>Version targeting</td>
+<td><code>_WIN32_WINNT</code> and NTDDI version constants + detected
+target</td>
+</tr>
+<tr class="even">
+<td>II</td>
+<td>SDK detection</td>
+<td>Windows SDK version</td>
+</tr>
+<tr class="odd">
+<td>III</td>
+<td>Platform / bitness</td>
+<td>Win32/Win64, WoW64</td>
+</tr>
+<tr class="even">
+<td>IV</td>
+<td>Unicode / ANSI</td>
+<td><code>D_ENV_WIN_CHAR_MODE</code> and friends</td>
+</tr>
+<tr class="odd">
+<td>V</td>
+<td>Subsystem</td>
+<td>console / GUI / driver</td>
+</tr>
+<tr class="even">
+<td>VI</td>
+<td>CRT and runtime</td>
+<td><code>_HAS_UCRT</code>, <code>_DYNAMIC_CRT</code>,
+<code>_HAS_CRT_SECURE</code>, <code>_HAS_CRT_DBG</code></td>
+</tr>
+<tr class="odd">
+<td>VII</td>
+<td>COM / OLE / WinRT</td>
+<td><code>_HAS_COM</code>, <code>_HAS_DCOM</code>,
+<code>_HAS_OLE</code>, <code>_HAS_CPPWINRT</code></td>
+</tr>
+<tr class="even">
+<td>VIII</td>
+<td>Security APIs</td>
+<td><code>_HAS_CNG</code>, <code>_HAS_DPAPI</code>,
+<code>_HAS_SSPI</code>, <code>_HAS_CRYPTOAPI</code>,
+<code>_HAS_BCRYPTRNG</code>, <code>_HAS_RTLGENRANDOM</code></td>
+</tr>
+<tr class="odd">
+<td>IX</td>
+<td>Windows API features</td>
+<td>fibers, thread pool, SRW locks, condition variables, SEH, intrinsics
+(<code>_HAS_POPCNT</code>, <code>_HAS_LZCNT</code>,
+<code>_HAS_BYTESWAP</code>, …)</td>
+</tr>
+<tr class="even">
+<td>X</td>
+<td>Headers</td>
+<td><code>_HAS_INTRIN_H</code>, <code>_HAS_IO_H</code>,
+<code>_HAS_PROCESS_H</code>, <code>_HAS_PSAPI_H</code>,
+<code>_HAS_SHELLAPI_H</code>, …</td>
+</tr>
+<tr class="odd">
+<td>XI</td>
+<td>Compiler-specific</td>
+<td><code>_HAS_DECLSPEC</code>, <code>_HAS_SAL</code></td>
+</tr>
+<tr class="even">
+<td>XII</td>
+<td>MinGW</td>
+<td>MinGW detection</td>
+</tr>
+<tr class="odd">
+<td>XIII</td>
+<td>Lean-and-mean</td>
+<td>exclusion macros (<code>WIN32_LEAN_AND_MEAN</code>-style)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2
+id="env_appleh--prefixes-d_env_apple_-shared-d_env_macos_-macos-only"><code>env_apple.h</code>
+— prefixes <code>D_ENV_APPLE_</code> (shared), <code>D_ENV_MACOS_</code>
+(macOS-only)</h2>
+<p>Shared Apple-platform detection plus macOS specifics. Included
+directly for macOS, and transitively by <code>env_ios.h</code> for the
+mobile platforms.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Section</th>
+<th>Category</th>
+<th>Representative symbols</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>I</td>
+<td>Platform identification</td>
+<td>platform flags + name (macOS/iOS/tvOS/watchOS/visionOS)</td>
+</tr>
+<tr class="even">
+<td>II</td>
+<td>macOS SDK / deployment</td>
+<td>version constants + <code>__MAC_OS_X_VERSION_MIN_REQUIRED</code>
+target</td>
+</tr>
+<tr class="odd">
+<td>III</td>
+<td>Darwin kernel / XNU</td>
+<td>Mach subsystem availability</td>
+</tr>
+<tr class="even">
+<td>IV</td>
+<td>Toolchain</td>
+<td>Apple Clang / Xcode identification</td>
+</tr>
+<tr class="odd">
+<td>V</td>
+<td>ObjC / Swift interop</td>
+<td>Objective-C runtime, ARC, Swift interop</td>
+</tr>
+<tr class="even">
+<td>VI</td>
+<td>Frameworks (shared)</td>
+<td>core, security, networking, graphics/media, UI frameworks</td>
+</tr>
+<tr class="odd">
+<td>VII</td>
+<td>macOS-specific</td>
+<td>App Sandbox, Hardened Runtime, system APIs (GCD, Keychain)</td>
+</tr>
+<tr class="even">
+<td>VIII</td>
+<td>Hardware</td>
+<td>Apple Silicon, Rosetta 2, Hypervisor.framework</td>
+</tr>
+<tr class="odd">
+<td>IX</td>
+<td>BSD/POSIX extensions</td>
+<td>Darwin POSIX/BSD layer characteristics</td>
+</tr>
+<tr class="even">
+<td>X</td>
+<td>Filesystem</td>
+<td>macOS filesystem features</td>
+</tr>
+<tr class="odd">
+<td>XI</td>
+<td>Runtime functions</td>
+<td>runtime detection helpers</td>
+</tr>
+<tr class="even">
+<td>XII</td>
+<td>Convenience</td>
+<td><code>D_ENV_APPLE_IS_DESKTOP()</code>, <code>_IS_MOBILE()</code>,
+<code>_IS_MODERN()</code>, <code>_HAS_SECURE_RANDOM()</code>,
+<code>_HAS_GPU_API()</code>, <code>D_ENV_MACOS_IS_HARDENED()</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2
+id="env_bsdh--prefixes-d_env_bsd_-common--per-variant"><code>env_bsd.h</code>
+— prefixes <code>D_ENV_BSD_</code> (common) + per-variant</h2>
+<p>Covers FreeBSD, OpenBSD, NetBSD, DragonFly BSD, and historical
+BSD/OS. Per-variant prefixes: <code>D_ENV_FBSD_</code>,
+<code>D_ENV_OBSD_</code>, <code>D_ENV_NBSD_</code>,
+<code>D_ENV_DBSD_</code>.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Section</th>
+<th>Category</th>
+<th>Representative symbols</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>I</td>
+<td>Variant identification</td>
+<td>variant detection + name</td>
+</tr>
+<tr class="even">
+<td>II–V</td>
+<td>Per-variant versions</td>
+<td>FreeBSD / OpenBSD / NetBSD / DragonFly version constants + detected
+version</td>
+</tr>
+<tr class="odd">
+<td>VI</td>
+<td>BSD-common features</td>
+<td><code>_HAS_KQUEUE</code>, <code>_HAS_ARC4RANDOM</code>,
+<code>_HAS_ARC4RANDOM_BUF</code>, <code>_HAS_GETENTROPY</code>,
+<code>_HAS_EXPLICIT_BZERO</code>, <code>_HAS_CLOSEFROM</code>,
+sysctl</td>
+</tr>
+<tr class="even">
+<td>VII</td>
+<td>Security frameworks</td>
+<td>OpenBSD pledge/unveil, FreeBSD Capsicum (<code>_HAS_CAPSICUM</code>,
+<code>_HAS_CAP_ENTER</code>, <code>_HAS_CAP_RIGHTS</code>), jails
+(<code>_HAS_JAIL</code>), securelevel, pf</td>
+</tr>
+<tr class="odd">
+<td>VIII</td>
+<td>Networking</td>
+<td>pf, CARP (<code>_HAS_CARP</code>), routing sockets, BPF
+(<code>_HAS_BPF</code>), sendfile, accept filters
+(<code>_HAS_ACCEPT_FILTER</code>), IPFW</td>
+</tr>
+<tr class="even">
+<td>IX</td>
+<td>Filesystem</td>
+<td>ZFS, HAMMER/HAMMER2 (<code>_HAS_HAMMER2</code>), FFS/UFS
+(<code>_HAS_FFS</code>), extattr, nullfs, tmpfs</td>
+</tr>
+<tr class="odd">
+<td>X</td>
+<td>Process / threading</td>
+<td><code>rfork</code>, <code>kinfo_proc</code>
+(<code>_HAS_KINFO_PROC</code>), cpuset (<code>_HAS_CPUSET</code>)</td>
+</tr>
+<tr class="even">
+<td>XI</td>
+<td>Display server</td>
+<td>X11, Wayland indicators</td>
+</tr>
+<tr class="odd">
+<td>XII</td>
+<td>Headers</td>
+<td>BSD-specific header availability (<code>_HAS_DLFCN_H</code>, …)</td>
+</tr>
+</tbody>
+</table>
+<p>Also exposes <code>D_ENV_BSD_DEFAULT_COMPILER_NAME</code> /
+<code>_DEFAULT_IS_CLANG</code> / <code>_DEFAULT_IS_GCC</code> for the
+variant's default toolchain.</p>
+<hr />
+<h2
+id="env_iosh--prefixes-d_env_ios_-_tvos_-_watchos_-_visos_-_mobile_"><code>env_ios.h</code>
+— prefixes <code>D_ENV_IOS_</code>, <code>_TVOS_</code>,
+<code>_WATCHOS_</code>, <code>_VISOS_</code>, <code>_MOBILE_</code></h2>
+<p>Covers iOS/iPadOS, tvOS, watchOS, and visionOS. Includes
+<code>env_apple.h</code> for shared Apple features.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Section</th>
+<th>Category</th>
+<th>Representative symbols</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>I–IV</td>
+<td>SDK / deployment targets</td>
+<td>iOS / tvOS / watchOS / visionOS version constants + detected
+targets</td>
+</tr>
+<tr class="even">
+<td>V</td>
+<td>iOS/iPadOS frameworks</td>
+<td>ARKit, CoreML, HealthKit/CoreMotion, notifications, MapKit</td>
+</tr>
+<tr class="odd">
+<td>VI</td>
+<td>Widgets / App Clips / extensions</td>
+<td>WidgetKit, App Clip, extension support</td>
+</tr>
+<tr class="even">
+<td>VII</td>
+<td>StoreKit</td>
+<td>in-app purchase support</td>
+</tr>
+<tr class="odd">
+<td>VIII</td>
+<td>Device capabilities</td>
+<td>compile-time heuristics (camera, GPS, haptics, LiDAR)</td>
+</tr>
+<tr class="even">
+<td>IX</td>
+<td>Multitasking / windowing</td>
+<td>multitasking and windowing capabilities</td>
+</tr>
+<tr class="odd">
+<td>X</td>
+<td>visionOS-specific</td>
+<td>spatial-computing features</td>
+</tr>
+<tr class="even">
+<td>XI</td>
+<td>App Store / distribution</td>
+<td>distribution constraints</td>
+</tr>
+<tr class="odd">
+<td>XII</td>
+<td>Runtime functions</td>
+<td>runtime detection helpers</td>
+</tr>
+<tr class="even">
+<td>XIII</td>
+<td>Convenience</td>
+<td><code>D_ENV_IOS_IS_MODERN()</code>,
+<code>_HAS_SWIFTUI_FULL()</code>,
+<code>_HAS_MODERN_CONCURRENCY()</code>,
+<code>_HAS_SPATIAL_COMPUTING()</code>,
+<code>D_ENV_MOBILE_IS_SANDBOXED()</code>,
+<code>_IS_CONSTRAINED()</code></td>
+</tr>
+</tbody>
+</table>
+</body>
+</html>

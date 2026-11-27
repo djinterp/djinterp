@@ -5,7 +5,7 @@
 *   One step builds the whole page: the usage line, the description as a
 * sentence, then the sections - Arguments, Commands, each group of options,
 * and the root's options a subcommand takes - and the footer; the root's page
-* ends with the exit statuses (GRAMMAR.md, section 8). Every entry of every
+* ends with the exit statuses (GRAMMAR.html, section 8). Every entry of every
 * section is laid out in two columns, its name on the left and its
 * description on the right, the right column starting where the page's widest
 * name needs and never past D_INTERNAL_CLI_HELP_COLUMN_MAX: a name past it puts
@@ -17,7 +17,7 @@
 * which says whether a command has work of its own - a command without work
 * requires one of its subcommands, and its usage line says so - and whether
 * the program reads response files, which every page then lists as `@FILE`
-* among the program's own options (GRAMMAR.md, R14; ruling cli-taken 84):
+* among the program's own options (GRAMMAR.html, R14; ruling cli-taken 84):
 * the root's Options, before help and version; a command's Global options,
 * after them; and the Options of a command that takes none from above. A
 * program that keeps the argument parser's own layout, or a build without
@@ -82,7 +82,7 @@ size_t d_cli_help_width(void)
 
 // d_cli_internal_exit_meanings
 //   constant: what each exit status of a program the kit made means
-// (GRAMMAR.md, section 8), as its root's help says it and its description
+// (GRAMMAR.html, section 8), as its root's help says it and its description
 // gives it (cli_internal.h): in every build, the kit's layout or not.
 const char* const d_cli_internal_exit_meanings[D_CLI_INTERNAL_EXIT_MEANINGS] =
 {
@@ -1281,7 +1281,7 @@ int d_cli_internal_collect_group(
 
 /**
  * @brief Whether a page is one of a program that reads response files,
- *        which every page of its help then says (GRAMMAR.md, R14; ruling
+ *        which every page of its help then says (GRAMMAR.html, R14; ruling
  *        cli-taken 84) - a module's too, whose host read them.
  *
  * @param[in] _formatter  the formatter, whose context may be the program.

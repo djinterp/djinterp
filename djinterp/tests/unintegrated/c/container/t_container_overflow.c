@@ -12,7 +12,7 @@
 * that, and checks that ordinary calls still work; built with
 * -fsanitize=address it also proves nothing is written out of bounds. A
 * standalone program, as the other tests not yet in DTest are
-* (tests/unintegrated/README.md): it prints a line per failed check, ends
+* (docs/tests/unintegrated/README.html): it prints a line per failed check, ends
 * with "N checks, M failed", and exits 0 only when nothing failed.
 *
 *

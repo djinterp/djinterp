@@ -2,7 +2,7 @@
 * djinterp [c][tools]                                             cli_settings.h
 *
 * The command-line kit's settings, on the knob-and-option pattern
-* (docs/djinterp/option/knob_and_option.md): a knob decides a setting's
+* (docs/djinterp/c/option/knob_and_option.html): a knob decides a setting's
 * default when the program is built, and a run may set it again, from the
 * user's settings file, the environment or the command line, each from its
 * own source, so that the order they arrive in cannot change the outcome.

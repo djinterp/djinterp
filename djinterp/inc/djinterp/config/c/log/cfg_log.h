@@ -4,7 +4,7 @@
 * Configuration for c/log: what a build of the log has. Each knob is a default
 * that a build overrides with -D; an option of the log's djin, "log", chooses
 * among what the knobs built for a run (log.level, log.format, ...), each
-* option's default its knob (docs/djinterp/log/log_design.md).
+* option's default its knob (docs/djinterp/c/log/log_design.html).
 *   targets:  c/log/log.h ->
 *                 D_CFG_LOG_ENABLED,
 *                 D_CFG_LOG_LEVELS, D_CFG_LOG_LEVELS_EXTRA,

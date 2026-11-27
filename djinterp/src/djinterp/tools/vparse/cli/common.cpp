@@ -298,7 +298,7 @@ memo_of
   The values are folded in the order given: a name after names joins them,
 and anything else - a word, the first name, or nothing - starts the
 setting again, so that a word appended to a command line overrides what was
-before it (GRAMMAR.md, R8). The model reads the setting - "none", "all",
+before it (GRAMMAR.html, R8). The model reads the setting - "none", "all",
 "auto", or rule names separated by commas - and refuses a name no rule
 has; a value of nothing is no memo, as it reads one.
 */

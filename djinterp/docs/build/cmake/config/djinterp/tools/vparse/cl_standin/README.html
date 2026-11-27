@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>A stand-in for cl</title>
+  <style>
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+    /* CSS for syntax highlighting */
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+</head>
+<body>
+<h1 id="a-stand-in-for-cl">A stand-in for <code>cl</code></h1>
+<blockquote>
+<p><strong>Where this file is, and what its paths mean (lane F,
+2026-11-05).</strong> Restored after the restructure of 2026-11-03 left
+it out of the tree, as it stood on 2026.10.27, and kept as written. The
+folder above this one is now
+<code>build/cmake/config/djinterp/tools/vparse</code>; the window's
+build, which it calls <code>build/ui/vparse</code>
+(<code>../../../../ui/vparse</code> from there), is
+<code>build/cmake/config/ui/vparse</code>
+(<code>../../../ui/vparse</code>); and the tool's README is
+<code>docs/djinterp/tools/vparse/README.html</code>.</p>
+</blockquote>
+<p>For a machine with no MSVC: Linux, WSL, CI. It is not part of the
+build, and nothing in the build refers to it.</p>
+<p><code>cl</code> here is a script that takes <code>cl</code>'s command
+line and compiles with a MinGW-w64 Clang for 64-bit Windows. In front of
+every unit it puts the standard library, read under the real compiler's
+identity, and then <code>identity.h</code>, which takes that identity
+away and puts <code>cl</code> 19.51's in its place —
+<code>_MSC_VER</code>, <code>_MSC_FULL_VER</code>,
+<code>_MSVC_LANG</code> and the rest defined, <code>__clang__</code> and
+<code>__GNUC__</code> gone.</p>
+<p>Two things follow.</p>
+<ul>
+<li><strong>CMake identifies the compiler as MSVC 19.51</strong>, and
+takes every branch of every list file that it takes for <code>cl</code>:
+the flags, the levels <code>cl</code> can and cannot select, uxoxo's own
+build, the suites' counts.</li>
+<li><strong>djinterp's <code>env</code> takes the branches it takes
+under <code>cl</code></strong>, in every unit, and what those branches
+select is compiled, linked against the MinGW-w64 runtime, and run under
+Wine.</li>
+</ul>
+<h2 id="running-it">Running it</h2>
+<p>It needs <code>clang</code> with <code>lld</code>, a MinGW-w64 GCC
+for 64-bit Windows (for its headers and libraries:
+<code>x86_64-w64-mingw32-g++</code>), Ninja and Wine. From the folder
+above this one, <code>build/cmake/djinterp/tools/vparse</code> in
+djinterp's tree, vparse and its command line:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">chmod</span> +x cl_standin/cl cl_standin/link cl_standin/rc  <span class="co"># an archive drops the bits</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="bu">export</span> <span class="va">CL_STANDIN_LOG</span><span class="op">=</span><span class="va">$PWD</span>/out/standin.units           <span class="co"># optional</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">cmake</span> <span class="at">-S</span> . <span class="at">-B</span> out/standin <span class="at">-G</span> Ninja <span class="dt">\</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>      <span class="at">-DCMAKE_TOOLCHAIN_FILE</span><span class="op">=</span>cl_standin/toolchain.cmake <span class="dt">\</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>      <span class="at">-DCMAKE_BUILD_TYPE</span><span class="op">=</span>Release</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="fu">cmake</span> <span class="at">--build</span> out/standin</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="ex">ctest</span> <span class="at">--test-dir</span> out/standin</span></code></pre></div>
+<p>and the window, from its own build, <code>build/ui/vparse</code>,
+which builds vparse with it:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="bu">export</span> <span class="va">CL_STANDIN_REAL_ROOTS</span><span class="op">=</span>/path/to/uxoxo/inc/imgui  <span class="co"># Dear ImGui keeps its own</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="fu">cmake</span> <span class="at">-S</span> ../../../../ui/vparse <span class="at">-B</span> out/standin-ui <span class="at">-G</span> Ninja <span class="dt">\</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>      <span class="at">-DCMAKE_TOOLCHAIN_FILE</span><span class="op">=</span><span class="va">$PWD</span>/cl_standin/toolchain.cmake <span class="dt">\</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>      <span class="at">-DCMAKE_BUILD_TYPE</span><span class="op">=</span>Release <span class="dt">\</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>      <span class="at">-DUXOXO_ROOT</span><span class="op">=</span>/path/to/uxoxo</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="fu">cmake</span> <span class="at">--build</span> out/standin-ui</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="ex">ctest</span> <span class="at">--test-dir</span> out/standin-ui</span></code></pre></div>
+<p>Configure should begin
+<code>The C compiler identification is MSVC 19.51.36260.0</code> and, in
+the window's build, report the window as Win32 + Direct3D 11. The tests
+are the ones <code>cl</code> gets. vparse's build has 21: the tool's
+three (the model's suite, the command line's, and
+<code>vparse run</code> over the example grammar), djinterp's foundation
+suites at C++14, 17, 20 and 23 and its C suites at C99, C11 and C17,
+vparse's at C++14 to 23, and the argument parser's seven - its C suites
+at C99, C11 and C17, and its C++ suites at C++98, 14, 17 and 20; its
+allocation sweep is left out, as under <code>cl</code>, whose linker has
+no <code>--wrap</code>. The window's has those and its own five, 26: the
+window's suite, its Dear ImGui suite, and three runs of
+<code>vparse gui</code> - its help, its version, and a grammar it cannot
+read -- which find the module, <code>vparse-gui-win64.dll</code>, and
+load it. <code>cl</code> has no C++11 to select, so the leaves leave
+that level out.</p>
+<p>The argument parser's C++ suites do not pass here (2026.10.27), and
+they are not the tool's: they stop on their first instructions, at every
+level, with a read of a low address that Wine reports as a page fault.
+Its C suites pass in <code>C.UTF-8</code>. The window's build with
+djinterp's suites left out
+(<code>-DVPARSE_BUILD_DJINTERP_TESTS=OFF</code>) has the tool's eight,
+which pass.</p>
+<p><code>Ninja Multi-Config</code>, which the <code>msvc</code> preset
+uses, works the same way with <code>--config</code> and
+<code>-C</code>.</p>
+<p>The first program Wine runs creates its prefix
+(<code>~/.wine</code>). Tests started together on a machine with none
+race to create it, and some fail; run <code>wineboot -i</code> first, or
+run the tests once with <code>-j1</code>.</p>
+<p><code>CL_STANDIN_REAL_ROOTS</code> names directories,
+colon-separated, whose sources keep the real identity. Dear ImGui's
+must: they include <code>&lt;windows.h&gt;</code>, which the MinGW-w64
+headers will not read as <code>cl</code>'s, and they include none of
+djinterp, so nothing is lost. <code>CL_STANDIN_LOG</code> names a file
+that gets a line for each unit: its language, its level, whether it was
+given <code>/Zc:preprocessor</code>, and whether it kept the real
+identity. Every unit but Dear ImGui's, CMake's own checks, and the kit's
+should say <code>traditional=0 real=0</code>: the kit's module,
+<code>DjinterpCli.cmake</code>, builds <code>djinterp::cli</code> and
+filesys under it with <code>/utf-8</code> alone, and its units say
+<code>traditional=1 real=0</code>.</p>
+<p>The toolchain confines what a list file finds to the MinGW-w64
+sysroot, as a cross toolchain does: uxoxo's build looks for GLFW, and
+the machine's own GLFW is nothing a Windows unit can read.</p>
+<h2 id="what-a-run-shows-and-what-it-cannot">What a run shows, and what
+it cannot</h2>
+<p>It shows that the build is right for <code>cl</code> — that CMake,
+told it has <code>cl</code>, configures what the tool's README
+(<code>docs/djinterp/tools/vparse/README.html</code>) says it does — and
+that the code <code>cl</code> is handed, along the branches
+<code>env</code> takes for it, compiles and runs and passes.</p>
+<p>It cannot show that <code>cl</code> accepts that code. The parser is
+Clang's, which is stricter than <code>cl</code> in places and laxer in
+others; the warnings are Clang's, not <code>/W4</code>'s; and the
+library is libstdc++ over the MinGW-w64 runtime, not Microsoft's. That
+runtime is <code>msvcrt.dll</code>, where <code>cl</code>'s is the
+Universal CRT, so a unit that takes <code>cl</code>'s branches may call
+a function <code>msvcrt.dll</code> lacks: <code>ucrt.c</code> supplies
+each one met so far, to the Universal CRT's contract --
+<code>_dupenv_s</code>, which djinterp's argument parser reads the
+environment with. A flag that tells <code>cl</code> how to read, check
+or emit is taken for what it means to Clang or dropped. The first build
+with <code>cl</code> itself is still the one that proves those.</p>
+<p>One difference matters to the warnings in particular. CMake hands
+<code>cl</code> a system include directory as <code>/external:I</code>,
+and <code>cl</code> judges a header external by where it is; Clang
+judges one by how it was found. The workbench's model headers sit in
+djinterp's <code>inc/</code>, which this build passes as a system
+directory, and are included by relative path: under the stand-in they
+are the workbench's own and are held to its warnings, under
+<code>cl</code> itself they are read at <code>/external:W0</code>. GCC
+and Clang builds check them.</p>
+<h2 id="the-files">The files</h2>
+<table>
+<thead>
+<tr class="header">
+<th>file</th>
+<th>what</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>cl</code></td>
+<td>the driver: <code>cl</code>'s command line in, a MinGW-w64 Clang
+compile out. A flag it does not know stops it. It holds the lists of
+standard headers read before the swap; a header a unit includes and its
+list does not must be added, since the library does not compile as
+<code>cl</code>'s</td>
+</tr>
+<tr class="even">
+<td><code>link</code></td>
+<td>links through <code>lld</code> against the MinGW-w64 runtime,
+statically, with <code>ucrt.c</code> compiled in; a system library named
+<code>foo.lib</code> becomes <code>-lfoo</code></td>
+</tr>
+<tr class="odd">
+<td><code>ucrt.c</code></td>
+<td>what the Universal CRT has and <code>msvcrt.dll</code> does not,
+under the Universal CRT's names: <code>_dupenv_s</code></td>
+</tr>
+<tr class="even">
+<td><code>rc</code></td>
+<td>stands in for the resource compiler and the manifest tool, which
+CMake looks for and this build has no work for</td>
+</tr>
+<tr class="odd">
+<td><code>identity.h</code></td>
+<td>the change of identity</td>
+</tr>
+<tr class="even">
+<td><code>toolchain.cmake</code></td>
+<td>puts the three scripts where <code>cl</code>, <code>link</code> and
+<code>rc</code> would be, confines what is found to the MinGW-w64
+sysroot, has CMake's checks link through <code>link</code> as
+<code>cl</code>'s do, and tells ctest to run tests through Wine</td>
+</tr>
+<tr class="odd">
+<td><code>override.cmake</code></td>
+<td>the link and archive rules, in place of the ones CMake has for
+<code>link.exe</code> and <code>lib.exe</code></td>
+</tr>
+</tbody>
+</table>
+</body>
+</html>

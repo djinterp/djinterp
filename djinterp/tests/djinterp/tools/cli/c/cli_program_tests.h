@@ -16,7 +16,7 @@
 * given nothing.
 *   Each case table runs a program the section's fixture makes, a fresh one
 * for each case, and compares the status it exits with and all it writes:
-* the words of every message are the kit's (GRAMMAR.md, section 8), and a
+* the words of every message are the kit's (GRAMMAR.html, section 8), and a
 * change to one is a change to the grammar.
 *
 *

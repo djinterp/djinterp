@@ -4,7 +4,7 @@
 * The win32_hresults example against winerror.h: every one of its
 * 1376 codes, and every facility, compared with the platform's own at
 * compile time. Built where the build targets Windows. Written by
-* tools/winerror_to_bitfield.py with the example; a code or a
+* scripts/bitwisedom/winerror_to_bitfield.py with the example; a code or a
 * facility the platform's header does not define is passed over.
 *
 *

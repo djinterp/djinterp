@@ -102,7 +102,7 @@ TABLE OF CONTENTS
 // 1.  MODULES
 //==============================================================================
 // How a program loads the module of a command it does not carry itself --
-// its window, as a plugin (GRAMMAR.md, section 7).
+// its window, as a plugin (GRAMMAR.html, section 7).
 
 
 // 1.1    Loading
@@ -308,7 +308,7 @@ TABLE OF CONTENTS
 // 2.3.3
 // D_ENV_CLI_HELP_SLASH
 //   detection: 1 where `/?` is a request for help, as Windows users type it
-// (GRAMMAR.md, R10); 0 elsewhere, where it is a path.
+// (GRAMMAR.html, R10); 0 elsewhere, where it is a path.
 #ifndef D_ENV_CLI_HELP_SLASH
     #if D_ENV_IS_OS_WINDOWS(D_ENV_OS_ID)
         #define D_ENV_CLI_HELP_SLASH 1

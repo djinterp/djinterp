@@ -2,12 +2,12 @@
 # bitwisedom [tests]                                        check_bitfield.cmake
 #
 # One bitfield file, there and back: bitwisedom-gen reads it and writes it
-# again as a bitfield, and the two must be the same bytes. A file the
-# window wrote, or a script that lays its JSON out as the window does
-# (tools/bitfield_json.py), passes; a key the reader lost, or one it
-# changed, does not. Run by CTest with cmake -P; prints "<file> is the
-# bitfield it writes back" when it is. A failure never says so: CTest passes
-# a test by its output alone.
+# again as a bitfield, and the two must be the same bytes. A file the window
+# wrote, or a script that lays its JSON out as the window does
+# (scripts/bitwisedom/bitfield_json.py), passes; a key the reader lost, or one
+# it changed, does not. Run by CTest with cmake -P; prints "<file> is the
+# bitfield it writes back" when it is. A failure never says so: CTest passes a
+# test by its output alone.
 #   A checkout that turned the file's line ends into CRLFs has not changed
 # the bitfield, so line ends are not compared.
 #

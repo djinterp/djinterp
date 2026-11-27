@@ -1,0 +1,2492 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>vparse</title>
+  <style>
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+    /* CSS for syntax highlighting */
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+</head>
+<body>
+<h1 id="vparse">vparse</h1>
+<blockquote>
+<p><strong>Where this file is, and what its paths mean (lane F,
+2026-11-05).</strong> This is the tool's README as it stood on
+2026.10.27, restored after the restructure of 2026-11-03 left it out of
+the tree. Ruling rs c put a doc about a whole module in
+<code>docs/djinterp/&lt;module&gt;/</code>, and the build names it here
+(<code>VPARSE_README</code>), where <code>tests_cli_json</code> holds
+the command line's JSON to its tables. It is kept as written; read its
+paths through this table.</p>
+<table>
+<thead>
+<tr class="header">
+<th>the README says</th>
+<th>the tree has</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>docs/djinterp/tools/vparse/README.html</code>, "this file"</td>
+<td><code>docs/djinterp/tools/vparse/README.html</code></td>
+</tr>
+<tr class="even">
+<td><code>build/cmake/djinterp/tools/vparse/</code></td>
+<td><code>build/cmake/config/djinterp/tools/vparse/</code></td>
+</tr>
+<tr class="odd">
+<td><code>build/ui/vparse/</code></td>
+<td><code>build/cmake/config/ui/vparse/</code></td>
+</tr>
+<tr class="even">
+<td><code>build/cmake/djinterp/tools/cli/DjinterpCli.cmake</code></td>
+<td><code>build/cmake/config/djinterp/tools/cli/DjinterpCli.cmake</code></td>
+</tr>
+<tr class="odd">
+<td><code>src/djinterp/parse/cli/arg_parser/c/</code></td>
+<td><code>src/djinterp/c/modules/parse/cli/arg_parser/</code></td>
+</tr>
+<tr class="even">
+<td><code>inc/</code>, <code>src/</code>,
+<code>tests/djinterp/parsegen/vparse</code></td>
+<td>the same under
+<code>djinterp/cpp/modules/parsegen/vparse</code></td>
+</tr>
+<tr class="odd">
+<td><code>docs/djinterp/tools/vparse/vparse-AGENTS.html</code></td>
+<td><code>docs/djinterp/tools/vparse/vparse-AGENTS.html</code>, beside
+this file (restored 2026-11-11, with a table of its own)</td>
+</tr>
+</tbody>
+</table>
+<p>The kit's <code>README.html</code> and <code>GRAMMAR.html</code> it
+points to are not in the tree.</p>
+</blockquote>
+<p>vparse is djinterp's parser generator as a program and a window over
+one model.</p>
+<ul>
+<li><strong><code>vparse</code></strong>, the command line: judge a
+grammar, write out its program, match inputs against it, print any stage
+of a run as text or JSON, and save runs and run them again; measure a
+grammar over many inputs, make inputs from the grammar itself, and run
+two grammars over the same inputs to find where they differ; and have a
+program call its rules through a memo. It needs nothing but djinterp: no
+uxoxo, no Dear ImGui, no display.</li>
+<li><strong><code>vparse gui</code></strong>, the window, the workbench
+on uxoxo and Dear ImGui - a module the command line loads only when
+<code>gui</code> is run, built outside djinterp
+(<code>build/ui/vparse</code>, ruling 0.3 and the kit's GRAMMAR, section
+7): write a grammar (in vparse's notation or in EBNF) and an input,
+press Run, and inspect every stage: how the grammar was read, the rules
+it became, the generator's plan, the program, the rules that matched,
+where the parser spent its work, and the machine's trace step by step.
+Every run is kept for the session, any two runs can be compared part by
+part, and runs can be saved to folders and loaded back.</li>
+</ul>
+<p>The command line and the window drive the same model, so a part
+<code>vparse</code> prints is the part the window shows, row for row,
+and a run either one saves the other loads. The model drives djinterp's
+own vparse, <code>djinterp::parsegen::vparse</code>, through its
+session: a grammar is built and run only once the session has accepted
+it, and refused in the session's words when it has not.</p>
+<p>It is one of djinterp's tools, laid out as bitwisedom is: the program
+in djinterp's tree, its window beside it under <code>inc/ui</code>,
+<code>src/ui</code>, <code>tests/ui</code> and
+<code>build/ui</code>.</p>
+<h2 id="where-it-is">Where it is</h2>
+<pre><code>inc/djinterp/tools/vparse/          the model&#39;s headers
+    run.hpp                         a run: its request, its stages, its parts
+    store.hpp                       saved runs: folders, the session index,
+                                    files named in UTF-8
+    heat.hpp                        the heat map: where a run spent its work
+src/djinterp/tools/vparse/          the model
+    run.cpp  store.cpp  heat.cpp
+    cli/                            the command line
+        cli.hpp  cli.cpp            the program as a function: the command
+                                    tree, and a run of it
+        commands.hpp  commands.cpp  the subcommands: their options, and what
+                                    each one over a grammar or a saved run
+                                    does
+        measures.cpp                bench, corpus and compare: a grammar over
+                                    many inputs
+        common.hpp  common.cpp      what the subcommands share: reading their
+                                    options and their files, and ending
+        report.hpp  report.cpp      what is printed: aligned text, and JSON
+        main.cpp                    the program `vparse`
+    README.html                       this file
+tests/djinterp/tools/vparse/
+    tool_tests.hpp                  what the suites share: grammars, helpers,
+                                    and the loop that runs a table of sections
+    workbench_core_tests.cpp        the model
+    cli_tests.cpp                   the command line, run in-process
+build/cmake/djinterp/tools/vparse/  the build: CMakeLists.txt, CMakePresets.json,
+                                    cmake/, tests/, and cl_standin/
+inc/ui/vparse/                      the window&#39;s headers
+    view.hpp                        the window&#39;s model, its face as a uxoxo
+                                    template, and the update that applies an
+                                    event
+    elements.hpp                    the workbench&#39;s own elements: listing,
+                                    tape, heat
+    host.hpp                        the window, behind one interface
+src/ui/vparse/                      the window
+    view.cpp  elements.cpp          the face and the elements
+    elements_imgui.cpp              their Dear ImGui renderers, and the theme
+    host_win32.cpp                  Win32 and Direct3D 11
+    host_glfw.cpp                   GLFW and OpenGL 3
+    host_none.cpp                   no window
+    plugin.cpp                      the module `vparse gui` loads
+tests/ui/vparse/
+    workbench_tests.cpp             the window&#39;s model and face, as values
+    workbench_imgui_tests.cpp       the face drawn on Dear ImGui, no window
+build/ui/vparse/                    the window&#39;s build: CMakeLists.txt,
+                                    CMakePresets.json, cmake/
+bin/tools/vparse/                   what the builds make</code></pre>
+<p>The namespaces are <code>vparse::workbench</code> for the model and
+the window, and <code>vparse::cli</code> for the command line. The
+library it drives is djinterp's, in <code>inc/</code>, <code>src/</code>
+and <code>tests/djinterp/parsegen/vparse</code>; its guide is
+<code>docs/djinterp/tools/vparse/vparse-AGENTS.html</code>, and the
+session is <code>session.hpp</code> there. The command line is made on
+djinterp's command-line kit, <code>tools/cli</code> (its
+<code>README.html</code> and <code>GRAMMAR.html</code>), over djinterp's
+argument parser, <code>parse/cli/arg_parser</code>, CLI11's design in C;
+the window, a module, reads its arguments through the same kit, as a
+program the command line made.</p>
+<h2 id="before-the-first-build">Before the first build</h2>
+<ul>
+<li><strong>djinterp</strong> is this tree. The build finds djinterp's
+root from where it sits, five folders below it, and needs no setting. It
+needs the argument parser's sources,
+<code>src/djinterp/parse/cli/arg_parser/c/</code>, which are still being
+written, and the command-line kit's,
+<code>src/djinterp/tools/cli/c/</code>, with the kit's CMake module,
+<code>build/cmake/djinterp/tools/cli/ DjinterpCli.cmake</code>, which
+makes it: the command line uses the parser's validators, its completion
+scripts and its response files, through the kit. The build tests the
+parser with its own suites when its test leaf is there; the kit's suites
+are run from the kit's own leaf, which names its testing libraries as
+this build names the programs' and so is not added here.</li>
+<li><strong>uxoxo</strong> is needed for the window alone, and only the
+window's build, <code>build/ui/vparse</code>, looks for it: the tree of
+2026.10.16 or later, two directories above djinterp's root - as
+<code>uxoxo/uxoxo-project</code> or <code>uxoxo</code>
+<ul>
+<li>or at <code>UXOXO_ROOT</code>, with its Dear ImGui under
+<code>inc/imgui</code> (uxoxo carries 1.92.8 there, laid out as Dear
+ImGui's repository is). uxoxo builds itself, from its
+<code>build/cmake/CMakeLists.txt</code>; the window's build adds that as
+a subproject. Configure checks for the build, the fifteen uxoxo headers
+the window includes and Dear ImGui, and names whatever is missing.
+djinterp's own build of vparse names no uxoxo.</li>
+</ul></li>
+<li><strong>Stale files.</strong> A tree that was only ever unzipped
+over still holds the parse and parsegen C layer from before it moved
+into <code>c/</code>, which defines every function its successor does.
+This build never compiles those files, and configure warns while they
+are there, naming them. The retire scripts in djinterp's
+<code>_retired/</code> take them out of the way.</li>
+</ul>
+<h2 id="building">Building</h2>
+<p>There are two builds, as bitwisedom has: djinterp's, of vparse and
+its command line, which needs nothing but djinterp; and the window's,
+which builds djinterp's within it and adds uxoxo and the module
+<code>vparse gui</code> loads.</p>
+<p>From a <strong>Developer Command Prompt</strong> on Windows (Ninja
+needs <code>cl</code> or <code>clang-cl</code> on
+<code>PATH</code>):</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bat"><code class="sourceCode dosbat"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> <span class="at">/d</span> <span class="kw">&lt;</span>djinterp<span class="kw">&gt;</span>\build\cmake\djinterp\tools\vparse</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>cmake -<span class="at">-preset</span> msvc</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>cmake -<span class="at">-build</span> -<span class="at">-preset</span> msvc<span class="at">-release</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>ctest -<span class="at">-preset</span> msvc<span class="at">-release</span></span></code></pre></div>
+<p>Off Windows:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> <span class="op">&lt;</span>djinterp<span class="op">&gt;</span>/build/cmake/djinterp/tools/vparse</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">cmake</span> <span class="at">--preset</span> clang-strict</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="fu">cmake</span> <span class="at">--build</span> <span class="at">--preset</span> clang-strict</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="ex">ctest</span> <span class="at">--preset</span> clang-strict</span></code></pre></div>
+<p>The window too, from its own build - the same presets, uxoxo found
+two directories above djinterp's root or named:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> <span class="op">&lt;</span>djinterp<span class="op">&gt;</span>/build/ui/vparse</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="fu">cmake</span> <span class="at">--preset</span> clang-strict <span class="pp">[-</span><span class="ss">DUXOXO_ROOT=/path/to/uxoxo</span><span class="pp">]</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="fu">cmake</span> <span class="at">--build</span> <span class="at">--preset</span> clang-strict</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="ex">ctest</span> <span class="at">--preset</span> clang-strict</span></code></pre></div>
+<table>
+<thead>
+<tr class="header">
+<th>preset</th>
+<th>generator</th>
+<th>compiler</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>msvc</code></td>
+<td>Ninja Multi-Config</td>
+<td><code>cl</code></td>
+</tr>
+<tr class="even">
+<td><code>clang-cl</code></td>
+<td>Ninja Multi-Config</td>
+<td><code>clang-cl</code></td>
+</tr>
+<tr class="odd">
+<td><code>vs2026</code></td>
+<td>Visual Studio 18 2026</td>
+<td>MSVC, for the IDE, with no command prompt; the generator needs CMake
+4.2</td>
+</tr>
+<tr class="even">
+<td><code>vs2026-clangcl</code></td>
+<td>Visual Studio 18 2026</td>
+<td>ClangCL toolset</td>
+</tr>
+<tr class="odd">
+<td><code>vs2022</code>, <code>vs2022-clangcl</code></td>
+<td>Visual Studio 17 2022</td>
+<td>the same two, for Visual Studio 2022</td>
+</tr>
+<tr class="even">
+<td><code>strict</code></td>
+<td>Ninja Multi-Config</td>
+<td><code>clang-cl</code>, warnings as errors</td>
+</tr>
+<tr class="odd">
+<td><code>gcc</code>, <code>clang</code></td>
+<td>Ninja Multi-Config</td>
+<td>off Windows: Linux, WSL, CI</td>
+</tr>
+<tr class="even">
+<td><code>clang-strict</code></td>
+<td>Ninja Multi-Config</td>
+<td>Clang, warnings as errors</td>
+</tr>
+<tr class="odd">
+<td><code>mingw-cross</code></td>
+<td>Ninja Multi-Config</td>
+<td>MinGW-w64 from Linux, for 64-bit Windows: <code>vparse.exe</code>,
+static, and, from the window's build, the module
+<code>vparse-gui-win64.dll</code>, the window Win32's. The tests are
+Windows programs, so they are off; with Wine,
+<code>-DVPARSE_BUILD_TESTS=ON</code> (the window's build:
+<code>-DVPARSE_UI_BUILD_TESTS=ON</code>) and
+<code>-DCMAKE_CROSSCOMPILING_EMULATOR=&lt;wine64&gt;</code> run
+them</td>
+</tr>
+</tbody>
+</table>
+<p>Each has <code>-debug</code> and <code>-release</code> build presets
+and, but for <code>mingw-cross</code>, test presets (<code>strict</code>
+and <code>clang-strict</code> have one each, Release). A preset builds
+under <code>out/&lt;preset&gt;</code> beside the presets, which
+<code>.gitignore</code> keeps out of the repository.</p>
+<p>Without presets:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cmake</span> <span class="at">-S</span> build/cmake/djinterp/tools/vparse <span class="at">-B</span> <span class="op">&lt;</span>build<span class="op">&gt;</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">cmake</span> <span class="at">-S</span> build/ui/vparse <span class="at">-B</span> <span class="op">&lt;</span>build<span class="op">&gt;</span> [-DUXOXO_ROOT=<span class="op">&lt;</span>uxoxo<span class="op">&gt;</span>]</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="fu">cmake</span> <span class="at">--build</span> <span class="op">&lt;</span>build<span class="op">&gt;</span> --config Release</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="ex">ctest</span> <span class="at">--test-dir</span> <span class="op">&lt;</span>build<span class="op">&gt;</span> -C Release</span></code></pre></div>
+<p>A build stops at the first target that fails; <code>-- -k 0</code> on
+the build line shows every failure at once, which is what a first build
+with a new compiler wants.</p>
+<h3 id="what-it-makes">What it makes</h3>
+<p>The binaries go to <code>&lt;djinterp&gt;/bin/tools/vparse/</code>,
+named with the platform they are for (<code>vparse-linux64</code>,
+<code>vparse-gui-win64.dll</code>, ...), and Debug's under
+<code>debug/</code> there, as bitwisedom's do. Every build for one
+platform writes the same files, so the last one built is the one there;
+<code>vparse gui</code> loads the module beside the program, named with
+the program's tag:</p>
+<table>
+<thead>
+<tr class="header">
+<th>target</th>
+<th>build</th>
+<th>what</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>djinterp::c_base</code></td>
+<td>both</td>
+<td>the C root's <code>dstdint.c</code> and
+<code>sink_common.c</code></td>
+</tr>
+<tr class="even">
+<td><code>djinterp::parse_foundation</code></td>
+<td>both</td>
+<td>djinterp's parse/parsegen C foundation, compiled as C at C99</td>
+</tr>
+<tr class="odd">
+<td><code>djinterp::arg_parser</code></td>
+<td>both</td>
+<td>djinterp's argument parser, at C99</td>
+</tr>
+<tr class="even">
+<td><code>djinterp::cli</code></td>
+<td>both</td>
+<td>the command-line kit, at C99</td>
+</tr>
+<tr class="odd">
+<td><code>djinterp::vparse</code></td>
+<td>both</td>
+<td>djinterp's vparse: the PEG machine, the generator, both frontends,
+the LR family and the session</td>
+</tr>
+<tr class="even">
+<td><code>vparse::workbench_core</code></td>
+<td>both</td>
+<td>the model: runs, the store, the heat map. No uxoxo, no Dear
+ImGui</td>
+</tr>
+<tr class="odd">
+<td><code>vparse::cli</code></td>
+<td>both</td>
+<td>the command line: its subcommands, over the model</td>
+</tr>
+<tr class="even">
+<td><code>vparse</code></td>
+<td>both</td>
+<td>the program <code>vparse</code></td>
+</tr>
+<tr class="odd">
+<td><code>vparse::workbench_face</code></td>
+<td>the window's</td>
+<td>the window's model and face, and the workbench's elements</td>
+</tr>
+<tr class="even">
+<td><code>vparse::workbench_imgui</code></td>
+<td>the window's</td>
+<td>the elements' Dear ImGui renderers, and the theme</td>
+</tr>
+<tr class="odd">
+<td><code>vparse-gui</code></td>
+<td>the window's</td>
+<td>the module <code>vparse gui</code> loads</td>
+</tr>
+</tbody>
+</table>
+<p>uxoxo's own targets (<code>uxoxo::uxoxo</code>,
+<code>uxoxo::imgui</code>, and the backends it finds) come from its
+build. <code>--version</code> prints the version of the build's
+<code>project()</code> line, 0.3.0, and the module is built at the same:
+a module of another version is refused by name.</p>
+<h3 id="settings">Settings</h3>
+<table>
+<thead>
+<tr class="header">
+<th>variable</th>
+<th>default</th>
+<th>what</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>DJINTERP_ROOT</code></td>
+<td>the tree the build is in</td>
+<td>djinterp's root; set it only to build another tree's</td>
+</tr>
+<tr class="even">
+<td><code>VPARSE_BUILD_CLI</code></td>
+<td><code>ON</code></td>
+<td><code>vparse</code>, the command line, and its suite</td>
+</tr>
+<tr class="odd">
+<td><code>VPARSE_BUILD_TESTS</code></td>
+<td><code>ON</code></td>
+<td>the suites</td>
+</tr>
+<tr class="even">
+<td><code>VPARSE_BUILD_DJINTERP_TESTS</code></td>
+<td><code>ON</code></td>
+<td>djinterp's foundation, argument-parser and vparse suites too, from
+their own test leaves</td>
+</tr>
+<tr class="odd">
+<td><code>VPARSE_WARNINGS_AS_ERRORS</code></td>
+<td><code>OFF</code></td>
+<td><code>-Werror</code>, <code>/WX</code></td>
+</tr>
+<tr class="even">
+<td><code>VPARSE_CXX_STANDARD</code></td>
+<td><code>20</code></td>
+<td>djinterp's vparse and its foundation's C++: 11, 14, 17, 20 or
+23</td>
+</tr>
+<tr class="odd">
+<td><code>VPARSE_TOOL_CXX_STANDARD</code></td>
+<td><code>20</code></td>
+<td>the model and the command line: 17, 20 or 23</td>
+</tr>
+<tr class="even">
+<td><code>UXOXO_CXX_STANDARD</code></td>
+<td><code>20</code></td>
+<td>uxoxo and the window, in the window's build: 17, 20 or 23</td>
+</tr>
+<tr class="odd">
+<td><code>UXOXO_ROOT</code></td>
+<td>two directories above djinterp's root</td>
+<td>the window's build: uxoxo's project root</td>
+</tr>
+<tr class="even">
+<td><code>VPARSE_UI_HOST</code></td>
+<td><code>auto</code></td>
+<td>the window's build: <code>win32</code>, <code>glfw</code> or
+<code>none</code>; see below</td>
+</tr>
+<tr class="odd">
+<td><code>VPARSE_UI_BUILD_TESTS</code></td>
+<td><code>ON</code></td>
+<td>the window's build: its tests, and vparse's with them</td>
+</tr>
+<tr class="even">
+<td><code>VPARSE_UI_BUILD_UXOXO_TESTS</code></td>
+<td><code>OFF</code></td>
+<td>the window's build: uxoxo's own platform smoke test</td>
+</tr>
+</tbody>
+</table>
+<p>The roots take backslashes, so a path pasted from Explorer works, and
+a wrong one fails at configure time with the variable to set. The
+model's floor is C++17, as the window's is uxoxo's: uxoxo's headers
+include djinterp's free monad, which is empty below it.</p>
+<h3 id="the-window">The window</h3>
+<p><code>VPARSE_UI_HOST</code> picks the Dear ImGui backends the module
+opens its window with, and one of <code>src/ui/vparse/host_*.cpp</code>
+is compiled:</p>
+<table>
+<thead>
+<tr class="header">
+<th>host</th>
+<th>backends</th>
+<th>default</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>win32</code></td>
+<td>Win32 and Direct3D 11, a WARP device where there is no hardware
+one</td>
+<td>on Windows</td>
+</tr>
+<tr class="even">
+<td><code>glfw</code></td>
+<td>GLFW 3.3 or later and OpenGL 3.3</td>
+<td>elsewhere, where uxoxo's build finds GLFW
+(<code>libglfw3-dev</code>, <code>brew install glfw</code>,
+<code>vcpkg install glfw3</code>)</td>
+</tr>
+<tr class="odd">
+<td><code>none</code></td>
+<td>no window: <code>vparse gui</code> reads its command line, then says
+there is no window and points at the commands</td>
+<td>where neither can be built</td>
+</tr>
+</tbody>
+</table>
+<p><code>vparse</code> is a console program: started from a terminal, it
+prints there, the window's help and errors among it. Started from
+Explorer, <code>vparse gui</code> closes the console Windows opened for
+it as its window opens.</p>
+<h3 id="flags">Flags</h3>
+<p>Code this build owns, the tool's and djinterp's, is built at its
+level with the conformance flags djinterp's ladder uses
+(<code>-pedantic-errors -Werror=undef</code>,
+<code>-D_XOPEN_SOURCE=700</code> on POSIX),
+<code>-Wall -Wextra -Wshadow -Wcast-qual</code>, and, for the tool's own
+sources, the rest of the style guide's baseline:
+<code>-Wconversion</code>, and under Clang
+<code>-Wreserved-identifier</code> and <code>-Wdocumentation</code>;
+<code>/W4</code> under <code>cl</code>. Under a cl-style driver every
+unit that reads djinterp's headers is given the same reading flags,
+uxoxo's included: <code>/utf-8</code>, <code>/Zc:__cplusplus</code>,
+<code>/permissive-</code>, <code>/EHsc</code>, and for <code>cl</code>
+itself <code>/Zc:preprocessor</code>. Dear ImGui is given
+<code>/utf-8</code> alone.</p>
+<p><strong>Whose headers are judged.</strong> The tool includes its own
+headers by a path relative to the file, as djinterp's tree does, and
+djinterp's, uxoxo's and Dear ImGui's through their include directories,
+which this build passes as system ones. GCC and Clang judge a header by
+how it was found, so the tool's own headers are held to its warnings and
+its dependencies' are not. <code>cl</code> judges a header by where it
+is, and the model's three headers sit in djinterp's <code>inc/</code>,
+so under <code>cl</code> they are read as external, at
+<code>/external:W0</code>: the GCC and Clang builds are the ones that
+check them.</p>
+<p><strong><code>&lt;windows.h&gt;</code>.</strong> This build defines
+no Windows macro. <code>wingdi.h</code> defines <code>ERROR</code>, and
+djinterp's LR family has an opcode called <code>ERROR</code>, so a unit
+that includes <code>&lt;windows.h&gt;</code> and then
+<code>lr.hpp</code> does not compile. None does today:
+<code>host_win32.cpp</code> includes no vparse header, and the command
+line's <code>main.cpp</code> includes <code>&lt;io.h&gt;</code> and
+<code>&lt;fcntl.h&gt;</code> alone. The cure is the opcode's name, in
+djinterp: branch <code>vparse/lr-reject</code> renames it
+<code>REJECT</code>.</p>
+<h2 id="tests">Tests</h2>
+<p><code>ctest</code> runs every suite a build makes, the program, and
+djinterp's suites for the code the tool stands on, at every level the
+compiler can select; the window's build runs vparse's with its own.</p>
+<table>
+<thead>
+<tr class="header">
+<th>test</th>
+<th>suite</th>
+<th>expected</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>vparse_workbench_core_tests</code></td>
+<td>the model: refusals, parity with the session, a failure, reading
+under the reader's own limit, the heat map, the store, the memo, the
+profile</td>
+<td><code>passed: 8</code></td>
+</tr>
+<tr class="even">
+<td><code>vparse_cli_tests</code></td>
+<td>the command line, run in-process: help, check, compile, match, run,
+saving and replaying, a folder named beyond ASCII, refusals, what the
+kit gives it (<code>-q</code> anywhere, <code>@FILE</code>, an output
+that takes nothing), bench, corpus, compare, the memo and how its values
+are folded, every JSON document held to this README's tables, what
+<code>run</code> and <code>corpus</code> were given, completion</td>
+<td><code>passed: 17</code></td>
+</tr>
+<tr class="odd">
+<td><code>vparse_runs</code></td>
+<td><code>vparse run</code> over the window's example grammar</td>
+<td>exits 0</td>
+</tr>
+<tr class="even">
+<td><code>vparse_workbench_tests</code></td>
+<td>the window's build: the window's model and face, as values: the
+opening run, events, the face</td>
+<td><code>passed: 3</code></td>
+</tr>
+<tr class="odd">
+<td><code>vparse_workbench_imgui_tests</code></td>
+<td>the window's build: the face drawn on uxoxo's Dear ImGui platform in
+frames with no window: no Dear ImGui error and no ID conflict anywhere
+the pointer goes, and clicks that post the right events</td>
+<td><code>passed: 3</code></td>
+</tr>
+<tr class="even">
+<td><code>vparse_gui_help</code>, <code>vparse_gui_version</code>,
+<code>vparse_gui_unread</code></td>
+<td>the window's build: <code>vparse gui --help</code>,
+<code>--version -v</code> and a grammar it cannot read - the module
+found beside the program, loaded and run, with no display</td>
+<td>its usage, and 0; its build, <code>window:</code> and
+<code>imgui:</code> among it, and 0; <code>cannot read</code>, and 2 -
+the status and the words held together, by the kit's
+<code>d_cli_add_test</code></td>
+</tr>
+<tr class="odd">
+<td><code>djinterp_foundation_tests_cxx11</code> ...
+<code>_cxx23</code></td>
+<td>djinterp's parse/parsegen foundation, C++</td>
+<td><code>passed: 56</code> at C++11 and 14, <code>57</code> at 17,
+<code>58</code> at 20 and 23</td>
+</tr>
+<tr class="even">
+<td><code>djinterp_foundation_c_tests_c99</code> ...
+<code>_c23</code></td>
+<td>the same foundation, from C</td>
+<td><code>passed: 12</code></td>
+</tr>
+<tr class="odd">
+<td><code>vparse_tests_cxx11</code> ... <code>_cxx23</code></td>
+<td>djinterp's vparse: the machine, the generator, both frontends, the
+session, the memo and the profile, the corpus</td>
+<td><code>passed: 32</code></td>
+</tr>
+<tr class="even">
+<td><code>djinterp_arg_parser_c_tests_c99</code> ...
+<code>_c23</code></td>
+<td>djinterp's argument parser, from its own leaf</td>
+<td>the counts its <code>expected_sections.txt</code> gives</td>
+</tr>
+</tbody>
+</table>
+<p>That is 30 tests under GCC or Clang in djinterp's build, and 35 in
+the window's - 34 where Dear ImGui has no null backend
+(<code>backends/imgui_impl_null.cpp</code>), which the ImGui suite
+needs. <code>cl</code>, whose lowest C++ level is C++14 and which has no
+C23, gets 21 and 26 - the argument parser's sweep left out, its linker
+having no <code>--wrap</code>; <code>clang-cl</code> leaves C++11 out
+the same way, and C23 where CMake has no level for it. Each suite must
+print exactly its count, so a section that silently stopped being
+compiled fails rather than reading as a smaller pass.</p>
+<p>djinterp's suites come from its own test leaves, under
+<code>build/cmake/config/testing/djinterp/</code>, added as they are.
+They build their libraries a second time, on purpose: the suites need
+the testing configuration, <code>D_TESTING=1</code> changes the layout
+of <code>struct d_parse_machine</code>, and a library and everything
+linking it must agree on that. The libraries the programs link are the
+production ones; the two never meet.</p>
+<h2 id="the-command-line">The command line</h2>
+<div class="sourceCode" id="cb6"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">bin/tools/vparse/vparse-linux64</span> <span class="pp">[</span><span class="ss">OPTION</span><span class="pp">]</span>... COMMAND <span class="pp">[</span><span class="ss">ARGUMENT</span><span class="pp">]</span>...</span></code></pre></div>
+<p>It is made on djinterp's command-line kit, and its grammar is the
+kit's <code>GRAMMAR.html</code>, section 11. It has what every djinterp
+program has (section 6 there): <code>-h</code> and <code>--help</code>,
+after the program or after a command; <code>--version</code>, and with
+<code>-v</code> how the program was built; <code>-q</code>,
+<code>-v</code> and <code>--color</code>, before the command or after
+it; and the <code>help</code> and <code>completion</code> commands. Its
+help is laid out as GNU programs lay theirs out, and each command's help
+ends with what its exit status answers.</p>
+<table>
+<thead>
+<tr class="header">
+<th>command</th>
+<th>does</th>
+<th>ends with</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>check GRAMMAR</code></td>
+<td>reads the grammar and judges it, as the session does: its rules and
+the size of its program, or, as an error, why it was refused and where
+its reading stopped; a grammar that loops over an empty input is said
+to</td>
+<td>0 accepted, 1 refused</td>
+</tr>
+<tr class="even">
+<td><code>compile GRAMMAR [-o FILE]</code></td>
+<td>writes the session's listing of the program, an instruction a
+line</td>
+<td>0 built, 2 refused</td>
+</tr>
+<tr class="odd">
+<td><code>match GRAMMAR INPUT...</code></td>
+<td>runs the grammar over each input and says how each went, and how
+many matched</td>
+<td>0 every input matched, 1 one did not, 2 refused</td>
+</tr>
+<tr class="even">
+<td><code>run GRAMMAR [INPUT]</code></td>
+<td>runs the grammar over the input, or over nothing, and prints the
+run's headline and the parts <code>--part</code> names</td>
+<td>0 matched, 1 not, 2 refused</td>
+</tr>
+<tr class="odd">
+<td><code>replay FOLDER</code></td>
+<td>runs a saved run again, and prints it as <code>run</code> does</td>
+<td>as <code>run</code></td>
+</tr>
+<tr class="even">
+<td><code>saved [--root=DIR]</code></td>
+<td>lists the runs saved under the root, newest first</td>
+<td>0</td>
+</tr>
+<tr class="odd">
+<td><code>bench GRAMMAR [INPUT...]</code></td>
+<td>runs the grammar over each input, and over its corpus where no input
+is given or <code>--walks</code> is: each run counted once and timed
+apart, the fastest of <code>--times</code>; prints the totals, the
+inputs and the rules</td>
+<td>0, 2 refused</td>
+</tr>
+<tr class="even">
+<td><code>corpus GRAMMAR [-o DIR]</code></td>
+<td>makes inputs from the grammar, random walks of its rules and
+near-misses of them, and lists them or writes each to a file of its own,
+<code>0001-walk.txt</code></td>
+<td>0, 2 refused</td>
+</tr>
+<tr class="odd">
+<td><code>compare FIRST SECOND [INPUT...]</code></td>
+<td>runs both grammars' programs over the inputs, and over the first's
+corpus where no input is given or <code>--walks</code> is, and names
+each input they say different things of</td>
+<td>0 agree, 1 differ, 2 refused</td>
+</tr>
+<tr class="even">
+<td><code>help [COMMAND]</code></td>
+<td>the same as <code>[COMMAND] --help</code></td>
+<td>0</td>
+</tr>
+<tr class="odd">
+<td><code>completion SHELL</code></td>
+<td>a completion script for <code>bash</code>, <code>zsh</code>,
+<code>fish</code> or <code>powershell</code></td>
+<td>0</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr class="header">
+<th>option</th>
+<th>on</th>
+<th>effect</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>GRAMMAR</code></td>
+<td>all but <code>replay</code>, <code>saved</code>,
+<code>compare</code></td>
+<td>the grammar: a file, or <code>-</code> for standard input</td>
+</tr>
+<tr class="even">
+<td><code>FIRST SECOND</code></td>
+<td><code>compare</code></td>
+<td>the grammars: files, or <code>-</code> for one of them; the first is
+the one compared against, and its corpus is the one run</td>
+</tr>
+<tr class="odd">
+<td><code>-f, --frontend=notation|ebnf</code>, <code>--ebnf</code></td>
+<td>the same</td>
+<td>the frontend, both grammars' for <code>compare</code>; by default
+<code>ebnf</code> for a file whose name ends in <code>.ebnf</code>, in
+any case, and the notation otherwise</td>
+</tr>
+<tr class="even">
+<td><code>INPUT</code></td>
+<td><code>match</code>, <code>run</code>, <code>bench</code>,
+<code>compare</code></td>
+<td>the input: a file, or <code>-</code> for standard input, which one
+argument may name</td>
+</tr>
+<tr class="odd">
+<td><code>-t</code>, <code>--text</code></td>
+<td>the same</td>
+<td>each input argument is the input itself, not a file name</td>
+</tr>
+<tr class="even">
+<td><code>-p, --part=PART</code></td>
+<td><code>run</code>, <code>replay</code></td>
+<td>the parts to print, in order, the option given again or the parts
+separated by commas: <code>summary</code> (the default),
+<code>grammar</code>, <code>reading</code>, <code>reading_trace</code>,
+<code>rules</code>, <code>plan</code>, <code>program</code>,
+<code>matches</code>, <code>heat</code>, <code>profile</code>,
+<code>trace</code>, or <code>all</code></td>
+</tr>
+<tr class="odd">
+<td><code>--step-limit=STEPS</code></td>
+<td><code>check</code>, <code>match</code>, <code>run</code>,
+<code>bench</code>, <code>compare</code></td>
+<td>stop the machine's run over an input after N steps (default 100000);
+the grammar is read under a limit of its own, which grows with it</td>
+</tr>
+<tr class="even">
+<td><code>--memoize=RULES</code></td>
+<td><code>match</code>, <code>run</code>, <code>bench</code>, and
+<code>compare</code>'s second program</td>
+<td>the rules the program calls through the memo: <code>none</code> (the
+default), <code>all</code>, <code>auto</code> - the rules a run without
+the memo says it pays for, over the whole corpus for <code>bench</code>
+and <code>compare</code> - or rule names, the option given again or the
+names separated by commas: <code>--memoize=Sum --memoize=Prod</code> is
+<code>--memoize=Sum,Prod</code>. A name after names is added to them,
+and anything else replaces what came before it, so that
+<code>--memoize=none</code> at the end turns the memo off</td>
+</tr>
+<tr class="odd">
+<td><code>--walks=N</code>, <code>--depth=N</code>,
+<code>--length=N</code>, <code>--repeats=N</code>,
+<code>--misses=N</code>, <code>--seed=N</code></td>
+<td><code>bench</code>, <code>corpus</code>, <code>compare</code></td>
+<td>how a corpus is made: walks (default 50), each going N rules deep
+(8) or N bytes long (256) before it takes each rule's shortest way out,
+a <code>*</code> or <code>+</code> repeated at most N times (3), N
+near-misses a walk (1), from a seed (1): one seed is one corpus, on
+every system</td>
+</tr>
+<tr class="even">
+<td><code>--times=N</code></td>
+<td><code>bench</code></td>
+<td>runs of each input timed, the fastest kept (default 3); steps are
+counted once, since they repeat exactly</td>
+</tr>
+<tr class="odd">
+<td><code>-o FILE</code></td>
+<td><code>compile</code></td>
+<td>write the program to the file, whole or not at all: into a new file
+beside it, renamed over it; <code>-</code> is standard output</td>
+</tr>
+<tr class="even">
+<td><code>-o DIR</code></td>
+<td><code>corpus</code></td>
+<td>write each input to a file of its own in the folder, made if it is
+not there, each file whole or not at all</td>
+</tr>
+<tr class="odd">
+<td><code>--no-trace</code></td>
+<td><code>match</code>, <code>run</code></td>
+<td>do not record the trace: <code>match</code> then never runs a failed
+input again to say where it stopped, and <code>run</code> has no
+frontier, heat, matches or trace to print</td>
+</tr>
+<tr class="even">
+<td><code>--format=text|json</code></td>
+<td>all</td>
+<td>text, for reading, or one JSON document, for a program</td>
+</tr>
+<tr class="odd">
+<td><code>-q</code>, <code>--quiet</code></td>
+<td>the program, anywhere</td>
+<td>only errors on standard error, as every djinterp program; and what
+the status says is left out of what is printed: <code>check</code>,
+<code>match</code> and <code>compare</code> print nothing,
+<code>run</code> and <code>replay</code> print the parts without the
+headline</td>
+</tr>
+<tr class="even">
+<td><code>--save</code>, <code>--root=DIR</code></td>
+<td><code>match</code>, <code>run</code></td>
+<td>save each run, as the window saves one, in a new session folder
+under the root (default <code>vparse_runs</code>)</td>
+</tr>
+<tr class="odd">
+<td><code>@FILE</code></td>
+<td>anywhere</td>
+<td>the arguments the file holds, split at white space and quoted as GCC
+reads a response file (as the C runtime does on Windows); not after
+<code>--</code></td>
+</tr>
+</tbody>
+</table>
+<p>Every failure is said as the kit says one, on standard error, and
+ends with 2: <code>vparse: error: MESSAGE</code>. A command line that
+cannot be read is a usage error, the command's name before the message
+and a pointer to its help after it:</p>
+<pre><code>vparse: error: match: standard input can be read once: - may stand for the grammar or for one input
+Try &#39;vparse match --help&#39; for more information.</code></pre>
+<p>A file that cannot be read or written says which and why --
+<code>vparse: error: cannot read 'expr.txt': No such file or directory</code>
+- and an output that takes nothing says so:
+<code>cannot write standard output: No space left on device</code>. A
+grammar the session refuses is said after its name, in the words of the
+run's headline:</p>
+<pre><code>vparse: error: expr.txt: the program could not be built: rule not defined: Atom</code></pre>
+<p>and, where its reader stopped at a place, after the place, as a
+compiler says one and an editor turns into a link - the place taken out
+of the words, which the JSON's <code>error</code> and the run's
+<code>result</code> still hold whole:</p>
+<pre><code>expr.txt:2:12: error: the grammar could not be read: the reader stopped, inside Grammar &gt; Rule, expecting &#39;;&#39; or &#39;|&#39;</code></pre>
+<p>The EBNF reader says what it expected and not where, so its refusal
+has no place:
+<code>vparse: error: expr.ebnf: the grammar could not be read: expected ';'</code>.</p>
+<p><code>check</code>, <code>compile</code>, <code>match</code> and the
+measures then print nothing more but, with <code>--format json</code>,
+their JSON; <code>run</code> and <code>replay</code> print the run all
+the same, since its parts show how far it got. A refused grammar is
+trouble, 2, to every command but <code>check</code>, whose answer it is:
+1. Every command reads every file it is given before it runs, and writes
+its output only once the output is whole, so a command line that fails
+prints the failure and nothing else.</p>
+<div class="sourceCode" id="cb10"><pre
+class="sourceCode sh"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="ex">vparse</span> check expr.txt</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="ex">vparse</span> match expr.txt <span class="at">--text</span> 1+2 <span class="st">&#39;(3*4)-5&#39;</span> 6/</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="ex">vparse</span> run expr.txt input.txt <span class="at">-p</span> rules,program,heat</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="ex">vparse</span> run expr.ebnf <span class="at">--text</span> <span class="st">&#39;2*(3+4)&#39;</span> <span class="at">-p</span> all <span class="at">--format</span> json</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a><span class="ex">vparse</span> match expr.txt corpus/<span class="pp">*</span>.txt <span class="at">--save</span> <span class="at">--root</span> runs</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a><span class="ex">vparse</span> replay runs/session-20261016-101500/run-003 <span class="at">-p</span> trace</span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a><span class="ex">vparse</span> run expr.txt input.txt <span class="at">-p</span> summary,profile <span class="at">--memoize</span> auto</span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a><span class="ex">vparse</span> corpus expr.txt <span class="at">--walks</span> 200 <span class="at">-o</span> corpus</span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a><span class="ex">vparse</span> bench expr.txt corpus/<span class="pp">*</span>.txt <span class="at">--memoize</span> auto <span class="at">--format</span> json</span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a><span class="ex">vparse</span> compare expr.txt expr_factored.txt <span class="at">--walks</span> 200</span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a><span class="ex">vparse</span> compare expr.txt expr.txt <span class="at">--memoize</span> all</span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a><span class="ex">vparse</span> completion bash <span class="op">&gt;</span> vparse.bash</span></code></pre></div>
+<p>A run is counted as it runs, traced or not: its <code>profile</code>
+part has a row a rule - its calls, the calls that repeated one at the
+same position and the steps those ran, the memo's answers, and its
+steps, arrivals and revisits, the heat map's counts - and the summary
+says how deep each stack went and what the memo did. A corpus input that
+ends in <code>-walk.txt</code> was derived from the grammar's rules, and
+one that ends in <code>-miss.txt</code> is a walk with a character
+deleted, inserted or replaced; derived is not accepted, since ordered
+choice can refuse what the rules derive.</p>
+<h3 id="json">JSON</h3>
+<p><code>--format=json</code> prints one JSON document, whatever the
+command, ended by a newline: an object whose members come in the order
+the tables below give. A document only grows (the grammar's R19): a key,
+once written, keeps its meaning, and a new key comes after the ones
+there. The suite holds every table here to what the command writes, key
+for key and in order (<code>tests_cli_json</code>), so a key the code
+adds and the README does not is a failing test.</p>
+<p>JSON is UTF-8: a byte that belongs to no UTF-8 sequence, which a
+grammar or an input may hold, is written as the visible escape
+<code>\xHH</code> the listings use for control characters. A count is a
+whole number; a time, <code>ms</code>, is milliseconds with three
+decimals. A grammar's or an input's <em>name</em> is the one text
+prints: a file's name as given, <code>standard input</code> for
+<code>-</code>, and an input given as text quoted and clipped,
+<code>'12+3'</code>; its <em>argument</em> is the command line's own
+word.</p>
+<h4 id="check"><code>check</code></h4>
+<table>
+<thead>
+<tr class="header">
+<th>key</th>
+<th>value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>grammar</code></td>
+<td>the grammar's name</td>
+</tr>
+<tr class="even">
+<td><code>frontend</code></td>
+<td><code>notation</code> or <code>ebnf</code>, the frontend that read
+it</td>
+</tr>
+<tr class="odd">
+<td><code>read</code></td>
+<td>whether the grammar was read</td>
+</tr>
+<tr class="even">
+<td><code>accepted</code></td>
+<td>whether the session accepted it, and its program was built</td>
+</tr>
+<tr class="odd">
+<td><code>error</code></td>
+<td>the run's headline when it was refused - "The grammar could not be
+read: ..." - and <code>""</code> when it was not</td>
+</tr>
+<tr class="even">
+<td><code>rules</code></td>
+<td>the rules' names, in order: those read, refused or not</td>
+</tr>
+<tr class="odd">
+<td><code>instructions</code></td>
+<td>the program's size, 0 when none was built</td>
+</tr>
+<tr class="even">
+<td><code>stops_at_step_limit</code></td>
+<td>whether the grammar, accepted, runs to the step limit over an empty
+input, as a left-recursive one does</td>
+</tr>
+</tbody>
+</table>
+<h4 id="match"><code>match</code></h4>
+<table>
+<thead>
+<tr class="header">
+<th>key</th>
+<th>value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>grammar</code></td>
+<td>the grammar's name</td>
+</tr>
+<tr class="even">
+<td><code>frontend</code></td>
+<td>the frontend that read it</td>
+</tr>
+<tr class="odd">
+<td><code>accepted</code></td>
+<td>whether the grammar was accepted</td>
+</tr>
+<tr class="even">
+<td><code>error</code></td>
+<td>the headline of the run that found it refused, or
+<code>""</code></td>
+</tr>
+<tr class="odd">
+<td><code>inputs</code></td>
+<td>an object an input, in order (below); none when the grammar was
+refused</td>
+</tr>
+<tr class="even">
+<td><code>matched</code></td>
+<td>how many inputs matched</td>
+</tr>
+<tr class="odd">
+<td><code>total</code></td>
+<td>how many inputs were given</td>
+</tr>
+</tbody>
+</table>
+<h4 id="matchinputs"><code>match.inputs[]</code></h4>
+<table>
+<thead>
+<tr class="header">
+<th>key</th>
+<th>value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>input</code></td>
+<td>the input's argument: a file's name, <code>-</code>, or the text
+itself</td>
+</tr>
+<tr class="even">
+<td><code>as_text</code></td>
+<td>whether the input was given as text, <code>-t</code></td>
+</tr>
+<tr class="odd">
+<td><code>matched</code></td>
+<td>whether the grammar matched it whole</td>
+</tr>
+<tr class="even">
+<td><code>consumed</code></td>
+<td>how many bytes the run read</td>
+</tr>
+<tr class="odd">
+<td><code>steps</code></td>
+<td>the machine's steps</td>
+</tr>
+<tr class="even">
+<td><code>headline</code></td>
+<td>the run's headline: "Matched all 4 characters in 37 steps." or where
+it stopped</td>
+</tr>
+<tr class="odd">
+<td><code>saved</code></td>
+<td>the run's folder, with <code>--save</code>, or <code>""</code></td>
+</tr>
+</tbody>
+</table>
+<h4 id="run"><code>run</code></h4>
+<table>
+<thead>
+<tr class="header">
+<th>key</th>
+<th>value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>grammar</code></td>
+<td>the grammar's name</td>
+</tr>
+<tr class="even">
+<td><code>input</code></td>
+<td>the input's name: a file's, or a text quoted and clipped,
+<code>'12+3'</code>; <code>""</code> for a run over nothing</td>
+</tr>
+<tr class="odd">
+<td><code>frontend</code></td>
+<td>the frontend that read the grammar</td>
+</tr>
+<tr class="even">
+<td><code>headline</code></td>
+<td>the run's headline</td>
+</tr>
+<tr class="odd">
+<td><code>read</code></td>
+<td>whether the grammar was read</td>
+</tr>
+<tr class="even">
+<td><code>built</code></td>
+<td>whether its program was built</td>
+</tr>
+<tr class="odd">
+<td><code>matched</code></td>
+<td>whether the program matched the input whole</td>
+</tr>
+<tr class="even">
+<td><code>consumed</code></td>
+<td>how many bytes the run read</td>
+</tr>
+<tr class="odd">
+<td><code>steps</code></td>
+<td>the machine's steps</td>
+</tr>
+<tr class="even">
+<td><code>saved</code></td>
+<td>the run's folder, with <code>--save</code>, or <code>""</code></td>
+</tr>
+<tr class="odd">
+<td><code>parts</code></td>
+<td>a member a part <code>-p</code> named, in the order named, keyed by
+the part's name (below)</td>
+</tr>
+<tr class="even">
+<td><code>argument</code></td>
+<td>the input's argument, as <code>match.inputs[]</code>'s
+<code>input</code> is: a file's name, <code>-</code>, or the text
+itself; <code>""</code> for a run over nothing (since 2026.10.26)</td>
+</tr>
+<tr class="odd">
+<td><code>as_text</code></td>
+<td>whether the input was given as text, <code>-t</code> (since
+2026.10.26)</td>
+</tr>
+</tbody>
+</table>
+<h4 id="replay"><code>replay</code></h4>
+<table>
+<thead>
+<tr class="header">
+<th>key</th>
+<th>value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>folder</code></td>
+<td>the saved run's folder, as given</td>
+</tr>
+<tr class="even">
+<td><code>frontend</code></td>
+<td>as <code>run</code>'s, and every key after it up to
+<code>parts</code>: a replay has no <code>argument</code></td>
+</tr>
+<tr class="odd">
+<td><code>headline</code></td>
+<td></td>
+</tr>
+<tr class="even">
+<td><code>read</code></td>
+<td></td>
+</tr>
+<tr class="odd">
+<td><code>built</code></td>
+<td></td>
+</tr>
+<tr class="even">
+<td><code>matched</code></td>
+<td></td>
+</tr>
+<tr class="odd">
+<td><code>consumed</code></td>
+<td></td>
+</tr>
+<tr class="even">
+<td><code>steps</code></td>
+<td></td>
+</tr>
+<tr class="odd">
+<td><code>saved</code></td>
+<td><code>""</code>: a replay saves nothing</td>
+</tr>
+<tr class="even">
+<td><code>parts</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h4 id="runpartspart"><code>run.parts.PART</code></h4>
+<table>
+<thead>
+<tr class="header">
+<th>key</th>
+<th>value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>title</code></td>
+<td>the part's title, as its tab shows it: <code>Summary</code>,
+<code>Rules</code></td>
+</tr>
+<tr class="even">
+<td><code>columns</code></td>
+<td>the listing's column headings</td>
+</tr>
+<tr class="odd">
+<td><code>rows</code></td>
+<td>its rows, each an array of its cells, as text prints them</td>
+</tr>
+<tr class="even">
+<td><code>note</code></td>
+<td>what an empty listing says, or <code>""</code></td>
+</tr>
+</tbody>
+</table>
+<h4 id="saved"><code>saved</code></h4>
+<table>
+<thead>
+<tr class="header">
+<th>key</th>
+<th>value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>root</code></td>
+<td>the folder looked under, as given</td>
+</tr>
+<tr class="even">
+<td><code>runs</code></td>
+<td>an object a run, newest first (below)</td>
+</tr>
+</tbody>
+</table>
+<h4 id="savedruns"><code>saved.runs[]</code></h4>
+<table>
+<thead>
+<tr class="header">
+<th>key</th>
+<th>value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>folder</code></td>
+<td>the run's folder</td>
+</tr>
+<tr class="even">
+<td><code>session</code></td>
+<td>its session folder's name</td>
+</tr>
+<tr class="odd">
+<td><code>run</code></td>
+<td>its number in the session</td>
+</tr>
+<tr class="even">
+<td><code>frontend</code></td>
+<td>the frontend that read its grammar</td>
+</tr>
+<tr class="odd">
+<td><code>when</code></td>
+<td>when it ran, <code>YYYY-MM-DD HH:MM:SS</code></td>
+</tr>
+<tr class="even">
+<td><code>result</code></td>
+<td>its headline</td>
+</tr>
+</tbody>
+</table>
+<h4 id="bench"><code>bench</code></h4>
+<table>
+<thead>
+<tr class="header">
+<th>key</th>
+<th>value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>grammar</code></td>
+<td>the grammar's name</td>
+</tr>
+<tr class="even">
+<td><code>frontend</code></td>
+<td>the frontend that read it</td>
+</tr>
+<tr class="odd">
+<td><code>accepted</code></td>
+<td><code>true</code>: a refused grammar writes a refusal (below)</td>
+</tr>
+<tr class="even">
+<td><code>error</code></td>
+<td><code>""</code></td>
+</tr>
+<tr class="odd">
+<td><code>memoize</code></td>
+<td>the memo's setting, as <code>--memoize</code> folded it:
+<code>none</code>, <code>all</code>, <code>auto</code>, or names</td>
+</tr>
+<tr class="even">
+<td><code>memoized</code></td>
+<td>the rules the program called through the memo</td>
+</tr>
+<tr class="odd">
+<td><code>inputs</code></td>
+<td>how many inputs were run: those given, then the corpus's</td>
+</tr>
+<tr class="even">
+<td><code>matched</code></td>
+<td>how many matched</td>
+</tr>
+<tr class="odd">
+<td><code>unfinished</code></td>
+<td>how many ran to the step limit</td>
+</tr>
+<tr class="even">
+<td><code>steps</code></td>
+<td>the steps of every run, each run counted once</td>
+</tr>
+<tr class="odd">
+<td><code>unmemoized_steps</code></td>
+<td>for <code>auto</code>, the steps the inputs took without the memo,
+which chose it; <code>null</code> otherwise</td>
+</tr>
+<tr class="even">
+<td><code>revisits</code></td>
+<td>the times a rule was entered again at a position it had been entered
+at</td>
+</tr>
+<tr class="odd">
+<td><code>peaks</code></td>
+<td>the stacks' deepest, over every run (below)</td>
+</tr>
+<tr class="even">
+<td><code>memo</code></td>
+<td>what the memo did, over every run (below)</td>
+</tr>
+<tr class="odd">
+<td><code>ms</code></td>
+<td>the time of every run, each the fastest of <code>times</code></td>
+</tr>
+<tr class="even">
+<td><code>times</code></td>
+<td>how many times each input was timed, <code>--times</code></td>
+</tr>
+<tr class="odd">
+<td><code>rules</code></td>
+<td>an object a rule, in the program's order (below)</td>
+</tr>
+<tr class="even">
+<td><code>runs</code></td>
+<td>an object an input, in order (below)</td>
+</tr>
+</tbody>
+</table>
+<h4 id="benchpeaks"><code>bench.peaks</code></h4>
+<table>
+<thead>
+<tr class="header">
+<th>key</th>
+<th>value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>calls</code></td>
+<td>the deepest call stack</td>
+</tr>
+<tr class="even">
+<td><code>back</code></td>
+<td>the most backtrack points</td>
+</tr>
+<tr class="odd">
+<td><code>marks</code></td>
+<td>the most marks</td>
+</tr>
+<tr class="even">
+<td><code>caps</code></td>
+<td>the most captures open</td>
+</tr>
+</tbody>
+</table>
+<h4 id="benchmemo"><code>bench.memo</code></h4>
+<table>
+<thead>
+<tr class="header">
+<th>key</th>
+<th>value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>entries</code></td>
+<td>the results the memo kept</td>
+</tr>
+<tr class="even">
+<td><code>hits</code></td>
+<td>the calls it answered</td>
+</tr>
+<tr class="odd">
+<td><code>misses</code></td>
+<td>the calls it did not</td>
+</tr>
+</tbody>
+</table>
+<h4 id="benchrules"><code>bench.rules[]</code></h4>
+<table>
+<thead>
+<tr class="header">
+<th>key</th>
+<th>value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>rule</code></td>
+<td>the rule's name</td>
+</tr>
+<tr class="even">
+<td><code>calls</code></td>
+<td>its calls</td>
+</tr>
+<tr class="odd">
+<td><code>repeats</code></td>
+<td>its calls at a position it had been called at before</td>
+</tr>
+<tr class="even">
+<td><code>repeat_steps</code></td>
+<td>the steps those repeats ran</td>
+</tr>
+<tr class="odd">
+<td><code>hits</code></td>
+<td>its calls the memo answered</td>
+</tr>
+<tr class="even">
+<td><code>steps</code></td>
+<td>the steps run inside it</td>
+</tr>
+<tr class="odd">
+<td><code>arrivals</code></td>
+<td>the times the machine arrived in it, as the heat map counts</td>
+</tr>
+<tr class="even">
+<td><code>revisits</code></td>
+<td>its arrivals at a position it had arrived at before</td>
+</tr>
+</tbody>
+</table>
+<h4 id="benchruns"><code>bench.runs[]</code></h4>
+<table>
+<thead>
+<tr class="header">
+<th>key</th>
+<th>value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>input</code></td>
+<td>the input's argument, or a corpus input's text</td>
+</tr>
+<tr class="even">
+<td><code>kind</code></td>
+<td><code>given</code>, <code>walk</code> or <code>miss</code></td>
+</tr>
+<tr class="odd">
+<td><code>matched</code></td>
+<td>whether the program matched it whole</td>
+</tr>
+<tr class="even">
+<td><code>consumed</code></td>
+<td>how many bytes the run read</td>
+</tr>
+<tr class="odd">
+<td><code>steps</code></td>
+<td>the machine's steps</td>
+</tr>
+<tr class="even">
+<td><code>finished</code></td>
+<td>whether the run ended within the step limit</td>
+</tr>
+<tr class="odd">
+<td><code>revisits</code></td>
+<td>its revisits</td>
+</tr>
+<tr class="even">
+<td><code>ms</code></td>
+<td>its time, the fastest of <code>times</code></td>
+</tr>
+</tbody>
+</table>
+<h4 id="corpus"><code>corpus</code></h4>
+<table>
+<thead>
+<tr class="header">
+<th>key</th>
+<th>value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>grammar</code></td>
+<td>the grammar's name</td>
+</tr>
+<tr class="even">
+<td><code>accepted</code></td>
+<td><code>true</code>: a refused grammar writes a refusal (below)</td>
+</tr>
+<tr class="odd">
+<td><code>error</code></td>
+<td><code>""</code></td>
+</tr>
+<tr class="even">
+<td><code>walks</code></td>
+<td><code>--walks</code></td>
+</tr>
+<tr class="odd">
+<td><code>depth</code></td>
+<td><code>--depth</code></td>
+</tr>
+<tr class="even">
+<td><code>seed</code></td>
+<td><code>--seed</code></td>
+</tr>
+<tr class="odd">
+<td><code>inputs</code></td>
+<td>an object an input, in order (below)</td>
+</tr>
+<tr class="even">
+<td><code>length</code></td>
+<td><code>--length</code> (since 2026.10.26)</td>
+</tr>
+<tr class="odd">
+<td><code>repeats</code></td>
+<td><code>--repeats</code> (since 2026.10.26)</td>
+</tr>
+<tr class="even">
+<td><code>misses</code></td>
+<td><code>--misses</code> (since 2026.10.26)</td>
+</tr>
+</tbody>
+</table>
+<h4 id="corpusinputs"><code>corpus.inputs[]</code></h4>
+<table>
+<thead>
+<tr class="header">
+<th>key</th>
+<th>value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>text</code></td>
+<td>the input</td>
+</tr>
+<tr class="even">
+<td><code>kind</code></td>
+<td><code>walk</code>, derived from the grammar's rules, or
+<code>miss</code>, a walk with a character deleted, inserted or
+replaced</td>
+</tr>
+<tr class="odd">
+<td><code>file</code></td>
+<td>the file <code>-o</code> wrote it to, or <code>""</code></td>
+</tr>
+</tbody>
+</table>
+<h4 id="compare"><code>compare</code></h4>
+<table>
+<thead>
+<tr class="header">
+<th>key</th>
+<th>value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>first</code></td>
+<td>the first grammar's name, the one compared against</td>
+</tr>
+<tr class="even">
+<td><code>second</code></td>
+<td>the second's</td>
+</tr>
+<tr class="odd">
+<td><code>first_frontend</code></td>
+<td>the frontend that read the first</td>
+</tr>
+<tr class="even">
+<td><code>second_frontend</code></td>
+<td>the frontend that read the second</td>
+</tr>
+<tr class="odd">
+<td><code>accepted</code></td>
+<td><code>true</code>: a refused grammar writes a refusal (below)</td>
+</tr>
+<tr class="even">
+<td><code>error</code></td>
+<td><code>""</code></td>
+</tr>
+<tr class="odd">
+<td><code>memoize</code></td>
+<td>the second program's memo setting</td>
+</tr>
+<tr class="even">
+<td><code>memoized</code></td>
+<td>the rules the second program called through the memo</td>
+</tr>
+<tr class="odd">
+<td><code>inputs</code></td>
+<td>how many inputs both programs ran</td>
+</tr>
+<tr class="even">
+<td><code>matched</code></td>
+<td>how many both matched</td>
+</tr>
+<tr class="odd">
+<td><code>agreed</code></td>
+<td>whether they said the same of every input</td>
+</tr>
+<tr class="even">
+<td><code>differences</code></td>
+<td>an object an input they did not, in order (below)</td>
+</tr>
+<tr class="odd">
+<td><code>first_steps</code></td>
+<td>the first program's steps over every input</td>
+</tr>
+<tr class="even">
+<td><code>second_steps</code></td>
+<td>the second's</td>
+</tr>
+</tbody>
+</table>
+<h4 id="comparedifferences"><code>compare.differences[]</code></h4>
+<table>
+<thead>
+<tr class="header">
+<th>key</th>
+<th>value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>input</code></td>
+<td>the input's argument, or a corpus input's text</td>
+</tr>
+<tr class="even">
+<td><code>kind</code></td>
+<td><code>given</code>, <code>walk</code> or <code>miss</code></td>
+</tr>
+<tr class="odd">
+<td><code>first</code></td>
+<td>what the first program said of it (below)</td>
+</tr>
+<tr class="even">
+<td><code>second</code></td>
+<td>what the second said, the same keys</td>
+</tr>
+</tbody>
+</table>
+<h4
+id="comparedifferencesfirst"><code>compare.differences[].first</code></h4>
+<table>
+<thead>
+<tr class="header">
+<th>key</th>
+<th>value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>matched</code></td>
+<td>whether the program matched the input whole</td>
+</tr>
+<tr class="even">
+<td><code>consumed</code></td>
+<td>how many bytes it read</td>
+</tr>
+<tr class="odd">
+<td><code>steps</code></td>
+<td>its steps</td>
+</tr>
+<tr class="even">
+<td><code>finished</code></td>
+<td>whether it ended within the step limit</td>
+</tr>
+</tbody>
+</table>
+<h4 id="refusal"><code>refusal</code></h4>
+<p>What <code>bench</code>, <code>corpus</code> and <code>compare</code>
+write for a grammar the session refused, beside the error;
+<code>check</code>, <code>match</code>, <code>run</code> and
+<code>replay</code> write their own documents, <code>accepted</code> or
+<code>built</code> false.</p>
+<table>
+<thead>
+<tr class="header">
+<th>key</th>
+<th>value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>grammar</code></td>
+<td>the refused grammar's name - for <code>compare</code>, the first
+refused</td>
+</tr>
+<tr class="even">
+<td><code>frontend</code></td>
+<td>the frontend that read it</td>
+</tr>
+<tr class="odd">
+<td><code>accepted</code></td>
+<td><code>false</code></td>
+</tr>
+<tr class="even">
+<td><code>error</code></td>
+<td>the headline of the run that found it refused</td>
+</tr>
+</tbody>
+</table>
+<h2 id="the-window-1">The window</h2>
+<div class="sourceCode" id="cb11"><pre
+class="sourceCode sh"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="ex">vparse</span> gui <span class="pp">[</span><span class="ss">OPTION</span><span class="pp">]</span>... <span class="pp">[</span><span class="ss">GRAMMAR</span><span class="pp">]</span> <span class="pp">[</span><span class="ss">INPUT</span><span class="pp">]</span></span></code></pre></div>
+<p>The module <code>vparse gui</code> loads, found beside the program
+(the kit's GRAMMAR, section 7). Its operands and the options it shares
+with the commands are spelled as they spell them; a grammar or an input
+it cannot read is refused, as the commands refuse one, before the window
+opens.</p>
+<table>
+<thead>
+<tr class="header">
+<th>option</th>
+<th>effect</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>GRAMMAR</code></td>
+<td>start with this grammar; by default the workbench's example</td>
+</tr>
+<tr class="even">
+<td><code>INPUT</code></td>
+<td>start with this input</td>
+</tr>
+<tr class="odd">
+<td><code>-f, --frontend=notation|ebnf</code>, <code>--ebnf</code></td>
+<td>the frontend, decided as the commands decide it</td>
+</tr>
+<tr class="even">
+<td><code>--root=DIR</code></td>
+<td>save runs under DIR (default <code>vparse_runs</code>)</td>
+</tr>
+<tr class="odd">
+<td><code>--load=DIR</code></td>
+<td>load a saved run's folder at the start, and run it again</td>
+</tr>
+<tr class="even">
+<td><code>--no-run</code></td>
+<td>do not run the grammar the window starts with</td>
+</tr>
+<tr class="odd">
+<td><code>--font=FILE</code></td>
+<td>a TrueType font (default: a system monospace font)</td>
+</tr>
+<tr class="even">
+<td><code>--font-size=PX</code></td>
+<td>font size in pixels, 4 to 256 (default 15)</td>
+</tr>
+<tr class="odd">
+<td><code>--size=WIDTHxHEIGHT</code></td>
+<td>window size (default 1440x900)</td>
+</tr>
+<tr class="even">
+<td><code>--frames=N</code></td>
+<td>draw N frames, and close</td>
+</tr>
+<tr class="odd">
+<td><code>--screenshot=FILE</code></td>
+<td>write the last frame <code>--frames</code> draws to FILE, as a
+PPM</td>
+</tr>
+<tr class="even">
+<td><code>--version</code></td>
+<td>the version; with <code>-v</code>, how the module was built, the
+window and the Dear ImGui among it</td>
+</tr>
+<tr class="odd">
+<td><code>--help</code></td>
+<td>the list</td>
+</tr>
+</tbody>
+</table>
+<p><code>vparse_gui</code>, the window's program of its own until
+2026.10.26, is retired, and with it its <code>-g</code> and
+<code>-i</code>, its <code>--completion</code> - the program's
+<code>completion</code> command covers the program - and the
+<code>--print</code> and <code>--part</code> it kept only to say where
+they went.</p>
+<h2 id="the-screen">The screen</h2>
+<p>The toolbar holds <strong>Run</strong> (also Ctrl+Enter, from
+anywhere), the front end (notation or EBNF), whether to record the
+trace, and the step limit of the run over the input.</p>
+<p>The left column has the grammar and input editors, the list of runs
+(newest first, green if the run matched, red if not), and the file
+controls.</p>
+<p>The right side shows the selected run: a sentence saying what
+happened, the <strong>tape</strong>, and a tab for each part of the
+run.</p>
+<p>The tape is the text as a strip of character cells. The rules that
+matched are drawn beneath it as nested spans, one layer per depth. The
+highlighted cell is where the machine was at the current trace step;
+move it with the slider, the arrow buttons, the arrow keys while the
+pointer is on the tape, or by clicking a character, which jumps to the
+first step that reached it. When a run fails, the furthest point the
+parser reached is framed in red, the text after it is greyed, and the
+run opens at the step where it failed there. When the grammar itself
+cannot be read, the tape shows the grammar instead, with the reader's
+failure marked the same way.</p>
+<table>
+<thead>
+<tr class="header">
+<th>tab</th>
+<th>what it shows</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Summary</td>
+<td>the result, sizes, step counts, timings, where the run came
+from</td>
+</tr>
+<tr class="even">
+<td>Grammar</td>
+<td>the grammar, line by line</td>
+</tr>
+<tr class="odd">
+<td>Reading</td>
+<td>notation: the grammar's tape with what each piece was read as, the
+reader's captures, and the reader's own trace. EBNF: the syntax
+tree</td>
+</tr>
+<tr class="even">
+<td>Rules</td>
+<td>the rules, as the front end understood them</td>
+</tr>
+<tr class="odd">
+<td>Plan</td>
+<td>the generator's directives (notation only; EBNF compiles
+directly)</td>
+</tr>
+<tr class="even">
+<td>Program</td>
+<td>the PEG program; the instruction at the current step is
+highlighted</td>
+</tr>
+<tr class="odd">
+<td>Matches</td>
+<td>the rules that matched, as a tree over the input; after a failure,
+what had matched when the parser stopped</td>
+</tr>
+<tr class="even">
+<td>Heat</td>
+<td>where the parser spent its work: arrivals (the separate times it
+came to a place, which is re-parsing) or steps, at each input position
+and rule, up to the current step, with the call stack drawn over it.
+Click a cell to jump to its first step. Hot spots lists the cells, most
+arrived at first, and Profile what the run counted rule by rule: its
+calls, the calls that repeated one, the memo's answers, and its steps,
+arrivals and revisits</td>
+</tr>
+<tr class="odd">
+<td>Trace</td>
+<td>every step: address, instruction, offset, next character, call and
+backtrack depths. Click a row to move the tape there</td>
+</tr>
+</tbody>
+</table>
+<p>The tabs are the parts <code>vparse run --part</code> prints.</p>
+<p><strong>Comparing runs.</strong> Click <strong>vs</strong> beside
+another run to compare it with the selected one. Each tab then shows
+both runs side by side, and rows that only one of them has are washed
+red, with a count above each side. Program rows are compared by what
+they mean, not where they sit: calls by the rule they call, branches by
+rule and offset, so adding an alternative marks the new instructions and
+not every address after them. Traces are shown side by side without
+marking. On the Heat tab the two maps share one colour scale, so a
+grammar that re-parses less shows up paler.</p>
+<p><strong>Files.</strong> <strong>Save run</strong> writes the selected
+run, <strong>Save all runs</strong> every run, and <strong>save each
+run</strong> saves each run as it finishes, one folder per session, the
+same folders <code>vparse --save</code> makes:</p>
+<pre><code>&lt;root&gt;/session-YYYYMMDD-HHMMSS/
+    index.tsv          one line per saved run: id, time, front end, result
+    run-007/
+        run.txt        id, time, front end, trace, step-limit and memo
+                       settings, result
+        grammar.txt    the grammar, byte for byte
+        input.txt      the input, byte for byte
+        summary.txt  reading.txt  reading_trace.txt  rules.txt
+        plan.txt  program.txt  matches.txt  heat.txt  profile.txt  trace.txt
+        heat.svg       the whole run&#39;s heat map, with a failed run&#39;s frontier</code></pre>
+<p>The part files are aligned text, for reading and for diffing runs
+with other tools; a part <code>vparse run</code> prints alone is that
+file's text. <strong>Saved runs</strong> lists everything under the
+root; clicking one loads it: the grammar, input and settings are read
+back and run again, which reproduces every other part exactly, since a
+run is deterministic.</p>
+<h2 id="how-it-is-put-together">How it is put together</h2>
+<ul>
+<li><strong>The model</strong> (<code>run</code>, <code>store</code>,
+<code>heat</code>) runs the stages and describes them. A grammar that
+reads is offered to djinterp's <code>session</code>, which accepts it or
+refuses it in its own words; an accepted grammar is then built here with
+every stage kept. A program here of another length than the session's is
+a fault the run reports, and the suites hold the two to the same
+disassembly. The notation grammar is read the way
+<code>notation::parse_grammar</code> reads it, under the same step
+limit, <code>notation::read_limit</code>, but on a traced machine, so
+the reading can be inspected like any other run; a reading that stops
+untraced is read again, traced, so that it can always say where. The
+matched-rule tree, the failure frontier and the heat map are recovered
+by replaying the trace; every pass is also counted as it runs, so a
+run's profile needs no trace. Where the request names a memo, the
+program is made to call those rules through it once the session has
+accepted the grammar; the trace readers see a <code>MEMO</code> the memo
+answered for what it was, and replay the spans its rule's first match
+closed, so a memoized run's matches are the plain run's.</li>
+<li><strong>The command line</strong> (<code>cli/</code>) is a tree of
+subcommands on djinterp's argument parser. Each subcommand reads its
+files, runs the model's <code>execute()</code>, the function the
+window's Run button calls, and prints the model's own listings, as text
+or as JSON (<code>report</code>). A trace is recorded only for what it
+explains: <code>match</code> runs each input untraced and a failed one
+again, traced, to say where it stopped; <code>check</code> and
+<code>compile</code> never trace. The measures
+(<code>measures.cpp</code>) build a grammar once, through the same
+<code>execute()</code>, and run the library's machine over the inputs
+themselves, untraced, counting each run and timing it apart.</li>
+<li><strong>The window's face</strong> (<code>ui/vparse/view</code>,
+<code>ui/vparse/elements</code>) is a uxoxo template over the model: one
+shell with holes for the toolbar, editors, runs, files and detail,
+closed each frame with uxoxo's closing pass. <code>update</code> applies
+an event to the model. The workbench's own elements,
+<strong>listing</strong>, <strong>tape</strong> and
+<strong>heat</strong>, are uxoxo element modules; their attributes
+<code>key</code> and <code>target</code> mean what they mean on every
+uxoxo element.</li>
+<li><strong>The renderers</strong> (<code>elements_imgui.cpp</code>)
+draw those elements on uxoxo's Dear ImGui platform, registered through
+<code>set_renderer</code>, with the theme.</li>
+<li><strong>The host</strong> (<code>host_*.cpp</code>) opens the
+window, runs a frame, and reads one back for <code>--screenshot</code>;
+<code>plugin.cpp</code>, the module's run function, reads its command
+line through the kit and is the loop between them.</li>
+</ul>
+<h2 id="limits">Limits</h2>
+<ul>
+<li>A notation literal is one character, <code>'a'</code>, so EBNF's
+<code>"ab"</code> is <code>'a' 'b'</code> there. Notation character
+classes take only letters, digits and <code>-</code>, so
+<code>[+-]</code> does not read; write <code>'+' | '-'</code>. EBNF
+classes are wider.</li>
+<li>PEG has no left recursion: a left-recursive grammar loads, and a run
+over it loops until the step limit stops it, which the command line and
+the window both say.</li>
+<li>Both frontends read a grammar as PEG: <code>|</code> is ordered
+choice, so <code>S = "a" | "ab"</code> (in EBNF) never matches
+<code>ab</code>, and <code>S = A* A</code> never matches, since the
+repetition takes every <code>A</code>.</li>
+<li>The trace keeps every step in memory. Runs of a few hundred thousand
+steps are fine; the step limit bounds a run over an input, and a traced
+reading of a grammar takes about fifteen steps a byte of it: a grammar
+of 5,000 rules is two million steps and some 360 MB traced, and a tenth
+of a second and 34 MB with the trace off.</li>
+<li><code>--memoize auto</code> counts a run without the memo before it
+chooses, so the choice costs what the run it saves would have: over
+<code>nested.txt</code> at depth 7, ten seconds for a run of 183
+steps.</li>
+<li>A profile costs a run about half again its time; the trace costs far
+more. The memo keeps every result to the end of the run, in pages of 256
+positions for each rule it is used for.</li>
+<li>The heat map gives each input character a column up to 160 of them;
+longer inputs share columns, each covering a range of characters.</li>
+<li>EBNF is read by a hand-written parser rather than the machine, so
+its reading has no trace.</li>
+<li>Comparing very long listings (over four million row pairs, once the
+common start and end are set aside) falls back to comparing row by
+row.</li>
+</ul>
+<h2 id="what-was-verified">What was verified</h2>
+<p>On 2026.10.27, later, <code>@FILE</code> listed by the kit among the
+root's options, and the stand-in for <code>cl</code> configuring as
+<code>cl</code> does, with the cli lane's drop of 2026.10.27c:</p>
+<table>
+<thead>
+<tr class="header">
+<th></th>
+<th>result</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>djinterp's vparse build, GCC, warnings as errors; Clang; MinGW-w64
+under Wine; the window's build, GCC and MinGW-w64</td>
+<td>30, 3, 3, 35 and 8; no warning in the tool</td>
+</tr>
+<tr class="even">
+<td>the window's build through <code>cl_standin/</code>, djinterp's
+suites in</td>
+<td>configured as <code>cl</code> configures it, the argument parser's
+sweep left out; no warning; 22 of 26, the parser's four C++ suites
+faulting under Wine</td>
+</tr>
+</tbody>
+</table>
+<p>On 2026.10.27, a refused grammar said with the place its reader
+stopped first, over the same djinterp with the cli lane's drop of
+2026.10.27:</p>
+<table>
+<thead>
+<tr class="header">
+<th></th>
+<th>result</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>djinterp's vparse build, GCC 13.3, Debug, warnings as errors; Clang
+18.1; MinGW-w64 under Wine</td>
+<td>no warning in the tool; 30 of 30, 3 of 3 and 3 of 3, the model's
+suite 8 of 8 and the command line's 17 of 17</td>
+</tr>
+<tr class="even">
+<td>the window's build, GCC under a virtual display; MinGW-w64 under
+Wine</td>
+<td>35 of 35; 8 of 8</td>
+</tr>
+<tr class="odd">
+<td>three faults planted in a copy of the tree: the place never put
+first; the sentence keeping its place; the column one off</td>
+<td>each caught, by the command line's suite, and the last two by the
+model's too</td>
+</tr>
+</tbody>
+</table>
+<p>On 2026.10.26, later, <code>run</code>'s JSON ending with the input's
+argument and <code>corpus</code>'s with the settings it lacked, over the
+same djinterp with the cli lane's drop of 2026.10.26e:</p>
+<table>
+<thead>
+<tr class="header">
+<th></th>
+<th>result</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>djinterp's vparse build, GCC 13.3, Debug, warnings as errors; Clang
+18.1; MinGW-w64 under Wine</td>
+<td>no warning in the tool; 30 of 30, 3 of 3 and 3 of 3, the command
+line's suite 17 of 17</td>
+</tr>
+<tr class="even">
+<td>the window's build, GCC under a virtual display; MinGW-w64 under
+Wine</td>
+<td>35 of 35; 8 of 8</td>
+</tr>
+<tr class="odd">
+<td>three faults planted in a copy of the command line:
+<code>run</code>'s last two members left out; <code>corpus</code>'s
+<code>repeats</code> and <code>misses</code> swapped; the README's
+<code>argument</code> row dropped</td>
+<td>each caught by the command line's suite</td>
+</tr>
+</tbody>
+</table>
+<p>On 2026.10.26, again, the window out of djinterp's tree - the module
+<code>vparse gui</code> loads, built by <code>build/ui/vparse</code> -
+over the owner's djinterp of 2026.10.23 with the cli lane's drop of
+2026.10.26c, and uxoxo of 2026.10.25:</p>
+<table>
+<thead>
+<tr class="header">
+<th></th>
+<th>result</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>djinterp's vparse build, GCC 13.3, Linux, Debug, warnings as
+errors</td>
+<td>no warning in the tool; 30 of 30. The same four in the argument
+parser's own test leaf</td>
+</tr>
+<tr class="even">
+<td>the same under Clang 18.1, djinterp's suites left out</td>
+<td>no warning; 3 of 3</td>
+</tr>
+<tr class="odd">
+<td>the same under MinGW-w64 GCC 13, run under Wine 9.0 in
+<code>C.UTF-8</code></td>
+<td>no warning; 3 of 3</td>
+</tr>
+<tr class="even">
+<td>the window's build, GCC, Debug, warnings as errors, GLFW and OpenGL
+3 on a virtual X display with Mesa</td>
+<td>no warning in the tool; 35 of 35: the 30, the window's two suites,
+and <code>vparse gui</code>'s help, its version and a grammar it cannot
+read, each held to its status</td>
+</tr>
+<tr class="odd">
+<td>the window's build, MinGW-w64 GCC 13, Win32 and Direct3D 11, under
+Wine</td>
+<td>no warning; 8 of 8</td>
+</tr>
+<tr class="even">
+<td>the window's build as CMake configures it for <code>cl</code> 19.51,
+through <code>cl_standin/</code>, run under Wine in
+<code>C.UTF-8</code></td>
+<td>CMake reports MSVC 19.51.36260.0 and takes <code>cl</code>'s
+branches; every unit of the window's and uxoxo's read as djinterp's are;
+no warning; 8 of 8, the module found and loaded. With djinterp's suites,
+22 of 27: the argument parser's sweep does not link there, and its C++
+suites fault on their first instructions
+(<code>cl_standin/README.html</code>)</td>
+</tr>
+<tr class="odd">
+<td><code>vparse gui GRAMMAR INPUT --frames 4 --screenshot FILE</code>,
+on GLFW and on Win32 under Wine</td>
+<td>each opens on the grammar and the input, runs them and captures its
+frame</td>
+</tr>
+<tr class="even">
+<td>three faults planted in a copy of the tree: a refusal ending 0, its
+error still said; no <code>window:</code> line; the module's command
+misnamed</td>
+<td>each caught by the runs of <code>vparse gui</code>: the first, which
+a pattern alone passes, by its status</td>
+</tr>
+</tbody>
+</table>
+<p>On 2026.10.26, the command line on djinterp's command-line kit and
+spelled as its grammar's section 11 has it, over the owner's djinterp of
+2026.10.23 with the cli lane's drop of 2026.10.26b, and uxoxo of
+2026.10.25:</p>
+<table>
+<thead>
+<tr class="header">
+<th></th>
+<th>result</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>GCC 13.3, Linux, Debug, warnings as errors</td>
+<td>no warning in the tool; 30 of 30. Four warnings in the argument
+parser's own test leaf (<code>arg_argv_tests.c</code>, line 5000), not
+the tool's</td>
+</tr>
+<tr class="even">
+<td>Clang 18.1, Linux, Debug, warnings as errors, the command line
+alone, djinterp's suites left out</td>
+<td>no warning; 3 of 3</td>
+</tr>
+<tr class="odd">
+<td>the window, GLFW and OpenGL 3, GCC, Debug</td>
+<td>33 of 33</td>
+</tr>
+<tr class="even">
+<td>MinGW-w64 GCC 13, the command line alone, run under Wine 9.0 in
+<code>C.UTF-8</code></td>
+<td>no warning; 3 of 3, the command line's suite among them;
+<code>--version -v</code> gives the build, and a grammar named beyond
+ASCII is read</td>
+</tr>
+<tr class="odd">
+<td>seven faults planted in a copy of the command line: a write that
+fails passed over, a refused grammar not said, <code>-q</code> never
+read, <code>@FILE</code> not read (2026.10.25); <code>--memoize</code>'s
+values not folded, <code>check</code> answering 2, <code>auto</code> not
+read as a word (2026.10.26); a key dropped from a JSON table, two keys
+swapped in one, a key the code adds, a key the code renames
+(2026.10.26b)</td>
+<td>each caught by the command line's suite</td>
+</tr>
+</tbody>
+</table>
+<p>On 2026.10.17, against djinterp of 2026.10.15 with this tool,
+djinterp's vparse of 2026.10.17 and the argument parser of 2026.10.15 in
+it, and uxoxo of 2026.10.16 with its Dear ImGui 1.92.8:</p>
+<table>
+<thead>
+<tr class="header">
+<th></th>
+<th>result</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>GCC 13.3, Linux, Release and Debug, warnings as errors</td>
+<td>no warning; 24 of 24 each</td>
+</tr>
+<tr class="even">
+<td>Clang 18.1, Linux, Release and Debug, warnings as errors</td>
+<td>no warning; 24 of 24 each</td>
+</tr>
+<tr class="odd">
+<td><code>VPARSE_CXX_STANDARD</code> 11 with the tool and uxoxo at 17,
+under Clang; 23 with 23 and 23, under GCC</td>
+<td>no warning; 24 of 24 each</td>
+</tr>
+<tr class="even">
+<td>the command line alone: <code>-DVPARSE_BUILD_GUI=OFF</code>, no
+uxoxo, Clang</td>
+<td>no warning; 21 of 21</td>
+</tr>
+<tr class="odd">
+<td>djinterp's vparse leaf alone, in plain CMake, GCC and Clang</td>
+<td>32 of 32 at C++11, 14, 17, 20 and 23</td>
+</tr>
+<tr class="even">
+<td>MinGW-w64 GCC 13, 64-bit Windows (<code>mingw-cross</code>), run
+under Wine 9.0 in <code>C.UTF-8</code></td>
+<td>no warning in the tool or in djinterp's foundation and vparse; the
+argument parser's <code>printf</code> formats warn there (below), so the
+build was run without <code>-Werror</code>. 20 of 24: the tool's six and
+djinterp's foundation and vparse suites pass, and the argument parser's
+own suite fails at each of its four levels (below)</td>
+</tr>
+<tr class="odd">
+<td>the whole build as CMake configures it for <code>cl</code> 19.51,
+through <code>cl_standin/</code>, run under Wine in
+<code>C.UTF-8</code></td>
+<td>CMake reports MSVC 19.51.36260.0 and takes <code>cl</code>'s
+branches; no warning; 17 of 20, the argument parser's three failing as
+under MinGW-w64</td>
+</tr>
+<tr class="even">
+<td>the window: GLFW and OpenGL 3 on a virtual X display with Mesa, and
+Win32 and Direct3D 11 under Wine, built by MinGW-w64 and through the
+stand-in</td>
+<td>each opens with a grammar and an input given by name, runs them and
+captures its frame; the faces match but for the times</td>
+</tr>
+<tr class="odd">
+<td>the face, in the ImGui suite</td>
+<td>with each part's tab brought forward in turn, the Profile listing
+and the reading's trace are drawn; with only pages brought forward, as
+before, neither was, each being a tab within a page</td>
+</tr>
+<tr class="even">
+<td>thirty-one deliberate faults: nineteen in djinterp's vparse (the
+memo, the profile, the corpus, the two small fixes), six in the model,
+six in the command line</td>
+<td>every one caught: the nineteen by djinterp's vparse suite, two of
+them by the model's too; the model's six by the model's suite, four of
+them by the command line's too; the command line's six by its suite</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Wine and names beyond ASCII.</strong> Wine keeps a Windows
+file name on the Unix side in the locale's encoding, so in the POSIX
+locale it makes no file or folder whose name is beyond ASCII:
+<code>CreateDirectoryW</code> fails with error 2 for <code>runs_</code>
+and a u with a diaeresis alone. <code>tests_cli_store_names</code> fails
+there for that reason, and passes in <code>C.UTF-8</code>, where the
+suites above were run.</p>
+<p><strong>The argument parser on <code>msvcrt.dll</code>.</strong> Its
+suite fails 9 of its 295 sections at each level under Wine, 6 with
+<code>LC_ALL=C.UTF-8</code>, which its own notes ask Wine for. The six
+are its path checks, on one case: <code>tree/dir/</code>, a directory
+named with a trailing slash, which <code>msvcrt.dll</code>'s
+<code>_wstat64</code> does not find and the Universal CRT does. Its
+notes verify it with llvm-mingw, whose runtime is the Universal CRT;
+MinGW-w64 GCC and the stand-in link <code>msvcrt.dll</code>. And
+MinGW-w64 GCC checks <code>printf</code> formats against
+<code>msvcrt.dll</code>'s, which have no <code>%z</code>: the parser's
+completion scripts and messages use <code>%zu</code>, and warn
+(<code>-Wformat</code>), so a <code>mingw-cross</code> build with
+<code>-DVPARSE_WARNINGS_AS_ERRORS=ON</code> stops in the parser. The
+parser is another agent's, and is left as it is.</p>
+<p><strong>Not verified: <code>cl</code> itself.</strong> No MSVC
+toolchain was available, so <code>cl</code>'s own parser, its
+<code>/W4</code> over the tool, and the MSVC C++ library are untested;
+the first build on Windows is the one that proves them.
+<code>cl_standin/README.html</code> has what the stand-in shows and what
+it cannot.</p>
+</body>
+</html>

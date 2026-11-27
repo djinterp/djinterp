@@ -1060,7 +1060,7 @@ std::string file_name(
 
 /**
  * @brief Writes a corpus, an input a file, to a folder, each file whole or
- *        not at all, as the kit writes one (GRAMMAR.md, R20).
+ *        not at all, as the kit writes one (GRAMMAR.html, R20).
  *
  * @param[in]  _folder   the folder, in UTF-8; made if it is not there.
  * @param[in]  _samples  the corpus.

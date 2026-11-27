@@ -1667,7 +1667,7 @@ sheet from_json(
 // win32_hresults
 //   every HRESULT MinGW-w64's winerror.h defines - 1,376 codes, each a
 // literal, in a group for its facility - under the fields that make them:
-// a thousand rows and more (tools/winerror_to_bitfield.py).
+// a thousand rows and more (scripts/bitwisedom/winerror_to_bitfield.py).
 sheet win32_hresults()
 {
     return from_json(LARGE_WIN32_HRESULTS);
@@ -1677,7 +1677,7 @@ sheet win32_hresults()
 //   ten of CPUID's feature registers end to end, 320 bits: word n of the
 // header's array is the nth register, the MPX address-width adjust a field
 // among the flags, and x86-64's levels sets of them
-// (tools/x86_cpuid_bitfield.py).
+// (scripts/bitwisedom/x86_cpuid_bitfield.py).
 sheet x86_cpuid()
 {
     return from_json(LARGE_X86_CPUID);

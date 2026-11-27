@@ -17,7 +17,7 @@
 * derived from idealised colour arithmetic, so the round-trip residuals below
 * are the real ones (see the `hub` section).
 *
-*   Two faces, selected by DTEST_SPEC_MODE (see djinterp_testing.md S3).
+*   Two faces, selected by DTEST_SPEC_MODE (see djinterp_testing.html S3).
 *
 *
 * path:      /tests/djinterp/cpp/util/color/color_convert_tests.hpp

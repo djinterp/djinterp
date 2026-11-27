@@ -3,7 +3,7 @@
 *
 * Unit test suite for member_types.hpp - the framework's shared nested-typedef
 * detectors and the pick_member_type extraction helper.
-*   Two faces, selected by DTEST_SPEC_MODE (see djinterp_testing.md S3):
+*   Two faces, selected by DTEST_SPEC_MODE (see djinterp_testing.html S3):
 *
 *     - normal mode (the section TUs): pulls in the header under test and
 *       exposes the fixtures + the D_MT_CHECK macro.

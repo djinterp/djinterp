@@ -23,13 +23,15 @@
 * (PARITY) - and nothing is made of the file. A value in a range names
 * that range, by its own name or its macro name, and is placed once every
 * row has been read.
-*   docs/json.md describes the three, key by key.
+*   docs/djinterp/tools/bitwisedom/json.html describes the three, key by
+* key.
 *
 * HOW TO USE
 * ----------
 *   read_json_sheet reads any of the three shapes and says which it was
 * (json_read); write_bitfield and write_export write the two shapes other
-* programs read. docs/json.md describes each key.
+* programs read. docs/djinterp/tools/bitwisedom/json.html describes each
+* key.
 *
 * OPTIONS
 * -------

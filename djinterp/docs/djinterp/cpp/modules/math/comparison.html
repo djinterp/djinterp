@@ -1,0 +1,1524 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>djinterp math: the framework as proposed, beside similar
+libraries</title>
+  <style>
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+</head>
+<body>
+<h1
+id="djinterp-math-the-framework-as-proposed-beside-similar-libraries">djinterp
+math: the framework as proposed, beside similar libraries</h1>
+<p>A comparison of features, made in chunk 34 (step 19 of 48) at the
+owner's asking, and brought up to date by each chunk since (chunk 35,
+step 20, its matrix arithmetic; chunk 36, step 21, linear algebra's
+functions and the owner's rulings on complex numbers and quaternions;
+chunk 37, step 22's first part, the C core's complex numbers; chunk 38,
+its second part, the linear algebra they complete; chunk 39, its third,
+the C++ face of complex numbers; chunk 40, step 23's first part, complex
+numbers in the language; chunk 41, the first chunk of its second part,
+their functions; chunk 42, its second chunk, the five complex functions
+the C core lacked; chunk 43, its third part, matrices of complex
+numbers; chunk 44, step 24's first part, the C core's quaternions and
+their C++ faces; chunk 45, its second part, quaternions in the language;
+chunk 46, its third, matrices of them, their rotations and dynamic
+matrices of every element type; chunk 47, a term compiled once; chunk
+48, one quaternion class): what djinterp's math framework does or is
+planned to do, by the roadmap's 51 steps (48 until chunk 36's rulings
+added 3d to 3f, every step from 22 on three further), beside the
+libraries a user would weigh it against. It compares features alone. How
+fast each is, and how accurate its functions are in ulps, are Phase 7's
+measurements (steps 41 and 42); nothing here is measured.</p>
+<p>In the djinterp column, "done" means in the tree as of chunk 48, with
+the step that did it; "step N" means the roadmap plans it at that step;
+"later" means the roadmap lists it under "Later, not yet decided";
+"none" means no step plans it. In the other columns, "yes" is a
+documented feature, "part" a narrower one, and "no" one the library does
+not have. Where a cell is not certain from the library's own
+documentation it says so.</p>
+<hr />
+<h2 id="1-the-libraries">1. The libraries</h2>
+<table>
+<thead>
+<tr class="header">
+<th>Library</th>
+<th>Language</th>
+<th>Kind</th>
+<th>Licence</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>djinterp math</strong></td>
+<td>C99 core; C++98 to C++23 faces; expressions from C++11</td>
+<td>numeric core, exact value tower, expression language, linear
+algebra</td>
+<td>the framework's</td>
+</tr>
+<tr class="even">
+<td>SymPy</td>
+<td>Python</td>
+<td>computer algebra system</td>
+<td>BSD</td>
+</tr>
+<tr class="odd">
+<td>SymEngine</td>
+<td>C++, with a C wrapper; Python, Julia and R bindings</td>
+<td>symbolic core, SymPy's fast engine</td>
+<td>MIT</td>
+</tr>
+<tr class="even">
+<td>GiNaC (with CLN)</td>
+<td>C++</td>
+<td>symbolic computation embedded in C++</td>
+<td>GPL</td>
+</tr>
+<tr class="odd">
+<td>math.js</td>
+<td>JavaScript</td>
+<td>expression parser, numbers, matrices, some algebra</td>
+<td>Apache 2.0</td>
+</tr>
+<tr class="even">
+<td>ExprTk</td>
+<td>C++, header-only</td>
+<td>expression evaluator and small language</td>
+<td>MIT</td>
+</tr>
+<tr class="odd">
+<td>muParser, TinyExpr</td>
+<td>C++; C</td>
+<td>fast numeric expression evaluators</td>
+<td>BSD; zlib</td>
+</tr>
+<tr class="even">
+<td>Eigen</td>
+<td>C++, header-only</td>
+<td>dense and sparse linear algebra</td>
+<td>MPL 2.0</td>
+</tr>
+<tr class="odd">
+<td>Boost.Math</td>
+<td>C++, mostly header-only</td>
+<td>special functions, distributions, quadrature, differentiation</td>
+<td>Boost</td>
+</tr>
+<tr class="even">
+<td>GMP, MPFR, FLINT (Arb within it)</td>
+<td>C</td>
+<td>big integers and rationals; correctly rounded big floats; number
+theory, exact matrices, ball arithmetic</td>
+<td>LGPL</td>
+</tr>
+<tr class="odd">
+<td>CORE-MATH, LLVM libc</td>
+<td>C</td>
+<td>correctly rounded elementary functions</td>
+<td>MIT; Apache 2.0 with LLVM exception</td>
+</tr>
+<tr class="even">
+<td>gcem; C++23 and C++26 <code>constexpr</code>
+<code>&lt;cmath&gt;</code></td>
+<td>C++</td>
+<td>elementary functions in constant expressions</td>
+<td>Apache 2.0; the standard</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="2-numbers">2. Numbers</h2>
+<table>
+<thead>
+<tr class="header">
+<th>Feature</th>
+<th>djinterp</th>
+<th>SymPy</th>
+<th>SymEngine</th>
+<th>GiNaC</th>
+<th>math.js</th>
+<th>ExprTk</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>float</code>, <code>double</code>,
+<code>long double</code></td>
+<td>done</td>
+<td><code>float</code> (Python's double)</td>
+<td>double</td>
+<td>double via CLN</td>
+<td>double</td>
+<td>float, double, long double</td>
+</tr>
+<tr class="even">
+<td>Exact rationals</td>
+<td>done, over the widest integer (step 6)</td>
+<td>yes, unbounded</td>
+<td>yes, unbounded (GMP or Boost)</td>
+<td>yes, unbounded (CLN)</td>
+<td>yes (<code>fraction</code>)</td>
+<td>no (a custom type can be)</td>
+</tr>
+<tr class="odd">
+<td>One value of any kind, exact kept exact, inexact where a float
+enters (the tower)</td>
+<td>done (steps 7 to 11)</td>
+<td>yes</td>
+<td>yes</td>
+<td>yes</td>
+<td>part: literals of one configured type; mixed types convert</td>
+<td>no</td>
+</tr>
+<tr class="even">
+<td>Decimal literals read exactly, <code>0.1</code> the rational 1/10,
+each type rounding once</td>
+<td>done (step 8)</td>
+<td>no: <code>0.1</code> parses as a Float unless asked otherwise</td>
+<td>no</td>
+<td>no</td>
+<td>only with <code>number: 'Fraction'</code> configured</td>
+<td>no</td>
+</tr>
+<tr class="odd">
+<td>Comparison exact across kinds</td>
+<td>done</td>
+<td>yes</td>
+<td>unclear</td>
+<td>unclear</td>
+<td>within one type</td>
+<td>no</td>
+</tr>
+<tr class="even">
+<td>Fixed-width wide integers, 256 bits</td>
+<td>done (step 43)</td>
+<td>n/a, unbounded</td>
+<td>n/a, unbounded</td>
+<td>n/a, unbounded</td>
+<td>n/a</td>
+<td>no</td>
+</tr>
+<tr class="odd">
+<td>Unbounded integers</td>
+<td>step 44</td>
+<td>yes</td>
+<td>yes</td>
+<td>yes</td>
+<td>yes (<code>bigint</code>)</td>
+<td>no</td>
+</tr>
+<tr class="even">
+<td>Unbounded rationals</td>
+<td>step 45</td>
+<td>yes</td>
+<td>yes</td>
+<td>yes</td>
+<td>unclear</td>
+<td>no</td>
+</tr>
+<tr class="odd">
+<td>Big floats, correctly rounded</td>
+<td>step 47 (the MPFR model)</td>
+<td>part (mpmath's precision; correct rounding not promised)</td>
+<td>yes (MPFR, optional)</td>
+<td>part (CLN's floats)</td>
+<td>part (<code>bignumber</code>, decimal)</td>
+<td>yes, MPFR as its type</td>
+</tr>
+<tr class="even">
+<td>Ball arithmetic</td>
+<td>step 48</td>
+<td>no (mpmath has intervals)</td>
+<td>part (Arb, optional)</td>
+<td>no</td>
+<td>no</td>
+<td>no</td>
+</tr>
+<tr class="odd">
+<td>Complex numbers</td>
+<td>the C core's done (step 22, <code>cplx.h</code>, S280 to S288):
+float, double and long double, C99's 22 functions; their C++ face,
+<code>math::complex&lt;T&gt;</code>, from C++98, the C core's bits at
+every level (step 22, chunk 39, S313); a kind of the value, exact
+Gaussian rationals and each floating-point type, its arithmetic
+<code>cplx.h</code>'s or exact (step 23, chunk 40, S327, S328); each
+function's principal complex value, exact where it is a Gaussian
+rational (chunk 41, S336, S337), and <code>exp2</code>,
+<code>log2</code>, <code>log10</code>, <code>log1p</code> and
+<code>expm1</code>'s, in the C core, the face and the language (chunk
+42, S342 to S347); matrices of them, dense or exact (chunk 43,
+S348)</td>
+<td>yes</td>
+<td>yes</td>
+<td>yes</td>
+<td>yes</td>
+<td>no</td>
+</tr>
+<tr class="even">
+<td>Quaternions</td>
+<td>the C core's and the C++ face done (<code>quat.h</code>,
+<code>quaternion.hpp</code>, one class, which <code>linalg</code> names,
+chunk 48, S398), accurate by default (step 24, chunk 44, S358 to S365):
+the product, inverse and both quotients, the rotation and its matrix of
+any q not 0, Shepperd's method, two vectors' quaternion, nlerp and
+slerp, and exp, log, sqrt and real powers, the principal values, each
+part within a step or a few; the former formulas as <code>_fast</code>
+forms; a kind of the value, exact or dense, in the language (step 24,
+chunk 45, S369 to S377); matrices of them, their rotations' matrices and
+slerp in the language (chunk 46, S386 to S391)</td>
+<td>yes (<code>Quaternion</code>)</td>
+<td>no</td>
+<td>part (Clifford algebras)</td>
+<td>no</td>
+<td>no</td>
+</tr>
+<tr class="odd">
+<td>Units of measure</td>
+<td>none</td>
+<td>yes (<code>sympy.physics.units</code>)</td>
+<td>no</td>
+<td>no</td>
+<td>yes</td>
+<td>no</td>
+</tr>
+<tr class="even">
+<td>Errors as values that pass through, the first kept; Kleene's
+logic</td>
+<td>done (steps 14 to 17)</td>
+<td>no: exceptions, or unevaluated forms</td>
+<td>no: exceptions</td>
+<td>no: exceptions</td>
+<td>no: exceptions</td>
+<td>part: NaN</td>
+</tr>
+<tr class="odd">
+<td>A new number kind without changing the core (boxed kinds)</td>
+<td>done (step 9)</td>
+<td>yes (Python classes)</td>
+<td>part (C++ subclasses)</td>
+<td>part</td>
+<td>yes (typed-function types)</td>
+<td>yes (the numeric type is a template parameter)</td>
+</tr>
+</tbody>
+</table>
+<p>Against GMP, MPFR and FLINT, the bignum phase (steps 44 to 49) plans
+the same kinds, with multiplication up to Toom-3 (step 46); GMP and
+FLINT multiply large numbers by FFT, which no step plans, and their
+kernels are tuned in assembly. MPFR's correct rounding at every
+precision and its breadth of functions are the model of steps 47 and 48,
+and its documented, proven behaviour is the oracle of step 41.</p>
+<hr />
+<h2 id="3-elementary-functions-and-one-answer">3. Elementary functions
+and one answer</h2>
+<table>
+<thead>
+<tr class="header">
+<th>Feature</th>
+<th>djinterp</th>
+<th>CORE-MATH, LLVM libc</th>
+<th>glibc</th>
+<th>MSVC</th>
+<th>gcem</th>
+<th>C++23 / C++26 <code>&lt;cmath&gt;</code></th>
+<th>Boost.Math</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Correctly rounded sqrt, cbrt, hypot, fmod, remainder, rounding</td>
+<td>done</td>
+<td>yes</td>
+<td>sqrt, fmod, remainder and rounding, which IEEE 754 makes exact; cbrt
+and hypot not promised</td>
+<td>as glibc</td>
+<td>no</td>
+<td>as glibc, where IEEE 754 holds</td>
+<td>no</td>
+</tr>
+<tr class="even">
+<td>Correctly rounded exp, log, sin, cos, tan, atan, pow,
+hyperbolic</td>
+<td>step 36</td>
+<td>yes, binary32 and binary64</td>
+<td>being taken from CORE-MATH function by function since 2025, binary32
+first (<code>cosf</code>, <code>sincosf</code>: patches of 2026-03)</td>
+<td><code>/Zc:cmath</code> takes LLVM libc's, experimental in the 14.52
+tools</td>
+<td>no</td>
+<td>not required</td>
+<td>no</td>
+</tr>
+<tr class="odd">
+<td>The same bits at every language level and in constant evaluation as
+at run time</td>
+<td>done for the correctly rounded functions; all of them from step 36
+(G6)</td>
+<td>the same bits on every platform at run time; constant evaluation
+through the compilers adopting it</td>
+<td>no promise</td>
+<td>from <code>/Zc:cmath</code></td>
+<td>constant evaluation only, its own approximations</td>
+<td>no promise: accuracy is the implementation's</td>
+<td>no</td>
+</tr>
+<tr class="even">
+<td>Constant expressions</td>
+<td>from C++14, the <code>_c</code> forms (done)</td>
+<td>through clang and MSVC adopting LLVM libc</td>
+<td>no</td>
+<td>C++23 with <code>/Zc:cmath</code></td>
+<td>from C++11</td>
+<td>C++23 (P0533) and C++26 (P1383), a subset</td>
+<td>part (<code>ccmath</code>)</td>
+</tr>
+<tr class="odd">
+<td>Works in C99 and in strict C++98</td>
+<td>done</td>
+<td>C</td>
+<td>C</td>
+<td>C and C++</td>
+<td>C++11</td>
+<td>C++23 and C++26</td>
+<td>C++14</td>
+</tr>
+<tr class="even">
+<td>Domain errors as the C library gives them</td>
+<td>done</td>
+<td>yes</td>
+<td>yes</td>
+<td>yes</td>
+<td>part</td>
+<td>yes</td>
+<td>by policy: exceptions, errno or values</td>
+</tr>
+<tr class="odd">
+<td>Special functions: gamma, erf, Bessel, zeta, elliptic, Lambert
+W</td>
+<td>none (the C core has no <code>tgamma</code>, <code>lgamma</code>,
+<code>erf</code>, <code>erfc</code>)</td>
+<td>part (some of C's set, binary32 first)</td>
+<td>C's set</td>
+<td>C's set</td>
+<td>part (gamma, erf, beta)</td>
+<td>C's set</td>
+<td>yes, the widest of any here</td>
+</tr>
+<tr class="even">
+<td>Inverse hyperbolic functions, <code>log1p</code>,
+<code>expm1</code></td>
+<td>done (step 22): every family, <code>_c</code> forms constant
+expressions from C++14, long double within 0.53 of an ulp (S286)</td>
+<td>yes</td>
+<td>yes</td>
+<td>yes</td>
+<td>part</td>
+<td>yes</td>
+<td>yes</td>
+</tr>
+<tr class="odd">
+<td>C99's complex functions, with Annex G's cuts and special values</td>
+<td>done (step 22): the four exact ones once, and each other in a
+<code>_c</code> form, a constant expression from C++14, and a plain one,
+its bound stated in steps and checked against mpmath; Annex G as C17
+corrects it (S280 to S288); in C++,
+<code>math::complex&lt;T&gt;</code>'s functions the <code>_c</code>
+forms, constant expressions from C++14 (chunk 39, S313)</td>
+<td>CORE-MATH: none listed; LLVM libc: part, being added
+(<code>carg</code> in 2026-06)</td>
+<td>yes, <code>&lt;complex.h&gt;</code>; <code>cpow</code> as
+<code>cexp(w clog(z))</code></td>
+<td><code>&lt;complex.h&gt;</code>'s functions on
+<code>_Dcomplex</code>, no <code>_Complex</code></td>
+<td>no</td>
+<td><code>&lt;complex&gt;</code>'s <code>std::complex</code>: the
+functions; its arithmetic <code>constexpr</code> from C++20, its
+functions not</td>
+<td>part (the inverse trigonometric and hyperbolic functions)</td>
+</tr>
+<tr class="even">
+<td><code>exp2</code>, <code>log2</code>, <code>log10</code>,
+<code>log1p</code> and <code>expm1</code> of a complex number</td>
+<td>done (step 23, chunk 42): every family, each form one long double
+kernel in pairs rounded once, each part within a step of the correctly
+rounded one, checked against mpmath; the real function's bits on the
+real axis; Annex G's values of the functions they are forms of (S342 to
+S346); in C++, <code>math::complex&lt;T&gt;</code>'s</td>
+<td>none</td>
+<td><code>clog10</code> alone, a GNU extension</td>
+<td><code>clog10</code>, <code>clog10f</code> and <code>clog10l</code>
+in the UCRT</td>
+<td>no</td>
+<td><code>std::log10</code> of a <code>std::complex</code> alone</td>
+<td>no</td>
+</tr>
+<tr class="odd">
+<td>Statistical distributions</td>
+<td>none (<code>statistics/</code> is empty)</td>
+<td>no</td>
+<td>no</td>
+<td>no</td>
+<td>no</td>
+<td>no</td>
+<td>yes</td>
+</tr>
+<tr class="even">
+<td><code>_fast</code> variants of documented ulp bounds</td>
+<td>step 40, on measured demand</td>
+<td>no</td>
+<td>no</td>
+<td>no</td>
+<td>no</td>
+<td>no</td>
+<td>policies trade precision</td>
+</tr>
+<tr class="odd">
+<td>A standard proposal of the same aim</td>
+<td>P3864R1 (2026-02): <code>constexpr</code> <code>cr_add</code>,
+<code>cr_sub</code>, <code>cr_mul</code>, <code>cr_div</code>,
+<code>cr_sqrt</code>, correctly rounded whatever the rounding mode;
+djinterp's <code>_c</code> <code>sqrt</code> is correctly rounded and
+<code>constexpr</code> from C++14, in the default rounding mode, which
+is the only one in constant evaluation</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="4-the-expression-language">4. The expression language</h2>
+<table>
+<thead>
+<tr class="header">
+<th>Feature</th>
+<th>djinterp</th>
+<th>SymPy</th>
+<th>SymEngine</th>
+<th>GiNaC</th>
+<th>math.js</th>
+<th>ExprTk</th>
+<th>muParser, TinyExpr</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Parse text to a term, render a term to text that reads back as
+itself</td>
+<td>done (steps 13, 14)</td>
+<td>yes</td>
+<td>yes</td>
+<td>yes</td>
+<td>yes</td>
+<td>parse only</td>
+<td>parse only</td>
+</tr>
+<tr class="even">
+<td><code>+ - * / mod ^ !</code>, precedence, unary minus,
+<code>|x|</code> (an option)</td>
+<td>done (step 14)</td>
+<td>yes</td>
+<td>yes</td>
+<td>yes</td>
+<td>yes</td>
+<td>yes</td>
+<td>yes</td>
+</tr>
+<tr class="odd">
+<td>Implied multiplication, <code>2x</code></td>
+<td>done, an option (G5)</td>
+<td>an option (transformations)</td>
+<td>unclear</td>
+<td>unclear</td>
+<td>yes, by default</td>
+<td>yes</td>
+<td>no</td>
+</tr>
+<tr class="even">
+<td>Calls of the standard functions</td>
+<td>done, 25 and <code>abs</code>, <code>factorial</code> (step 15), the
+complex numbers' five (chunk 40), <code>log1p</code>,
+<code>expm1</code>, <code>asinh</code>, <code>acosh</code>,
+<code>atanh</code>, <code>sign</code>, <code>min</code> and
+<code>max</code> (chunk 41, S338), <code>transpose</code> (chunk 43,
+S350), the quaternions' <code>quat</code>, <code>parts</code> and
+<code>rotate</code> (chunk 45, S374, S375), and <code>rotmat</code>,
+<code>rotquat</code> and <code>slerp</code> (chunk 46, S391): 58 with
+piecewise's three and linear algebra's nine</td>
+<td>hundreds</td>
+<td>many</td>
+<td>many</td>
+<td>hundreds</td>
+<td>a few dozen</td>
+<td>about 20</td>
+</tr>
+<tr class="odd">
+<td>User functions and constants in the language</td>
+<td>none: the context is empty</td>
+<td>yes</td>
+<td>yes</td>
+<td>yes</td>
+<td>yes</td>
+<td>yes</td>
+<td>yes</td>
+</tr>
+<tr class="even">
+<td>Relations, logic, piecewise</td>
+<td>done (step 16)</td>
+<td>yes</td>
+<td>yes</td>
+<td>part (relations)</td>
+<td>yes</td>
+<td>yes</td>
+<td>part</td>
+</tr>
+<tr class="odd">
+<td>Complex numbers in the language, <code>3 + 4im</code></td>
+<td>done (step 23, chunks 40 to 43): <code>im</code>,
+<code>complex</code>, <code>real</code>, <code>imag</code>,
+<code>conj</code>, <code>arg</code>, the modulus, <code>z'</code>,
+<code>=</code> and <code>!=</code>, exact powers, exact Gaussian
+rationals or dense parts (S327 to S333); each function's principal
+value, exact roots and rational powers where Gaussian, a real function's
+complex value outside its domain unless the context asks real results,
+and folds in <code>math::complex&lt;T&gt;</code> (chunk 41, S336 to
+S341); <code>exp2</code>, <code>log2</code>, <code>log10</code>,
+<code>log1p</code> and <code>expm1</code> of a complex value, the C
+core's (chunk 42, S347); matrices of them (chunk 43, S348 to S353)</td>
+<td>yes, <code>I</code></td>
+<td>yes, <code>I</code></td>
+<td>yes, <code>I</code></td>
+<td>yes, <code>i</code></td>
+<td>unclear</td>
+<td>no (muParserX has them)</td>
+</tr>
+<tr class="even">
+<td>Quaternions in the language, <code>1 + 2jm - km</code></td>
+<td>done (step 24, chunk 45): <code>jm</code> and <code>km</code>,
+<code>quat(w, x, y, z)</code>, exact parts or dense ones, Hamilton's
+products in order, <code>p / q</code> = <code>p inv(q)</code> (S371,
+S372); the norm, <code>parts</code>, <code>real</code>,
+<code>conj</code>, <code>q'</code>, <code>inv</code>, <code>sign</code>,
+<code>exp</code>, <code>log</code>, <code>sqrt</code>, powers to a real
+exponent, exact roots and powers where rational (S373, S374);
+<code>rotate(q, v)</code> (S375); simplification keeping their factors
+in order (S376); matrices of them (chunk 46, below);
+<code>rotmat(q)</code>, the rotation's matrix, exact where q is,
+<code>rotquat(R)</code>, Shepperd's method exact where its root is
+rational, the nearest rotation's by Bar-Itzhack's method where R is no
+rotation's (chunk 53, S429), and <code>slerp(p, q, t)</code> (chunk 46,
+S391)</td>
+<td>part: <code>Quaternion(a, b, c, d)</code>, symbolic, with
+<code>exp</code>, <code>log</code>, <code>pow</code> (whole powers;
+<code>pow_cos_sin</code> any) and rotations; no literal syntax
+documented</td>
+<td>no</td>
+<td>part (Clifford algebras)</td>
+<td>no</td>
+<td>no</td>
+<td>no</td>
+</tr>
+<tr class="odd">
+<td>Vector and matrix literals, <code>[1, 2; 3, 4]</code></td>
+<td>done (step 19); blocks <code>[A, b; C, d]</code> and the empty
+<code>[]</code> (step 21)</td>
+<td>no (constructors; <code>BlockMatrix</code>)</td>
+<td>no</td>
+<td>no (constructors)</td>
+<td>yes, the same syntax, blocks by <code>concat</code></td>
+<td>no (vectors declared)</td>
+<td>no (muParserX has them)</td>
+</tr>
+<tr class="even">
+<td>Matrix arithmetic, transpose, indexing in the language</td>
+<td>done (step 20): sums, scalar and matrix products, <code>A'</code>,
+<code>A ^ n</code>, <code>v[i]</code>, <code>A[i, j]</code>, from 1;
+<code>A ^ (-n)</code> (step 21); of complex matrices, <code>A'</code>
+the conjugate transpose and <code>transpose(A)</code> the transpose
+(step 23, chunk 43, S349, S350)</td>
+<td>yes</td>
+<td>yes</td>
+<td>yes</td>
+<td>yes</td>
+<td>vectors only</td>
+<td>no</td>
+</tr>
+<tr class="odd">
+<td>Matrices of complex numbers in the language,
+<code>[1, 2im; 3, 4]</code></td>
+<td>done (step 23, chunk 43): dense as
+<code>math::complex&lt;T&gt;</code> or exact, each element kept as given
+(S348); <code>real</code>, <code>imag</code>, <code>conj</code> and
+<code>arg</code> of a matrix element by element,
+<code>complex(A, B)</code> (S350)</td>
+<td>yes</td>
+<td>yes</td>
+<td>yes</td>
+<td>yes</td>
+<td>no</td>
+<td>no</td>
+</tr>
+<tr class="even">
+<td>Matrices of quaternions in the language,
+<code>[1, jm; km, 2]</code></td>
+<td>done (step 24, chunk 46): dense as
+<code>math::quaternion&lt;T&gt;</code> or exact (S386); each element the
+quaternion kind's own arithmetic, each product in its order,
+<code>q * A</code> and <code>A * q</code> apart (S387); <code>A'</code>
+conjugating; <code>inv</code> and <code>solve</code> by Gauss-Jordan in
+each product's order, exact where exact, <code>det</code> a domain error
+(S388); Zhang's standard eigenvalues (S389)</td>
+<td>unclear</td>
+<td>no</td>
+<td>unclear</td>
+<td>no</td>
+<td>no</td>
+<td>no</td>
+</tr>
+<tr class="odd">
+<td>Element-wise operators and a scalar broadcast, <code>A .* B</code>,
+<code>A + 1</code></td>
+<td>none: <code>A + 1</code> is a domain error (S246)</td>
+<td>part (<code>multiply_elementwise</code>)</td>
+<td>unclear</td>
+<td>unclear</td>
+<td>yes, both</td>
+<td>yes, on vectors</td>
+<td>no</td>
+</tr>
+<tr class="even">
+<td>Slices and an index from the end, <code>A[1:2, :]</code>,
+<code>end</code></td>
+<td>none</td>
+<td>yes</td>
+<td>unclear</td>
+<td>part (<code>sub_matrix</code>)</td>
+<td>yes</td>
+<td>part (vector ranges)</td>
+<td>no</td>
+</tr>
+<tr class="odd">
+<td><code>det</code>, <code>inv</code>, <code>solve</code>,
+<code>trace</code>, <code>eig</code>, <code>dot</code>,
+<code>cross</code>, <code>norm</code></td>
+<td>done (step 21): exact for exact matrices, rational eigenvalues
+exact; of complex matrices, <code>dot</code> conjugating,
+<code>norm</code> of the moduli, and every eigenvalue, complex where it
+is, exact where it is a Gaussian rational (step 23, chunk 43, S351,
+S352)</td>
+<td>yes</td>
+<td>part (det, inv, LU)</td>
+<td>part (det, inverse, linear solve)</td>
+<td>yes, and <code>expm</code>, <code>sqrtm</code>, <code>pinv</code>,
+<code>schur</code></td>
+<td>dot only</td>
+<td>no</td>
+</tr>
+<tr class="even">
+<td>Evaluation in a chosen type, and as an exact value</td>
+<td>done</td>
+<td>yes (<code>evalf</code>, exact by default)</td>
+<td>yes</td>
+<td>yes</td>
+<td>one configured type</td>
+<td>the template type</td>
+<td>double</td>
+</tr>
+<tr class="odd">
+<td>Evaluation at any precision</td>
+<td>step 49</td>
+<td>yes</td>
+<td>yes (MPFR)</td>
+<td>yes</td>
+<td>yes (<code>bignumber</code>)</td>
+<td>yes (MPFR type)</td>
+<td>no</td>
+</tr>
+<tr class="even">
+<td>A handle that chains each step, failure through
+<code>result</code></td>
+<td>done (step 17)</td>
+<td>methods, exceptions</td>
+<td>methods, exceptions</td>
+<td>methods, exceptions</td>
+<td>methods, exceptions</td>
+<td>no</td>
+<td>no</td>
+</tr>
+<tr class="odd">
+<td>Loops, assignment, strings, <code>return</code></td>
+<td>none</td>
+<td>Python itself</td>
+<td>no</td>
+<td>C++ itself</td>
+<td>part (assignment, functions)</td>
+<td>yes</td>
+<td>no</td>
+</tr>
+<tr class="even">
+<td>Compile once, evaluate fast many times</td>
+<td>done (chunk 47, S395): <code>expr_compile&lt;T&gt;</code>, steps run
+on a stack, each answer the fold's; as values, a term folds each
+time</td>
+<td><code>lambdify</code> to NumPy</td>
+<td><code>lambdify</code>, LLVM back end</td>
+<td>part</td>
+<td><code>compile()</code></td>
+<td>yes, its design</td>
+<td>yes, its design</td>
+</tr>
+<tr class="odd">
+<td>Compile-time expressions, and <code>reify</code> from compile time
+to run time</td>
+<td>steps 29 to 32</td>
+<td>no</td>
+<td>no</td>
+<td>no</td>
+<td>no</td>
+<td>no</td>
+<td>no</td>
+</tr>
+<tr class="even">
+<td>LaTeX out and in</td>
+<td>later</td>
+<td>yes, both</td>
+<td>out</td>
+<td>out</td>
+<td>out</td>
+<td>no</td>
+<td>no</td>
+</tr>
+<tr class="odd">
+<td>Code generation, C or Fortran</td>
+<td>none</td>
+<td>yes</td>
+<td>part (LLVM)</td>
+<td>out as C</td>
+<td>no</td>
+<td>no</td>
+<td>no</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="5-symbolic-computation">5. Symbolic computation</h2>
+<table>
+<thead>
+<tr class="header">
+<th>Feature</th>
+<th>djinterp</th>
+<th>SymPy</th>
+<th>SymEngine</th>
+<th>GiNaC</th>
+<th>math.js</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Substitution</td>
+<td>done (step 18)</td>
+<td>yes</td>
+<td>yes</td>
+<td>yes</td>
+<td>yes (<code>resolve</code>, scope)</td>
+</tr>
+<tr class="even">
+<td>Simplification: constant folding, like terms, identities</td>
+<td>done, the value kept wherever each part is finite (step 18, S228);
+the order kept of factors that do not commute, matrices (S251) and
+quaternions, with complex numbers beside them (S376)</td>
+<td>yes, many strategies</td>
+<td>part</td>
+<td>part (<code>normal</code>, <code>collect</code>)</td>
+<td>yes, rule-based, with a context of assumptions such as
+commutativity</td>
+</tr>
+<tr class="odd">
+<td>Non-commutative factors kept in order</td>
+<td>done for matrix literals and values (step 20, S251); a variable is
+taken for a number, no matrix variable declared</td>
+<td>yes, with matrix symbols</td>
+<td>unclear</td>
+<td>yes</td>
+<td>yes, by context</td>
+</tr>
+<tr class="even">
+<td>Expand, factor, polynomial gcd, a canonical form</td>
+<td>none</td>
+<td>yes</td>
+<td>part (expand)</td>
+<td>yes</td>
+<td>part (<code>rationalize</code>)</td>
+</tr>
+<tr class="odd">
+<td>The symbolic derivative, partial derivatives, gradient</td>
+<td>step 25</td>
+<td>yes</td>
+<td>yes</td>
+<td>yes</td>
+<td>yes (<code>derivative</code>)</td>
+</tr>
+<tr class="even">
+<td>Series: Taylor</td>
+<td>step 27</td>
+<td>yes, Laurent and Puiseux too</td>
+<td>yes</td>
+<td>yes</td>
+<td>no</td>
+</tr>
+<tr class="odd">
+<td>Limits</td>
+<td>step 27, numeric first</td>
+<td>yes, symbolic (Gruntz)</td>
+<td>no</td>
+<td>no</td>
+<td>no</td>
+</tr>
+<tr class="even">
+<td>Sums and products</td>
+<td>step 27</td>
+<td>yes, closed forms</td>
+<td>no</td>
+<td>no</td>
+<td>no</td>
+</tr>
+<tr class="odd">
+<td>Antiderivatives</td>
+<td>step 28, a table of elementary forms</td>
+<td>yes (Risch in part, heuristics)</td>
+<td>no</td>
+<td>no</td>
+<td>no</td>
+</tr>
+<tr class="even">
+<td>Numeric integrals and derivatives of a term</td>
+<td>step 26 (<code>calculus/</code> has the quadrature)</td>
+<td>yes (mpmath)</td>
+<td>no</td>
+<td>integrals (<code>integral</code>)</td>
+<td>no</td>
+</tr>
+<tr class="odd">
+<td>Symbolic equation solving</td>
+<td>none beyond <code>solve</code> of a linear system (done, step
+21)</td>
+<td>yes</td>
+<td>part (polynomials)</td>
+<td>linear systems</td>
+<td>no (numeric <code>lsolve</code>, <code>polynomialRoot</code>)</td>
+</tr>
+<tr class="even">
+<td>Differential equations</td>
+<td>none</td>
+<td>yes</td>
+<td>no</td>
+<td>no</td>
+<td>no</td>
+</tr>
+<tr class="odd">
+<td>Assumptions (x real, positive, finite)</td>
+<td>none</td>
+<td>yes</td>
+<td>unclear</td>
+<td>part (<code>realsymbol</code>, <code>possymbol</code>)</td>
+<td>part (the simplify context)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="6-linear-algebra">6. Linear algebra</h2>
+<table>
+<thead>
+<tr class="header">
+<th>Feature</th>
+<th>djinterp</th>
+<th>Eigen</th>
+<th>math.js</th>
+<th>SymPy</th>
+<th>FLINT</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Fixed-size vectors and matrices, constant expressions</td>
+<td>done; kernels <code>constexpr</code> from C++14</td>
+<td>fixed-size, not <code>constexpr</code></td>
+<td>no</td>
+<td>no</td>
+<td>no</td>
+</tr>
+<tr class="even">
+<td>Dynamic matrices</td>
+<td>done</td>
+<td>yes</td>
+<td>yes</td>
+<td>yes</td>
+<td>yes</td>
+</tr>
+<tr class="odd">
+<td>Any number type, exact <code>math::value</code> among them</td>
+<td>done (step 11)</td>
+<td>any scalar type, by traits</td>
+<td>its number types</td>
+<td>any SymPy expression</td>
+<td>integers, rationals, finite fields, balls</td>
+</tr>
+<tr class="even">
+<td>A matrix of mixed exact and floating elements, each kept as
+given</td>
+<td>done (step 19, S239)</td>
+<td>no: one scalar type</td>
+<td>unclear</td>
+<td>yes</td>
+<td>no</td>
+</tr>
+<tr class="odd">
+<td>LU, QR, Cholesky, SVD, pseudoinverse</td>
+<td>done</td>
+<td>yes, several of each</td>
+<td>LU, QR, pinv</td>
+<td>yes</td>
+<td>LU, exact</td>
+</tr>
+<tr class="even">
+<td>Symmetric eigensolver; general eigenvalues</td>
+<td>done; complex eigenvalues and eigenvectors by LAPACK's path,
+balancing, Francis's QR and the Schur vectors, in the C core (step 22,
+chunk 38, S292) and the C++ face, as <code>math::complex&lt;T&gt;</code>
+(chunk 39, S317); in the language every one, complex where it is,
+ordered by real part, then imaginary part (step 23, chunk 43, S352)</td>
+<td>yes, complex eigenvalues too</td>
+<td>yes</td>
+<td>exact, with complex roots</td>
+<td>exact charpoly, ball roots</td>
+</tr>
+<tr class="odd">
+<td>Complex matrices: LU, inverse, solution, Hermitian and general
+eigensolvers</td>
+<td>done in the C core (step 22, chunk 38, S297 to S299); in the C++
+face, vectors and matrices of <code>math::complex&lt;T&gt;</code>, their
+determinant, inverse and solution the C core's bits (chunk 39, S315); in
+the language, the C core's where dense and exact where exact, a
+Hermitian matrix's eigenvalues real (step 23, chunk 43, S351, S352)</td>
+<td>yes</td>
+<td>yes</td>
+<td>yes</td>
+<td>balls (<code>acb_mat</code>)</td>
+</tr>
+<tr class="even">
+<td>The conjugating inner product, the adjoint, a unitary test</td>
+<td>done: the language's <code>dot</code> and <code>A'</code> conjugate
+(chunk 43, S273, S351); the C++ face's <code>vdot</code>, complex norms
+and <code>is_unitary</code>, its <code>dot</code> bilinear (S322,
+S354)</td>
+<td>yes: <code>dot</code> conjugates its first, <code>adjoint()</code>,
+<code>isUnitary()</code></td>
+<td>part: <code>ctranspose</code>; whether <code>dot</code> conjugates
+unclear</td>
+<td>part: <code>H</code>, <code>dot</code> with
+<code>hermitian=True</code></td>
+<td>part: <code>acb_mat_conjugate_transpose</code></td>
+</tr>
+<tr class="odd">
+<td>Runtime-sized complex matrices in C++</td>
+<td>done: <code>dynamic_matrix</code> of every element type the
+fixed-size matrix takes, <code>math::complex&lt;T&gt;</code>,
+<code>math::value</code> and <code>math::inline_value</code> among them
+(chunk 46, S354, S392)</td>
+<td>yes, <code>MatrixXcd</code></td>
+<td>not C++</td>
+<td>not C++</td>
+<td>not C++ (<code>acb_mat</code>, in C)</td>
+</tr>
+<tr class="even">
+<td>Norms that neither overflow nor underflow at the range's ends</td>
+<td>done in the C core and every face, every bit in range kept (chunk
+38, S301)</td>
+<td><code>stableNorm()</code> and <code>blueNorm()</code> beside the
+plain <code>norm()</code></td>
+<td>no</td>
+<td>exact</td>
+<td>balls</td>
+</tr>
+<tr class="odd">
+<td>A default tolerance relative to the operands' scale</td>
+<td>done: four epsilons of the type, 0 for exact values (chunk 38, S303,
+S304)</td>
+<td>yes, <code>isApprox</code>, <code>dummy_precision()</code> 1e-12 for
+double</td>
+<td>an absolute and a relative epsilon, configured</td>
+<td>exact comparison</td>
+<td>balls</td>
+</tr>
+<tr class="even">
+<td>Matrices over a type whose products do not commute
+(quaternions)</td>
+<td>done: products kept in their order, <code>solve</code> and
+<code>inverse</code> exact over exact quaternions (chunk 38, S305); in
+the language, dense or exact, each row divided on the left as A X = B
+asks, <code>det</code> a domain error, and Zhang's standard right
+eigenvalues, one of each conjugate pair of the complex adjoint's (chunk
+46, S388, S389)</td>
+<td>no: a scalar must commute</td>
+<td>no</td>
+<td>part (noncommutative symbols)</td>
+<td>no</td>
+</tr>
+<tr class="odd">
+<td>Exact determinant and inverse of rational matrices</td>
+<td>done (step 21): Bareiss's elimination and Gauss-Jordan on exact
+values</td>
+<td>no (a custom scalar can)</td>
+<td>with fractions</td>
+<td>yes</td>
+<td>yes, fast</td>
+</tr>
+<tr class="even">
+<td>Exact rational eigenvalues of a rational matrix</td>
+<td>done (step 21): found in long double, made exact as roots of the
+exact characteristic polynomial</td>
+<td>no</td>
+<td>no</td>
+<td>yes, and algebraic ones</td>
+<td>yes, exact charpoly and its roots</td>
+</tr>
+<tr class="odd">
+<td>Sparse matrices</td>
+<td>none</td>
+<td>yes</td>
+<td>yes</td>
+<td>yes</td>
+<td>unclear</td>
+</tr>
+<tr class="even">
+<td>SIMD vectorization, expression templates</td>
+<td>an opt-in lazy type, eager by default (step 34, chunk 60): one pass,
+no temporary a step, the eager bits; no SIMD of its own</td>
+<td>yes</td>
+<td>no</td>
+<td>no</td>
+<td>n/a</td>
+</tr>
+<tr class="odd">
+<td><code>mdspan</code>, a <code>std::linalg</code> layer</td>
+<td>later</td>
+<td>part (<code>Map</code>)</td>
+<td>no</td>
+<td>no</td>
+<td>no</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="7-portability-form-and-assurance">7. Portability, form and
+assurance</h2>
+<table>
+<thead>
+<tr class="header">
+<th>Feature</th>
+<th>djinterp</th>
+<th>SymPy</th>
+<th>SymEngine</th>
+<th>GiNaC</th>
+<th>math.js</th>
+<th>ExprTk</th>
+<th>Eigen</th>
+<th>Boost.Math</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Header-only, no dependency</td>
+<td>yes</td>
+<td>no</td>
+<td>no</td>
+<td>no (CLN)</td>
+<td>n/a</td>
+<td>yes</td>
+<td>yes</td>
+<td>mostly</td>
+</tr>
+<tr class="even">
+<td>C callers</td>
+<td>the core</td>
+<td>no</td>
+<td>yes (C wrapper)</td>
+<td>no</td>
+<td>no</td>
+<td>no</td>
+<td>no</td>
+<td>no</td>
+</tr>
+<tr class="odd">
+<td>Strict C++98</td>
+<td>the core and most faces; expressions from C++11</td>
+<td>n/a</td>
+<td>no</td>
+<td>no</td>
+<td>n/a</td>
+<td>not stated</td>
+<td>Eigen 3.4 C++03; Eigen 5 C++14</td>
+<td>no (C++14)</td>
+</tr>
+<tr class="even">
+<td>Thread-safe sharing of values</td>
+<td>part: boxed holders are not atomic (S134)</td>
+<td>the interpreter's lock</td>
+<td>unclear</td>
+<td>unclear</td>
+<td>n/a</td>
+<td>per expression</td>
+<td>yes</td>
+<td>yes</td>
+</tr>
+<tr class="odd">
+<td>One answer at every level and in constant evaluation</td>
+<td>a principle, tested in a 64-build matrix</td>
+<td>n/a</td>
+<td>no</td>
+<td>no</td>
+<td>n/a</td>
+<td>no</td>
+<td>no</td>
+<td>no</td>
+</tr>
+<tr class="even">
+<td>Planted-fault (mutation) checks of every chunk</td>
+<td>yes, 53 in chunk 38</td>
+<td>not stated</td>
+<td>not stated</td>
+<td>not stated</td>
+<td>not stated</td>
+<td>not stated</td>
+<td>not stated</td>
+<td>not stated</td>
+</tr>
+<tr class="odd">
+<td>Language bindings</td>
+<td>none</td>
+<td>Python</td>
+<td>Python, Julia, R and others</td>
+<td>Python (third-party)</td>
+<td>n/a</td>
+<td>no</td>
+<td>many, third-party</td>
+<td>no</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="8-where-djinterp-meets-exceeds-and-falls-short">8. Where
+djinterp meets, exceeds and falls short</h2>
+<p><strong>It exceeds</strong> the others where its principles go
+further than any of them:</p>
+<ul>
+<li><strong>One answer.</strong> The same bits at every language level
+from C99 and C++98 to C++23, and in constant evaluation as at run time.
+LLVM libc and CORE-MATH give the same bits across platforms at run time,
+and clang and MSVC are bringing them to constant evaluation; no
+expression library promises it of a whole language, and no C++
+constant-evaluation library (gcem, the standard's <code>constexpr</code>
+<code>&lt;cmath&gt;</code>) promises correct rounding.</li>
+<li><strong>Exact by default in the language.</strong> <code>0.1</code>
+is 1/10 and <code>0.1 + 0.2 = 0.3</code> holds, where SymPy reads
+<code>0.1</code> as a float unless asked and math.js needs a
+configuration; exactness crosses kinds in comparison and survives being
+put in a matrix (S239).</li>
+<li><strong>Errors as values.</strong> Every failure is a value that
+passes through, the first kept, with Kleene's logic, where the others
+raise exceptions or give NaN.</li>
+<li><strong>Reach.</strong> A C core and C++98 faces under the same
+answers. Of the symbolic libraries only SymEngine has C callers, through
+a wrapper of its C++; TinyExpr is C, and evaluates doubles alone; none
+has a C++98 floor.</li>
+<li><strong>Compile time to run time.</strong> <code>reify</code> (step
+32) carries a compile-time expression to a run-time term, which none of
+the others has.</li>
+</ul>
+<p><strong>It meets</strong> them, once the planned steps are done, in:
+parsing, printing and evaluating a language of arithmetic, relations,
+logic and piecewise (ExprTk, muParser, math.js); compiling a term once
+to be run many times in a type, as muParser's bytecode and math.js's
+<code>compile()</code> do, though not to machine code, as SymEngine's
+LLVM back end does (S395); MATLAB's matrix literals, blocks, products,
+transpose, indexing and its <code>det</code>, <code>inv</code>,
+<code>solve</code> and <code>eig</code> (math.js); the basic rewrites of
+math.js's <code>simplify</code>; correctly rounded elementary functions
+(CORE-MATH, LLVM libc, from step 36); the dense decompositions most
+users need (Eigen's main ones); and the kinds of big numbers GMP and
+MPFR have (steps 44 to 49), though not their speed at large sizes.</p>
+<p><strong>It falls short</strong>, with no step planned, in:</p>
+<ol type="1">
+<li>user functions and constants in the language, which every evaluator
+here has;</li>
+<li>special functions: C99's own <code>tgamma</code>,
+<code>lgamma</code>, <code>erf</code> and <code>erfc</code> are missing
+from the core (<code>asinh</code>, <code>acosh</code>,
+<code>atanh</code>, <code>log1p</code> and <code>expm1</code> came with
+step 22's complex functions), and Boost.Math's breadth (Bessel, zeta,
+elliptic, distributions) is far off;</li>
+<li>computer algebra past the basics: expand, factor and gcd, symbolic
+solving, symbolic limits, differential equations and assumptions past
+step 25's declared domains (S274), where SymPy and GiNaC have two
+decades of work and SymEngine more than one;</li>
+<li>element-wise operators, broadcasting and slices, which math.js and
+NumPy-style languages have (S246, S249);</li>
+<li>sparse matrices and SIMD, which Eigen has;</li>
+<li>LaTeX, code generation and language bindings;</li>
+<li>multiplication of very large numbers by FFT, which GMP and FLINT
+have;</li>
+<li>maturity: most of the others have a decade or more of users, which
+no plan replaces.</li>
+</ol>
+<h2 id="9-what-the-comparison-suggests">9. What the comparison
+suggests</h2>
+<p>For the owner's consideration, the best additions by what they give,
+each a decision of his to take or leave:</p>
+<ol type="1">
+<li><strong>Done in steps 20 and 21:</strong> products of matrices kept
+in order by simplification (S230's review, S251); matrix arithmetic
+delegated to the C core's <code>mat.h</code> and <code>vec.h</code> and
+to <code>linear_algebra</code>'s generic matrices (S237's review, S247);
+and the C core's <code>d_mat_power</code> by squaring, so that a dense
+power has one answer (S248's review, S262). Matrix variables declared
+are ruled for step 25, as declared domains (S274).</li>
+<li><strong>User functions and constants</strong> in
+<code>expr_context</code>, a small step with a large gain: every
+evaluator compared has them.</li>
+<li><strong>C99's missing functions</strong> in the C core, then in the
+language: the inverse hyperbolic functions, <code>log1p</code> and
+<code>expm1</code> are in the C core (step 22, chunk 37, S286) and in
+the language since chunk 41 (S203, S338), their complex values with
+them, <code>log1p</code>'s and <code>expm1</code>'s since chunk 42
+(S342, S347); the gamma and error functions are still open, each to have
+its <code>_c</code> form, so "one answer" covers them too.</li>
+<li><strong>Complex numbers as a value kind</strong>, so that
+<code>eig</code>'s eigenvalues are whole: ruled by the owner on
+2026.10.27 for steps 22 and 23, with quaternions in step 24 (S265 to
+S278); the C core finds every pair since chunk 38 (S292), the C++ face
+gives them as <code>math::complex&lt;T&gt;</code> since chunk 39 (S317),
+a complex number is a value of the language since chunk 40 (S327), with
+its functions since chunks 41 and 42 (S336, S347), and the language's
+<code>eig</code> gives every eigenvalue, of complex matrices too, since
+step 23's third part, chunk 43 (S352), and of matrices of quaternions
+their standard eigenvalues since step 24's third part, chunk 46 (S389):
+done.</li>
+<li><strong>Polynomial algebra</strong> (expand, factor, gcd, a
+canonical form) beside <code>simplify</code> (S231's review), before
+step 25's derivative needs a canonical form to simplify into.</li>
+<li><strong>Assumptions</strong>, the conditions under which
+simplification holds (S228's review).</li>
+</ol>
+<p>Sources, as of 2026-10-25:</p>
+<ul>
+<li>math.js, its features and function reference: <a
+href="https://mathjs.org/">https://mathjs.org/</a> and <a
+href="https://mathjs.org/docs/reference/functions;">https://mathjs.org/docs/reference/functions;</a>
+its algebra, <code>simplify</code>'s context and
+<code>realContext</code>: <a
+href="https://mathjs.org/docs/expressions/algebra.html">https://mathjs.org/docs/expressions/algebra.html</a></li>
+<li>SymEngine: <a
+href="https://symengine.org">https://symengine.org</a></li>
+<li>GiNaC: <a
+href="https://en.wikipedia.org/wiki/GiNaC">https://en.wikipedia.org/wiki/GiNaC</a>
+and <a
+href="https://www.ginac.de/RelatedSoftware.html">https://www.ginac.de/RelatedSoftware.html</a>
+(CLN)</li>
+<li>ExprTk: <a
+href="https://www.partow.net/programming/exprtk/index.html">https://www.partow.net/programming/exprtk/index.html</a></li>
+<li>P3864R1, Correctly rounded floating-point maths functions
+(2026-02-22): <a
+href="https://open-std.org/JTC1/SC22/WG21/docs/papers/2026/p3864r1.html">https://open-std.org/JTC1/SC22/WG21/docs/papers/2026/p3864r1.html</a></li>
+<li>MSVC's C++23 <code>constexpr</code> <code>&lt;cmath&gt;</code> with
+LLVM libc (2026-09-10): <a
+href="https://devblogs.microsoft.com/cppblog/msvc-c23-constexpr-cmath-with-llvm-libc/">https://devblogs.microsoft.com/cppblog/msvc-c23-constexpr-cmath-with-llvm-libc/</a></li>
+<li>Correctly rounded math in production with LLVM libc (2026-09-16): <a
+href="https://devblogs.microsoft.com/cppblog/bringing-correctly-rounded-math-to-production-with-llvm-libc/">https://devblogs.microsoft.com/cppblog/bringing-correctly-rounded-math-to-production-with-llvm-libc/</a></li>
+<li>LLVM libc's math functions: <a
+href="https://libc.llvm.org/math">https://libc.llvm.org/math</a></li>
+<li>math.js's <code>ctranspose</code>, the conjugate transpose (chunk
+43, 2026-11-02): <a
+href="https://mathjs.org/docs/reference/functions/ctranspose.html">https://mathjs.org/docs/reference/functions/ctranspose.html</a></li>
+<li>glibc's <code>clog10</code>, a GNU extension (chunk 42, 2026-11-02):
+<a
+href="https://linux.die.net/man/3/clog10">https://linux.die.net/man/3/clog10</a></li>
+<li>The UCRT's <code>clog10</code>, <code>clog10f</code> and
+<code>clog10l</code> (chunk 42, 2026-11-02): <a
+href="https://learn.microsoft.com/en-us/cpp/c-runtime-library/reference/clog10-clog10f-clog10l">https://learn.microsoft.com/en-us/cpp/c-runtime-library/reference/clog10-clog10f-clog10l</a></li>
+<li>glibc taking <code>cosf</code> and <code>sincosf</code> from
+CORE-MATH (patches of 2026-03-25): <a
+href="https://patchwork.sourceware.org/project/glibc/patch/20260325192357.1284741-6-adhemerval.zanella@linaro.org/">https://patchwork.sourceware.org/project/glibc/patch/20260325192357.1284741-6-adhemerval.zanella@linaro.org/</a></li>
+<li>MATLAB's <code>rotmat(quat, "point")</code>, the convention
+<code>rotmat</code> follows (chunk 46, 2026-11-08): <a
+href="https://www.mathworks.com/help/vision/ref/quaternion.rotmat.html">https://www.mathworks.com/help/vision/ref/quaternion.rotmat.html</a></li>
+<li>The standard eigenvalues and the complex adjoint, after Zhang
+(1997), as restated in arXiv 2302.07638 (chunk 46, 2026-11-08): <a
+href="https://arxiv.org/pdf/2302.07638">https://arxiv.org/pdf/2302.07638</a></li>
+<li>The rest from the libraries' documentation as of the lane's
+knowledge: SymPy, muParser, TinyExpr, Eigen, Boost.Math, GMP, MPFR,
+FLINT, gcem.</li>
+</ul>
+</body>
+</html>

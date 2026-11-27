@@ -3,7 +3,7 @@
 *
 * A program's description as JSON, for the tools that are built from it:
 * its man pages, its wiki pages, and the checks a page's prose is held to
-* (docs/djinterp/tools/cli/HELP_JSON.md). `PROGRAM help --format=json`
+* (docs/djinterp/tools/cli/HELP_JSON.html). `PROGRAM help --format=json`
 * writes it, and `PROGRAM help COMMAND --format=json` the part of it from a
 * command down.
 *   The description names its shape first, "djinterp.help/1.0", and then
@@ -232,7 +232,7 @@ D_CLI_API int d_cli_json_finish(
  *       `settings`, `variables`, `prefixes`, `exit_statuses`; then the
  *       program's own, from its hook (d_cli_program_set_help_json). The
  *       options and commands help hides are left out, as help leaves them.
- *       HELP_JSON.md gives each member.
+ *       HELP_JSON.html gives each member.
  *
  * @param[in]     _program  the program.
  * @param[in]     _command  the command to describe from; NULL for the
@@ -255,7 +255,7 @@ D_CLI_API int d_cli_help_json(
  *
  * @note The hook writes each member with d_cli_json_member and its value,
  *       and returns D_ARG_OK; any other status ends the description with
- *       it. HELP_JSON.md names the members a reader knows: `djins`,
+ *       it. HELP_JSON.html names the members a reader knows: `djins`,
  *       `reserved` and `sections`.
  *
  * @param[in,out] _program  the program.

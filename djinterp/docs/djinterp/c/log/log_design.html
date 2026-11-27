@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>The event and log contract</title>
+  <style>
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+    /* CSS for syntax highlighting */
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+</head>
+<body>
+<h1 id="the-event-and-log-contract">The event and log contract</h1>
+<p>The log's design, agreed Friday 11-13: what a log record is, how it
+is written, and how it relates to events, message codes and desc. It
+records the owner's rulings of 11-12, 11-17 and 11-25, cited by the
+log's decision numbers. The code lands on Wednesday 11-18 (decisions 27
+and 80): <code>c/log/log.h</code>, <code>src/djinterp/c/log/log.c</code>
+and <code>log_writers.c</code>, its knobs in
+<code>config/c/log/cfg_log.h</code>, and its suite,
+<code>c_log_tests</code>. Every feature is customizable: a knob
+(<code>D_CFG_*</code>, fixed when compiling) says what a build has, and
+an option (a row of the <code>log</code> djin, set from a file, the
+environment or the command line) says what a run does, with sensible
+defaults for both.</p>
+<h2 id="a-log-record-is-an-event-a-message-code-and-desc-facts">A log
+record is an event, a message code and desc facts</h2>
+<pre class="text"><code>record = event occurrence      (c/event: a dj_event_key and its payload)
+       + message code          (the codes registry)
+       + desc facts            (docs/djinterp/c/desc/desc_design.html)
+       + time, severity, origin</code></pre>
+<ul>
+<li><strong>The event</strong> is what happened, as the event system
+already names it: a <code>dj_event_key</code> and its occurrence's
+payload. Logging is then one more subscriber: a log writer is a handler
+on the log's dispatcher, and anything that listens for events can listen
+for log records with no second mechanism.</li>
+<li><strong>The message code</strong> says what kind of thing happened,
+stably, for machines: a module, a number, a name, a class, a grade and a
+one-line template ("net.connect_timeout": "connecting to {host} took
+over {timeout_ms} ms"). Codes are the contract: text may be reworded, a
+code's meaning may not.</li>
+<li><strong>The facts</strong> are the record's data, as desc emits
+them: each a <code>struct dj_desc_fact</code>
+(<code>c/desc/desc.h</code>). The message's template names facts, so the
+text is written last, from facts, like every other desc output.</li>
+</ul>
+<h2 id="the-event-key-decision-21-c">The event key (decision 21
+(c))</h2>
+<p>A record's key is the hash of its code's full name
+("net.connect_timeout"), FNV-1a 64 (<code>d_event_key_of_name</code>),
+so C and C++, two runs and two processes agree, with no registration.
+Uniqueness is checked, not hoped for: CI hashes every name in the codes
+manifest (below) and fails on a collision, and a debug build checks each
+name as it registers.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Knob</th>
+<th>Default</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>D_CFG_EVENT_KEY_CHECK</code></td>
+<td>1</td>
+<td>0 never, 1 in debug builds, 2 always
+(<code>cfg_event_common.h</code>)</td>
+</tr>
+</tbody>
+</table>
+<p><code>d_log_code_key</code> gives a code's key;
+<code>d_log_module_add</code> refuses a table whose key collides with a
+registered one's, where the check is built, and a table with a number
+twice, always.</p>
+<p>Events and codes share one key space. An event's name is declared
+beside its type, the same string in C and C++ (the event core's decision
+15: <code>D_EVENT(DOnResize, "ui.resize", int, int)</code>,
+<code>D_EVENT_DECLARE(on_resize, "ui.resize", int, int)</code>), and
+hashed the same way. A record is an occurrence of its code's event, so a
+name means one thing, with one payload, whichever declared it: the
+manifest lists events' names as well as codes', and CI's collision check
+covers both (decision 64). The debug check sees only registered codes,
+since events are not registered. A program's own hash
+(<code>D_CFG_EVENT_KEY_HASH</code>) and the option
+<code>event.key_check</code> come with the event system's djin, in week
+3. CI's check of the tree's own names is not optional: it is the tree's
+guarantee.</p>
+<h2 id="levels-decision-22">Levels (decision 22)</h2>
+<p>Every level is a name and a severity on OpenTelemetry's scale of 1 to
+24, so a threshold is one comparison, and any level maps onto
+OpenTelemetry and syslog. The seven built in:</p>
+<table>
+<thead>
+<tr class="header">
+<th>Level</th>
+<th>trace</th>
+<th>debug</th>
+<th>info</th>
+<th>notice</th>
+<th>warning</th>
+<th>error</th>
+<th>fatal</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Severity</td>
+<td>1</td>
+<td>5</td>
+<td>9</td>
+<td>10</td>
+<td>13</td>
+<td>17</td>
+<td>21</td>
+</tr>
+</tbody>
+</table>
+<p><code>D_CFG_LOG_LEVELS</code> says how much of this a build has, a
+spectrum from none to levels added while the program runs:</p>
+<ul>
+<li><strong>0, no levels.</strong> Every record is written; level
+arguments and checks compile away.</li>
+<li><strong>1, the seven</strong> (the default).</li>
+<li><strong>2, the seven and a program's own, fixed when
+compiling:</strong> <code>D_CFG_LOG_LEVELS_EXTRA</code> lists name and
+severity pairs, <code>(audit, 14)</code>.</li>
+<li><strong>3, a run-time registry:</strong> levels may also be added
+while the program runs, <code>d_log_level_add("audit", 14)</code>, or
+from settings, <code>log.levels="audit=14,security=19"</code>.</li>
+</ul>
+<p><code>D_CFG_LOG_LEVEL_MIN</code> compiles out every record below a
+level, at no cost, since the cheapest level check is none. The options
+<code>log.level</code> (a name or a number) and
+<code>log.&lt;module&gt;.level</code> set the threshold for the run, and
+per module.</p>
+<h2 id="writing-a-record">Writing a record</h2>
+<div class="sourceCode" id="cb2"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>D_LOG<span class="op">(</span>net<span class="op">,</span> connect_timeout<span class="op">,</span> D_LOG_FACT_TEXT<span class="op">(</span><span class="st">&quot;host&quot;</span><span class="op">,</span> host<span class="op">),</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>                            D_LOG_FACT_INT<span class="op">(</span><span class="st">&quot;timeout_ms&quot;</span><span class="op">,</span> ms<span class="op">));</span></span></code></pre></div>
+<p>writes, in text,</p>
+<pre class="text"><code>2026-11-13T15:04:05.123Z error net.connect_timeout: connecting to db1 took over 500 ms host=db1 timeout_ms=500</code></pre>
+<p><code>D_LOG</code> needs variadic macros (C99, C++11);
+<code>d_log_emit(code, level, facts, count)</code> is the same in one
+call, for C++98 and for a subscriber that finds its code at run time
+(<code>d_log_code_find(module, size, number)</code>). A record with
+nested facts is opened, filled through its sink, and closed:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> dj_log_record record<span class="op">;</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="op">(</span>d_log_open<span class="op">(&amp;</span>record<span class="op">,</span> <span class="op">&amp;</span>d_log_code_net_connect_timeout<span class="op">,</span> <span class="dv">0</span><span class="bu">u</span><span class="op">))</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    d_desc_emit<span class="op">(</span>d_log_sink<span class="op">(&amp;</span>record<span class="op">),</span> <span class="st">&quot;host&quot;</span><span class="op">,</span> NULL<span class="op">,</span> d_ostream_value_text<span class="op">(</span>h<span class="op">),</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>                D_DESC_LAYER_STATE<span class="op">,</span> <span class="dv">0</span><span class="bu">u</span><span class="op">,</span> D_DESC_TRUTH_OBSERVED<span class="op">);</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>    d_desc_facts<span class="op">(</span>D_DESC_OF<span class="op">(</span>socket<span class="op">),</span> <span class="op">&amp;</span>sock<span class="op">,</span> d_log_sink<span class="op">(&amp;</span>record<span class="op">));</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>    d_log_close<span class="op">(&amp;</span>record<span class="op">);</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<ul>
+<li>The level check comes first and costs a cached read
+(<code>dj_option_env_cache</code>, the knob-and-option pattern's hot
+path): a record below the threshold builds nothing.</li>
+<li>Facts are collected into a fixed array on the caller's stack,
+through a <code>struct dj_desc_sink</code> writing to desc's collecting
+machine (a <code>struct dj_desc_machine</code> whose <code>fact</code>
+keeps them); nothing allocates on the logging path. So a type's
+description can add its facts to a record, as it adds them to
+<code>--help</code>.</li>
+<li>The record goes to the log's writer: a machine with begin, record,
+end and flush, so a program can replace it
+(<code>d_log_set_writer</code>). Text, JSON lines and OTLP/JSON are
+built in; syslog, journald or a network exporter are a program's
+writers.</li>
+<li>The writer writes to a stream: standard error, a file appended to,
+or none (<code>log.destination</code>), or a program's own
+(<code>d_log_set_stream</code>). The stream is buffered and flushed at
+each record's end, so a record that fits is one write. With
+<code>D_CFG_LOG_THREADSAFE</code> (1) a lock around the writer and its
+stream keeps records whole. The lock and the first cache of settings are
+each made once (<code>d_call_once</code>), so threads that log first at
+the same moment are safe; call <code>d_log_init</code> before the
+program starts its threads, after its settings are read, and change no
+setting while they log (decision 63).</li>
+<li>A record takes its time when it opens, when the event happened, and
+its observed time when it is written. No lock is held while a record is
+open, so a record may stay open across calls: an error whose note comes
+after it is one record, with the note a nested fact.</li>
+<li>The body is the code's template written from the record's facts by
+the stream's template engine; a field the template names that the record
+lacks is empty. A body past <code>D_CFG_LOG_BODY_MAX</code> is cut where
+a character starts.</li>
+<li>Numbers for machines never follow the locale; prose may group
+digits.</li>
+</ul>
+<h2
+id="the-records-members-opentelemetrys-log-data-model-decision-24-b">The
+record's members: OpenTelemetry's log data model (decision 24 (b))</h2>
+<p>A record uses the data model's names: Timestamp, SeverityText,
+SeverityNumber, Body and Attributes, the facts going in Attributes, the
+code and its module among them as <code>code</code> and
+<code>module</code>. Each concept djinterp lacked is a feature of its
+own: a knob builds it, an option turns it on, and where it needs
+something from outside, a machine supplies it, so a program can replace
+any part.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Feature</th>
+<th>Knob, default</th>
+<th>Option, default</th>
+<th>Machine</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Severity number</td>
+<td>always built</td>
+<td><code>log.severity_number</code>, on</td>
+<td>decision 22's levels</td>
+</tr>
+<tr class="even">
+<td>Instrumentation scope: the module</td>
+<td><code>D_CFG_LOG_SCOPE</code>, 1</td>
+<td><code>log.scope</code>, on</td>
+<td>none: the module is known where the record is made</td>
+</tr>
+<tr class="odd">
+<td>Resource: program, host, process, platform</td>
+<td><code>D_CFG_LOG_RESOURCE</code>, 1</td>
+<td><code>log.resource</code>: off in JSON lines, where it would repeat
+on every line; on in OTLP, once per batch.
+<code>log.resource.&lt;key&gt;</code> adds or overrides one.</td>
+<td>a resource provider; the default reads the environment report and
+the program's name</td>
+</tr>
+<tr class="even">
+<td>Trace and span ids, trace flags</td>
+<td><code>D_CFG_LOG_CONTEXT</code>, 0, since djinterp makes no
+traces</td>
+<td><code>log.context</code>, on when built</td>
+<td>a context provider, which a tracing library supplies</td>
+</tr>
+<tr class="odd">
+<td>Observed timestamp</td>
+<td><code>D_CFG_LOG_OBSERVED_TIME</code>, 1</td>
+<td><code>log.observed_time</code>, off: the record's time is when it
+opened, the observed time when it was written</td>
+<td>the clock</td>
+</tr>
+<tr class="even">
+<td>Dropped attributes count</td>
+<td>with decision 25's cap</td>
+<td><code>log.dropped_count</code>, on</td>
+<td>none</td>
+</tr>
+<tr class="odd">
+<td>Timestamps</td>
+<td>always built</td>
+<td><code>log.time</code>: UTC or local, and its precision</td>
+<td>the clock: a test fixes it</td>
+</tr>
+<tr class="even">
+<td>Formats</td>
+<td><code>D_CFG_LOG_FORMATS</code>, all three</td>
+<td><code>log.format</code>: text (default), json, otlp</td>
+<td>a writer</td>
+</tr>
+</tbody>
+</table>
+<p>OTLP/JSON follows the specification's JSON encoding (OTLP's "JSON
+Protobuf Encoding", and protobuf's JSON mapping): one
+ExportLogsServiceRequest a line, field names in lowerCamelCase, a 64-bit
+integer (<code>timeUnixNano</code>, <code>intValue</code>) as a decimal
+string, an enum (<code>severityNumber</code>) as its number, a double's
+NaN and infinities as <code>"NaN"</code>, <code>"Infinity"</code> and
+<code>"-Infinity"</code>, and a nested fact as a
+<code>kvlistValue</code>. JSON lines use the data model's names in the
+same case: <code>timestamp</code> (RFC 3339),
+<code>observedTimestamp</code>, <code>severityText</code>,
+<code>severityNumber</code>, <code>body</code>, <code>attributes</code>,
+<code>droppedAttributesCount</code>, <code>scope</code>,
+<code>resource</code>.</p>
+<p>Built but not yet a program's to fill: the resource holds
+<code>service.name</code> (<code>log.service</code>, else
+<code>unknown_service</code>) and <code>process.pid</code>;
+<code>log.resource.&lt;key&gt;</code> and a resource provider, and the
+context provider for trace and span ids, come with the first program
+that needs them. The observed time differs from the record's when a
+record is held open, or waits in a queue.</p>
+<h2 id="nested-facts-decision-25-b">Nested facts (decision 25 (b))</h2>
+<p>A record carries nested facts from 0.8: a fact's depth
+(<code>dj_desc_fact.depth</code>) opens an object in JSON and a dotted
+key in text, so a type's description goes into a record unchanged, and
+the JSON's shape does not change in 0.9. The writer still writes once,
+front to back.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Knob</th>
+<th>Default</th>
+<th>Option</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>D_CFG_LOG_FACTS_MAX</code></td>
+<td>32</td>
+<td><code>log.facts_max</code>, up to the knob</td>
+</tr>
+<tr class="even">
+<td><code>D_CFG_LOG_DEPTH_MAX</code></td>
+<td>4</td>
+<td><code>log.depth_max</code>, up to the knob</td>
+</tr>
+</tbody>
+</table>
+<p>The knobs are the stack's room, so an option cannot raise a cap past
+its knob. Facts past a cap are counted in a final <code>truncated</code>
+fact (the dropped attributes count). <code>log.nesting</code> chooses
+nested objects, or dotted keys for tools that want flat attributes.</p>
+<h2 id="message-codes-tables-and-a-manifest-decision-23-c">Message
+codes: tables and a manifest (decision 23 (c))</h2>
+<ul>
+<li><p><strong>One table per enum of codes</strong>, beside the enum,
+owned with the module and compiled out with it (decision 77):
+<code>net</code> and <code>db</code> each have one, and a submodule gets
+its own only when it has an enum of its own, as <code>db.vendor</code>
+does (decision 75). Each row is a number, a name, a class, a grade, a
+template and the facts it names. A table is a macro of two parameters, a
+row each, in the enum's header or in
+<code>&lt;module&gt;_codes.h</code>:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#define D_NET_LOG_CODES</span><span class="op">(</span><span class="pp">X</span><span class="op">,</span><span class="pp"> m</span><span class="op">)</span><span class="pp">                                          </span><span class="op">\</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="pp">    X</span><span class="op">(</span><span class="pp">m</span><span class="op">,</span><span class="pp"> </span><span class="dv">207</span><span class="op">,</span><span class="pp"> connect_timeout</span><span class="op">,</span><span class="pp"> </span>RESOURCE_BUDGET<span class="op">,</span><span class="pp"> FAILED</span><span class="op">,</span><span class="pp">               </span><span class="op">\</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="pp">      </span><span class="st">&quot;connecting to {host} took over {timeout_ms} ms&quot;</span><span class="op">,</span><span class="pp">               </span><span class="op">\</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="pp">      </span><span class="op">(</span><span class="pp">host</span><span class="op">,</span><span class="pp"> timeout_ms</span><span class="op">))</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>D_LOG_CODES_DECLARE<span class="op">(</span>net<span class="op">,</span> D_NET_LOG_CODES<span class="op">)</span>        <span class="co">// in the log&#39;s unit</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>D_LOG_CODES_DEFINE<span class="op">(</span>net<span class="op">,</span> <span class="st">&quot;net&quot;</span><span class="op">,</span> D_NET_LOG_CODES<span class="op">)</span>  <span class="co">// in one source</span></span></code></pre></div>
+<p>The table's <code>#define</code> is inert text and needs no include,
+so a module's header can hold it without depending on the log.
+<code>D_LOG_CODES_DECLARE</code> and <code>_DEFINE</code> need
+<code>log.h</code>, so they go in the unit that logs for the module
+(parse's subscriber, for instance), built only when the log is. For a
+module below the log there is no such unit, so the two lines are the
+log's (decision 87): a header and a unit a module under
+<code>log/codes/</code> (<code>ostream_codes.h</code> and
+<code>ostream_codes.c</code>, say), listed in
+<code>log_codes.cmake</code> and built wherever the log is, and the log
+registers the table itself, from <code>d_log_register</code> and
+<code>d_log_init</code>, before settings are read
+(<code>log_codes.h</code>). Each lane owns its table's rows; the two
+lines are the log's, and come in the window the table lands. The
+generator checks each row against the enum beside it: a constant whose
+name ends in the row's name, upper-cased, with the row's number.</p>
+<p>Class and grade are checked by the compiler. A template that does not
+compile is written as it is; <code>d_log_module_check</code> compiles
+each code's template against its facts and names the first that fails,
+for a module's tests to call. A module registers its table with
+<code>d_log_module_add</code> before settings are read, which also makes
+it a scope of the log's djin: <code>log.net.level</code>, with a dotted
+module's '.' as '_' (<code>log.parse_expr.level</code>).</p></li>
+<li><p>A code's full name is <code>module.name</code>; its number is
+unique in its module; the pair never changes meaning once released. A
+number is the value the module's enum gives the code, sign and all, so a
+record's number is the number the caller holds: db's codes are negative,
+so that they never meet a vendor's, and are written <code>db:-6</code>
+(decision 76).</p></li>
+<li><p><strong>A manifest CI generates and checks</strong>: every code's
+module, number, name, class and grade, and every event's name, since
+events and codes share one key space (decision 64). CI fails on a
+duplicate number, a hash collision (decision 21), a name that is both an
+event and a code, or a released code whose meaning changed against the
+committed manifest, and the docs' list is made from it. The generator
+and its job come with the log; the job runs in the tree's CI. The
+generator also runs on a program's own tables, so a program gets the
+same guarantee.</p></li>
+<li><p><strong>A module the log is built on never logs</strong>
+(decision 67): the containers, the stream, filesys, sync and the option
+core return their codes, and their callers log them, finding each by its
+number with <code>d_log_code_find</code>, and adding the facts only the
+caller knows. The module's table still sits beside its enum, as inert
+text, and the log declares, defines and registers it (decision 87). A
+module may log from inside - a broken invariant where it happens - only
+under a knob of its own, <code>D_CFG_&lt;MODULE&gt;_LOG</code>, 0 by
+default, and a run then chooses its records with
+<code>log.&lt;module&gt;.level</code>. Parse, above the log, logs
+through a subscriber unit of its own.</p></li>
+<li><p><strong>A vendor's own codes</strong> are mapped to a small table
+of kinds beside an enum of them, <code>db.vendor.&lt;kind&gt;</code>
+(connection, auth, constraint, syntax, not found, busy, data,
+unsupported, internal), so a reader filters by class across vendors; the
+vendor's product, code and message stay as facts under OpenTelemetry's
+names (<code>db.system.name</code>,
+<code>db.response.status_code</code>). The mapping is a classifier per
+vendor that a program may replace, and the message, which can carry a
+user's data, may be left out by a knob and an option of the module's
+(decision 75).</p></li>
+<li><p>The status codes the modules return today
+(<code>D_OPTION_STATUS_*</code>, <code>D_OSTREAM_*</code>,
+<code>errno</code>) map onto codes, so an error reported to a caller and
+an error logged are the same thing in two places.</p></li>
+<li><p>A module's own code names (<code>parse.expr.unclosed</code>) are
+its own; the first are parse's: domain 4 of its diagnostics, its ten
+codes.</p></li>
+</ul>
+<table>
+<thead>
+<tr class="header">
+<th>Knob</th>
+<th>Default</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>D_CFG_LOG_CODES</code></td>
+<td>1</td>
+<td>1 builds code names and templates; 0 keeps numbers only
+("net:207")</td>
+</tr>
+<tr class="even">
+<td><code>D_CFG_&lt;MODULE&gt;_LOG_CODES</code></td>
+<td>as <code>D_CFG_LOG_CODES</code></td>
+<td>the same, per module</td>
+</tr>
+<tr class="odd">
+<td><code>D_CFG_LOG_CODES_BELOW</code></td>
+<td>1</td>
+<td>1 has the log register the tables of the modules below it; 0 leaves
+them to the program (<code>d_log_codes_add</code>)</td>
+</tr>
+</tbody>
+</table>
+<p>The option <code>log.code_style</code> writes a code by name, number
+or both, in text.</p>
+<h3 id="classes-sides-and-grades">Classes, sides and grades</h3>
+<p>The containers' table of error conditions (from the retired
+<code>c/container/derror.h</code>, 11-04) gives the registry three
+things more, which every module's codes share:</p>
+<ul>
+<li><strong>A class</strong> for each code, from one vocabulary across
+modules: <code>argument.null</code>, <code>position.index</code>,
+<code>quantity.count</code>, <code>span.inverted</code>,
+<code>resource.memory</code>, <code>handle.stale</code>,
+<code>integrity.invariant</code> and the rest
+(<code>D_LOG_CLASSES</code> in log.h lists them all). A reader can then
+treat every module's out-of-range index alike. Ruled on 11-17:
+<code>constraint.violated</code>, for a construct that parsed and that a
+language's check refuses (decision 57); <code>quantity.depth</code>,
+<code>resource.budget</code>, <code>operation.unsupported</code>,
+<code>io.failed</code>, <code>lifecycle.closed</code> and the
+<code>format.*</code> family, as one set (decision 58);
+<code>lifecycle.frozen</code>, for a change refused by an object that is
+still in use (decision 66); and <code>io.timed_out</code>,
+<code>io.refused</code>, <code>io.unreachable</code>,
+<code>io.reset</code> and <code>io.would_block</code>, for a peer's
+conditions (decision 78). Ruled on 11-17 as one set, for what a host or
+a server refuses or cuts short (decision 81):
+<code>io.interrupted</code>, a call a signal cut short (its codes are
+soft: the caller tries again); <code>resource.in_use</code>, an address
+or a resource another holds; <code>access.denied</code>, a caller who is
+known but not allowed; and <code>access.unauthenticated</code>, a caller
+whose identity was not accepted. A class is part of a code's meaning,
+fixed when it compiles; a missing one is proposed and ruled before the
+table that needs it. A program's own tables may add classes of their
+own, <code>D_CFG_LOG_CLASSES_EXTRA</code>, after the vocabulary.</li>
+<li><strong>A side</strong>, a standard fact for a value or a range
+against the valid interval: any of below (B), at its lower edge (L),
+within (W), at its upper edge (U) and above (A). An index past the end
+is <code>position.index {A}</code>; a range overlapping the start is
+<code>position.range {B,L,W}</code>.</li>
+<li><strong>A grade</strong>, what the event did, which sets the log's
+default level: ok, note, caveat, soft (an expected miss: not found,
+empty), rejected (nothing changed), failed (tried, and could not),
+broken (an invariant does not hold). The table's effect marks become
+facts: <code>effect</code> (no-op, partial) and
+<code>retryable</code>.</li>
+</ul>
+<p><strong>The syntax family</strong>, for bad input text, which the
+containers' table has no class for: five classes, each graded rejected,
+for every parser in the tree to share. A module's own code says which
+fault it is; the class says what kind:</p>
+<ul>
+<li><code>syntax.unexpected</code>: a token where the grammar has
+none;</li>
+<li><code>syntax.missing</code>: something required is absent;</li>
+<li><code>syntax.unbalanced</code>: a pair not matched;</li>
+<li><code>syntax.ambiguous</code>: an order the grammar will not
+choose;</li>
+<li><code>syntax.arity</code>: the wrong number of operands.</li>
+</ul>
+<p>Parse maps its seven syntax codes onto them.</p>
+<p>Conditions the table marks undetectable (a comparator that is not a
+strict weak order, a variadic count) get no code: they belong in a
+module's documentation.</p>
+<h3 id="each-grades-default-level-decision-26-b">Each grade's default
+level (decision 26 (b))</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Grade</th>
+<th>ok</th>
+<th>note</th>
+<th>caveat</th>
+<th>soft</th>
+<th>rejected</th>
+<th>failed</th>
+<th>broken</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Level</td>
+<td>debug</td>
+<td>info</td>
+<td>notice</td>
+<td>debug</td>
+<td>warning</td>
+<td>error</td>
+<td>fatal</td>
+</tr>
+</tbody>
+</table>
+<p>A reader can tell a caller's mistake, which changed nothing, from the
+library's failure, and successes stay out of info.
+<code>D_CFG_LOG_GRADE_LEVEL(grade)</code> replaces the whole map when
+compiling, a macro so that a record's default level is a constant where
+it is written, and <code>D_CFG_LOG_LEVEL_MIN</code> can compile it out;
+one option per grade changes it for a run,
+<code>log.grade_rejected=error</code>, and the same with a module's
+scope, <code>log.net.grade_rejected</code>.</p>
+<h2 id="the-logs-settings-as-option_env-rows">The log's settings, as
+option_env rows</h2>
+<p><code>log</code> is a djin, so every setting has a knob, an
+environment variable, a command-line option and a provenance:</p>
+<table>
+<thead>
+<tr class="header">
+<th>Row</th>
+<th>Kind</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>level</code>, <code>&lt;module&gt;.level</code></td>
+<td>int, named</td>
+<td>the threshold: a level's name or a severity, 1 to 24</td>
+</tr>
+<tr class="even">
+<td><code>levels</code></td>
+<td>text</td>
+<td>levels added at run time, <code>audit=14,security=19</code>, with
+<code>D_CFG_LOG_LEVELS 3</code>; named by their severity in
+<code>level</code></td>
+</tr>
+<tr class="odd">
+<td><code>format</code></td>
+<td>choice</td>
+<td>text, json, otlp; a writer not built refused by name</td>
+</tr>
+<tr class="even">
+<td><code>destination</code></td>
+<td>text</td>
+<td>stderr (the default), none, or a file's path</td>
+</tr>
+<tr class="odd">
+<td><code>code_style</code></td>
+<td>choice</td>
+<td>name, number, both</td>
+</tr>
+<tr class="even">
+<td><code>facts_max</code>, <code>depth_max</code></td>
+<td>int ranges</td>
+<td>the caps, up to their knobs</td>
+</tr>
+<tr class="odd">
+<td><code>nesting</code></td>
+<td>choice</td>
+<td>nested, dotted</td>
+</tr>
+<tr class="even">
+<td><code>grade_&lt;grade&gt;</code>,
+<code>&lt;module&gt;.grade_&lt;grade&gt;</code></td>
+<td>int, named</td>
+<td>a grade's level</td>
+</tr>
+<tr class="odd">
+<td><code>severity_number</code>, <code>scope</code>,
+<code>resource</code>, <code>context</code>, <code>observed_time</code>,
+<code>dropped_count</code></td>
+<td>bool</td>
+<td>decision 24's features, where built</td>
+</tr>
+<tr class="even">
+<td><code>time</code></td>
+<td>choice</td>
+<td>utc, utc_ms (the default), utc_us, utc_ns, local, local_ms,
+local_us, local_ns</td>
+</tr>
+<tr class="odd">
+<td><code>json_integers</code></td>
+<td>choice</td>
+<td>number (the default), string: decision 48 (d)</td>
+</tr>
+<tr class="even">
+<td><code>json_nonfinite</code></td>
+<td>choice</td>
+<td>null (the default), string: decision 49 (c)</td>
+</tr>
+<tr class="odd">
+<td><code>real_digits</code></td>
+<td>int, 0 to 17</td>
+<td>0, the default: a real whole, the shortest text that reads back; 1
+to 17 rounds each real to that many significant digits first, shorter
+but lossy (decision 51)</td>
+</tr>
+<tr class="even">
+<td><code>service</code></td>
+<td>text</td>
+<td>the resource's <code>service.name</code></td>
+</tr>
+</tbody>
+</table>
+<p>Every row's default is its knob (<code>cfg_log.h</code>), and every
+row is per module as well, through the module's scope.</p>
+<h2 id="when-it-lands">When it lands</h2>
+<ul>
+<li><strong>Friday 11-13</strong>: this contract, agreed.</li>
+<li><strong>Wednesday 11-18</strong> (decisions 27 and 80): the log's
+header, its writers and its suite, with desc's text, JSON and collecting
+machines; then the lock and the first cache made once, a record's time
+when it opens, <code>d_log_module_check</code>, signed numbers, the
+classes of 11-17 and <code>log.real_digits</code>. Modules may adopt it
+from then.</li>
+<li><strong>Wednesday 11-18 or Friday 11-20</strong>: events named
+beside their types (the event core's decision 15), with DTest's names,
+in the window DTest's half lands.</li>
+<li><strong>Week 3</strong>: the codes generator and its CI job; the
+modules' code tables, each module its own.</li>
+<li><strong>Friday 11-27</strong>: the place for the tables of the
+modules below the log, <code>log/codes/</code>, and the log's
+registration of them (decision 87); each table's two lines in the window
+it lands, the stream's, compress's and archive's first.</li>
+</ul>
+<h2 id="settled">Settled</h2>
+<ol type="1">
+<li>A record's event key: the name's hash, checked (decision 21 (c)),
+above.</li>
+<li>The levels: a spectrum from none to added at run time, the seven
+built in (decision 22), above.</li>
+<li>The record's members: OpenTelemetry's names, each missing concept an
+opt-in feature (decision 24 (b)), above.</li>
+<li>Nested facts: from 0.8, with a cap (decision 25 (b)), above.</li>
+<li>The codes registry: tables per module, and a manifest CI checks
+(decision 23 (c)), above.</li>
+<li>The class vocabulary, from the containers' table with the syntax
+family, which parse agreed (11-11), and the classes of 11-17; each
+grade's default level, revised (decision 26 (b)), above. The containers
+report their errors with the codes this settles.</li>
+<li>Code tables: one per enum of codes; numbers signed; modules below
+the log return codes and their callers log them; vendors' codes as kinds
+(decisions 64 and 67, 75 to 77), above.</li>
+<li>A module below the log keeps its table's rows; the log declares,
+defines and registers it, two lines a module under
+<code>log/codes/</code> (decision 87), above.</li>
+</ol>
+</body>
+</html>

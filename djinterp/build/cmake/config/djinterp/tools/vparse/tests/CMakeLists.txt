@@ -66,7 +66,7 @@ if(TARGET vparse::cli)
 
     # the README whose JSON tables the suite holds every document to
     target_compile_definitions(vparse_cli_tests PRIVATE
-        VPARSE_README="${DJINTERP_ROOT}/docs/djinterp/tools/vparse/README.md")
+        VPARSE_README="${DJINTERP_ROOT}/docs/djinterp/tools/vparse/README.html")
 
     # The program over the window's example, the grammar written here: it
     # matches, so the program's status alone is the test.

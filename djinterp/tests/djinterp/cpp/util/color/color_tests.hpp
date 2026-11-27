@@ -16,7 +16,7 @@
 *   The conversions themselves are color_convert's suite's to check, and each
 * model is its own suite's.
 *
-*   Two faces, selected by DTEST_SPEC_MODE (see djinterp_testing.md S3).
+*   Two faces, selected by DTEST_SPEC_MODE (see djinterp_testing.html S3).
 *
 *
 * path:      /tests/djinterp/cpp/util/color/color_tests.hpp

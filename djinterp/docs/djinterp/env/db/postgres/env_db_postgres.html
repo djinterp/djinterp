@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>envpostgres.h — PostgreSQL</title>
+  <style>
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+</head>
+<body>
+<h1 id="env_postgresh--postgresql"><code>env_postgres.h</code> —
+PostgreSQL</h1>
+<p>Deep detection for PostgreSQL. Includes
+<code>env_postgres_config.h</code>, then <code>env_db.h</code>, then the
+libpq client header (path from
+<code>D_CFG_ENV_POSTGRESQL_C_PATH</code>). Prefix:
+<strong><code>D_ENV_PG_</code></strong>.</p>
+<p>PostgreSQL exposes a real compile-time version
+(<code>PG_VERSION_NUM</code>), so most features are gated by version
+rather than a separate server property.</p>
+<h2 id="configuration-env_postgres_configh">Configuration
+(<code>env_postgres_config.h</code>)</h2>
+<table>
+<thead>
+<tr class="header">
+<th>Macro</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>D_CFG_ENV_USING_POSTGRESQL</code></td>
+<td><code>1</code> to include libpq and detect the client</td>
+</tr>
+<tr class="even">
+<td><code>D_CFG_ENV_POSTGRESQL_C_PATH</code></td>
+<td>libpq header path (e.g. <code>&lt;libpq-fe.h&gt;</code>)</td>
+</tr>
+<tr class="odd">
+<td><code>D_CFG_ENV_POSTGRESQL_CUSTOM</code></td>
+<td><code>1</code> to skip detection; supply detected version
+manually</td>
+</tr>
+</tbody>
+</table>
+<h2 id="key-output-symbols">Key output symbols</h2>
+<table>
+<thead>
+<tr class="header">
+<th>Symbol</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>D_ENV_PG_VERSION_ID</code> / <code>_MAJOR</code> /
+<code>_STRING</code></td>
+<td>Resolved PostgreSQL version</td>
+</tr>
+<tr class="even">
+<td><code>D_ENV_PG_VERSION_AT_LEAST(...)</code></td>
+<td>Version-comparison gate</td>
+</tr>
+<tr class="odd">
+<td><code>D_ENV_PG_DEFAULT_AUTH_IS_SCRAM</code></td>
+<td>Default auth method indicator</td>
+</tr>
+<tr class="even">
+<td><code>D_ENV_PG_HAS_*</code></td>
+<td>Per-feature flags (e.g. <code>_HAS_ARRAY_TYPES</code>,
+<code>_HAS_ADVISORY_LOCKS</code>, <code>_HAS_AUTH_GSS</code>,
+<code>_HAS_AUTH_CERT</code>)</td>
+</tr>
+<tr class="odd">
+<td><code>D_ENV_DB_HAS_POSTGRESQL_CLIENT_C</code> /
+<code>_CPP</code></td>
+<td>Client-present flags in the shared <code>env_db.h</code>
+namespace</td>
+</tr>
+</tbody>
+</table>
+<h2 id="sections">Sections</h2>
+<p>Config; version encoding; version detection; version comparison;
+client library (libpq) detection; SSL/TLS and authentication; data types
+(JSONB, range/multirange, arrays, domains — version-gated); index types
+(B-tree, Hash, GiST, SP-GiST, GIN, BRIN); SQL features (CTEs, window
+functions, LATERAL, UPSERT — version-gated); partitioning; replication
+&amp; HA; parallel query &amp; DDL; extension &amp; procedural-language
+framework; contrib extensions (hstore, pg_trgm, citext, ltree, …);
+third-party extensions; vacuum &amp; storage; optimizer &amp;
+performance; security &amp; administration; platform integration; and
+convenience/composite macros.</p>
+</body>
+</html>

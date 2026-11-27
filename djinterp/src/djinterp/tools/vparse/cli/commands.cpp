@@ -881,7 +881,7 @@ int print_match(
  * @return PASSED; REFUSED when the listing could not be written, said as
  *         the kit says it: `cannot write 'FILE': REASON`.
  *
- * A file is written as the kit writes one (GRAMMAR.md, R20): into a new
+ * A file is written as the kit writes one (GRAMMAR.html, R20): into a new
  * file beside it, then renamed over it, so a failure leaves the file that
  * was there as it was.
  */

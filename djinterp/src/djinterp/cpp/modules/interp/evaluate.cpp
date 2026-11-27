@@ -13,7 +13,7 @@
 *
 *
 * path:      /src/djinterp/cpp/modules/interp/evaluate.cpp
-* link(s):   /docs/djinterp/interp/DESIGN.md
+* link(s):   /docs/djinterp/cpp/modules/interp/DESIGN.html
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.22
 *                                                            revised: 2026.11.25
 *******************************************************************************/
@@ -223,7 +223,7 @@ const command_fn* commands::find(
 
 /*
 truth_of
-  What decides an `and`, an `or` and a `not` (DESIGN.md, section 5): a
+  What decides an `and`, an `or` and a `not` (DESIGN.html, section 5): a
 truth value as it is; zero, an empty text, bytes, list or record false.
 The stand-in has no tag for a command's status alone, so a construct that
 comes to nothing is its status: true where it is 0.
@@ -451,7 +451,7 @@ matches(
 
 /*
 compared
-  A comparison's outcome (DESIGN.md, section 5): two numbers, or a number
+  A comparison's outcome (DESIGN.html, section 5): two numbers, or a number
 and a text that reads wholly as one, numerically; two texts by code point;
 `==` and `!=` on anything by same_as; the orderings on anything else
 trouble.

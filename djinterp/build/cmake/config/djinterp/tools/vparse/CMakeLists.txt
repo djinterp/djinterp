@@ -6,7 +6,7 @@
 # Its window, the workbench on uxoxo and Dear ImGui, is outside djinterp --
 # its sources in inc/ui, src/ui and tests/ui, its build in build/cmake/config/ui/vparse,
 # which builds this one within it and makes the module `vparse gui` loads
-# (GRAMMAR.md, section 7) - so nothing here needs uxoxo.
+# (GRAMMAR.html, section 7) - so nothing here needs uxoxo.
 #   vparse lives in djinterp's tree. The library is inc/, src/ and
 # tests/djinterp/cpp/modules/parsegen/vparse: the PEG machine, the generator,
 # both frontends and the session. The tool is tools/vparse: its model's headers

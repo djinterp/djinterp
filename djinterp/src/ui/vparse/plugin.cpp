@@ -1,14 +1,14 @@
 /*******************************************************************************
 * djinterp [cpp][tools]                                               plugin.cpp
 *
-* The window's module: what `vparse gui` loads (GRAMMAR.md, section 7) --
+* The window's module: what `vparse gui` loads (GRAMMAR.html, section 7) --
 * vparse's workbench, in a window.
 *   The module is a program of its own, made from the host that runs it --
 * its name, version, verbosity and colours vparse's - so that `vparse gui
 * --help` is the window's help, and what the window says, it says as vparse
 * does. Its operands are vparse's: a GRAMMAR and an INPUT, read as the
 * commands read them, and the options it shares with the commands are spelled
-* as they spell them - `-f, --frontend`, `--ebnf`, `--root` (GRAMMAR.md,
+* as they spell them - `-f, --frontend`, `--ebnf`, `--root` (GRAMMAR.html,
 * section 11). Its own say what the window starts with and how it looks; and,
 * for building and testing, how many frames it draws and where the last is
 * written. Its `--version --verbose` says, after how the module was built,

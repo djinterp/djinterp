@@ -5,7 +5,7 @@
 * and d_ckd_mul against a table of edge cases and a sweep of random operands,
 * each held to a reference that computes the exact result in two halves, so
 * that it never relies on the arithmetic under test. A standalone program, as
-* the other tests not yet in DTest are (tests/unintegrated/README.md): it
+* the other tests not yet in DTest are (docs/tests/unintegrated/README.html): it
 * prints a line per failed check, ends with "N checks, M failed", and exits 0
 * only when nothing failed.
 *   One source for both languages: it compiles as C (C99 to C23) and as C++

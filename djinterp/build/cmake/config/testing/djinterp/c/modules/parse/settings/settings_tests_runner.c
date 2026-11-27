@@ -7,7 +7,7 @@
 *
 *
 * path:      /build/cmake/config/testing/djinterp/c/modules/parse/settings/settings_tests_runner.c
-* link(s):   /docs/djinterp/option/knob_and_option.md
+* link(s):   /docs/djinterp/c/option/knob_and_option.html
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.12
 *                                                            revised: 2026.11.12
 *******************************************************************************/

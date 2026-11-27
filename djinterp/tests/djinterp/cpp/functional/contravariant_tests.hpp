@@ -2,7 +2,7 @@
 * djinterp [cpp][functional]                             contravariant_tests.hpp
 *
 * Unit test suite for contravariant.hpp - the contravariant functor protocol.
-*   Two faces, selected by DTEST_SPEC_MODE (see djinterp_testing.md S3):
+*   Two faces, selected by DTEST_SPEC_MODE (see djinterp_testing.html S3):
 *
 *     - normal mode (the section TUs): pulls in the header under test and
 *       exposes the fixtures + the D_CV_CHECK macro.

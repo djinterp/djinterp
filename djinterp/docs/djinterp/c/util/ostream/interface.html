@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>The output stream, and text on it</title>
+  <style>
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+</head>
+<body>
+<h1 id="the-output-stream-and-text-on-it">The output stream, and text on
+it</h1>
+<p>The headers for output and text: what each promises, who uses what,
+and what stays fixed until the freeze of Friday 2026-12-11. The headers
+hold the full contracts; this is the map.</p>
+<h2 id="the-rule-until-the-freeze">The rule until the freeze</h2>
+<p>From the agreement of 2026-11-13 until 12-11:</p>
+<ul>
+<li><strong>Nothing named here changes in a way that breaks a
+caller</strong> without the agreement of those who use it (the table
+under "Who uses what").</li>
+<li><strong>Additions are allowed</strong>: a new function, a new
+constant, a new destination. No member is added to a struct that callers
+declare or copy, since that changes its layout:
+<code>dj_pack_text</code>, <code>dj_pack_bytes</code>,
+<code>dj_pack_sink</code>, <code>dj_pack_counting_sink</code>,
+<code>dj_pack_buffer_sink</code>, <code>dj_ostream</code>,
+<code>dj_ostream_value</code>, <code>dj_ostream_spec</code> and
+<code>dj_ostream_template</code>.</li>
+<li><strong>Every change is announced</strong> with the delivery that
+makes it, to those who use what changed.</li>
+</ul>
+<h2 id="the-headers">The headers</h2>
+<table>
+<thead>
+<tr class="header">
+<th>Header</th>
+<th>What it is</th>
+<th>Its unit</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>c/util/sink_common.h</code></td>
+<td>the spans (<code>struct dj_pack_text</code> and
+<code>struct dj_pack_bytes</code>, with their makers and comparison),
+the sink (<code>struct dj_pack_sink</code>, a write function and its
+context), <code>d_sink_emit</code>, and the counting and buffer
+sinks</td>
+<td><code>sink_common.c</code>, in the runtime</td>
+</tr>
+<tr class="even">
+<td><code>c/util/ostream/ostream.h</code></td>
+<td>the stream: a window of writable bytes and a slow path, transports
+and storage, a sticky status, integers, cursors, a fixed array, a
+<code>dj_string</code>, a fan-out</td>
+<td><code>ostream.c</code> in the runtime;
+<code>ostream_string.c</code>, listed by its users</td>
+</tr>
+<tr class="odd">
+<td><code>c/util/ostream/ostream_file.h</code></td>
+<td>a <code>FILE*</code>, lent or owned, through
+<code>c/filesys</code></td>
+<td><code>ostream_file.c</code>, listed by its users</td>
+</tr>
+<tr class="even">
+<td><code>c/util/ostream/ostream_console.h</code></td>
+<td>standard output and error, written as the platform needs</td>
+<td><code>ostream_console.c</code>, listed by its users</td>
+</tr>
+<tr class="odd">
+<td><code>c/text/ostream_format.h</code></td>
+<td>a double in the C form whatever the locale, a double in a locale the
+caller names, and printf</td>
+<td><code>ostream_format.c</code>, in the runtime</td>
+</tr>
+<tr class="even">
+<td><code>c/text/ostream_template.h</code></td>
+<td>values, the format spec, and templates compiled once</td>
+<td><code>ostream_template.c</code>, listed by its users</td>
+</tr>
+<tr class="odd">
+<td><code>cpp/util/output/output_stream.hpp</code></td>
+<td>the C++ face: <code>DOutputStream</code>,
+<code>DOutputCursor</code>, <code>DBufferedOutputStream</code>,
+<code>DOutputStreamSink</code>, <code>DConsoleChannel</code></td>
+<td>header only</td>
+</tr>
+<tr class="even">
+<td><code>cpp/util/output/output_stream_std.hpp</code></td>
+<td>the standard library both ways: a stream onto a
+<code>std::string</code> or a <code>std::ostream</code>, and
+<code>DOutputStreambuf</code></td>
+<td>header only</td>
+</tr>
+</tbody>
+</table>
+<p>The knobs, each fixed when compiling:</p>
+<ul>
+<li><code>config/c/util/ostream/cfg_ostream.h</code>: the console's
+backend (POSIX, Windows' native console, ISO C, or none).</li>
+<li><code>config/c/text/cfg_ostream_format.h</code>: how a locale is
+applied to one call (POSIX 2008 locale objects, the Windows CRT's, or
+rewriting the decimal point).</li>
+<li><code>config/c/text/cfg_ostream_template.h</code>: how deeply blocks
+may nest, and whether JSON and XML replace text that isn't UTF-8 or
+refuse it.</li>
+<li><code>config/c/memory/cfg_mem_source.h</code>:
+<code>D_CFG_MEM_SOURCE_DEFAULT</code>, where printf's rare allocation
+comes from.</li>
+</ul>
+<h2 id="what-each-promises">What each promises</h2>
+<h3 id="the-spans">The spans</h3>
+<ul>
+<li><code>struct dj_pack_text</code> is <code>data</code> and
+<code>length</code>; <code>struct dj_pack_bytes</code> is
+<code>data</code> and <code>size</code>. Both are borrowed, own nothing,
+are passed by value, and have one layout in C and C++.</li>
+<li><strong>The length is what counts, not a NUL.</strong> A text span
+may run past a NUL or have none at its end. Its encoding isn't
+implied.</li>
+<li><code>D_PACK_TEXT_NONE</code> and <code>D_PACK_BYTES_NONE</code> are
+the empty spans, as brace initialisers.</li>
+<li><code>d_pack_text_from_cstr</code> measures to the NUL;
+<code>d_pack_text_from_span</code> and
+<code>d_pack_bytes_from_span</code> take the length given. A null
+pointer is the empty span, whatever length comes with it. None allocates
+or fails.</li>
+<li><code>d_pack_text_equal</code> compares the lengths, then the bytes,
+so an interior NUL counts. Two empty spans are equal whatever their
+pointers. <code>d_pack_text_is_empty</code> holds for a null pointer or
+a zero length.</li>
+</ul>
+<h3 id="the-sink">The sink</h3>
+<ul>
+<li><code>struct dj_pack_sink</code> is two members, <code>write</code>
+(a <code>dj_pack_sink_write_fn</code>) and <code>context</code>, passed
+by value. It owns nothing.</li>
+<li><code>write(context, data, size)</code> returns the number of bytes
+it took. Fewer than <code>size</code> is a failure, and the sink may set
+<code>errno</code> to say why.</li>
+<li><code>d_sink_emit</code> returns 1 when the sink took every byte,
+and 0 otherwise: a short write, or a sink with no write function. A
+zero-size write to a sink with one succeeds without calling it.</li>
+<li><strong>A counting sink</strong>
+(<code>struct dj_pack_counting_sink</code>,
+<code>d_pack_counting_sink_init</code>,
+<code>d_pack_sink_from_counter</code>) takes everything and keeps the
+total in <code>total</code>.</li>
+<li><strong>A buffer sink</strong>
+(<code>struct dj_pack_buffer_sink</code>,
+<code>d_pack_buffer_sink_init</code>,
+<code>d_pack_sink_from_buffer</code>) writes into memory the caller
+owns, <code>capacity</code> bytes of it. It takes every write and counts
+every byte offered in <code>needed</code>, which stops at
+<code>SIZE_MAX</code>. A write that fits whole is copied and added to
+<code>written</code>. One that doesn't is not copied,
+<code>overflow</code> is set, and nothing is copied after that, so the
+buffer always holds the output's first <code>written</code> bytes. With
+no buffer and no capacity it only measures.</li>
+<li>A sink over a counter or a buffer borrows it, so the counter or
+buffer must outlive the sink.</li>
+</ul>
+<h3 id="the-stream">The stream</h3>
+<ul>
+<li><strong>A window and a slow path.</strong> The stream exposes
+<code>[cur, end)</code>. A write that fits is a comparison and a
+<code>memcpy</code>, inline. Only a write that doesn't fit calls out of
+line, and only then is the destination touched.</li>
+<li><strong>Two kinds of destination.</strong> A transport consumes
+bytes (a <code>FILE*</code>, the console, a fan-out, any sink); its
+window is a buffer the caller lends (<code>d_ostream_set_buffer</code>).
+Storage owns the memory the bytes end in (a <code>dj_string</code>, a
+fixed array), so a byte is copied once.</li>
+<li><strong>The status is sticky.</strong> The first failure is kept,
+and every write after it returns 0 without reaching the destination:
+<code>D_OSTREAM_OK</code>, <code>_INVALID</code>,
+<code>_UNSUPPORTED</code>, <code>_FAILED</code> (with
+<code>d_ostream_last_errno</code>) and <code>_CLOSED</code>.
+<code>d_ostream_close</code> reports the first failure, as
+<code>fclose</code> does.</li>
+<li><strong>Nothing in <code>ostream.h</code> allocates, and it has no
+<code>&lt;stdio.h&gt;</code>.</strong> A stream belongs to one thread at
+a time.</li>
+<li><strong>Every write returns 1 when every byte was accepted, and 0
+otherwise.</strong> <code>d_ostream_written</code> counts what the
+stream accepted, so a producer can use it as an offset without
+seeking.</li>
+<li>Every stream lowers back to a sink (<code>d_ostream_as_sink</code>),
+for producers that take only a sink.</li>
+</ul>
+<h3 id="appending-to-a-file">Appending to a file</h3>
+<p><code>d_ostream_open_file</code> with <code>_append</code> set opens
+the file on a descriptor of its own, opened to append, and hands the
+system each flush in one write.</p>
+<p><strong>The guarantee:</strong> a record no larger than the stream's
+buffer, written and then flushed, reaches a local file whole, however
+many processes append to the file at once. No other process's bytes land
+inside it.</p>
+<ul>
+<li><strong>Why it holds.</strong> The stream drains its whole buffer in
+one call at a flush, and that call is one system write. The system
+appends each write whole: POSIX's <code>O_APPEND</code>, and on Windows
+a handle opened with <code>FILE_APPEND_DATA</code> and not
+<code>FILE_WRITE_DATA</code>.</li>
+<li><strong>Where it doesn't.</strong>
+<ul>
+<li>A record larger than the buffer goes in more than one write.</li>
+<li>A short write, which a full disk can cause, leaves part of a record;
+the stream writes the rest, but another process may come between.</li>
+<li>Appends to a network file system such as NFS aren't atomic, whatever
+the program does.</li>
+<li>A build whose file layer has no descriptors (the ISO C one) appends
+through stdio, and promises nothing.</li>
+</ul></li>
+<li><strong>On Windows,</strong> the guarantee needs the file layer's
+<code>d_file_open</code> to open <code>O_APPEND</code> with
+<code>FILE_APPEND_DATA</code> alone. Until it does, Windows appends as
+the C runtime does: it moves to the end, then writes, and another
+process can come between the two.</li>
+<li>A file opened to append is created, when it doesn't exist, with
+<code>D_CFG_FILE_WRITE_CREATE_MODE</code> (0644 under the umask), as
+every file the file layer writes.</li>
+</ul>
+<h3 id="formatting">Formatting</h3>
+<ul>
+<li><strong>Numbers for machines don't follow the locale.</strong>
+<code>d_ostream_write_double</code> writes the C form under every
+locale, and <code>d_ostream_write_double_l</code> writes in a locale the
+caller made (<code>d_ostream_locale_init</code>). The program's locale
+is never read or changed where the platform has locale objects.</li>
+<li><strong>printf is for people</strong>, and follows the locale as
+printf does. It formats into the window when the window has room,
+otherwise into a 256-byte stack buffer. It allocates only for output
+larger than both, and then from the default memory source. Where that is
+the null source, such output fails with <code>D_OSTREAM_FAILED</code>
+and <code>ENOMEM</code>.</li>
+</ul>
+<h3 id="templates-and-values">Templates and values</h3>
+<ul>
+<li><strong>The language:</strong>
+<ul>
+<li><code>{name}</code>, <code>{name!json|csv|md|xml}</code> and
+<code>{name:[[fill]align][sign][#][0][width][.precision][type]}</code>,
+as <code>std::format</code> and Python have it;</li>
+<li><code>{?name}...{:}...{/}</code> and
+<code>{^name}...{/}</code>;</li>
+<li><code>{{</code> and <code>}}</code>.</li>
+<li>Width and precision count UTF-8 code points.</li>
+</ul></li>
+<li><strong>Every name is checked when the template is
+compiled.</strong> A misspelt field is an error with its offset. Running
+a template parses nothing and looks nothing up.</li>
+<li><strong>Nothing allocates.</strong> A compiled template is an array
+of operations the caller provides, over source text it borrows.</li>
+<li><strong>A template is compiled once</strong> and is the same
+wherever it runs. What differs between places is a field (stream 7,
+ruled 11-04).</li>
+<li><strong>A value is one of five kinds</strong>: none, text, integer,
+boolean or real. An integer is a sign and a 64-bit magnitude held as two
+32-bit halves, so a value has one layout in every language and at every
+level, ISO strict C++98 included.</li>
+<li><strong>The statuses</strong> are
+<code>D_OSTREAM_TEMPLATE_OK</code>, <code>_INVALID</code>,
+<code>_SYNTAX</code>, <code>_UNKNOWN_FIELD</code>,
+<code>_BAD_SPEC</code>, <code>_BAD_CONVERSION</code>,
+<code>_NESTING</code> and <code>_CAPACITY</code>, each with its offset
+in the source.</li>
+</ul>
+<h3 id="json">JSON</h3>
+<ul>
+<li><strong>The entry point for machines</strong> is
+<code>d_ostream_write_value</code> with a specification read from
+<code>"!json"</code> (<code>d_ostream_spec_parse</code>). A template's
+<code>{name!json}</code> writes the same. What a value writes as is part
+of the interface: changing it breaks a caller.</li>
+<li><strong>A value is one JSON value.</strong> Text is a string, with
+<code>"</code>, <code>\</code> and every control character escaped; an
+integer is decimal with every digit, all 64 bits of it; a boolean is
+<code>true</code> or <code>false</code>; none is <code>null</code>.</li>
+<li><strong>A real with no precision has the fewest significant digits
+that read back as the same double</strong>, and of those the nearest:
+<code>0.1</code>, not <code>0.10000000000000001</code>. It is in the C
+form whatever the locale, written out in full or with an exponent,
+whichever is shorter: <code>1e+300</code>, and
+<code>36028797018963970</code> rather than
+<code>3.602879701896397e+16</code>. A precision the specification gives
+is kept: <code>"!json:.3"</code> writes two thirds as
+<code>0.667</code>.</li>
+<li><strong>NaN and the infinities are <code>null</code>.</strong> JSON
+has no spelling for them. A writer that wants another spelling tests the
+value before writing it.</li>
+<li><strong>Text is UTF-8.</strong> A sequence that isn't well formed
+(RFC 3629: no overlong forms, no surrogates, nothing past U+10FFFF) is
+written as U+FFFD, one for each maximal part, as Unicode recommends:
+<code>"x\xFF\xC3y"</code> is written as x, two U+FFFD and y. Built with
+<code>D_CFG_OSTREAM_TEMPLATE_UTF8</code> set to
+<code>D_CFG_OSTREAM_TEMPLATE_UTF8_REFUSE</code>, such a value writes
+nothing, padding included, and the stream fails with
+<code>D_OSTREAM_INVALID</code> and <code>EILSEQ</code>. XML's conversion
+does the same; raw text, CSV and Markdown pass every byte.</li>
+<li><strong>Padding is outside the value.</strong> A width pads around
+it with the fill, so the output stays JSON only when the fill is
+whitespace.</li>
+</ul>
+<h3 id="the-c-face">The C++ face</h3>
+<ul>
+<li><strong>C++98 and up, adding only.</strong> A member added above
+C++98 never replaces one below it, and the data members are the same at
+every level.</li>
+<li><strong>Every member is inline and forwards to the C
+stream.</strong> Failure is a <code>bool</code>, with
+<code>status()</code> and <code>last_errno()</code> to say why, and
+nothing throws, not even across the C boundary from a
+<code>std::ostream</code>.</li>
+<li><strong>The objects can't be copied.</strong> From C++11 they can be
+moved.</li>
+</ul>
+<h2 id="who-uses-what">Who uses what</h2>
+<p>On the tree of 2026-11-17:</p>
+<table>
+<thead>
+<tr class="header">
+<th>Where</th>
+<th>What it uses</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>DTest's <code>test_event.h</code> and
+<code>test_object.h</code></td>
+<td><code>struct dj_pack_sink</code></td>
+</tr>
+<tr class="even">
+<td>the environment printer (<code>env_printer.h</code>,
+<code>.hpp</code>, <code>.c</code>)</td>
+<td>the stream (<code>d_ostream_init_file</code>,
+<code>_set_buffer</code>, <code>_write</code>, <code>_write_char</code>,
+<code>_write_cstr</code>, <code>_fail</code>, <code>_close</code>,
+<code>_status</code>, <code>_is_ok</code>), templates
+(<code>_template_compile</code>, <code>_template_render</code>), values
+(<code>d_ostream_value_bool</code>, <code>_int64</code>,
+<code>_long</code>, <code>_none</code>, <code>_real</code>,
+<code>_size</code>, <code>_text</code>, <code>_text_n</code>,
+<code>_to_long</code>), the codes <code>D_OSTREAM_OK</code> and
+<code>D_OSTREAM_INVALID</code>, and <code>DOutputStream</code></td>
+</tr>
+<tr class="odd">
+<td>desc (<code>desc.h</code>, <code>desc_units.h</code>,
+<code>desc_units.c</code>, its machines, and option_env's
+<code>option_env_desc.c</code>)</td>
+<td>the fixed stream (<code>d_ostream_init_fixed</code>,
+<code>_fixed_length</code>, <code>_fixed_truncated</code>),
+<code>d_ostream_fill</code>, <code>_write</code>,
+<code>_write_char</code>, <code>_write_cstr</code>,
+<code>_write_value</code>, <code>_is_ok</code>, <code>_close</code> and
+<code>_spec_init</code>; <code>struct dj_ostream_value</code>,
+<code>d_ostream_value_none</code>, <code>_text</code>,
+<code>_text_n</code>, <code>_int64</code>, <code>_real</code> and
+<code>_bool</code>, and <code>D_OSTREAM_VALUE_*</code>;
+<code>D_OSTREAM_CONVERT_JSON</code> and <code>_RAW</code></td>
+</tr>
+<tr class="even">
+<td>the log</td>
+<td>everything desc uses; the console
+(<code>d_ostream_init_console</code>,
+<code>D_OSTREAM_CONSOLE_ERR</code>), <code>d_ostream_open_file</code>,
+<code>_set_buffer</code> and <code>_flush</code>; templates
+(<code>d_ostream_template_compile</code>, <code>_template_render</code>,
+<code>D_OSTREAM_TEMPLATE_OK</code> and <code>_INVALID</code>), for its
+codes' templates, in the template language (<code>{name}</code>,
+<code>{name!json}</code>, <code>{name:spec}</code>,
+<code>{?name}...{:}...{/}</code>); the values
+<code>d_ostream_value_long</code>, <code>_ulong</code>,
+<code>_uint64</code> and <code>_size</code></td>
+</tr>
+<tr class="odd">
+<td>the argument parser, C and C++</td>
+<td><code>struct dj_pack_sink</code>, <code>d_sink_emit</code>;
+<code>struct dj_pack_text</code> throughout its public headers, and
+<code>D_PACK_TEXT_NONE</code>; <code>d_pack_text_from_cstr</code> and
+<code>d_pack_text_equal</code> in its suites</td>
+</tr>
+<tr class="even">
+<td>vparse's command line</td>
+<td><code>struct dj_pack_sink</code>,
+<code>struct dj_pack_text</code></td>
+</tr>
+<tr class="odd">
+<td>the CLI kit (<code>tools/cli</code>): its headers and their C++
+faces</td>
+<td><code>struct dj_pack_sink</code></td>
+</tr>
+<tr class="even">
+<td>the CLI kit's sources and suites</td>
+<td><code>struct dj_pack_sink</code>,
+<code>dj_pack_sink_write_fn</code>, <code>struct dj_pack_text</code>,
+<code>D_PACK_TEXT_NONE</code>, <code>d_pack_text_from_cstr</code>,
+<code>d_pack_text_equal</code></td>
+</tr>
+<tr class="odd">
+<td>the djinterp program</td>
+<td><code>struct dj_pack_sink</code>, <code>d_sink_emit</code>,
+<code>struct dj_pack_text</code>; from Fri 11-20, for
+<code>describe --format=json</code> through desc,
+<code>struct dj_ostream</code>, <code>d_ostream_init</code> over a sink,
+<code>d_ostream_set_buffer</code>, <code>d_ostream_flush</code>,
+<code>d_ostream_close</code>, <code>d_ostream_is_ok</code> and
+<code>d_ostream_last_errno</code></td>
+</tr>
+<tr class="even">
+<td>bitwisedom's command line</td>
+<td><code>struct dj_pack_sink</code></td>
+</tr>
+<tr class="odd">
+<td>the interpreter's <code>djin.c</code> and <code>djin.h</code></td>
+<td><code>struct dj_pack_sink</code>, <code>d_sink_emit</code></td>
+</tr>
+<tr class="even">
+<td>the interpreter's suite</td>
+<td><code>struct dj_pack_sink</code>,
+<code>struct dj_pack_buffer_sink</code>,
+<code>d_pack_buffer_sink_init</code>,
+<code>d_pack_sink_from_buffer</code></td>
+</tr>
+<tr class="odd">
+<td>net, C and C++, throughout (its root, <code>codec</code>,
+<code>curl</code>, <code>ftp</code>, <code>http</code>,
+<code>imap</code>, <code>pop</code>, <code>sftp</code>,
+<code>smtp</code>, <code>ssh</code>, <code>ssl</code>,
+<code>starttls</code>, <code>tcp</code>, <code>tls</code>)</td>
+<td><code>struct dj_pack_text</code>, <code>struct dj_pack_bytes</code>,
+<code>struct dj_pack_sink</code>, <code>d_pack_text_from_cstr</code>;
+<code>d_pack_text_from_span</code> in <code>imap</code>'s suite;
+<code>d_sink_emit</code> in <code>pop</code> and <code>imap</code></td>
+</tr>
+<tr class="even">
+<td>compression and archiving</td>
+<td><code>struct dj_pack_sink</code>, <code>d_sink_emit</code>, the
+counting and buffer sinks</td>
+</tr>
+</tbody>
+</table>
+<p>Writers of JSON for machines, such as log records and descriptions,
+use the entry point under "JSON".</p>
+<h2 id="after-08">After 0.8</h2>
+<p>December's work, from the roadmap:</p>
+<ul>
+<li>the stream fully into text;</li>
+<li>the shortest double that reads back, which JSON writes now, offered
+to every caller;</li>
+<li>the renderers for the man pages and the wiki.</li>
+</ul>
+<p>None of it changes what is fixed here before 12-11.</p>
+</body>
+</html>

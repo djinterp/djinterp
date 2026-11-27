@@ -1,0 +1,997 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>restd batch — 2026-08-25</title>
+  <style>
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+    /* CSS for syntax highlighting */
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+</head>
+<body>
+<h1 id="re_std-batch--2026-08-25">re_std batch — 2026-08-25</h1>
+<p>Seven headers. Five new modules, one repaired, two verified.</p>
+<h2 id="deliverables">Deliverables</h2>
+<table>
+<thead>
+<tr class="header">
+<th>Path</th>
+<th>What</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>re_std_modules_2026-08-25.zip</code></td>
+<td>The headers. Unpack over <code>/inc/djinterp/</code>.</td>
+</tr>
+<tr class="even">
+<td><code>data/*.json</code></td>
+<td>Phase-2 coverage files for the six new headers.</td>
+</tr>
+<tr class="odd">
+<td><code>data/_roadmap.json</code></td>
+<td>Updated roadmap (125 entries).</td>
+</tr>
+<tr class="even">
+<td><code>restd_coverage.xlsx</code></td>
+<td>Rebuilt workbook, 42 sheets.</td>
+</tr>
+<tr class="odd">
+<td><code>tests/</code></td>
+<td>Smoke fixtures + <code>run.sh</code>. <strong>Not
+deliverables</strong> — see below.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="status">Status</h2>
+<table>
+<thead>
+<tr class="header">
+<th>Header</th>
+<th>Files</th>
+<th>Symbols</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>&lt;cstddef&gt;</code></td>
+<td>8</td>
+<td>11</td>
+<td><code>byte</code> back-ported C++17 → C++11</td>
+</tr>
+<tr class="even">
+<td><code>&lt;cstdint&gt;</code></td>
+<td>2</td>
+<td>32 typedefs / 10 rows</td>
+<td>all re-exports, optional families gated</td>
+</tr>
+<tr class="odd">
+<td><code>&lt;climits&gt;</code></td>
+<td>2</td>
+<td>6 rows</td>
+<td>macro-only; fills the C++11 <code>LLONG_*</code> set</td>
+</tr>
+<tr class="even">
+<td><code>&lt;cfloat&gt;</code></td>
+<td>2</td>
+<td>11 rows</td>
+<td>macro-only; fills the C11-via-C++17 set</td>
+</tr>
+<tr class="odd">
+<td><code>&lt;cstdlib&gt;</code></td>
+<td>9</td>
+<td>~40 / 13 rows</td>
+<td>all re-exports, 2 symbols gated</td>
+</tr>
+<tr class="even">
+<td><code>&lt;chrono&gt;</code></td>
+<td>27</td>
+<td>28 of 38 groups</td>
+<td>core only; calendar + zones deferred</td>
+</tr>
+<tr class="odd">
+<td><code>&lt;ratio&gt;</code></td>
+<td>13</td>
+<td>—</td>
+<td><strong>repaired</strong>, see below</td>
+</tr>
+<tr class="even">
+<td><code>&lt;numbers&gt;</code>, <code>&lt;bitset&gt;</code></td>
+<td>—</td>
+<td>—</td>
+<td>verified, unchanged</td>
+</tr>
+</tbody>
+</table>
+<p>Verification: 250/250 standalone header compilations, 7 fixtures × 5
+tiers (C++11/14/17/20/23), <code>-Wall -Wextra -pedantic</code>, plus
+all 15 forced clock-source configurations.</p>
+<h2 id="three-things-to-look-at">Three things to look at</h2>
+<p><strong><code>&lt;ratio&gt;</code> was broken.</strong> All 12 files
+had the core include mangled to
+<code>// djinterp', '#include "../../core/djinterp.hpp"', '</code> — one
+line, entirely a comment, so none of them included
+<code>djinterp.hpp</code>. Looks like a Python list str()-ed into a
+replacement. Nothing compiled. Repaired and verified. Worth grepping the
+rest of the corpus for that signature; it's confined to
+<code>ratio/</code> in this zip, but whatever produced it isn't.</p>
+<p><strong><code>re_std::byte{0x2A}</code> does not back-port.</strong>
+Direct-list-initialising a scoped enum from an integer is P0138R2, a
+C++17 <em>language</em> change. The type reaches C++11 fine; only that
+spelling doesn't. C++11/14 callers write
+<code>static_cast&lt;byte&gt;(0x2A)</code>, constexpr at every tier. No
+<code>to_byte()</code> factory was added to hide it — std has no such
+function, and inventing surface std lacks would break portability in the
+other direction. Recorded as a language ceiling in
+<code>cstddef.json</code>.</p>
+<p><strong><code>&lt;chrono&gt;</code> days/months/years are
+fixed-length durations.</strong> <code>t + years(1)</code> advances by
+the mean Gregorian year (31556952s), <em>not</em> to the same date next
+year. The shipped <code>d</code> and <code>y</code> literals are the
+duration forms; when the calendar lands, <code>15d</code> and
+<code>2020y</code> become ambiguous with <code>chrono::day</code> /
+<code>chrono::year</code> and the literals will need splitting by
+context. Recorded in the new roadmap entry (priority 39) rather than
+worked around.</p>
+<h2 id="the-tests-directory-is-a-fixture-not-a-deliverable">The tests
+directory is a fixture, not a deliverable</h2>
+<p><code>tests/core/djinterp.hpp</code> is a <strong>stand-in</strong>
+for the real core header, which the corpus ships without. It supplies
+exactly the macro vocabulary the headers reference, derived from the
+tables in <code>RE_STD_AGENT_README.html</code>. Delete it and build
+against the real <code>core/djinterp.hpp</code> before trusting any
+result.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">./run.sh</span> test/t_chrono.cpp      <span class="co"># compiles + runs at all five tiers</span></span></code></pre></div>
+<p><code>run.sh</code> deletes its binary before each compile — an
+earlier version of this batch reported <code>ok</code> from a stale
+binary after a failed build.</p>
+<h2 id="known-imperfect-deliberately">Known-imperfect, deliberately</h2>
+<ul>
+<li>Every new module floors at C++11, so all rows render as uncovered
+against the workbook's C++98 floor. Each carries a
+<code>failure_reason</code> saying so. This is the known tier-floor
+item, not new debt.</li>
+<li><code>duration_cast</code> overflow of the common type is unchecked,
+matching std.</li>
+<li><code>chrono::abs(duration::min())</code> is undefined, matching
+std.</li>
+<li><code>re_std::abs</code> on a floating-point argument is not
+portable until <code>&lt;cmath&gt;</code> lands — a using-declaration
+captures whatever <code>std::abs</code> overloads are visible when the
+header is parsed.</li>
+</ul>
+<h2 id="post-delivery-audit-added-after-the-batch-shipped">Post-delivery
+audit (added after the batch shipped)</h2>
+<p>Verified the "Known false-greens" list in
+<code>re_std_modules.html</code> against the filesystem rather than the
+data. <strong>All ten are still false</strong>, and they are not only a
+cataloguing problem:</p>
+<ul>
+<li>8 <code>&lt;type_traits&gt;</code> files do not exist.
+<code>optional_base.hpp</code> uses one of them
+(<code>is_trivially_copyable</code>), so
+<strong><code>&lt;optional&gt;</code> does not compile</strong>, and
+<code>&lt;ranges&gt;</code> fails through it.</li>
+<li><code>compare/compare</code> includes 2 files that do not exist, so
+<strong>the <code>&lt;compare&gt;</code> umbrella does not
+compile</strong>.</li>
+</ul>
+<p>Then compiled all 27 module umbrellas at the placement each one's own
+includes imply. <strong>21 pass, 6 fail.</strong> Beyond the four
+above:</p>
+<ul>
+<li><code>&lt;expected&gt;</code> — <code>unexpected.hpp:170</code> uses
+<code>std::swap</code> with no <code>&lt;utility&gt;</code>.</li>
+<li><code>&lt;string_view&gt;</code> and <code>&lt;tuple&gt;</code> —
+mis-ordered namespace macros.</li>
+</ul>
+<p><strong>Four files have <code>NS_</code> opens and
+<code>NS_END</code> closes that are count-balanced but wrongly
+sequenced</strong>, so a plain tally reports them clean (my first check
+did exactly that and missed them). A running-depth check finds them:
+<code>algorithm/sort.hpp:337</code>,
+<code>algorithm/stable_sort.hpp:354</code>,
+<code>string_view/char_traits.hpp:392</code>,
+<code>tuple/tuple.hpp:118</code>.</p>
+<p><code>char_traits.hpp</code> shows the full damage:
+<code>NS_INTERNAL</code> opens with no enclosing <code>NS_RESTD</code>,
+a stray <code>NS_END</code> emits <code>}</code> at global scope, and
+the later <code>NS_RESTD</code> is never closed — so
+<code>char_traits&lt;char&gt;</code> sits at global scope and everything
+included afterwards nests into <code>re_std::re_std</code>.</p>
+<p>The two <code>algorithm</code> files are the ones to worry about:
+<code>&lt;algorithm&gt;</code> compiles anyway, because a sibling leaves
+a namespace open where they are included. They are correct only by
+include order — the same failure mode as the <code>&lt;ratio&gt;</code>
+mangling and the clock-header missing includes found earlier in this
+batch.</p>
+<p><code>tests/audit.sh</code> re-runs the umbrella sweep; the
+order-aware namespace check is in <code>re_std_modules.html</code>.</p>
+<p><strong>None of these are mine</strong> — they predate this batch,
+and I have not modified any of the affected modules. Fixing them is a
+separate decision.</p>
+<hr />
+<h1 id="repair-batch--same-day">Repair batch — same day</h1>
+<p>Requested: the 8 missing type traits, the comparables,
+<code>&lt;expected&gt;</code>'s missing <code>&lt;utility&gt;</code>,
+and the namespace errors. All done. <strong>Umbrellas now compile: 25 of
+27, up from 21.</strong></p>
+<table>
+<thead>
+<tr class="header">
+<th>Item</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>8 intrinsic type traits</td>
+<td>written, <code>is_scoped_enum</code> needs <strong>no
+intrinsic</strong> — exact on both paths</td>
+</tr>
+<tr class="even">
+<td><strong>21 orphaned traits</strong></td>
+<td>files existed, umbrella never included them — now wired in</td>
+</tr>
+<tr class="odd">
+<td><code>three_way_comparable</code> / <code>_with</code></td>
+<td>written; C++20-only</td>
+</tr>
+<tr class="even">
+<td><code>&lt;expected&gt;</code> missing
+<code>&lt;utility&gt;</code></td>
+<td>fixed</td>
+</tr>
+<tr class="odd">
+<td>4 namespace-order defects</td>
+<td>fixed (<code>sort</code>, <code>stable_sort</code>,
+<code>tuple</code>, <code>char_traits</code>)</td>
+</tr>
+<tr class="even">
+<td><code>&lt;optional&gt;</code> missing <code>in_place.hpp</code>
+include</td>
+<td>fixed (found en route)</td>
+</tr>
+</tbody>
+</table>
+<h2 id="three-things-worth-your-attention">Three things worth your
+attention</h2>
+<p><strong>The false-green list was incomplete.</strong> Beyond the
+documented 8, <strong>21 further <code>&lt;type_traits&gt;</code>
+headers existed on disk but were never included by
+<code>type_traits.hpp</code></strong> — the module's documented entry
+point. All 21 compile standalone, so they were working code withheld
+from every caller. This is what made <code>optional.hpp</code> fail on
+<code>is_nothrow_swappable</code> and left comments in
+<code>utility/pair.hpp</code> and <code>utility/swap.hpp</code> saying
+the trait "re_std does not yet [have]" — it did, in the same directory.
+Now wired in under a new section XV.</p>
+<p><strong><code>is_scoped_enum</code> needed no intrinsic.</strong>
+Scopedness is observable through the type system (<code>is_enum</code> +
+<code>!is_convertible&lt;T, underlying_type_t&lt;T&gt;&gt;</code>), so
+unlike the other seven its fallback is <em>exact</em>, not degraded. I
+verified both paths separately with every intrinsic forced off.</p>
+<p><strong>The comparables exposed a real inconsistency in
+<code>&lt;compare&gt;.</code></strong> My first version failed on
+<code>int</code>. Cause: <code>re_std::partial_ordering</code> is
+re_std's <strong>own class</strong> (back-ported to C++11), but
+<code>operator&lt;=&gt;</code> is a <em>language</em> feature that can
+only ever yield <code>std::strong_ordering</code>. Folding a std
+category against an re_std one gives <code>void</code>, so the concept
+matched nothing. The concepts therefore take
+<strong><code>std::</code></strong> category arguments — which matches
+<code>compare_three_way_result</code>, whose own docs already say it
+yields <code>std::strong_ordering</code>. Worth a decision: re_std owns
+four category types the language will never produce.</p>
+<p>Also corrected in <code>compare.json</code>: both concepts were
+catalogued at a <strong>C++11</strong> floor. That was wrong twice — the
+files didn't exist, and the tier is unreachable in principle. Now C++20
+with a <code>failure_reason</code>.</p>
+<h2 id="still-broken-2-of-27--beyond-what-you-asked-for">Still broken (2
+of 27) — beyond what you asked for</h2>
+<ul>
+<li><strong><code>&lt;optional&gt;</code></strong> —
+<code>internal::throw_bad_optional_access()</code> is <em>called in
+three places and defined nowhere in the corpus</em>. A genuinely missing
+function, not a missing include.</li>
+<li><strong><code>&lt;ranges&gt;</code></strong> —
+<code>view_interface.hpp:69</code>, a constexpr/const issue. Not
+investigated.</li>
+</ul>
+<p>I stopped here rather than expanding scope again. Both are small and
+I can take them next.</p>
+<hr />
+<h1 id="close-out-optional--ranges">Close-out: optional + ranges</h1>
+<p><strong>All 27 umbrellas compile at all five tiers —
+135/135.</strong></p>
+<h2
+id="optional--a-function-called-three-times-and-defined-nowhere"><code>&lt;optional&gt;</code>
+— a function called three times and defined nowhere</h2>
+<p><code>internal::throw_bad_optional_access()</code> had no definition
+in the corpus. Written into <code>bad_optional_access.hpp</code>, next
+to the exception it raises.</p>
+<p>Two decisions in it worth knowing:</p>
+<ul>
+<li><strong>A function, not a bare <code>throw</code> at each call
+site.</strong> <code>value()</code> is constexpr and its body is a
+conditional expression —
+<code>engaged ? m_value : (throw_bad_optional_access(), m_value)</code>
+— and a throw-expression is not a valid operand there before C++14. The
+call keeps the expression legal at every tier and puts the
+exceptions-disabled handling in one place.</li>
+<li><strong>Not marked <code>D_CONSTEXPR</code>.</strong> It never
+succeeds, so it can never appear in a successful constant evaluation;
+marking it constexpr would imply otherwise. The enclosing
+<code>value()</code> stays constexpr regardless.</li>
+<li>With exceptions disabled it calls <code>std::abort()</code>. There
+is no value to return and no way to report; handing back a reference to
+disengaged storage would be strictly worse than a clean abort.</li>
+</ul>
+<h2
+id="ranges--28-c11-conformance-defects-all-one-root-cause"><code>&lt;ranges&gt;</code>
+— 28 C++11 conformance defects, all one root cause</h2>
+<p><code>ranges.json</code> claims a <strong>C++11 floor for 59
+symbols</strong>. The module did not compile at C++11 <em>at
+all</em>.</p>
+<p>Every defect is hard-won rule 2 — on C++11 <code>constexpr</code> on
+a member function implies <code>const</code> — showing up as three
+different diagnostics:</p>
+<table>
+<thead>
+<tr class="header">
+<th>symptom</th>
+<th>count</th>
+<th>why it looks different</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>cannot be overloaded</code></td>
+<td>22</td>
+<td>a non-const/const pair collapses to two identical signatures</td>
+</tr>
+<tr class="even">
+<td><code>increment of read-only location</code></td>
+<td>5</td>
+<td>a <strong>mutator with no const twin</strong> — no collision to
+diagnose, it just silently became const</td>
+</tr>
+<tr class="odd">
+<td><code>constexpr constructor does not have empty body</code></td>
+<td>1</td>
+<td>C++11 requires an empty constexpr ctor body</td>
+</tr>
+</tbody>
+</table>
+<p>The middle row is the one to remember: it produces no overload clash,
+so a collision-driven check misses it entirely. My first pass did
+exactly that and had to be extended.</p>
+<p>Fixes were <strong>error-driven, not heuristic</strong> —
+<code>tests/fix_rule2.py</code> and <code>fix_rule2b.py</code> parse the
+compiler's own diagnostics and re-qualify only the functions it names,
+so free functions and already-const members are never touched. Files:
+<code>view_interface</code>, <code>single_view</code>,
+<code>owning_view</code>, <code>reverse_view</code>,
+<code>take_while_view</code>, <code>join_view</code>,
+<code>as_rvalue_view</code>, <code>as_const_view</code>,
+<code>repeat_view</code>, <code>movable_box</code>.</p>
+<p><strong>One self-inflicted error, caught and fixed:</strong> a blind
+string replace turned <code>D_CONSTEXPR_INLINE</code> into
+<code>D_CONSTEXPR_CPP14_INLINE</code>, a macro that does not exist —
+briefly breaking tiers that had been passing. The per-tier matrix caught
+it; a C++20-only check would not have.</p>
+<hr />
+<h1 id="design-decision-recorded--warning-cleanup">Design decision
+recorded + warning cleanup</h1>
+<h2
+id="the-compare-category-split-is-now-documented-not-just-decided">The
+<code>&lt;compare&gt;</code> category split is now documented, not just
+decided</h2>
+<p>Wrote the rule into <code>compare/compare</code>'s header comment,
+where someone about to write an <code>operator&lt;=&gt;</code> will
+actually hit it:</p>
+<blockquote>
+<p><strong>Writing an <code>operator&lt;=&gt;</code> by hand</strong> on
+a class that must work at C++11 → return an <strong>re_std</strong>
+category, that is what they are for. <strong>Constraining on, or
+inspecting, the result of the builtin <code>&lt;=&gt;</code></strong> →
+use <strong>std's</strong>, because the subject is
+<code>decltype(a &lt;=&gt; b)</code> and the language decides that.</p>
+</blockquote>
+<p>The comment also records the failure mode, which is the dangerous
+part: <code>common_comparison_category</code> ranks re_std's categories
+only, so folding a std category against an re_std one falls through to
+<code>void</code> and a <code>same_as</code> check just fails. <strong>A
+constraint written with the wrong set does not misbehave loudly — it
+matches nothing.</strong> That is exactly how the first
+<code>three_way_comparable</code> came to reject <code>int</code>. Both
+rejected alternatives are recorded with their reasons.</p>
+<h2 id="zero-warnings-across-135-umbrella--tier-builds">Zero warnings
+across 135 umbrella × tier builds</h2>
+<p>Was 13. Four fixes:</p>
+<table>
+<thead>
+<tr class="header">
+<th>Warning</th>
+<th>Cause</th>
+<th>Fix</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>inline variables are C++17</td>
+<td><strong>my test stub</strong> defined
+<code>D_CONSTEXPR_INLINE</code> as <code>constexpr inline</code>, but
+the corpus applies it to <em>variable</em> definitions</td>
+<td>stub routes through <code>D_INLINE_VAR</code> — tells us the real
+core header must gate the inline part</td>
+</tr>
+<tr class="even">
+<td>literal suffix not preceded by <code>_</code></td>
+<td>re_std <em>is</em> the implementation, so reserved suffixes are
+correct</td>
+<td>scoped <code>push</code>/<code>ignored</code>/<code>pop</code>, as
+std's own headers do</td>
+</tr>
+<tr class="odd">
+<td><code>-Winvalid-constexpr</code> on
+<code>bad_optional_access()</code></td>
+<td>ctor was <code>D_CONSTEXPR</code> but its
+<code>std::exception</code> base ctor is not — ill-formed NDR</td>
+<td>constexpr only on the standalone (no-base) path</td>
+</tr>
+<tr class="even">
+<td>floating-point suffix <code>d</code> shadowed</td>
+<td><strong>my mistake</strong> — see below</td>
+<td>removed</td>
+</tr>
+</tbody>
+</table>
+<p><strong>I had invented API std does not have.</strong> I gave
+<code>operator""d</code> and <code>operator""y</code>
+<code>long double</code> overloads to match the other six suffixes. The
+standard declares <strong>only</strong> the
+<code>unsigned long long</code> form for those two — <code>d</code>
+collides with the decimal-float suffixes some compilers offer. Removed.
+This is the same principle I applied when declining to add a
+<code>to_byte()</code> factory for <code>&lt;cstddef&gt;</code>; I did
+not apply it consistently the first time, and the compiler caught
+it.</p>
+<h2 id="two-findings-left-on-the-table">Two findings left on the
+table</h2>
+<p><strong>106 headers fail to compile standalone</strong> (1282/1388
+across all modules at C++11 and C++20) — they work only via umbrella
+include order. Concentrated in <code>memory</code> (23),
+<code>ranges</code> (9), <code>type_traits</code> (6),
+<code>functional</code> (5). This is the same order-dependence class as
+the <code>&lt;ratio&gt;</code> mangling and the clock includes; the
+umbrellas are all green, so it is latent rather than breaking.</p>
+<p><strong><code>internal::throw_bad_variant_access()</code> is called
+and never defined</strong> — the exact bug I just fixed in
+<code>&lt;optional&gt;</code>, still live in
+<code>variant/variant_visit.hpp</code>. <code>&lt;variant&gt;</code>'s
+umbrella compiles only because that header is orphaned from it. Same
+one-function fix.</p>
+<hr />
+<h1 id="standalone-header-repair--34703470">Standalone header repair —
+3470/3470</h1>
+<p>Every header in the corpus now compiles <strong>on its own</strong>
+at C++11/14/17/20/23. Umbrellas remain 135/135 with <strong>zero
+warnings</strong>; namespace-order defects and
+includes-inside-a-namespace are both at zero.</p>
+<h2 id="what-the-original-106-actually-were">What the original 106
+actually were</h2>
+<p><strong>46 were my test fixture, not the corpus.</strong> The stub
+was missing <code>D_DELETE_FN</code>, <code>D_ENV_HAS_LONG_LONG</code>,
+the long-long diagnostic pair, and the inline-variables feature macro.
+Worth stating plainly: nearly half the "corpus bugs" I reported were
+mine. The stub is now checked against the corpus's full macro
+vocabulary.</p>
+<p>The remaining 60 were real, in five classes:</p>
+<table>
+<thead>
+<tr class="header">
+<th>Class</th>
+<th>Examples</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Wrong include paths</strong> (13 files)</td>
+<td><code>../functional/compare_three_way.hpp</code> →
+<code>../compare/</code>; <code>range_access.hpp</code> →
+<code>ranges_access.hpp</code>; <code>iterator_tags.hpp</code> and
+<code>range_traits.hpp</code> don't exist — content lives in per-symbol
+headers</td>
+</tr>
+<tr class="even">
+<td><strong>Missing includes</strong> (30+ files)</td>
+<td><code>get</code>, <code>apply</code>, <code>sentinel_t</code>,
+<code>make_index_sequence</code>, <code>range_reference_t</code>,
+<code>remove_cv</code>, <code>&lt;type_traits&gt;</code>,
+<code>&lt;initializer_list&gt;</code></td>
+</tr>
+<tr class="odd">
+<td><strong><code>#include &lt;new&gt;</code> inside
+<code>namespace re_std</code></strong></td>
+<td><code>new/launder.hpp</code>, <code>new/destroying_delete.hpp</code>
+— declares <code>operator new</code> in a namespace, which is
+ill-formed</td>
+</tr>
+<tr class="even">
+<td><strong>Wrong construct</strong></td>
+<td><code>span_range_traits.hpp</code> specialised
+<code>enable_borrowed_range</code>/<code>enable_view</code> as
+<em>variable templates</em>; they are <strong>struct traits</strong>.
+Also opened <code>ranges</code> when they live in
+<code>re_std::</code></td>
+</tr>
+<tr class="odd">
+<td><strong>Typos / tier bugs</strong></td>
+<td><code>restd::</code> for <code>re_std::</code> (7×) in
+<code>ranges/iter_move.hpp</code>; <code>equal_to&lt;&gt;</code> needs a
+C++14 default arg, so the three searchers failed at C++11</td>
+</tr>
+</tbody>
+</table>
+<p>Also fixed:
+<strong><code>internal::throw_bad_variant_access()</code></strong>,
+called and defined nowhere — the same bug as
+<code>&lt;optional&gt;</code>'s, now written into
+<code>bad_variant_access.hpp</code>.</p>
+<h2 id="a-cycle-i-created-and-what-it-revealed">A cycle I created, and
+what it revealed</h2>
+<p>Wiring the 21 orphaned type_traits into the umbrella exposed a latent
+<strong>three-way include cycle</strong>: <code>invoke_result.hpp</code>
+(type_traits) needs <code>is_reference_wrapper</code> (functional),
+which pulled the whole type_traits umbrella back, and
+<code>reference_wrapper.hpp</code> → <code>invoke.hpp</code> →
+<code>is_reference_wrapper</code> closed a second loop. It had never
+surfaced because <code>invoke_result.hpp</code> was orphaned and
+therefore never compiled.</p>
+<p>Fixed by narrowing <code>is_reference_wrapper.hpp</code> to the
+traits it actually uses and <strong>forward-declaring</strong>
+<code>reference_wrapper</code> instead of including it — the same
+technique as <code>chrono/duration_fwd.hpp</code>.
+<code>invoke_result.hpp</code> now declares its <code>functional/</code>
+dependency explicitly.</p>
+<p><strong>I broke the tree doing this</strong> — one intermediate state
+went from 47 failures to 295. The per-header sweep caught it
+immediately; a build that only checks umbrellas would have shipped
+it.</p>
+<h2
+id="testsstandalone_sweepsh"><code>tests/standalone_sweep.sh</code></h2>
+<p>Added, and it belongs in CI next to <code>audit.sh</code>. Every bug
+in this session — the <code>&lt;ratio&gt;</code> mangling, the clock
+includes, the namespace defects, and all 60 of these — is caught by one
+of those two scripts, both of which run in seconds.</p>
+<hr />
+<h1 id="correction-the-c98-floor-claim-was-false">Correction: the C++98
+floor claim was false</h1>
+<p>Every <code>failure_reason</code> in this batch carried the line:</p>
+<blockquote>
+<p>"core/djinterp.hpp hard-errors below C++11, so C++98 is not a
+reachable tier"</p>
+</blockquote>
+<p><strong>It is not true.</strong> <code>djinterp.hpp</code> contains
+nothing that hard-errors at C++98. Compiled at
+<code>-std=c++98 -pedantic</code>, exactly two constructs are post-C++98
+and both are warnings at most: an anonymous variadic macro in
+<code>D_NOEXCEPT_IF(...)</code>, and <code>_Pragma</code> in the
+long-long diagnostic pair.</p>
+<p><code>RE_STD_AGENT_README</code> says the opposite of the claim:
+<em>"compiles on C++98 through C++26"</em>, with a macro table that
+degrades every C++11 feature (<code>D_CONSTEXPR</code> → empty,
+<code>D_CONSTEXPR_INLINE</code> → <code>inline</code>) and a review
+checklist of explicit C++98 idioms. Decisively, its known-issues table
+logs <em>"any.hpp | Entire file gated on C++11; needs C++98 path |
+<strong>Planned work</strong>"</em> — blanket C++11 gating is tracked as
+a <strong>defect</strong>, not an accepted floor.</p>
+<p><strong>Provenance.</strong> I checked rather than assumed: the
+sentence is verbatim pre-existing in <code>bit.json</code> (14×),
+<code>numbers.json</code> (13×) and <code>memory.json</code> (1×). I did
+not invent it — but I adopted it for 49 more fields without verifying a
+load-bearing claim about a file nobody in this working set has, and used
+it to justify gating 38 of 50 new files. The tell was in my own output:
+I never gated <code>&lt;climits&gt;</code> or
+<code>&lt;cfloat&gt;</code>, and both are C++98-clean and working.</p>
+<h2 id="what-was-corrected">What was corrected</h2>
+<table>
+<tbody>
+<tr class="odd">
+<td><code>failure_reason</code> / <code>notes</code> fields</td>
+<td><strong>85</strong> corrected across 13 JSONs (49 mine, 36
+pre-existing)</td>
+</tr>
+<tr class="even">
+<td><code>&lt;cstdlib&gt;</code></td>
+<td><strong>ungated</strong> — C++98 families now reach C++98;
+<code>atoll</code>, <code>strtof</code>, <code>strtold</code>,
+<code>strtoll</code>, <code>strtoull</code>, <code>_Exit</code>,
+<code>llabs</code>, <code>lldiv</code>, <code>lldiv_t</code> gated
+individually; <code>quick_exit</code> pair gate made tier-aware</td>
+</tr>
+<tr class="odd">
+<td><code>cstdlib.json</code></td>
+<td>11 rows moved from a C++11 to a <strong>C++98</strong> floor</td>
+</tr>
+<tr class="even">
+<td>Roadmap</td>
+<td>2 new entries: <strong>priority 41</strong> (C++98 paths for this
+batch) and <strong>priority 42</strong> (<code>&lt;chrono&gt;</code>
+C++98 path)</td>
+</tr>
+</tbody>
+</table>
+<p><code>re_std::atoi</code>, <code>malloc</code>, <code>free</code>,
+<code>abs</code>, <code>size_t</code>, <code>ptrdiff_t</code>,
+<code>offsetof</code> and the
+<code>&lt;climits&gt;</code>/<code>&lt;cfloat&gt;</code> macros now all
+compile at <code>-std=c++98</code>.</p>
+<h2 id="what-genuinely-stays-gated">What genuinely stays gated</h2>
+<ul>
+<li><strong><code>nullptr_t</code>, <code>max_align_t</code></strong> —
+language constructs with no C++98 existence. Correctly gated.</li>
+<li><strong><code>byte</code></strong> — needs the struct-wrapper idiom
+the checklist prescribes for <code>enum class</code>. A real back-port;
+logged at priority 41.</li>
+<li><strong><code>&lt;cstdint&gt;</code></strong> — the header itself is
+C++11; needs a <code>&lt;stdint.h&gt;</code> fallback. Logged at
+priority 41.</li>
+<li><strong><code>&lt;chrono&gt;</code></strong> —
+<code>std::chrono</code> is C++11, so a C++98 duration/time_point is
+exactly the back-port this library exists for, and the largest coverage
+win left in the module. Logged at priority 42 with the specific changes
+required.</li>
+</ul>
+<p>No regression: umbrellas 135/135 with zero warnings, standalone
+3470/3470, all fixtures green.</p>
+<p><strong>One open question this raises:</strong> the "OPEN tier-floor
+item" may rest on the same false premise. If C++98 is reachable, the
+workbook's C++98 floor is correct and the <em>modules</em> are what need
+moving — the opposite of the conclusion I offered earlier.</p>
+<hr />
+<h1 id="the-unblocked-batch--and-a-100-header-finding">The unblocked
+batch — and a 100-header finding</h1>
+<p>Three of the four items turned out <strong>not to be missing
+code</strong>. The files already existed; their module umbrella just
+never included them.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Item</th>
+<th>What it actually was</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>&lt;optional&gt;</code> comparisons, swap, hash,
+<code>&lt;=&gt;</code></td>
+<td>8 headers present since the start, <strong>never included</strong>
+by <code>optional/optional</code></td>
+</tr>
+<tr class="even">
+<td><code>&lt;utility&gt;</code> <code>move_if_noexcept</code></td>
+<td>fully written; its stated blocker
+(<code>is_copy_constructible</code>) had long since landed</td>
+</tr>
+<tr class="odd">
+<td><code>&lt;type_traits&gt;</code> priorities 3 + 4</td>
+<td>already shipped — they were among the 21 orphans I wired in earlier
+today</td>
+</tr>
+<tr class="even">
+<td><code>&lt;tuple&gt;</code> <code>operator&lt;=&gt;</code></td>
+<td>real bug, below</td>
+</tr>
+</tbody>
+</table>
+<p><strong>11 catalogued symbols went from "unimplemented" to shipped by
+adding include lines.</strong> The coverage data was
+<em>under</em>-reporting, which is the mirror of the false-green problem
+and arguably worse: it hides finished work.</p>
+<h2 id="100-orphaned-headers-corpus-wide">100 orphaned headers
+corpus-wide</h2>
+<p>A sweep for "exists under <code>re_std/&lt;module&gt;/</code> but
+absent from the umbrella" found <strong>100</strong>. Some are
+legitimately internal (<code>optional_base</code>,
+<code>func_storage</code>, <code>searcher_detail</code>,
+<code>literal_zero_helper</code>, <code>sp_control_block</code>). Most
+are not:</p>
+<table>
+<thead>
+<tr class="header">
+<th>module</th>
+<th>orphans</th>
+<th>includes</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>iterator</code></td>
+<td><strong>33</strong></td>
+<td><code>advance</code>, <code>distance</code>, <code>next</code>,
+<code>prev</code>, <code>begin</code>/<code>end</code>,
+<code>reverse_iterator</code>, every iterator tag</td>
+</tr>
+<tr class="even">
+<td><code>functional</code></td>
+<td>13</td>
+<td><code>bind</code>, <code>bind_front</code>, <code>bind_back</code>,
+all three searchers, <code>function_ref</code></td>
+</tr>
+<tr class="odd">
+<td><code>ranges</code></td>
+<td>9</td>
+<td><code>zip_view</code>, <code>enumerate_view</code>,
+<code>common_view</code>, …</td>
+</tr>
+<tr class="even">
+<td><code>exception</code></td>
+<td>8</td>
+<td><code>terminate</code>, <code>exception_ptr</code>,
+<code>nested_exception</code></td>
+</tr>
+<tr class="odd">
+<td><code>memory</code>, <code>utility</code>, <code>any</code>,
+<code>tuple</code>, …</td>
+<td>4–5 each</td>
+<td><code>any_cast</code>, <code>make_any</code>,
+<code>bad_any_cast</code>, …</td>
+</tr>
+</tbody>
+</table>
+<p>This is now logged at <strong>priority 43</strong>, and I'd argue it
+is the single largest source of catalogue error in the project.
+<code>&lt;iterator&gt;</code> at 33 means the module's documented entry
+point surfaces almost nothing.</p>
+<h2 id="the-one-real-bug-the-category-split-again">The one real bug: the
+category split, again</h2>
+<p><code>&lt;tuple&gt;</code>'s <code>operator&lt;=&gt;</code> failed
+with
+<code>common_comparison_category_t&lt;std::strong_ordering, std::strong_ordering&gt;</code>
+resolving to <strong><code>void</code></strong> — the exact hazard I
+documented this morning, now confirmed as a live defect rather than a
+design note.</p>
+<p>It affected <strong>four modules</strong>: <code>tuple</code>,
+<code>pair</code>, <code>array</code>, <code>variant</code>. Each folded
+the results of the <em>builtin</em> <code>&lt;=&gt;</code> (which yields
+<code>std::</code> categories) through <em>re_std's</em> fold, which
+ranks only re_std's categories. All four now use
+<code>std::common_comparison_category_t</code>, per the rule in
+<code>compare/compare</code>'s header. <code>pair</code>,
+<code>array</code> and <code>tuple</code> verified working at
+C++20/23.</p>
+<p>That is two separate live bugs from this one split in a single day.
+It is worth revisiting whether the four re_std category types should
+exist at all.</p>
+<h2 id="not-done">Not done</h2>
+<p><strong><code>&lt;compare&gt;</code> Phase C6</strong> — the
+floating-point special case in
+<code>strong_order</code>/<code>weak_order</code>. Untouched; it is
+genuine implementation work (IEEE-754 <code>totalOrder</code>
+semantics), not a wiring fix, and I stopped rather than start it with
+the session this deep.</p>
+</body>
+</html>

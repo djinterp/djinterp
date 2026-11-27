@@ -10,7 +10,7 @@
 *             (the container family's filter gates)
 *
 *   RENAMED 2026.11.01 from container_iterator_config.h: every config header
-* is cfg_<module>.h (dconfig_readme.md, 2.1).
+* is cfg_<module>.h (dconfig_readme.html, 2.1).
 *
 *
 * path:      /inc/djinterp/config/cpp/container/iterator/cfg_container_iterator.h

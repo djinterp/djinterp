@@ -2,7 +2,7 @@
 * djinterp [c][tools]                                               cli_plugin.h
 *
 * A program's commands that live in modules of their own: its window, loaded
-* only when asked for (GRAMMAR.md, section 7).
+* only when asked for (GRAMMAR.html, section 7).
 *   THE INTERFACE. A program and a module it loads meet at two structures
 * and one function, all C: the module exports `d_cli_plugin_entry`, which
 * returns its dj_cli_plugin - the ABI it was built to, the program and version
@@ -200,7 +200,7 @@ struct dj_cli_plugin_host
 // dj_cli_plugin_run_fn
 //   type: a module's work: given the host and the arguments after the
 // command's name - `_argv[0]` the host's `command`, `_argv[_argc]` NULL --
-// it returns the status the program exits with (GRAMMAR.md, section 8).
+// it returns the status the program exits with (GRAMMAR.html, section 8).
 typedef int (*dj_cli_plugin_run_fn)(const struct dj_cli_plugin_host* _host,
                                    int                             _argc,
                                    const char* const*              _argv);

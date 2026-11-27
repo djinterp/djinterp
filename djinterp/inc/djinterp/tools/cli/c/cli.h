@@ -3,8 +3,8 @@
 *
 * The command-line kit's C umbrella: every header of the kit, and so the
 * argument parser's.
-*   GRAMMAR.md, beside the C++ faces, is the grammar every program the kit
-* makes follows; README.md is how a program is made with it.
+*   docs/djinterp/tools/cli/GRAMMAR.html is the grammar every program the
+* kit makes follows; README.html beside it is how a program is made with it.
 *
 * HOW TO USE
 * ----------

@@ -8,7 +8,7 @@
 *   requires: cfg_common.h (user overrides)
 *
 *   RENAMED 2026.11.01 from text_config.h: every config header
-* is cfg_<module>.h (dconfig_readme.md, 2.1).
+* is cfg_<module>.h (dconfig_readme.html, 2.1).
 *
 *
 * path:      /inc/djinterp/config/cpp/text/cfg_text.h

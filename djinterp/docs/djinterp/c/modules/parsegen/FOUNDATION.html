@@ -1,0 +1,1375 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>parse / parsegen foundation — steps 1 through 6</title>
+  <style>
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+    /* CSS for syntax highlighting */
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+</head>
+<body>
+<h1 id="parse--parsegen-foundation--steps-1-through-6">parse / parsegen
+foundation — steps 1 through 6</h1>
+<blockquote>
+<p><strong>Where this file is, and what its paths mean (lane F,
+2026-11-04).</strong> This record was written before the restructure of
+2026-11-03, and its paths are the old layout's, where a subsystem's C
+half sat in a <code>c/</code> beneath it. It is kept as written; read
+its paths through this table. Ruling rs c put a doc about a whole module
+in <code>docs/djinterp/&lt;module&gt;/</code>, so it lives here now.</p>
+<table>
+<thead>
+<tr class="header">
+<th>the record says</th>
+<th>the tree has</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>inc/djinterp/parse/c/X.h</code>,
+<code>src/djinterp/parse/c/X.c</code></td>
+<td><code>inc/djinterp/c/modules/parse/X.h</code>,
+<code>src/djinterp/c/modules/parse/X.c</code></td>
+</tr>
+<tr class="even">
+<td><code>inc/djinterp/parse/X.hpp</code></td>
+<td><code>inc/djinterp/cpp/modules/parse/X.hpp</code></td>
+</tr>
+<tr class="odd">
+<td><code>inc/djinterp/parsegen/c/X.h</code>,
+<code>src/djinterp/parsegen/c/X.c</code></td>
+<td><code>inc/djinterp/c/modules/parsegen/X.h</code>,
+<code>src/djinterp/c/modules/parsegen/X.c</code></td>
+</tr>
+<tr class="even">
+<td><code>inc/djinterp/parsegen/X.hpp</code>,
+<code>.../parsegen/vparse/</code></td>
+<td><code>inc/djinterp/cpp/modules/parsegen/X.hpp</code>,
+<code>.../cpp/modules/parsegen/vparse/</code></td>
+</tr>
+<tr class="odd">
+<td><code>inc/djinterp/config/parse/cfg_parse.h</code></td>
+<td><code>inc/djinterp/config/c/modules/parse/cfg_parse.h</code></td>
+</tr>
+<tr class="even">
+<td><code>tests/djinterp/parse/c/</code>,
+<code>tests/djinterp/parsegen/c/</code></td>
+<td><code>tests/djinterp/c/modules/parse/</code>,
+<code>tests/djinterp/c/modules/parsegen/</code></td>
+</tr>
+<tr class="odd">
+<td><code>tests/djinterp/parse/</code>,
+<code>tests/djinterp/parsegen/</code></td>
+<td><code>tests/djinterp/cpp/modules/parse/</code>,
+<code>tests/djinterp/cpp/modules/parsegen/</code></td>
+</tr>
+<tr class="even">
+<td><code>build/cmake/config/testing/djinterp/parsegen/foundation/</code></td>
+<td><code>build/cmake/config/testing/djinterp/c/modules/parsegen/foundation/</code></td>
+</tr>
+<tr class="odd">
+<td><code>re_std/cstdint/dstdint.h</code>,
+<code>src/djinterp/c/re_std/dstdint.c</code></td>
+<td><code>inc/re_std/c/cstdint/dstdint.h</code>,
+<code>src/re_std/c/cstdint/dstdint.c</code></td>
+</tr>
+<tr class="even">
+<td><code>re_std/cstdint/cstdint.hpp</code></td>
+<td><code>inc/re_std/cpp/cstdint/cstdint.hpp</code></td>
+</tr>
+</tbody>
+</table>
+<p>The script under Build and test predates the restructure too: it has
+CRLF line ends, which bash will not run; its <code>ROOT</code> climbs
+seven directories where the script now sits nine deep; and its re_std
+source is the old path. Until it is fixed, the suites build by hand as
+its body shows, with the paths above.</p>
+<p>The Layout section's rule (a subsystem's C in <code>X/c/</code>) is
+the old layout's and is superseded by the restructure's <code>c/</code>
+and <code>cpp/</code> trees; the rest of the record - the substrate, the
+steps, the decisions - stands. Expression core v2 is built on it:
+<code>docs/djinterp/c/modules/parse/expr/expression_core_v2.html</code>.</p>
+</blockquote>
+<h2 id="build-and-test">Build and test</h2>
+<p>The foundation's C sources build as C, at the C floor, into one
+library, and the suites link against it at every language level. From
+anywhere, with a compiler and nothing else:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">build/cmake/config/testing/djinterp/parsegen/foundation/run_foundation_tests.sh</span></span></code></pre></div>
+<p>It builds the library once (C99) and runs the C++ suites at C++11,
+14, 17, 20 and 23 and the C suites at C99, C11, C17 and C23, with
+<code>gcc</code> and <code>g++</code> unless <code>CC</code> and
+<code>CXX</code> say otherwise. A level the compiler cannot select is
+left out, and named. Each run must print its level's count:</p>
+<table>
+<thead>
+<tr class="header">
+<th>level</th>
+<th>sections</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>C++11, C++14</td>
+<td><code>passed: 56   failed: 0</code></td>
+</tr>
+<tr class="even">
+<td>C++17</td>
+<td><code>passed: 57   failed: 0</code></td>
+</tr>
+<tr class="odd">
+<td>C++20, C++23</td>
+<td><code>passed: 58   failed: 0</code></td>
+</tr>
+<tr class="even">
+<td>C99, C11, C17, C23</td>
+<td><code>passed: 12   failed: 0</code></td>
+</tr>
+</tbody>
+</table>
+<p><code>--matrix</code> then rebuilds everything under each of the
+fourteen configuration knobs, at the lowest and highest C++ level and at
+the C floor, and prints how many sections each ran.
+<code>--verbose</code> prints every section as it runs. The consolidated
+vparse builds as <code>parsegen/vparse/vparse-AGENTS.html</code>
+describes, expecting <code>passed: 15   failed: 0</code> at every
+level.</p>
+<h3 id="why-the-count-differs-by-level">Why the count differs by
+level</h3>
+<p>A suite is a table of sections. Each suite's source defines its
+sections and, beside them, the table that lists them
+(<code>d_tests_parse_substrate[]</code> and its <code>_count</code>, and
+so on); the runners are loops over those tables with no condition of
+their own. A section is therefore the unit a language level or a
+configuration knob removes, and the condition that removes it is written
+once, at namespace scope, in the suite's own source - never as an
+<code>#if</code> inside a function body.</p>
+<p>Two sections exist only from a level up, because the registration
+shape they test does:</p>
+<table>
+<thead>
+<tr class="header">
+<th>section</th>
+<th>from</th>
+<th>what it registers</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>parse_machine_by_address</code></td>
+<td>C++17</td>
+<td><code>def&lt;&amp;fn&gt;</code> and
+<code>def_state&lt;&amp;fn&gt;</code>: a
+<code>template&lt;auto&gt;</code> parameter</td>
+</tr>
+<tr class="even">
+<td><code>parse_machine_lambda</code></td>
+<td>C++20</td>
+<td><code>def</code> with a captureless lambda: a lambda first has a
+default constructor there</td>
+</tr>
+</tbody>
+</table>
+<p>Sections that need the heap forms, the transport or the digest drop
+out under the knob that removes those, which is what the matrix
+shows.</p>
+<p>A section that silently stopped being compiled would read as a
+smaller pass. So <code>expected_sections.txt</code>, beside the script,
+records the count each level has in the default configuration; the
+script and the CMake leaf both read it, and a run that prints any other
+count fails. Adding a section means changing that file, once. A build
+under a knob is not held to those counts.</p>
+<h3 id="cmake">CMake</h3>
+<p><code>build/cmake/config/testing/djinterp/parsegen/foundation/CMakeLists.txt</code>
+is a plain-CMake leaf that does what the script does: one library, then
+one test executable per level
+(<code>djinterp_foundation_tests_cxx11</code> ... <code>_cxx23</code>,
+<code>djinterp_foundation_c_tests_c99</code> ... <code>_c23</code>),
+each registered with CTest and held to its count. It stands alone,</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cmake</span> <span class="at">-S</span> build/cmake/config/testing/djinterp/parsegen/foundation <span class="at">-B</span> out</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">cmake</span> <span class="at">--build</span> out <span class="kw">&amp;&amp;</span> <span class="ex">ctest</span> <span class="at">--test-dir</span> out</span></code></pre></div>
+<p>or is added with <code>add_subdirectory()</code> wherever the other
+test leaves are; the enclosing project must enable both C and CXX. Under
+a cl-style driver (MSVC, clang-cl) C++11 is left out, since the lowest
+level those select is C++14; under cl so is C23, since the switch a
+current CMake gives it for that level is <code>/std:clatest</code>, a
+draft and not the level. Every target is given <code>/utf-8</code>
+there: the tree's sources are UTF-8 with no byte-order mark, which cl
+otherwise reads in the system code page. It does not use
+<code>djinterp_add_test_executable</code>: that helper belongs to the
+framework's CMake, which is being rewritten.</p>
+<table>
+<thead>
+<tr class="header">
+<th>cache variable</th>
+<th>default</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>DJINTERP_FOUNDATION_CXX_LEVELS</code></td>
+<td><code>11;14;17;20;23</code></td>
+<td>C++ levels to build the suites at</td>
+</tr>
+<tr class="even">
+<td><code>DJINTERP_FOUNDATION_C_LEVELS</code></td>
+<td><code>99;11;17;23</code></td>
+<td>C levels to build the suites at</td>
+</tr>
+<tr class="odd">
+<td><code>DJINTERP_FOUNDATION_EXPECT_COUNTS</code></td>
+<td><code>ON</code></td>
+<td>hold each test to its count; turn off under a knob</td>
+</tr>
+<tr class="even">
+<td><code>DJINTERP_FOUNDATION_STRICT</code></td>
+<td><code>ON</code></td>
+<td><code>-Wall -Wextra -pedantic-errors -Werror=undef</code>, on GCC
+and Clang</td>
+</tr>
+</tbody>
+</table>
+<h3 id="the-environment-the-down-port-set">The environment the down-port
+set</h3>
+<p>What changed here when the tree was ported down (2026.10), and what
+any new file in these two modules has to follow:</p>
+<ul>
+<li><strong>Floors.</strong> C is C99. The C++ faces of
+<code>parse</code> and <code>parsegen</code> have a module floor of
+C++11: below it a header or a source compiles to nothing, never to an
+<code>#error</code>, so every unit compiles at every level from strict
+C++98 up. The suites carry the same floor.</li>
+<li><strong>Fixed-width integers come from re_std.</strong> C includes
+<code>re_std/cstdint/dstdint.h</code>; C++ includes
+<code>re_std/cstdint/cstdint.hpp</code> and spells
+<code>re_std::uint32_t</code>, never <code>std::</code>. The library
+therefore links re_std's one C source,
+<code>src/djinterp/c/re_std/dstdint.c</code>.</li>
+<li><strong>Includes are paths relative to the file</strong>, each with
+a summary of what it is for. So the only include directory any target
+here has is <code>inc/</code>, which the sources still use; the suites
+and runners need none of their own.</li>
+<li><strong>Testing mode is two definitions.</strong>
+<code>D_TESTING=1</code> changes the layout of
+<code>struct d_parse_machine</code>, so the library and every consumer
+take it alike; <code>RE_STD_CFG_TESTING=1</code> is set beside it so
+that neither depends on include order.</li>
+<li><strong>The ladder's flags.</strong>
+<code>-pedantic-errors -Werror=undef -D_XOPEN_SOURCE=700</code>: an
+<code>#if</code> on a macro nobody defined is an error, and a strict ISO
+mode otherwise hides the POSIX names the framework uses.</li>
+</ul>
+<p>Verified at the port: the suites in all 16 ladder configurations (g++
+and clang++, strict C++98 to C++23), plain and testing; every level's
+count above with both compilers, no warning; the matrix with both; and
+the same counts on a 64-bit Windows target (MinGW-w64, run under Wine),
+where <code>long</code> is 32 bits. Since 2026.10.06 the C layer, the
+suites and the runners have also been compiled along the branches
+<code>env</code> takes under cl - its identity given to another compiler
+- in cl's default C mode, C11 and C17, and at C++14, 17, 20 and 23, with
+no failure; and both leaves have been configured as CMake configures
+them for cl 19.51, through a stand-in for it, and built and run that way
+on the Windows target: 7 of 7 tests, and vparse's 4 of 4. Not verified:
+cl itself, its parser and its library.</p>
+<h3 id="stale-copies">Stale copies</h3>
+<p>The C layer once sat directly under <code>parse/</code> and
+<code>parsegen/</code>; it moved into <code>c/</code> (see Layout). The
+copies the move left behind are retired - the headers and six sources to
+<code>_retired/cpp98_floors_2026.09.30/</code>, the last four sources
+(<code>src/djinterp/parse/{diagnostic,machine,program,storage}.c</code>)
+to <code>_retired/vparse_suites_2026.10.04/</code>. A tree that still
+has files at the old paths has two definitions of every function in
+them, and a build that globs <code>src/djinterp/parse/</code> will fail
+to link.</p>
+<p>A working tree that was only ever unzipped over is such a tree: an
+unzip adds and overwrites, and never deletes, so every retired copy is
+still live in it.
+<code>_retired/parse_leftovers_2026.10.06/retire.cmake</code> applies
+the repository's record to one - <code>cmake -P</code> it from the root
+- moving each file that is byte for byte the retired copy to
+<code>_retired/&lt;step&gt;/</code>, and reporting any other, and any
+include, in a file that stays, of one it moved.</p>
+<h3 id="framework-fixes">Framework fixes</h3>
+<p>Building against your real headers, rather than stand-ins, surfaced
+four framework issues. <code>djinterp.hpp</code>, <code>env/env.h</code>
+and <code>parse/parser/parser.hpp</code> carry the fixes, so nothing
+here needs a build flag or a force-include to compile:</p>
+<ul>
+<li><strong><code>NS_DJINTERP</code> named a macro nothing
+defined.</strong> The C root defines <code>D_FRAMEWORK_NAME</code>; the
+C++ root's <code>NS_DJINTERP</code> expanded through
+<code>D_KEYWORD_FRAMEWORK_NAME</code>, so every <code>NS_DJINTERP</code>
+opened a namespace literally called that. It now uses
+<code>D_FRAMEWORK_NAME</code>.</li>
+<li><strong><code>functional</code> was never declared.</strong>
+<code>parse.hpp</code>, <code>core/functional</code> and
+<code>core/event</code> spell the functional API
+<code>functional::</code> (32 uses in 7 files), and only the old sandbox
+stand-in declared the alias. <code>djinterp.hpp</code> now declares
+<code>djinterp::functional</code> — inside <code>djinterp</code>, as the
+stand-in did, so it adds no name to the global namespace.</li>
+<li><strong><code>env.h</code> included <code>c/env_c_lib.h</code> too
+early,</strong> before the headers whose macros its <code>#if</code>
+tests read. It now comes after the detection headers and before
+<code>env_build.h</code>, the order <code>env.h</code>'s own banner
+documents.</li>
+<li><strong><code>parser_expr</code> used a trailing
+<code>decltype</code> return</strong> that g++ evaluates while the
+derived class is still incomplete, so no <code>parser&lt;R, E&gt;</code>
+instantiated under g++. It now deduces at the point of use — your own
+fix from the corrected copy, which had not carried over when
+<code>parser.hpp</code> moved to the real root.</li>
+</ul>
+<p><strong>Closed since:</strong> the C-side attribute macros in
+<code>env/c/env_attributes.h</code> once selected C23
+<code>[[...]]</code> syntax under <code>-std=c11</code>, which
+<code>-Wpedantic</code> reported 62 times across this foundation. The
+down-port fixed it at the source, and the foundation now builds at C99,
+C11 and C17 under <code>-pedantic-errors</code> with no diagnostic at
+all.</p>
+<h2 id="layout">Layout</h2>
+<p>Every subsystem X owns <code>X/</code>: its C++ lives at
+<code>X/</code>, its C in <code>X/c/</code>, and <code>X/c/</code>
+mirrors X's layout beneath it. The framework root follows the same rule,
+and its C half, <code>c/</code>, is the C foundation - which is why an
+optional subsystem never puts anything there: a C user who takes
+djinterp without parse or parsegen must not carry them.
+Preprocessor-only code (<code>env/</code>, <code>config/</code>) is
+language-neutral and exempt.</p>
+<table>
+<thead>
+<tr class="header">
+<th></th>
+<th>C</th>
+<th>C++</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>parse</td>
+<td><code>inc/djinterp/parse/c/*.h</code>,
+<code>src/djinterp/parse/c/*.c</code></td>
+<td><code>inc/djinterp/parse/*.hpp</code></td>
+</tr>
+<tr class="even">
+<td>parsegen</td>
+<td><code>inc/djinterp/parsegen/c/*.h</code>,
+<code>src/djinterp/parsegen/c/*.c</code></td>
+<td><code>inc/djinterp/parsegen/*.hpp</code></td>
+</tr>
+<tr class="odd">
+<td>tests</td>
+<td><code>tests/djinterp/parse/c/</code>,
+<code>tests/djinterp/parsegen/c/</code></td>
+<td><code>tests/djinterp/parse/</code>,
+<code>tests/djinterp/parsegen/</code></td>
+</tr>
+</tbody>
+</table>
+<p>A test's directory follows the language it is <em>written</em> in,
+not the API it calls: the C++ suite exercises the C API through C++, so
+it stays outside <code>c/</code>.</p>
+<p>A C++ face reaches its C layer through <code>./c/</code> -
+<code>diagnostic.hpp</code> includes <code>./c/diagnostic.h</code> - the
+way <code>djinterp.hpp</code> reaches <code>c/djinterp.h</code>. And a
+bare <code>c/</code> directly under a subsystem means only that
+subsystem's C half. A language as a <em>subject</em> sits under a role
+directory instead: <code>parse/parsers/c/</code> (a parser of C) already
+does, and a C export target would go in
+<code>parsegen/backends/c/</code>, never <code>parsegen/c/</code>.</p>
+<p>Config stays at the subframework level (<code>config/parse/</code>,
+<code>config/parsegen/</code>), since one knob file configures both
+halves. Both files are registered in <code>dconfig.h</code>, and the one
+knob that differs in a test build, the machine trace, takes its test
+default from <code>cfg_testing.h</code>, as the config README requires.
+It defers to <code>D_CFG_PARSE_ALL</code> there, so relocating it
+changed nothing except one case: a testing build that sets
+<code>D_CFG_NO_TESTING_PRESET</code> now gets the trace off, as
+suppressing the preset is documented to do.</p>
+<p>Applying the rule to existing code was deferred, and needs no further
+decision. Since then <code>c/test/</code> has moved to
+<code>test/c/</code>, and the C headers in
+<code>parse/parsers/{bnf,abnf,ebnf}/</code> were retired rather than
+moved (<code>_retired/c99_2026.09.30/</code>); should they return, they
+belong in <code>parse/c/parsers/...</code>. Still deferred:
+<code>jit/</code> becomes <code>jit/c/</code> if the rule is held
+strictly; and <code>env/c/</code> and <code>env/cpp/</code>, which hold
+detection <em>of</em> C and C++ features, move under a role directory
+such as <code>env/lang/</code>, so that <code>c/</code> keeps one
+meaning.</p>
+<h2 id="files">Files</h2>
+<table>
+<thead>
+<tr class="header">
+<th>path</th>
+<th>what</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>inc/djinterp/config/parse/cfg_parse.h</code></td>
+<td>every <code>D_CFG_PARSE_*</code> knob and its
+<code>D_INTERNAL_PARSE_*</code> derived value</td>
+</tr>
+<tr class="even">
+<td><code>inc/djinterp/parse/c/diagnostic.h</code></td>
+<td>C: <code>d_parse_span</code>, <code>d_parse_diagnostic</code>,
+<code>d_parse_diag_sink</code></td>
+</tr>
+<tr class="odd">
+<td><code>inc/djinterp/parse/c/machine.h</code></td>
+<td>C: <code>d_parse_machine</code>, <code>d_parse_voperator</code>,
+<code>d_parse_op_set</code></td>
+</tr>
+<tr class="even">
+<td><code>inc/djinterp/parse/c/charset.h</code></td>
+<td>C: <code>d_parse_charset</code>, the canonical 256-bit class</td>
+</tr>
+<tr class="odd">
+<td><code>inc/djinterp/parse/c/pool.h</code></td>
+<td>C: <code>d_parse_pool</code>, the operand intern pool</td>
+</tr>
+<tr class="even">
+<td><code>inc/djinterp/parse/c/program.h</code></td>
+<td>C: <code>d_parse_instr</code>, <code>d_parse_program</code>,
+verify/hash/transport</td>
+</tr>
+<tr class="odd">
+<td><code>inc/djinterp/parse/c/storage.h</code></td>
+<td>C: <code>d_parse_grow</code>, the one growth policy</td>
+</tr>
+<tr class="even">
+<td><code>inc/djinterp/parse/substrate.hpp</code></td>
+<td>C++: the substrate's one guarded <code>NS_PARSE</code></td>
+</tr>
+<tr class="odd">
+<td><code>tests/djinterp/parse/c/tests_section.h</code></td>
+<td><code>d_tests_section</code>: a section's name and function, shared
+by every suite, C and C++</td>
+</tr>
+<tr class="even">
+<td><code>tests/djinterp/parse/c/parse_c_tests.{h,c}</code></td>
+<td>C tests: diagnostics, machine, program - 7 sections</td>
+</tr>
+<tr class="odd">
+<td><code>tests/djinterp/parsegen/c/parsegen_c_tests.{h,c}</code></td>
+<td>C tests: grammar, analysis and routing - 5 sections</td>
+</tr>
+<tr class="even">
+<td><code>.../parsegen/foundation/foundation_c_tests_runner.c</code></td>
+<td>the C suites' entry point</td>
+</tr>
+<tr class="odd">
+<td><code>inc/djinterp/parsegen/vparse/</code></td>
+<td>the consolidated vparse; see its <code>vparse-AGENTS.html</code></td>
+</tr>
+<tr class="even">
+<td><code>inc/djinterp/parsegen/c/feature.h</code></td>
+<td>C: <code>d_parsegen_features</code>, the capability vocabulary</td>
+</tr>
+<tr class="odd">
+<td><code>inc/djinterp/parsegen/c/registry.h</code></td>
+<td>C: <code>d_parsegen_stage</code>, <code>d_parsegen_registry</code>,
+selection</td>
+</tr>
+<tr class="even">
+<td><code>inc/djinterp/parsegen/c/grammar.h</code></td>
+<td>C: <code>d_parsegen_node</code>, <code>d_parsegen_grammar</code>,
+the neutral model</td>
+</tr>
+<tr class="odd">
+<td><code>inc/djinterp/parsegen/c/analysis.h</code></td>
+<td>C: <code>d_parsegen_facts</code> — nullability, first sets, left
+recursion</td>
+</tr>
+<tr class="even">
+<td><code>inc/djinterp/config/parsegen/cfg_parsegen.h</code></td>
+<td>parsegen's own knobs and derived values</td>
+</tr>
+<tr class="odd">
+<td><code>inc/djinterp/parse/diagnostic.hpp</code></td>
+<td>C++: <code>span</code>, <code>diagnostics</code>,
+<code>fixed_diagnostics&lt;N,M&gt;</code>, views, iteration</td>
+</tr>
+<tr class="even">
+<td><code>inc/djinterp/parse/machine.hpp</code></td>
+<td>C++: <code>machine</code>, <code>op_set</code>,
+<code>fixed_op_set&lt;N&gt;</code>, the <code>def()</code> family</td>
+</tr>
+<tr class="odd">
+<td><code>inc/djinterp/parse/charset.hpp</code></td>
+<td>C++: <code>charset</code>, constexpr membership</td>
+</tr>
+<tr class="even">
+<td><code>inc/djinterp/parse/pool.hpp</code></td>
+<td>C++: <code>pool</code>, <code>fixed_pool&lt;B,E&gt;</code></td>
+</tr>
+<tr class="odd">
+<td><code>inc/djinterp/parse/program.hpp</code></td>
+<td>C++: <code>instr</code> (alias), <code>program</code>,
+<code>fixed_program&lt;N,B,E&gt;</code></td>
+</tr>
+<tr class="even">
+<td><code>inc/djinterp/parsegen/registry.hpp</code></td>
+<td>C++: <code>feature</code>, <code>feature_set</code>,
+<code>stage</code>, <code>registry</code></td>
+</tr>
+<tr class="odd">
+<td><code>inc/djinterp/parsegen/grammar.hpp</code></td>
+<td>C++: <code>node</code> (alias), <code>grammar</code>,
+<code>fixed_grammar&lt;…&gt;</code></td>
+</tr>
+<tr class="even">
+<td><code>inc/djinterp/parsegen/analysis.hpp</code></td>
+<td>C++: <code>facts</code>, <code>fixed_facts&lt;N,R&gt;</code>, the
+named queries</td>
+</tr>
+<tr class="odd">
+<td><code>inc/djinterp/parsegen/c/parsegen.h</code></td>
+<td>C umbrella: subsystem keyword, generator diagnostic domains</td>
+</tr>
+<tr class="even">
+<td><code>inc/djinterp/parsegen/parsegen.hpp</code></td>
+<td>C++ face: <code>NS_PARSEGEN</code> and nothing else</td>
+</tr>
+<tr class="odd">
+<td><code>src/djinterp/parse/c/{diagnostic,machine,charset,pool,program,storage}.c</code></td>
+<td>definitions</td>
+</tr>
+<tr class="even">
+<td><code>src/djinterp/parsegen/c/{feature,registry,grammar,analysis}.c</code></td>
+<td>definitions</td>
+</tr>
+<tr class="odd">
+<td><code>tests/djinterp/parse/parse_substrate_tests.{hpp,cpp}</code></td>
+<td>diagnostics, machine, interop - 7 sections, 8 from C++17, 9 from
+C++20</td>
+</tr>
+<tr class="even">
+<td><code>tests/djinterp/parse/parse_program_tests.{hpp,cpp}</code></td>
+<td>charset, pool, program - 12 sections</td>
+</tr>
+<tr class="odd">
+<td><code>tests/djinterp/parsegen/parsegen_registry_tests.{hpp,cpp}</code></td>
+<td>features, registry, storage - 11 sections</td>
+</tr>
+<tr class="even">
+<td><code>tests/djinterp/parsegen/parsegen_grammar_tests.{hpp,cpp}</code></td>
+<td>the neutral grammar - 13 sections</td>
+</tr>
+<tr class="odd">
+<td><code>tests/djinterp/parsegen/parsegen_analysis_tests.{hpp,cpp}</code></td>
+<td>analysis and routing - 13 sections</td>
+</tr>
+<tr class="even">
+<td><code>.../parsegen/foundation/foundation_tests_runner.cpp</code></td>
+<td>the C++ suites' entry point</td>
+</tr>
+<tr class="odd">
+<td><code>.../parsegen/foundation/CMakeLists.txt</code>,
+<code>run_foundation_tests.sh</code></td>
+<td>the CMake leaf and its script twin</td>
+</tr>
+<tr class="even">
+<td><code>.../parsegen/foundation/expected_sections.txt</code></td>
+<td>the section count each level must run</td>
+</tr>
+</tbody>
+</table>
+<h2 id="the-namespace-rule-as-applied">The namespace rule, as
+applied</h2>
+<p><code>djinterp::parse</code> — usable without generating anything:
+the carrier, the execution substrate, the diagnostic channel.
+<code>djinterp::parsegen</code> — flat, a sibling of <code>parse</code>,
+everything that <em>produces</em> a parser.</p>
+<p>The machine landed in <code>parse</code> because a hand-authored
+program run through it needs no generator, and because the dependency
+has to point that way: <code>parsegen</code> depends on
+<code>parse</code>, never the reverse. C prefixes mirror the namespaces
+(<code>d_parse_*</code>, <code>d_parsegen_*</code>).</p>
+<h2 id="what-step-1-actually-removed">What step 1 actually removed</h2>
+<p><code>input</code>, <code>sp</code>, <code>input_type</code>,
+<code>result_type</code>, and <code>std::string error</code>.</p>
+<p>The first three made every family a byte-at-a-time recognizer over
+one contiguous string — a token-stream family had nowhere to put its
+cursor and a generator paid for one it couldn't use. Both now live
+behind <code>ext</code>, where all other family-private state already
+was.</p>
+<p><code>error</code> was a one-slot diagnostics facility, which is why
+step 2 subsumes it. <code>d_parse_machine_fail</code> halts <em>and</em>
+reports into the shared sink, so a failure from any stage lands in the
+same ordered report.</p>
+<h2 id="two-things-that-changed-from-the-plan">Two things that changed
+from the plan</h2>
+<p><strong><code>std::function</code> → function pointer +
+context.</strong> The old <code>voperator</code> was
+<code>std::function&lt;void(machine&amp;)&gt;</code>: an allocation per
+stateful handler and an indirect call through a type-erased wrapper, and
+not expressible in C. It is now
+<code>void (*)(d_parse_machine*, void*)</code>.</p>
+<p>Ergonomics are preserved by generating the trampoline as a template.
+The C++ registration</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>ops<span class="op">.</span>def<span class="op">(</span>OP_TICK<span class="op">,</span> <span class="st">&quot;TICK&quot;</span><span class="op">,</span> <span class="op">[](</span>machine<span class="op">&amp;</span> m<span class="op">){</span> m<span class="op">.</span>extension<span class="op">&lt;</span>counter<span class="op">&gt;()-&gt;</span>ticks<span class="op">++;</span> <span class="op">});</span></span></code></pre></div>
+<p>compiles to, verbatim, what a hand-written C operator compiles
+to:</p>
+<pre><code>movq 24(%rdi), %rax
+addl $1, (%rax)
+ret</code></pre>
+<p>Three registration shapes: <code>def</code> (captureless callable, no
+context stored), <code>def_state&lt;&amp;fn&gt;</code> (free function
+plus family state), <code>def_object</code> (a functor the caller owns),
+plus <code>def_raw</code> for the plain C form.</p>
+<p>Each has the level its language feature has. The lambda above is
+C++20: <code>def</code> constructs its callable on the spot, and a
+lambda has no default constructor before that. At C++11 to 17 the same
+registration takes an empty functor -- identical code generated - and
+<code>def</code> says so in a static assertion rather than failing
+inside the trampoline. <code>def_state&lt;&amp;fn&gt;</code> and
+<code>def&lt;&amp;fn&gt;</code> take a <code>template&lt;auto&gt;</code>
+parameter, so they are C++17. <code>def_object</code> and
+<code>def_raw</code> are C++11, and <code>def_raw</code> takes a
+captureless lambda of the C signature there.</p>
+<p><strong><code>unordered_map</code> → dense table.</strong> An opcode
+space is family-private and dense from zero by construction, so
+<code>find</code> is a bounds check and a load. This is the
+interpreter-baseline work from the earlier plan, done here because the
+substrate was being rewritten anyway.</p>
+<h2 id="seams-left-open-deliberately">Seams left open deliberately</h2>
+<ul>
+<li><strong><code>d_parse_op_set_covers</code></strong> — asks whether
+one registry implements every opcode another defines. This is the gate
+for a second reading of one opcode space (interpreter vs. JIT vs. source
+emitter); wiring it into a test turns a silently-lost backend into a
+build failure.</li>
+<li><strong>Diagnostic domains</strong> partition the code space the way
+<code>op_set</code> partitions an opcode space. <code>parse</code> owns
+below 64, <code>parsegen</code> numbers its stages from 64, applications
+from 1024. Adding a frontend means claiming a domain, not touching
+anything existing.</li>
+<li><strong><code>d_parse_diagnostic</code> is a 32-byte POD holding an
+arena offset</strong>, not a pointer — so a sink is memcpy-able,
+hashable and serializable whole, which is what the later
+<code>(grammar, token_set, profile) → program</code> caching needs.</li>
+<li><strong><code>D_PARSE_DIAG_FLAG_CONTINUATION</code></strong> for
+"error here / note: declared there" chains, which analysis will want as
+soon as it reports a left- recursive cycle.</li>
+<li><strong><code>reserved</code> fields</strong> in the diagnostic and
+the registry, so a field can be added without moving anything.</li>
+</ul>
+<h2 id="migration-for-existing-vparse-code">Migration for existing
+vparse code</h2>
+<ol type="1">
+<li><code>parsegen/vparse/machine.hpp</code> is superseded by
+<code>parse/machine.hpp</code>; delete it.
+<code>djinterp::parsegen::machine</code> →
+<code>djinterp::parse::machine</code>.</li>
+<li><code>op_set::def(code, name, fn)</code> → same call, but the lambda
+must capture nothing (use <code>def_object</code> or
+<code>def_state</code> if it does), and below C++20 it must be an empty
+functor rather than a lambda.</li>
+<li><code>ops.find(code)</code> returns <code>const op*</code>; handlers
+now take <code>(d_parse_machine*, void*)</code> at the ABI and
+<code>machine&amp;</code> through <code>def</code>.</li>
+<li>A family's private state moves from the old <code>machine</code>
+fields into its own struct behind <code>ext</code> — <code>peg</code>
+already did this with <code>parse_state&lt;char&gt;</code>.</li>
+<li><code>m.error = "..."</code> →
+<code>m.fail(domain, code, span, "...")</code>.</li>
+<li>Drivers call <code>ops.dispatch(m, code)</code>, which charges the
+step and reports an unregistered opcode, replacing the hand-rolled
+fetch/find/call.</li>
+</ol>
+<h2 id="step-3-the-ir-is-a-pod-plus-side-tables">Step 3: the IR is a POD
+plus side tables</h2>
+<div class="sourceCode" id="cb5"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> d_parse_instr <span class="op">{</span> <span class="dt">uint16_t</span> op<span class="op">;</span> <span class="dt">uint16_t</span> flags<span class="op">;</span> <span class="dt">int32_t</span> a<span class="op">;</span> <span class="dt">int32_t</span> b<span class="op">;</span> <span class="op">};</span></span></code></pre></div>
+<p>Twelve bytes, no padding, no pointers. Measured:
+<code>instr=12 charset=32 pool_entry=8 op_set=24 machine=40 diagnostic=32 program=72</code>.</p>
+<p>The <code>std::string set</code> that used to sit inside an
+instruction blocked four things at once. All four now work and each has
+a test:</p>
+<ul>
+<li><strong>hashing</strong> — <code>program::digest()</code> is a cache
+key over family, entry, instructions and pool, deliberately <em>not</em>
+over the memory image, so it ignores capacity, ownership flags and
+padding. Verifying a program sets annotation flags and does not change
+its digest.</li>
+<li><strong>transport</strong> — <code>write</code>/<code>read</code> in
+a defined little-endian layout, not a memory image. A program written on
+one machine reads on another. Read treats the buffer as hostile: counts
+checked against bytes present, every pool entry checked to lie inside
+the blob it indexes, blobs re-interned rather than copied
+wholesale.</li>
+<li><strong>C handoff</strong> — no fix-up pass at any boundary.</li>
+<li><strong>compile time</strong> — <code>make_instr</code> is constexpr
+and the assertion is a constant evaluation rather than a trait, so it
+proves the property instead of approximating it.</li>
+</ul>
+<h3 id="classes-resolve-to-bits-not-text">Classes resolve to bits, not
+text</h3>
+<p>A class operand is a 32-byte bitmap, interned. That makes membership
+one shifted load, and it makes canonicalization automatic:
+<code>[0-9]</code> and <code>[0123456789]</code> produce identical bytes
+and therefore share one pool entry. Rendering folds runs back into
+ranges, so a disassembly is comparable across builds.</p>
+<p>It also carries what the optimizer will ask for later.
+<code>contiguous()</code> answers "can this be two compares instead of a
+table load" — the biggest per-class codegen win. <code>count()</code>
+gives density. <code>disjoint()</code> is the first-set condition an
+ordered choice must satisfy before it may become a dispatch.</p>
+<h3 id="the-family-identifier-makes-invariant-2-checkable">The family
+identifier makes invariant 2 checkable</h3>
+<p>An <code>op_set</code> now records <em>which</em> private opcode
+space it reads, and a program records which one it is written in.
+<code>d_parse_program_verify</code> compares them. Invariant 2 was a
+rule people follow; it is now one the build enforces — which starts
+mattering the moment a second family exists.</p>
+<p>Two registries over one space (an interpreter and a code generator)
+share a family and differ only in what their handlers do. That is the
+JIT arrangement from earlier, expressible now.</p>
+<h3 id="verification-annotates">Verification annotates</h3>
+<p><code>verify</code> already walks every branch, so it marks each
+landing site with <code>D_PARSE_INSTR_FLAG_TARGET</code>. A code
+generator needs exactly that to know where to place labels and would
+otherwise scan for it. The disassembler shows it as a
+<code>:</code>:</p>
+<pre><code>   0  JUMP       -&gt; 3
+   1  SET        [0-9A-Fa-f]
+   2  ANY
+   3: HALT</code></pre>
+<h3 id="one-disassembler-any-family">One disassembler, any family</h3>
+<p>Mnemonics come from the registry, operand meanings from a shape table
+the family declares
+(<code>shape(operand::target, operand::name)</code>). So there is no
+<code>fmt()</code> per family — which matters because the second copy is
+always the one that drifts.</p>
+<p>The shape table is also what lets <em>this</em> level verify operands
+without knowing a single opcode: it checks branch targets are in range
+and pool indices resolve, for any family, forever.</p>
+<h3 id="one-api-gap-closed-while-here">One API gap closed while
+here</h3>
+<p><code>def</code> rejected a plain free function (not an empty type),
+which is the shape most C++ handlers take. Added
+<code>def&lt;&amp;fn&gt;(code, name)</code> — the function is a template
+argument, so the shim is a direct call. It is there from C++17.</p>
+<h2 id="step-4-and-a-correction-to-how-it-was-framed">Step 4, and a
+correction to how it was framed</h2>
+<p>I filed this as "<code>registry&lt;T&gt;</code> lifted from
+<code>op_set</code>". Having written three containers, that was half
+wrong. <code>op_set</code> is keyed by a <strong>dense integer</strong>;
+the stage registries the pipeline needs are keyed by
+<strong>name</strong> and queried by <strong>capability</strong>. Those
+are not the same structure, and merging them would have made the
+dispatch path worse to serve a resemblance. So step 4 is two things: the
+duplication that was actually there, and the registry that was actually
+needed.</p>
+<h3 id="what-genuinely-repeated-the-growth-policy">What genuinely
+repeated: the growth policy</h3>
+<p>Four containers held a fixed-or-owned array and each had written the
+same twelve lines — refuse if not ours, double until it fits, realloc,
+zero the tail. That is now <code>d_parse_grow</code> in
+<code>parse/c/storage.h</code>, and <code>op_set</code>, both pool
+arrays, the program, and the registry all call it.</p>
+<p><strong>What is deliberately not extracted: the containers.</strong>
+A generic buffer carrying an element size turns every access into a
+runtime multiply against a loaded stride, and
+<code>d_parse_op_set_find</code> is the innermost thing in the system —
+it has to stay <code>&amp;set-&gt;ops[code]</code>. The containers keep
+typed fields and share only the algorithm, which is where the
+duplication was.</p>
+<p>Zeroing the tail became part of the contract rather than one caller's
+afterthought. <code>op_set</code> depended on it (an undefined opcode
+must read as a hole) and nobody else had to think about it again.</p>
+<h3 id="what-was-actually-needed-capability-keyed-stage-selection">What
+was actually needed: capability-keyed stage selection</h3>
+<p><code>d_parsegen_registry</code> holds frontends, passes, families
+and backends in one table. Each stage declares three masks —
+<code>provides</code>, <code>needs</code>, <code>rejects</code> — and
+selection is:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="op">(</span>features <span class="op">&amp;</span> stage<span class="op">-&gt;</span>rejects<span class="op">)</span> <span class="op">==</span> <span class="dv">0</span>  <span class="op">&amp;&amp;</span>  <span class="op">(</span>features <span class="op">&amp;</span> stage<span class="op">-&gt;</span>needs<span class="op">)</span> <span class="op">==</span> stage<span class="op">-&gt;</span>needs</span></code></pre></div>
+<p>Two instructions. The point is what it makes cheap: <strong>adding
+the LR family is a row of declarations, not an edit to whatever was
+choosing between the existing families.</strong> The test asserts
+exactly that — it selects, fails, registers <code>lr</code>, selects
+again, and nothing in between was touched. This is the
+<code>op_set</code> idea one level up.</p>
+<p>Invariant 4 ("no left recursion") stops being a comment and becomes
+<code>.rejects = D_PARSEGEN_LEFT_RECURSION</code> on the PEG family.</p>
+<h3 id="the-vocabulary-and-the-bit-that-matters">The vocabulary, and the
+bit that matters</h3>
+<p><code>ORDERED_CHOICE</code> and <code>UNORDERED_CHOICE</code> are
+separate bits and <strong>neither is a default</strong>. PEG's
+<code>|</code> commits; BNF's does not. Collapsing them would silently
+change which language a grammar denotes and show up as a wrong parse
+rather than an error. A pass may lower unordered to ordered where first
+sets are disjoint — <code>charset::disjoint</code> from step 3 is that
+proof obligation, already available.</p>
+<h3 id="diagnostics-are-the-product">Diagnostics are the product</h3>
+<p>A failed selection returning NULL is not an answer. This is:</p>
+<pre><code>error: no stage accepts a grammar using UNORDERED_CHOICE|LEFT_RECURSION
+  note: peg: rejects UNORDERED_CHOICE|LEFT_RECURSION
+  note: lr: needs TOKEN_STREAM</code></pre>
+<p>Notes carry <code>D_PARSE_DIAG_FLAG_CONTINUATION</code> from step 2,
+which is what the flag was for. A failed <code>find</code> lists what
+<em>is</em> registered, since the next thing the caller needs is the
+spelling it should have used.</p>
+<h3 id="one-bug-the-knob-matrix-found">One bug the knob matrix
+found</h3>
+<p>Two configurations failed with
+<code>D_CFG_PARSE_DIAG_FORMAT=0</code>, because <code>registry.c</code>
+and <code>program.c</code> had <code>#if</code>-guarded pairs of
+messages — a detailed one when the sink's printf entry point existed and
+a vague one otherwise. But that knob controls whether the
+<strong>sink</strong> offers a varargs emitter; it should not change
+what a stage can say about itself. Both now compose locally with
+<code>snprintf</code> and emit once. Six preprocessor branches gone and
+the diagnostics are identical in every configuration.</p>
+<h2 id="step-5-the-neutral-grammar">Step 5: the neutral grammar</h2>
+<p>The old <code>ruleset</code> had a structural ceiling worth naming: a
+rule as a list of alternatives each of which is a list of terms is
+<strong>two levels</strong>, so it cannot express
+<code>a (b | c)* d</code>. EBNF and ABNF both have grouping. So a rule
+body is an expression, and an expression has children.</p>
+<p>By the same reasoning as step 3, it is a flat node arena with index
+references rather than a pointer graph — 28 bytes per node, no pointers,
+so it copies, hashes and serialises for the same reasons the instruction
+stream does.</p>
+<h3 id="ordered-and-unordered-choice-are-different-node-kinds">Ordered
+and unordered choice are different node kinds</h3>
+<p>Not one kind with a flag, and emphatically not one kind with a
+default. PEG's <code>/</code> commits to the first alternative that
+matches; BNF's <code>|</code> does not. Collapsing them changes which
+language a grammar denotes, and the damage surfaces as a wrong parse
+rather than an error.</p>
+<p>Having no neutral <code>choice</code> node means a frontend
+<strong>cannot build one without saying which it meant</strong>. The C++
+builder has <code>ordered()</code> and <code>unordered()</code> and no
+<code>choice()</code>. That is the enforcement; a comment would not have
+been.</p>
+<p>The canonical rendering keeps the distinction visible: <code>/</code>
+for ordered, <code>|</code> for unordered.</p>
+<h3 id="repetition-carries-bounds">Repetition carries bounds</h3>
+<p><code>{min, max}</code>, not a star flag. <code>?</code> is {0,1},
+<code>*</code> is {0,∞}, <code>+</code> is {1,∞}, ABNF's
+<code>3*5DIGIT</code> is {3,5} — one representation for all of them, so
+adding ABNF costs a frontend and no change below. Anything that is not
+one of the three classic forms sets <code>BOUNDED_REPEAT</code>, so a
+family that can only loop knows it has been handed a count. A reversed
+range is refused, not silently normalised.</p>
+<h3 id="capabilities-accumulate-as-you-build">Capabilities accumulate as
+you build</h3>
+<p>Every construction folds in what its kind implies, from the same
+descriptor table that drives verification and rendering. A frontend
+<strong>cannot emit a construct and forget to declare it</strong> — a
+grammar containing an unordered choice reports
+<code>UNORDERED_CHOICE</code> whether its frontend meant to or not. That
+removes the entire class of "the frontend said PEG but emitted a CFG"
+bug.</p>
+<p>One deliberate exception: <code>LEFT_RECURSION</code> is
+<strong>derived</strong>, not syntactic. The indirect case needs
+nullability. Building a self-referencing rule declares nothing and
+resolution does not either; analysis fills it in. The test asserts that
+non-obvious boundary.</p>
+<h3 id="it-feeds-the-registry-directly">It feeds the registry
+directly</h3>
+<p><code>grammar.uses()</code> is exactly what
+<code>registry.select()</code> matches a family against. The test builds
+a grammar, selects a family successfully, adds a host action, and
+watches the same family stop accepting — with <code>HOST_ACTION</code>
+named in the diagnostic.</p>
+<pre><code>Expr = Term ( ( &#39;+&#39; / &#39;-&#39; ) Term )* ;
+Term = [0-9]{1,3} ;
+Sign = &#39;+&#39; | &#39;-&#39; ;
+uses: ORDERED_CHOICE|UNORDERED_CHOICE|BOUNDED_REPEAT|CHARACTER_CLASS</code></pre>
+<h3 id="two-bugs-the-knob-matrix-found">Two bugs the knob matrix
+found</h3>
+<p><strong>A missing fixed-storage form.</strong> Every other container
+had one; the grammar did not, so <code>-DD_CFG_PARSE_ALL=0</code> left
+no way to build a grammar at all. Now
+<code>fixed_grammar&lt;Nodes, Rules, PoolBytes, PoolEntries&gt;</code>.</p>
+<p><strong>A config-doctrine violation.</strong> <code>grammar.c</code>
+gated its heap form on <code>D_INTERNAL_PARSE_HEAP</code>, but a grammar
+carries an operand pool, so it also needs the <em>pool's</em> gate. With
+<code>POOL_HEAP=0</code> and the aggregate still on, it referenced a
+function that did not exist. That conjunction is exactly what the
+"resolution lives in <code>cfg_*.h</code>" rule exists to prevent being
+re-derived per-module — so parsegen now has its own
+<code>cfg_parsegen.h</code> resolving
+<code>D_INTERNAL_PARSEGEN_GRAMMAR_HEAP</code> once.</p>
+<h2 id="verified-against-the-real-config-layer">Verified against the
+real config layer</h2>
+<p>Everything before this point was compiled against sandbox stand-ins
+for <code>cfg_common.h</code>, <code>c/djinterp.h</code> and
+<code>djinterp.hpp</code>. Checking every macro the deliverable uses
+against the real headers found one genuine bug, which the stand-in had
+hidden.</p>
+<p><strong>The real <code>D_CFG_IS_BOOL</code> token-pastes the
+fully-expanded knob</strong> against <code>D_INTERNAL_CFG_LIT1_</code> /
+<code>_LIT0_</code>, so it accepts only a knob that expands to the
+single token <code>0</code> or <code>1</code> (or empty).
+<code>D_CFG_PARSE_MACHINE_TRACE</code> defaulted to
+<code>D_CFG_NORM(D_CFG_TESTING)</code>, which expands to
+<code>(0 + 0)</code>, and pasting an identifier against <code>(</code>
+is a hard preprocessing error:</p>
+<pre><code>cfg_common.h:112: error: pasting &quot;D_INTERNAL_CFG_LIT1_&quot; and &quot;(&quot; does not give
+a valid preprocessing token</code></pre>
+<p>That fired in the <strong>default</strong> configuration, so every
+translation unit including any parse header would have failed on first
+compile in the real tree. Fixed with the framework's own idiom — test
+with <code>#if</code>, then define a literal. The config layer in the
+sandbox is now the real one, and the full suite and knob matrix pass
+against it, including the empty-flag case
+(<code>-DD_CFG_PARSE_MACHINE_TRACE=</code>) the config README requires
+to read as off.</p>
+<p><strong>Update, at packaging time:</strong> the real
+<code>c/djinterp.h</code> and <code>djinterp.hpp</code> turned out to
+assemble in the sandbox once the env include order is corrected, so the
+packaged foundation is verified against <strong>your real root headers
+with no stand-ins at all</strong> — dropped into a fresh copy of the
+tree with one <code>unzip</code>, built by the included script, and run.
+That is what surfaced the framework issues described under Install. The
+guarded <code>NS_PARSE</code> / <code>D_KEYWORD_PARSE</code> spellings
+were also confirmed token-identical to <code>parse.hpp</code>'s, which
+is what makes their redefinition benign.</p>
+<h2 id="framework-fixes-verification">Framework fixes: verification</h2>
+<p>Every header in the tree was compiled standalone, before and after
+the <code>NS_DJINTERP</code> and include-order fixes: <strong>0
+regressions, 102 headers fixed</strong> — almost all C++ (core/container
+32, core/functional 18, core/util 14, core/text 11, and others), broken
+because <code>NS_DJINTERP</code> opened the wrong namespace. The one
+header that changed from pass to fail, <code>env/c/env_c_lib.h</code>
+compiled on its own, also fails in the original tree: it is a fragment
+reachable only through <code>env.h</code>, which passes before and
+after.</p>
+<p>That sweep placed <code>env_c_lib.h</code> after
+<code>env_build.h</code>; the final placement is just before it, as
+<code>env.h</code>'s banner documents. The two headers are independent
+in both directions — neither uses a macro the other defines — so the
+result carries over.</p>
+<p>With the <code>functional</code> alias declared,
+<code>parse.hpp</code> compiles against the real root for the first
+time, as do <code>parser/combinators.hpp</code>,
+<code>core/functional/recursion.hpp</code> and
+<code>core/functional/polynomial.hpp</code>. Three other
+<code>functional::</code> users still fail, each for a reason unrelated
+to the alias that predates these changes:
+<code>parse/functional_cli.hpp</code> (<code>NS_CLI</code> undefined),
+<code>core/functional/free.hpp</code> (<code>djinterp::free</code> not
+found as a template), and <code>core/event/event_registry.hpp</code> (an
+<code>#error</code> requiring <code>djinterp.h</code> first).</p>
+<p><code>NS_EXCEPTION</code> has the first bug's twin —
+<code>D_KEYWORD_EXCEPTION</code> is defined nowhere — but it has no
+users and no evident intended name, so it is untouched.</p>
+<h2 id="diagnostic-codes">Diagnostic codes</h2>
+<p>Every parsegen diagnostic now carries a real code. Each stage owns
+its code space, declared beside it, as a family owns its opcode space:
+<code>d_parsegen_grammar_diag</code> (7 codes),
+<code>d_parsegen_analysis_diag</code> (6),
+<code>d_parsegen_registry_diag</code> (3). Codes are append-only.</p>
+<p>The registry has its own domain,
+<code>D_PARSEGEN_DIAG_DOMAIN_REGISTRY</code>. It had been reporting
+under FRONTEND for <code>find</code> and FAMILY for <code>select</code>,
+whatever kind of stage was asked for.</p>
+<p><strong>Identity is the pair, never the code alone.</strong> Codes
+are numbered from zero within each domain, so code 3 in one domain and
+code 3 in another are unrelated conditions.
+<code>d_parse_diag_find(sink, domain, code, from)</code> (C) and
+<code>diagnostic_view::is(domain, code)</code> /
+<code>diagnostics::contains(domain, code)</code> (C++) make comparing
+the pair the easy path.</p>
+<p>Tests now identify diagnostics by that pair. Text is checked only
+where the message carries information the test is about — which rule,
+which capability, which candidate — never for wording.</p>
+<h2 id="ns_parse-umbrella">NS_PARSE umbrella</h2>
+<p><code>parse/substrate.hpp</code> holds the substrate's one guarded
+<code>NS_PARSE</code>, replacing copies in <code>diagnostic.hpp</code>
+and <code>charset.hpp</code>. It mirrors <code>parsegen.hpp</code>: an
+umbrella's C++ face holds the namespace macro and nothing else. The
+spelling is token-identical to <code>parse.hpp</code>'s, so the two can
+be included in either order.</p>
+<h2 id="step-6-analysis-and-the-loop-it-closes">Step 6: analysis, and
+the loop it closes</h2>
+<p>Analysis derives what nobody wrote down: nullability and first sets
+per node and per rule, reachability, productivity, and left
+recursion.</p>
+<h3 id="left-recursion-is-a-fact-not-an-error">Left recursion is a fact,
+not an error</h3>
+<p>This is the piece that makes the whole arrangement pay. Analysis
+<strong>discovers</strong> left recursion and sets
+<code>LEFT_RECURSION</code> on the grammar. It does not complain about
+it — it emits a note. Whether it matters is the family's business,
+answered by a registry query.</p>
+<p>The routing test is the end-to-end proof. The same grammar, the same
+query:</p>
+<pre><code>before analysis  →  peg     (syntax alone looks fine)
+analysis runs    →  LEFT_RECURSION discovered
+after analysis   →  lr      (peg now rejects it)</code></pre>
+<p>Nothing in between was told either family exists. Invariant 4 of the
+old design ("no left recursion — a rule referencing itself leftmost will
+not terminate") has gone from a warning in a comment to a capability the
+system routes on.</p>
+<pre><code>Expr = Expr &#39;+&#39; Term / Term ;
+Term = [0-9]+ ;
+Unused = &#39;x&#39; ;
+
+syntax says:   ORDERED_CHOICE|CHARACTER_CLASS
+analysis adds: LEFT_RECURSION
+so it reports: ORDERED_CHOICE|LEFT_RECURSION|CHARACTER_CLASS
+
+note: rule &#39;Expr&#39; is directly left-recursive
+warning: rule &#39;Unused&#39; is never reached from the start symbol</code></pre>
+<p>Health findings are graded by who can act on them: a rule that can
+never match is an <strong>error</strong> (no family could run it); an
+unreachable rule is a <strong>warning</strong> (dead weight a pass may
+drop); left recursion is a <strong>note</strong> (a fact for
+selection).</p>
+<h3 id="first-sets-are-sound-over-approximations">First sets are sound
+over-approximations</h3>
+<p>Never smaller than the truth, which is what makes them safe to
+optimise against — skipping an alternative whose first set excludes the
+next symbol can never skip one that would have matched. Three transfer
+functions have their reasoning recorded in the source because each is a
+place a careless reading gets it wrong:</p>
+<ul>
+<li>A <strong>predicate</strong> consumes nothing, so it is nullable
+<em>and</em> contributes no symbol. <code>!'_' [a-z]</code> has a first
+set of exactly the 26 letters — the test asserts that, because giving
+<code>&amp;A</code> the first set of <code>A</code> would be sound but
+needlessly loose.</li>
+<li>A <strong>sequence</strong> keeps absorbing first sets while its
+members are nullable, which is the only reason nullability has to be
+computed alongside rather than after.</li>
+<li>A <strong>repeat</strong> is nullable when its minimum is zero,
+whatever the child says.</li>
+</ul>
+<h3 id="the-named-queries-carry-the-rule-that-gets-forgotten">The named
+queries carry the rule that gets forgotten</h3>
+<p><code>disjoint()</code> answers whether a choice can be told apart by
+one symbol — the precondition both for lowering an unordered choice to
+an ordered one and for compiling either as a jump table. It includes the
+nullability check, which is the half a caller working from first sets
+alone would miss: <strong>a nullable alternative matches whatever comes
+next</strong>, so nothing can be dispatched past it however tidy the
+first sets look. One place, not every optimiser.</p>
+<h3 id="left-recursion-behind-a-nullable-prefix">Left recursion behind a
+nullable prefix</h3>
+<p><code>N = ' '? N 'z'</code> is left-recursive, and a naive
+leftmost-child check misses it. The left-call walk keeps going through
+members while what precedes them can match empty, and it propagates
+through predicates (<code>A = &amp;A x</code> recurses too). Both are
+tested.</p>
+<h3 id="one-soundness-bug-caught-in-review">One soundness bug caught in
+review</h3>
+<p>The left-call traversal used a fixed <code>int32_t stack[64]</code>
+and silently dropped pushes when full. A choice with more than 64
+alternatives would have pushed past it and
+<strong>under-reported</strong> left recursion — the one direction that
+is not safe to be wrong in. The stack is now sized by node count and
+lives in the facts' scratch, alongside <code>work</code> and
+<code>mark</code>, so a no-allocator build supplies it like everything
+else.</p>
+<p><code>node_facts</code> is 36 bytes, <code>rule_facts</code> 40.</p>
+<h2 id="umbrella-split">Umbrella split</h2>
+<p><code>parsegen.h</code> carries the keyword and the domain enum;
+<code>parsegen.hpp</code> adds <code>NS_PARSEGEN</code> and stops. A
+namespace macro is the only part of an umbrella that cannot be written
+in C, so it is the only thing above the <code>.h</code>. Verified from a
+pure C translation unit (<code>gcc -std=c11 -Wpedantic</code>) and a C++
+one.</p>
+<p>The same shape applies to any future umbrella: if a header's C++-only
+content is one macro, that macro is the <code>.hpp</code> and everything
+else is the <code>.h</code>.</p>
+<h2 id="two-style-calls-worth-confirming">Two style calls worth
+confirming</h2>
+<p><strong>No <code>typedef</code> on structs or enums.</strong> The
+style guide says don't hide whether a type is a struct;
+<code>jit.h</code> typedefs everything
+(<code>typedef struct d_jit_buffer {...} d_jit_buffer;</code>). I
+followed the guide. The cost is nil on the C++ side, which sees the tag
+names directly.</p>
+<p><strong>One config file for the subframework</strong> rather than
+<code>cfg_diagnostic.h</code> + <code>cfg_machine.h</code>, per the
+"don't over-fragment; group config per subframework" gotcha in the
+config README.</p>
+<h2 id="build-by-hand">Build by hand</h2>
+<p>What the script does at one level, for reference:</p>
+<div class="sourceCode" id="cb13"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="va">ROOT</span><span class="op">=&lt;</span>repo-root<span class="op">&gt;</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="va">FLAGS</span><span class="op">=</span><span class="st">&quot;-pedantic-errors -Werror=undef -Wall -Wextra -D_XOPEN_SOURCE=700&quot;</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="va">MODE</span><span class="op">=</span><span class="st">&quot;-DD_TESTING=1 -DRE_STD_CFG_TESTING=1&quot;</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a><span class="va">LEAF</span><span class="op">=</span><span class="va">$ROOT</span>/build/cmake/config/testing/djinterp/parsegen/foundation</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> c <span class="kw">in</span> <span class="va">$ROOT</span>/src/djinterp/parse/c/<span class="pp">*</span>.c <span class="va">$ROOT</span>/src/djinterp/parsegen/c/<span class="pp">*</span>.c <span class="dt">\</span></span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>         <span class="va">$ROOT</span>/src/djinterp/c/re_std/dstdint.c<span class="kw">;</span> <span class="cf">do</span></span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">gcc</span> <span class="at">-std</span><span class="op">=</span>c99 <span class="at">-O1</span> <span class="va">$FLAGS</span> <span class="va">$MODE</span> <span class="at">-I</span><span class="va">$ROOT</span>/inc <span class="at">-c</span> <span class="st">&quot;</span><span class="va">$c</span><span class="st">&quot;</span> <span class="dt">\</span></span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>      <span class="at">-o</span> <span class="st">&quot;</span><span class="va">$(</span><span class="fu">basename</span> <span class="st">&quot;</span><span class="va">${c</span><span class="op">%</span>.c<span class="va">}</span><span class="st">&quot;</span><span class="va">)</span><span class="st">.o&quot;</span></span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a><span class="cf">done</span></span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a><span class="fu">ar</span> rcs foundation.a <span class="pp">*</span>.o</span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a><span class="ex">g++</span> <span class="at">-std</span><span class="op">=</span>c++17 <span class="at">-O1</span> <span class="va">$FLAGS</span> <span class="va">$MODE</span> <span class="at">-I</span><span class="va">$ROOT</span>/inc <span class="dt">\</span></span>
+<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a>    <span class="va">$ROOT</span>/tests/djinterp/parse/<span class="pp">*</span>.cpp <span class="va">$ROOT</span>/tests/djinterp/parsegen/<span class="pp">*</span>.cpp <span class="dt">\</span></span>
+<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a>    <span class="va">$LEAF</span>/foundation_tests_runner.cpp foundation.a <span class="dt">\</span></span>
+<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">-o</span> foundation_tests <span class="kw">&amp;&amp;</span> <span class="ex">./foundation_tests</span>          <span class="co"># passed: 57</span></span>
+<span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-18"><a href="#cb13-18" aria-hidden="true" tabindex="-1"></a><span class="fu">gcc</span> <span class="at">-std</span><span class="op">=</span>c99 <span class="at">-O1</span> <span class="va">$FLAGS</span> <span class="va">$MODE</span> <span class="at">-I</span><span class="va">$ROOT</span>/inc <span class="dt">\</span></span>
+<span id="cb13-19"><a href="#cb13-19" aria-hidden="true" tabindex="-1"></a>    <span class="va">$ROOT</span>/tests/djinterp/parse/c/<span class="pp">*</span>.c <span class="va">$ROOT</span>/tests/djinterp/parsegen/c/<span class="pp">*</span>.c <span class="dt">\</span></span>
+<span id="cb13-20"><a href="#cb13-20" aria-hidden="true" tabindex="-1"></a>    <span class="va">$LEAF</span>/foundation_c_tests_runner.c foundation.a <span class="dt">\</span></span>
+<span id="cb13-21"><a href="#cb13-21" aria-hidden="true" tabindex="-1"></a>    <span class="at">-o</span> foundation_c_tests <span class="kw">&amp;&amp;</span> <span class="ex">./foundation_c_tests</span>      <span class="co"># passed: 12</span></span></code></pre></div>
+<p><code>D_TESTING</code> must be the same for the library and the
+tests: it turns on the machine's trace hook, which changes the layout of
+<code>struct d_parse_machine</code>. <code>-D_XOPEN_SOURCE=700</code> is
+not optional beside <code>-Werror=undef</code> on glibc: see the open
+item on <code>c/djinterp.h</code> below.</p>
+<h2 id="open-a-grammar-has-no-fixed-storage-initializer-in-c">Open: a
+grammar has no fixed-storage initializer in C</h2>
+<p>Writing the C tests found one gap in the C API. Facts, pools,
+programs, registries, operator sets and sinks all have an initializer
+that binds caller-supplied storage; a grammar does not, so C code binds
+its fields by hand (<code>parsegen_c_tests.c</code> does, in one helper)
+- the same fields <code>fixed_grammar</code> binds in C++. A
+<code>d_parsegen_grammar_init_fixed</code> would close it and let
+<code>fixed_grammar</code> use it too.</p>
+<h2 id="open--werrorundef-passes-only-because-of-_xopen_source">Open:
+<code>-Werror=undef</code> passes only because of
+<code>_XOPEN_SOURCE</code></h2>
+<p><code>c/djinterp.h</code> supplies <code>SSIZE_MAX</code> where
+<code>&lt;limits.h&gt;</code> left it out, and chooses its value with
+<code>#if D_ENV_OS_USING_WINDOWS64</code>. <code>env_os.h</code> defines
+that macro only on 64-bit Windows, so everywhere else the
+<code>#if</code> reads a macro nobody defined: under
+<code>-Werror=undef</code>, an error. glibc leaves
+<code>SSIZE_MAX</code> out of a strict ISO mode unless POSIX names are
+enabled, so <code>gcc -std=c99 -Werror=undef</code> fails on the root
+header itself - and the ladder never sees it, because every compile
+there defines <code>_XOPEN_SOURCE=700</code>, which makes glibc define
+<code>SSIZE_MAX</code> and skips the block. The same test sits a few
+lines above it, inside the cl-only branch.</p>
+<p>The root is not this foundation's file, so it is reported rather than
+changed. <code>#if defined(D_ENV_OS_USING_WINDOWS64)</code> at both
+sites, or a <code>0</code> definition of the macro in
+<code>env_os.h</code> for every other system, closes it.</p>
+</body>
+</html>

@@ -6,7 +6,7 @@
 * forwards construction, comparison, validation and canonicalizing clamp to
 * the C kernel.
 *
-*   Two faces, selected by DTEST_SPEC_MODE (see djinterp_testing.md S3).
+*   Two faces, selected by DTEST_SPEC_MODE (see djinterp_testing.html S3).
 *
 *
 * path:      /tests/djinterp/cpp/util/color/color_hsv_tests.hpp

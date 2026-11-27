@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Tests not yet in DTest</title>
+  <style>
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+</head>
+<body>
+<h1 id="tests-not-yet-in-dtest">Tests not yet in DTest</h1>
+<p>Every test here was written before it could use DTest, djinterp's
+test framework (<code>c/modules/test</code> and
+<code>cpp/modules/test</code>), and is kept as it is until it is ported.
+Nothing here uses DTest yet. Each runs today as it did before it moved
+here: the CI scripts in <code>scripts/ci</code>, CMake's test leaves and
+the Windows kits point at this folder.</p>
+<p>The folder is laid out as <code>tests/djinterp/</code> is: a C test
+under <code>c/</code>, a C++ one under <code>cpp/</code>, each below the
+module it tests. A test keeps its depth below the root, so its relative
+includes (<code>../../../../../inc/...</code>) resolve from here.</p>
+<p>The database tests moved here on 2026.10.26 (git keeps their history
+as renames), and its C harnesses left again on 2026.11.10, as DTest
+suites in <code>tests/djinterp/c/modules/db/&lt;vendor&gt;/</code>
+(CMake's <code>c_&lt;vendor&gt;_tests</code> and
+<code>c_&lt;vendor&gt;_stubs_tests</code>); its C++ harnesses are still
+here. The output stream's, its template engine's, the machine
+environment's and the environment printer's joined them from the
+stream's delivery of 2026.10.29, landed on the restructured layout in
+November. The stream's seven went into DTest on 2026.11.09, and the
+string's grow test on 2026.11.12; where each went is under "Ported"
+below.</p>
+<h2 id="what-is-here">What is here</h2>
+<table>
+<thead>
+<tr class="header">
+<th>Path</th>
+<th>What</th>
+<th>Run by</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>cpp/db/&lt;vendor&gt;/t_&lt;vendor&gt;_cpp.cpp</code></td>
+<td>the C headers from C++, C++98 to C++23</td>
+<td>the CI scripts</td>
+</tr>
+<tr class="even">
+<td><code>cpp/db/&lt;vendor&gt;/t_&lt;vendor&gt;_face.cpp</code></td>
+<td>the C++ face (<code>face::&lt;vendor&gt;</code>), over the stubs and
+the client</td>
+<td>the CI scripts</td>
+</tr>
+<tr class="odd">
+<td><code>cpp/db/&lt;vendor&gt;/t_&lt;vendor&gt;_core.cpp</code></td>
+<td>cpp/db over each vendor; the checks shared by all of them are in
+<code>cpp/db/t_db_core.hpp</code></td>
+<td>the CI scripts; CMake <code>&lt;vendor&gt;_core_tests</code></td>
+</tr>
+<tr class="even">
+<td><code>cpp/db/t_database.cpp</code></td>
+<td>cpp/db's vocabulary: values, types, the shared parts</td>
+<td>the CI scripts</td>
+</tr>
+<tr class="odd">
+<td><code>cpp/db/t_db_face_cost.cpp</code></td>
+<td>the faces' cost against the C calls, at -O2</td>
+<td><code>scripts/check_db_face_cost.py</code></td>
+</tr>
+<tr class="even">
+<td><code>cpp/db/database_tests*.{hpp,cpp}</code></td>
+<td>the older cpp/db suite, by sections</td>
+<td>CMake <code>database_tests</code> (its runner is in
+<code>build/cmake/config/testing/djinterp/cpp/modules/db/database</code>)</td>
+</tr>
+</tbody>
+</table>
+<p>Rows still to add: the machine environment and the environment
+printer (<code>c/option</code>, <code>cpp/option</code>,
+<code>c/env</code>, <code>cpp/env</code>), and the checked-arithmetic
+and container overflow tests (<code>c/t_dckdint.c</code>,
+<code>c/container/t_container_overflow.c</code>).</p>
+<h2 id="how-they-behave-for-whoever-ports-them">How they behave, for
+whoever ports them</h2>
+<ul>
+<li>Each is a standalone program with its own <code>main</code>
+(<code>database_tests</code>'s is its CMake runner): it prints a line
+per group and one per failed check, with the check's expression and
+line, ends with <code>N checks, M failed</code>, and exits 0 only when
+nothing failed.</li>
+<li>Their checks are their own macros:
+<code>D_TESTS_&lt;VENDOR&gt;_FACE_CHECK</code> in the faces,
+<code>D_TESTS_DB_CORE_CHECK</code> and <code>_THROWS</code> in cpp/db
+(<code>t_db_core.hpp</code>), <code>D_DB_CHECK</code> in
+<code>database_tests</code>, and the stream's own in each of its three.
+A group is a function. The database's C suites, ported from harnesses of
+this shape, show one way: each group opens its test with the block of
+the header it tests, and records its checks with
+<code>d_test_suite_check</code>.</li>
+<li>The servers come from the environment, never from the tests:
+<code>DJINTERP_TEST_MARIADB_HOST</code>, <code>_PORT</code>,
+<code>_USER</code>, <code>_PASSWORD</code>, <code>_SOCKET</code>;
+<code>DJINTERP_TEST_POSTGRES_*</code> likewise, with
+<code>_DATABASE</code>. Without a server the faces and cpp/db run only
+the checks that need none, and fail where
+<code>DJINTERP_TEST_&lt;VENDOR&gt;_REQUIRED=1</code>. Each makes and
+drops databases of its own, named for the run.</li>
+<li><code>t_sqlite_core.cpp</code> keeps its files in the folder its
+first argument names (<code>.</code> without one); the CI scripts pass
+<code>.</code> to every cpp/db harness.</li>
+<li>What each group tests is in the comment above it ("Tests the
+following: ...").</li>
+</ul>
+<h2 id="ported">Ported</h2>
+<table>
+<thead>
+<tr class="header">
+<th>Was here</th>
+<th>Now, in DTest's C face</th>
+<th>Its CMake target</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>c/util/ostream/t_ostream.c</code></td>
+<td><code>tests/djinterp/c/util/ostream/ostream_tests.c</code></td>
+<td><code>c_ostream_tests</code></td>
+</tr>
+<tr class="even">
+<td><code>c/text/t_ostream_template.c</code></td>
+<td><code>tests/djinterp/c/text/ostream_template_tests.c</code></td>
+<td><code>c_ostream_template_tests</code></td>
+</tr>
+<tr class="odd">
+<td><code>c/text/t_text_template_overflow.c</code></td>
+<td><code>tests/djinterp/c/text/text_template_overflow_tests.c</code></td>
+<td><code>c_text_template_overflow_tests</code></td>
+</tr>
+<tr class="even">
+<td><code>c/util/pdf/t_pdf_stream.c</code></td>
+<td><code>tests/djinterp/c/util/pdf/pdf_stream_tests.c</code></td>
+<td><code>c_pdf_stream_tests</code></td>
+</tr>
+<tr class="odd">
+<td><code>cpp/util/output/t_output_stream.cpp</code></td>
+<td><code>tests/djinterp/cpp/util/output/output_stream_tests.cpp</code></td>
+<td><code>output_stream_tests</code></td>
+</tr>
+<tr class="even">
+<td><code>cpp/util/pdf/t_pdf_stream.cpp</code></td>
+<td><code>tests/djinterp/cpp/util/pdf/pdf_stream_tests.cpp</code></td>
+<td><code>pdf_stream_tests</code></td>
+</tr>
+<tr class="odd">
+<td><code>cpp/text/t_writer_stream.cpp</code></td>
+<td><code>tests/djinterp/cpp/text/writer_stream_tests.cpp</code></td>
+<td><code>writer_stream_tests</code></td>
+</tr>
+<tr class="even">
+<td><code>c/t_dstring_grow.c</code></td>
+<td>the capacity block of
+<code>tests/djinterp/c/dstring_tests_capacity.c</code></td>
+<td><code>c_dstring_tests</code></td>
+</tr>
+</tbody>
+</table>
+<p>Each group of checks became a test, and each check is recorded
+against it, so the counts are the programs' own.
+<code>scripts/ci/check_ostream.sh</code> runs the stream's seven at
+every language level.</p>
+<h2 id="when-one-is-ported">When one is ported</h2>
+<p>Delete it here, and repoint what runs it: its script in
+<code>scripts/ci</code>, its CMake leaf under
+<code>build/cmake/config/testing/</code>, and its workflow under
+<code>.github/workflows</code>. A port at another depth below the root
+changes the relative includes too.</p>
+</body>
+</html>

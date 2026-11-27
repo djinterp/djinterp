@@ -185,7 +185,7 @@ int d_cli_internal_join(
  * @return D_ARG_OK when found; D_ARG_ERROR_FILE when not;
  *         D_ARG_ERROR_OUT_OF_MEMORY when there was no memory to look, or
  *         for the buffers to grow - never a module not installed for want
- *         of memory (GRAMMAR.md, section 8).
+ *         of memory (GRAMMAR.html, section 8).
  */
 static
 int d_cli_internal_try_file(

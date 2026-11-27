@@ -3,7 +3,7 @@
 *
 *   The runner for container_metadata.hpp's suite: it selects the suite
 * header's spec face (DTEST_SPEC_MODE) and hands the spec to run_module,
-* which runs the tests and reports them (docs/djinterp_testing.md, section
+* which runs the tests and reports them (docs/djinterp_testing.html, section
 * 5). No per-test logic and no formatting live here: change the document
 * option to alter the output face, and test_defaults.hpp to alter the format
 * itself.

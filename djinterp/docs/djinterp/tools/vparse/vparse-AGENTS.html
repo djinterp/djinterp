@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>vparse — agent guide</title>
+  <style>
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+    /* CSS for syntax highlighting */
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+</head>
+<body>
+<h1 id="vparse--agent-guide">vparse — agent guide</h1>
+<blockquote>
+<p><strong>Where this file is, and what its paths mean (lane F,
+2026-11-11).</strong> This is vparse's library guide as it stood before
+the restructure of 2026-11-03, which left it out of the tree; it was
+beside the library at <code>inc/djinterp/parsegen/vparse/</code>, and is
+restored here beside the tool's README
+(<code>docs/djinterp/tools/vparse/README.html</code>), which names it. It
+is kept as written; read its paths and numbers through this table. Its
+refresh comes with week 3's vparse work.</p>
+<table>
+<thead>
+<tr class="header">
+<th>the guide says</th>
+<th>the tree has</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>inc/</code>, <code>src/</code>,
+<code>tests/djinterp/parsegen/vparse/</code></td>
+<td>the same under
+<code>djinterp/cpp/modules/parsegen/vparse/</code></td>
+</tr>
+<tr class="even">
+<td><code>build/cmake/config/testing/djinterp/parsegen/vparse/</code></td>
+<td><code>build/cmake/config/testing/djinterp/cpp/modules/parsegen/vparse/</code></td>
+</tr>
+<tr class="odd">
+<td>the file map's headers and sources</td>
+<td>those, and <code>corpus</code> and <code>session</code>; the suite's
+units also <code>corpus</code>, <code>memo</code> and
+<code>session</code></td>
+</tr>
+<tr class="even">
+<td>15 sections, <code>passed: 15</code></td>
+<td>32, the number the leaf holds each level to
+(<code>_sections</code>)</td>
+</tr>
+<tr class="odd">
+<td><code>ci/check_cpp_standards.sh</code>,
+<code>UNIT_FILTER='parsegen/vparse'</code></td>
+<td><code>scripts/ci/ladder.py</code></td>
+</tr>
+<tr class="even">
+<td><code>core/djinterp.hpp</code> retired; <code>machine.hpp</code>
+includes <code>../../djinterp.hpp</code></td>
+<td><code>machine.hpp</code> includes
+<code>../../../djinterp.hpp</code>, from the module's depth</td>
+</tr>
+</tbody>
+</table>
+</blockquote>
+<p><code>djinterp::parsegen::vparse</code>. A parser generator: given a
+grammar <code>G</code>, produce a parser <code>P</code> by
+<em>building</em> it — never learning it — so <code>P</code> is correct
+by construction. The whole thing runs on one core idea, and if you
+internalize only one thing, make it this:</p>
+<blockquote>
+<p><strong>The machine is operator-agnostic.</strong> There is no
+central <code>switch</code> on opcode anywhere. Execution dispatches
+through a per-family registry (<code>op_set</code>) that maps an opcode
+to a <code>std::function&lt;void(machine&amp;)&gt;</code>. Behavior is
+<em>registered</em>, not branched. Adding capability = adding a handler,
+never editing a dispatch loop.</p>
+</blockquote>
+<p>Everything below serves that idea.</p>
+<hr />
+<h2 id="1-orientation-in-30-seconds">1. Orientation in 30 seconds</h2>
+<p>Three layers, cleanly separated:</p>
+<table>
+<thead>
+<tr class="header">
+<th>layer</th>
+<th>what it is</th>
+<th>where</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>substrate</strong></td>
+<td>run-state + the registry; no opcode meaning</td>
+<td><code>machine.hpp</code></td>
+</tr>
+<tr class="even">
+<td><strong>operators</strong></td>
+<td>families that register handlers into an <code>op_set</code></td>
+<td><code>peg</code>, <code>gen</code>, <code>notation</code></td>
+</tr>
+<tr class="odd">
+<td><strong>driver</strong></td>
+<td>a family's <code>run</code>/fetch loop over its program</td>
+<td><code>peg::run</code>, <code>gen::generate</code></td>
+</tr>
+</tbody>
+</table>
+<p>Four operator families share the substrate, each with its <strong>own
+private opcode space</strong> (so <code>peg::CHAR</code>,
+<code>gen::G_PREAMBLE</code> and <code>lr::SHIFT</code> are all
+<code>0</code> and coexist — they live in different <code>op_set</code>s
+and never collide), plus a second frontend:</p>
+<ul>
+<li><strong><code>peg</code></strong> — a PEG virtual machine
+(recursive-descent, PC-driven). Runs a flat instruction stream against
+input. This is what actually recognizes text.</li>
+<li><strong><code>gen</code></strong> — the generator. Walks a
+<code>ruleset</code> and <em>emits</em> a
+<code>peg::program</code>.</li>
+<li><strong><code>notation</code></strong> — the grammar-of-grammars.
+Parses grammar <em>text</em> into a <code>ruleset</code>. It is itself
+powered by <code>gen</code> compiling a seed grammar (metacircular — see
+§4).</li>
+<li><strong><code>lr</code></strong> — a shift/reduce family: its own
+opcodes (<code>SHIFT</code>, <code>REDUCE</code>, <code>ACCEPT</code>,
+<code>ERROR</code>), table format and table-driven driver. Runs
+left-recursive grammars the PEG family cannot. Tables are
+<strong>supplied</strong>, not yet generated.</li>
+<li><strong><code>ebnf</code></strong> — a second frontend, not an
+operator family: hand-written recursive descent over EBNF text
+(grouping, <code>?</code>, string literals, <code>.</code>,
+<code>#</code> comments) compiling straight to a
+<code>peg::program</code>. Overlaps <code>notation</code> — see §9.</li>
+</ul>
+<hr />
+<h2 id="2-file-map">2. File map</h2>
+<pre><code>inc/djinterp/parsegen/vparse/
+  machine.hpp    substrate: struct machine, voperator, op_set (def/find/name)
+  ruleset.hpp    grammar model: term/rule/ruleset + builders lit/cls/ref/any_ch
+  peg.hpp        PEG family: opcodes, instr, program, capture, run(), make_ops()
+  gen.hpp        generator family: directives, gen_instr, plan/generate/compile()
+  notation.hpp   grammar language: meta_grammar/read_ruleset/parse_grammar()
+  adapter.hpp    carrier bridge: as_parser(program) -&gt; parser&lt;std::string,char&gt;
+  lr.hpp         LR family: opcodes, table/tokens/result, run(), make_ops()
+  ebnf.hpp       EBNF frontend: parse() text -&gt; rules, compile() -&gt; program
+
+src/djinterp/parsegen/vparse/
+  peg.cpp gen.cpp notation.cpp adapter.cpp lr.cpp ebnf.cpp   (implementations)
+
+tests/djinterp/parsegen/vparse/
+  vparse_tests.hpp              shared harness + fixtures
+  vparse_tests_captures.cpp     backtrack-safe capture unwinding; traced run
+  vparse_tests_generate.cpp     gen::compile parity (anchor, multi-rule)
+  vparse_tests_notation.cpp     grammar text -&gt; ruleset -&gt; parser
+  vparse_tests_rebase.cpp       real carrier: handle + combinator composition
+  vparse_tests_lr.cpp           LR family: left recursion, trace, step limit
+  vparse_tests_ebnf.cpp         EBNF frontend: arithmetic, grouping, errors
+
+build/cmake/config/testing/djinterp/parsegen/vparse/
+  vparse_tests_runner.cpp       main(): runs each tests_* section, prints PASS/FAIL
+  CMakeLists.txt                djinterp_add_test_executable leaf; plain CMake,
+                                one build per C++ level, where the helper is absent</code></pre>
+<p>Headers are declaration-only; the banners carry design intent (read
+them). The whole subsystem depends on the framework through <strong>one
+contract only</strong>: <code>parser&lt;R,E&gt;</code>,
+<code>parse_state</code>, <code>parse_result</code> from
+<code>djinterp::parse</code>. Keep it that way — it is what makes vparse
+portable.</p>
+<hr />
+<h2 id="3-public-api-cheat-sheet">3. Public API cheat-sheet</h2>
+<p><strong>Build a grammar in code</strong> (<code>ruleset.hpp</code>) —
+first rule is the start symbol; <code>star</code> = zero-or-more of that
+term; <code>cap</code> = capture tag (0 = none):</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>term lit<span class="op">(</span><span class="dt">char</span> c<span class="op">,</span> <span class="dt">int</span> cap<span class="op">=</span><span class="dv">0</span><span class="op">);</span>                          <span class="co">// literal char</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>term cls<span class="op">(</span><span class="at">const</span> <span class="bu">std::</span>string<span class="op">&amp;</span> set<span class="op">,</span> <span class="dt">bool</span> star<span class="op">=</span><span class="kw">false</span><span class="op">,</span> <span class="dt">int</span> cap<span class="op">=</span><span class="dv">0</span><span class="op">);</span>  <span class="co">// [class]</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>term ref<span class="op">(</span><span class="at">const</span> <span class="bu">std::</span>string<span class="op">&amp;</span> name<span class="op">,</span> <span class="dt">bool</span> star<span class="op">=</span><span class="kw">false</span><span class="op">,</span> <span class="dt">int</span> cap<span class="op">=</span><span class="dv">0</span><span class="op">);</span> <span class="co">// rule reference</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>term any_ch<span class="op">(</span><span class="dt">int</span> cap<span class="op">=</span><span class="dv">0</span><span class="op">);</span>                               <span class="co">// any one char  (T_ANY)</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> rule    <span class="op">{</span> <span class="bu">std::</span>string name<span class="op">;</span> <span class="bu">std::</span>vector<span class="op">&lt;</span><span class="bu">std::</span>vector<span class="op">&lt;</span>term<span class="op">&gt;&gt;</span> alts<span class="op">;</span> <span class="op">};</span>  <span class="co">// alts = ordered choice</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> ruleset <span class="op">{</span> <span class="bu">std::</span>vector<span class="op">&lt;</span>rule<span class="op">&gt;</span> rules<span class="op">;</span> <span class="op">};</span>          <span class="co">// rules.front() = start</span></span></code></pre></div>
+<p><strong>Compile a grammar to a parser</strong> — the common path:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">namespace</span> notation <span class="op">{</span> ruleset parse_grammar<span class="op">(</span><span class="at">const</span> <span class="bu">std::</span>string<span class="op">&amp;</span> text<span class="op">,</span> <span class="dt">bool</span><span class="op">*</span> ok<span class="op">=</span><span class="kw">nullptr</span><span class="op">);</span> <span class="op">}</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="kw">namespace</span> gen      <span class="op">{</span> peg<span class="op">::</span>program compile<span class="op">(</span><span class="at">const</span> ruleset<span class="op">&amp;</span> g<span class="op">);</span> <span class="op">}</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>parser<span class="op">&lt;</span><span class="bu">std::</span>string<span class="op">,</span><span class="dt">char</span><span class="op">&gt;</span> as_parser<span class="op">(</span><span class="at">const</span> peg<span class="op">::</span>program<span class="op">&amp;</span> prog<span class="op">);</span>   <span class="co">// adapter.hpp</span></span></code></pre></div>
+<p><strong>Lower-level PEG surface</strong> (<code>peg.hpp</code>) —
+hand-author or inspect programs:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">enum</span> <span class="op">{</span> CHAR<span class="op">,</span> ANY<span class="op">,</span> CHOICE<span class="op">,</span> JUMP<span class="op">,</span> CALL<span class="op">,</span> RETURN<span class="op">,</span> COMMIT<span class="op">,</span> FAIL<span class="op">,</span> MATCH<span class="op">,</span> SET<span class="op">,</span> MARK<span class="op">,</span> CAP <span class="op">};</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> instr <span class="op">{</span> <span class="dt">int</span> op<span class="op">;</span> <span class="dt">int</span> arg<span class="op">=-</span><span class="dv">1</span><span class="op">;</span> <span class="dt">char</span> ch<span class="op">=</span><span class="dv">0</span><span class="op">;</span> <span class="bu">std::</span>string set<span class="op">;</span> <span class="op">};</span>  <span class="co">// arg = jump target OR capture tag</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> program <span class="op">=</span> <span class="bu">std::</span>vector<span class="op">&lt;</span>instr<span class="op">&gt;;</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> capture <span class="op">{</span> <span class="dt">int</span> tag<span class="op">;</span> <span class="dt">int</span> start<span class="op">;</span> <span class="dt">int</span> end<span class="op">;</span> <span class="op">};</span>      <span class="co">// half-open input span</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>op_set make_ops<span class="op">();</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="dt">bool</span>   run<span class="op">(</span>parse_state<span class="op">&lt;</span><span class="dt">char</span><span class="op">&gt;&amp;</span> st<span class="op">,</span> <span class="at">const</span> program<span class="op">&amp;</span> prog<span class="op">,</span> <span class="at">const</span> op_set<span class="op">&amp;</span> ops<span class="op">,</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>           <span class="bu">std::</span>vector<span class="op">&lt;</span>capture<span class="op">&gt;*</span> caps<span class="op">=</span><span class="kw">nullptr</span><span class="op">);</span>        <span class="co">// advances st.offset on match</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a><span class="dt">bool</span>   run<span class="op">(</span>machine<span class="op">&amp;</span> m<span class="op">,</span> parse_state<span class="op">&lt;</span><span class="dt">char</span><span class="op">&gt;&amp;</span> st<span class="op">,</span> <span class="at">const</span> program<span class="op">&amp;</span> prog<span class="op">,</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>           <span class="at">const</span> op_set<span class="op">&amp;</span> ops<span class="op">,</span></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>           <span class="bu">std::</span>vector<span class="op">&lt;</span>capture<span class="op">&gt;*</span> caps<span class="op">=</span><span class="kw">nullptr</span><span class="op">);</span>        <span class="co">// same, on a caller&#39;s machine</span></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a><span class="bu">std::</span>string fmt<span class="op">(</span><span class="at">const</span> instr<span class="op">&amp;</span> i<span class="op">);</span>                       <span class="co">// disassembly</span></span></code></pre></div>
+<p>The machine overload is the observable one: it honours
+<code>m.step_limit</code> (a run that hits it fails with
+<code>m.error == "step limit"</code> and leaves <code>st.offset</code>
+put), and when <code>m.trace</code> is set it appends one line per
+dispatch, written <em>before</em> the operator runs:</p>
+<pre><code>ip=12 off=3 calls=2 back=1 marks=0 caps=0 | CHAR &#39;+&#39;</code></pre>
+<p><code>m.steps</code> counts dispatches, so a matched run leaves
+<code>m.steps + 1</code> lines (the last is the <code>MATCH</code>).
+<code>m.ext</code> is cleared on return. The four-argument
+<code>run</code> delegates to it with a fresh machine.</p>
+<p><strong>Generator internals</strong> (<code>gen.hpp</code>) — if you
+need the plan, not just the program:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="kw">enum</span> <span class="op">{</span> G_PREAMBLE<span class="op">,</span> G_RULE_BEGIN<span class="op">,</span> G_RULE_END<span class="op">,</span> G_ALT_CHOICE<span class="op">,</span> G_ALT_COMMIT<span class="op">,</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>       G_EMIT_CHAR<span class="op">,</span> G_EMIT_SET<span class="op">,</span> G_EMIT_REF<span class="op">,</span> G_EMIT_ANY<span class="op">,</span> G_EMIT_MARK<span class="op">,</span> G_EMIT_CAP<span class="op">,</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>       G_STAR_BEGIN<span class="op">,</span> G_STAR_END<span class="op">,</span> G_FINISH <span class="op">};</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>gen_program  plan<span class="op">(</span><span class="at">const</span> ruleset<span class="op">&amp;</span> g<span class="op">);</span>                   <span class="co">// ruleset -&gt; directives</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>peg<span class="op">::</span>program generate<span class="op">(</span><span class="at">const</span> gen_program<span class="op">&amp;</span> p<span class="op">,</span> <span class="at">const</span> op_set<span class="op">&amp;</span> ops<span class="op">);</span>  <span class="co">// directives -&gt; program</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>peg<span class="op">::</span>program compile<span class="op">(</span><span class="at">const</span> ruleset<span class="op">&amp;</span> g<span class="op">);</span>                <span class="co">// plan + generate, one call</span></span></code></pre></div>
+<p><strong>LR family</strong> (<code>lr.hpp</code>) — a supplied table,
+run over <code>(kind, value)</code> tokens:</p>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>op_set     lr<span class="op">::</span>make_ops<span class="op">();</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>lr<span class="op">::</span>result lr<span class="op">::</span>run<span class="op">(</span>machine<span class="op">&amp;</span> m<span class="op">,</span> <span class="at">const</span> lr<span class="op">::</span>table<span class="op">&amp;</span> t<span class="op">,</span> <span class="at">const</span> lr<span class="op">::</span>tokens<span class="op">&amp;</span> toks<span class="op">,</span> <span class="at">const</span> op_set<span class="op">&amp;</span> ops<span class="op">);</span></span></code></pre></div>
+<p><strong>EBNF frontend</strong> (<code>ebnf.hpp</code>) — never
+throws; failures come back through <code>ok</code>:</p>
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="bu">std::</span>pair<span class="op">&lt;</span>ebnf<span class="op">::</span>rules<span class="op">,</span> <span class="bu">std::</span>string<span class="op">&gt;</span> ebnf<span class="op">::</span>parse<span class="op">(</span><span class="at">const</span> <span class="bu">std::</span>string<span class="op">&amp;</span> text<span class="op">,</span> <span class="dt">bool</span><span class="op">*</span> ok<span class="op">=</span><span class="kw">nullptr</span><span class="op">,</span> <span class="bu">std::</span>string<span class="op">*</span> error<span class="op">=</span><span class="kw">nullptr</span><span class="op">);</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>peg<span class="op">::</span>program ebnf<span class="op">::</span>compile<span class="op">(</span><span class="at">const</span> ebnf<span class="op">::</span>rules<span class="op">&amp;</span> r<span class="op">,</span> <span class="at">const</span> <span class="bu">std::</span>string<span class="op">&amp;</span> start<span class="op">,</span> <span class="dt">bool</span><span class="op">*</span> ok<span class="op">=</span><span class="kw">nullptr</span><span class="op">,</span> <span class="bu">std::</span>string<span class="op">*</span> error<span class="op">=</span><span class="kw">nullptr</span><span class="op">);</span></span></code></pre></div>
+<h3 id="canonical-example-the-anchor">Canonical example (the
+anchor)</h3>
+<div class="sourceCode" id="cb9"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> <span class="kw">namespace</span> djinterp<span class="op">::</span>parsegen<span class="op">::</span>vparse<span class="op">;</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="kw">namespace</span> pr <span class="op">=</span> djinterp<span class="op">::</span>parse<span class="op">;</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>ruleset g <span class="op">=</span> notation<span class="op">::</span>parse_grammar<span class="op">(</span><span class="st">&quot;S = [0-9]+ ;&quot;</span><span class="op">);</span>   <span class="co">// grammar text -&gt; ruleset</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>pr<span class="op">::</span>parser<span class="op">&lt;</span><span class="bu">std::</span>string<span class="op">,</span><span class="dt">char</span><span class="op">&gt;</span> p <span class="op">=</span> as_parser<span class="op">(</span>gen<span class="op">::</span>compile<span class="op">(</span>g<span class="op">));</span>   <span class="co">// -&gt; real parser&lt;R,E&gt;</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a><span class="bu">std::</span>string s <span class="op">=</span> <span class="st">&quot;12345&quot;</span><span class="op">;</span></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>pr<span class="op">::</span>parse_state<span class="op">&lt;</span><span class="dt">char</span><span class="op">&gt;</span> st<span class="op">(</span>s<span class="op">.</span>data<span class="op">(),</span> s<span class="op">.</span>size<span class="op">(),</span> <span class="dv">0</span><span class="op">);</span></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> r <span class="op">=</span> p<span class="op">(</span>st<span class="op">);</span>           <span class="co">// r.ok() == true, r.value() == &quot;12345&quot;</span></span></code></pre></div>
+<p><code>S = [0-9]+ ;</code> compiles to an 11-instruction program
+byte-identical to the hand-written equivalent — that byte-identity is
+the parity guarantee the <code>generate</code> tests defend.</p>
+<hr />
+<h2 id="4-the-pipeline-and-why-its-metacircular">4. The pipeline (and
+why it's metacircular)</h2>
+<pre><code>grammar text ──notation::parse_grammar──▶ ruleset ──gen::compile──▶ peg::program ──as_parser──▶ parser&lt;std::string,char&gt;
+                       │
+   internally parse_grammar is itself:
+       notation::meta_grammar()  ──gen::compile──▶  program            (the grammar-of-grammars, compiled by gen)
+       peg::run(program, text)   ──▶  captures
+       notation::read_ruleset(captures, text)  ──▶  ruleset            (the &quot;reader&quot;)</code></pre>
+<p>The meta-grammar is authored as an ordinary <code>ruleset</code> (the
+irreducible seed) and compiled by the <em>same</em> <code>gen</code>
+used for user grammars. So the front-end that turns text into grammars
+is built by the generator it feeds. <code>read_ruleset</code> (captures
+→ ruleset) is currently host C++ — closing that (expressing the reader
+in the notation itself) is the self-hosting item on the roadmap.</p>
+<p>Notation syntax the meta-grammar accepts:
+<code>Name = alt | alt ;</code>, terms are <code>'x'</code> (literal,
+needs <code>ANY</code>/<code>T_ANY</code>), <code>[class]</code>,
+<code>Ref</code>, postfix <code>*</code> and <code>+</code>
+(<code>x+</code> desugars to <code>x x*</code>), sequence by
+juxtaposition. Capture tags emitted:
+<code>NAME, SETBODY, REF, STAR, PLUS, LITCH, BAR</code>.</p>
+<hr />
+<h2 id="5-invariants--do-not-break-these">5. Invariants — do not break
+these</h2>
+<ol type="1">
+<li><strong>No central dispatch.</strong> <code>machine</code> has no
+opcode <code>switch</code>; the driver dispatches only via
+<code>op_set::find</code>. New behavior is a new handler in a family's
+<code>make_ops()</code>, never a branch in the substrate.</li>
+<li><strong>Opcode spaces are family-private.</strong> Never share
+opcode integers across families or assume an opcode has global meaning.
+<code>peg</code> and <code>gen</code> both start at <code>0</code> on
+purpose.</li>
+<li><strong><code>|</code> is <em>ordered</em> choice (PEG, not
+CFG).</strong> First alternative that matches wins and commits; there is
+no ambiguity and no backtracking across a <code>COMMIT</code>. Don't
+"fix" this toward CFG semantics.</li>
+<li><strong>No left recursion.</strong> A rule referencing itself
+leftmost will not terminate. (Left recursion is what the <code>lr</code>
+family is for; its table is currently supplied by hand.)</li>
+<li><strong>Captures are backtrack-safe.</strong> <code>CHOICE</code>
+snapshots the mark-stack and capture-stack depths; <code>FAIL</code>
+unwinds to them. Any new backtracking opcode must preserve this
+snapshot/unwind discipline or captures will leak across dead
+alternatives.</li>
+<li><strong><code>gen::compile</code> output is a <em>whole-input</em>
+recognizer.</strong> The compiled program carries an end-of-input gate
+(<code>CALL start</code> + <code>!.</code> test + <code>MATCH</code>),
+so it matches only if it consumes the entire input. See §7 for the
+consequence.</li>
+<li><strong>Carrier contract only.</strong> vparse uses
+<code>parser&lt;R,E&gt;</code> / <code>parse_state</code> /
+<code>parse_result</code> and nothing else from the framework.</li>
+</ol>
+<hr />
+<h2 id="6-build--test">6. Build &amp; test</h2>
+<p><strong>The environment.</strong> The module's floor is C++11: below
+it every vparse header and source compiles to nothing (never an
+<code>#error</code>), so each unit compiles at every level the tree's
+ladder runs, strict C++98 to C++23. From C++11 up the suite must pass
+whole, at every level. Headers include each other by paths relative to
+themselves; the sources reach their headers through <code>inc/</code>,
+which is the one include directory a build needs. The tests and the
+runner use relative paths throughout, so they need none of their
+own.</p>
+<p>The subsystem builds with the project's CMake helper
+(<code>djinterp_add_test_executable</code>, which adds <code>inc/</code>
+and defines <code>D_TESTING=1</code>). Where that helper is not defined,
+the same leaf builds with plain CMake instead - one executable per
+level, each held to 15 sections:</p>
+<div class="sourceCode" id="cb11"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cmake</span> <span class="at">-S</span> build/cmake/config/testing/djinterp/parsegen/vparse <span class="at">-B</span> out</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="fu">cmake</span> <span class="at">--build</span> out <span class="kw">&amp;&amp;</span> <span class="ex">ctest</span> <span class="at">--test-dir</span> out</span></code></pre></div>
+<p>The equivalent raw invocation - useful for a quick agent loop - with
+the flags the ladder uses, at every level:</p>
+<div class="sourceCode" id="cb12"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> std <span class="kw">in</span> c++11 c++14 c++17 c++20 c++23<span class="kw">;</span> <span class="cf">do</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  <span class="ex">g++</span> <span class="at">-std</span><span class="op">=</span><span class="va">$std</span> <span class="at">-O1</span> <span class="at">-Wall</span> <span class="at">-Wextra</span> <span class="at">-pedantic-errors</span> <span class="at">-Werror</span><span class="op">=</span>undef <span class="dt">\</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">-D_XOPEN_SOURCE</span><span class="op">=</span>700 <span class="at">-DD_TESTING</span><span class="op">=</span>1 <span class="at">-DRE_STD_CFG_TESTING</span><span class="op">=</span>1 <span class="at">-Iinc</span> <span class="dt">\</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>    src/djinterp/parsegen/vparse/<span class="pp">*</span>.cpp <span class="dt">\</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>    tests/djinterp/parsegen/vparse/vparse_tests_<span class="pp">*</span>.cpp <span class="dt">\</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>    build/cmake/config/testing/djinterp/parsegen/vparse/vparse_tests_runner.cpp <span class="dt">\</span></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">-o</span> vparse_tests <span class="kw">&amp;&amp;</span> <span class="ex">./vparse_tests</span> <span class="kw">|</span> <span class="fu">tail</span> <span class="at">-n</span> 1</span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a><span class="cf">done</span></span></code></pre></div>
+<p>Expected: <code>passed: 15   failed: 0</code>, five times. Discipline
+for any change: <strong>everything compiles at every level + all 15
+pass</strong> before moving on, with <code>clang++</code> as well as
+<code>g++</code>. When editing a <code>.cpp</code>, rebuild from a
+removed binary (<code>rm -f vparse_tests</code>) so a stale executable
+never masks a failed build. A change to a header or a source should also
+go through the ladder (<code>ci/check_cpp_standards.sh</code>, with
+<code>UNIT_FILTER='parsegen/vparse'</code> to keep it to this module),
+which is what catches a construct a lower level lacks.</p>
+<hr />
+<h2 id="7-gotchas-things-that-have-actually-bitten">7. Gotchas (things
+that have actually bitten)</h2>
+<ul>
+<li><strong>Whole-input gate vs. composition.</strong> Because
+<code>gen::compile</code> emits a whole-input recognizer (invariant 6),
+feeding its output to a real combinator like
+<code>many</code>/<code>sep_by</code> as a <em>sub</em>-parser fails on
+the first call — the sub-parser rejects the trailing input it should
+leave for the next combinator. To compose, build a <strong>non-gated
+prefix program</strong> directly via <code>peg::program</code> +
+<code>as_parser</code> (the <code>rebase_compose</code> test does
+exactly this: a bare <code>SET/CHOICE/SET/COMMIT/ MATCH</code>
+digit-run, driven by real <code>sep_by(_, literal(' '))</code>). The
+clean fix on the roadmap is a <code>compile_prefix</code> that omits the
+EOF gate.</li>
+<li><strong><code>as_parser</code> semantics.</strong> The produced
+handle runs from <code>st.offset</code>; on match it advances
+<code>offset</code> and returns the consumed span as the
+<code>std::string</code> value; on failure it leaves <code>offset</code>
+put and returns <code>parse_error(DParseStatusFailure)</code>. The
+<code>op_set</code> is built once and captured in the handle.</li>
+<li><strong><code>peg::instr</code> is not an aggregate at
+C++11.</strong> It has default member initializers
+(<code>arg = -1</code>, <code>ch = 0</code>), and until C++14 a class
+with those is not an aggregate, so
+<code>instr{ CHAR, -1, 'a', "" }</code> compiles from C++14 and fails at
+the floor. Build one by assigning its fields, as <code>gen.cpp</code>
+does and as the tests' <code>ins(op, arg, ch, set)</code> helper does.
+<code>term</code> has them too, which is one more reason to build terms
+with <code>lit</code> / <code>cls</code> / <code>ref</code> /
+<code>any_ch</code>; <code>rule</code> and <code>lr::action</code> have
+none and brace-initialize at every level.</li>
+<li><strong>An empty program is a failed run, not a crash.</strong>
+<code>peg::run</code> on a program with no instructions fails with
+<code>m.error == "empty program"</code>. <code>ebnf::compile</code>
+returns an empty program when it fails - an undefined start rule, say -
+so check its <code>ok</code> rather than running what came back.</li>
+<li><strong><code>&lt;windows.h&gt;</code> and opcode names.</strong>
+<code>wingdi.h</code> defines <code>ERROR</code> as a macro, so a
+translation unit that includes <code>&lt;windows.h&gt;</code> and then
+<code>lr.hpp</code> fails at the LR family's opcode of that name
+("expected identifier before numeric constant"). <code>NOGDI</code>
+defined before <code>&lt;windows.h&gt;</code> avoids it;
+<code>WIN32_LEAN_AND_MEAN</code> does not. Open: the cure is the
+opcode's name, and branch <code>vparse/lr-reject</code> renames it.
+<code>CHAR</code> is a typedef there, so in such a unit
+<code>peg::CHAR</code> is written qualified: after
+<code>using namespace peg</code> the bare name is ambiguous. Every other
+vparse header, and every header of the parse/parsegen foundation,
+compiles after <code>&lt;windows.h&gt;</code>.</li>
+</ul>
+<h3 id="built-against-the-real-framework--no-stand-ins">Built against
+the real framework — no stand-ins</h3>
+<p>vparse builds against your real root headers. The sandbox stand-in
+<code>core/djinterp.hpp</code> is retired; <code>machine.hpp</code>
+includes <code>../../djinterp.hpp</code>. That needed four framework
+fixes, which are in the tree:</p>
+<ul>
+<li><code>NS_DJINTERP</code> expands through
+<code>D_FRAMEWORK_NAME</code>, which the C root defines; it previously
+named <code>D_KEYWORD_FRAMEWORK_NAME</code>, which nothing defined.</li>
+<li><code>djinterp::functional</code> is declared in
+<code>djinterp.hpp</code>: <code>parse.hpp</code>,
+<code>core/functional</code> and <code>core/event</code> spell the
+functional API that way, and only the stand-in used to declare it.</li>
+<li><code>env.h</code> includes <code>c/env_c_lib.h</code> after the
+detection headers and before <code>env_build.h</code>, the order its
+banner documents.</li>
+<li><code>parser_expr</code> in <code>parser.hpp</code> deduces its
+return type at the point of use; the trailing <code>decltype</code> it
+used is evaluated by g++ on an incomplete type.</li>
+</ul>
+<p>The <code>monad_map</code> <code>traits::</code> fix was already
+present. Open framework item, not in the parse path: <code>maybe</code>
+has no Alternative or Traversable instance, though both protocol headers
+document one.</p>
+<hr />
+<h2 id="8-extending-vparse">8. Extending vparse</h2>
+<ul>
+<li><strong>Add a PEG opcode:</strong> add the enum value in
+<code>peg.hpp</code>; register a handler in <code>peg::make_ops()</code>
+(<code>peg.cpp</code>) that reads/writes the family state (the
+<code>parse_state</code> threaded through <code>machine.ext</code>);
+extend <code>fmt()</code> for disassembly. No substrate change.</li>
+<li><strong>Add a notation operator</strong> (e.g. <code>?</code>):
+teach <code>meta_grammar()</code> to emit a new capture tag, handle that
+tag in <code>read_ruleset()</code>, and lower it to terms/opcodes. No
+change to <code>peg</code> or the substrate.</li>
+<li><strong>Add a whole new family</strong> (this is the LR path): a new
+private opcode enum + <code>make_ops()</code> + a
+<code>run</code>/driver, all sharing <code>machine</code> and
+<code>op_set</code>. <code>gen</code> would target the new family's
+program (e.g. an <code>lr::table</code>) instead of
+<code>peg</code>.</li>
+</ul>
+<hr />
+<h2 id="9-roadmap">9. Roadmap</h2>
+<ul>
+<li><strong>LR table generation</strong> — the <code>lr</code> driver
+exists; what remains is <code>gen</code> building an
+<code>lr::table</code> from a grammar (LR(0), SLR or LALR) instead of it
+being supplied by hand.</li>
+<li><strong>One notation</strong> — <code>ebnf</code> and
+<code>notation</code> overlap. Extending the metacircular meta-grammar
+to grouping and <code>?</code> would retire <code>ebnf</code>'s
+hand-written parser.</li>
+<li><strong>The port</strong> — moving vparse onto the
+<code>parse</code> / <code>parsegen</code> foundation (the program IR,
+the operator registry, the neutral grammar), where <code>ebnf</code>'s
+tree maps directly onto the neutral grammar. The foundation keeps its C
+in <code>parse/c/</code> and <code>parsegen/c/</code>, with the C++
+faces beside them; the layout rule is in
+<code>parsegen/FOUNDATION.html</code>.</li>
+<li><strong>Full self-hosting</strong> — express
+<code>read_ruleset</code> (captures → ruleset) in the notation itself,
+so the front-end is entirely bootstrapped.</li>
+<li><strong><code>compile_prefix</code></strong> — a non-EOF-gated
+compile so generated parsers compose cleanly as sub-parsers under the
+combinator algebra.</li>
+</ul>
+</body>
+</html>

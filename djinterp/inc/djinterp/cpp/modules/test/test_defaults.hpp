@@ -78,7 +78,7 @@
 * HOW TO USE
 * ----------
 *   A suite lists its tests as a module_spec of block_specs of test_specs
-* (Sections 2 to 7 of docs/djinterp_testing.md), and its runner hands the spec
+* (Sections 2 to 7 of docs/djinterp_testing.html), and its runner hands the spec
 * over:
 *
 *     int main()

@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>The description: djinterp.help/1.0</title>
+  <style>
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+    /* CSS for syntax highlighting */
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+</head>
+<body>
+<h1 id="the-description-djinterphelp10">The description:
+<code>djinterp.help/1.0</code></h1>
+<p>A program on the command-line kit describes itself as JSON:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">PROGRAM</span> help <span class="at">--format</span><span class="op">=</span>json            <span class="co"># the whole program</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="ex">PROGRAM</span> help COMMAND <span class="at">--format</span><span class="op">=</span>json    <span class="co"># from a command down</span></span></code></pre></div>
+<p>The description is what a program's manual and wiki pages are built
+from: the renderer reads it, with a CommonMark prose file per page, and
+checks the prose's code spans against it. This page is the description's
+schema, and the rules the code spans are checked by.
+<code>cli_help.h</code> writes it; <code>d_cli_help_json</code> gives it
+to a program that has no <code>help</code> command.</p>
+<h2 id="versions">Versions</h2>
+<p>The first member, <code>format</code>, names the shape:
+<code>"djinterp.help/1.0"</code>, MAJOR.MINOR, as
+<code>describe --format=json</code> names its own
+(<code>"djinterp.describe/1.0"</code>).</p>
+<ul>
+<li>A member added is a minor step. A reader passes over a member it
+does not know.</li>
+<li>A member removed, or a member whose meaning changes, is a major
+step. A reader refuses a major version it does not know, rather than
+render a wrong page.</li>
+</ul>
+<h2 id="the-description">The description</h2>
+<p>An object. The kit writes these members, in this order:</p>
+<table>
+<thead>
+<tr class="header">
+<th>Member</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>format</code></td>
+<td><code>"djinterp.help/1.0"</code></td>
+</tr>
+<tr class="even">
+<td><code>program</code></td>
+<td>the program's name, as diagnostics begin:
+<code>"djinterp"</code></td>
+</tr>
+<tr class="odd">
+<td><code>version</code></td>
+<td>its version, as <code>--version</code> prints it, or
+<code>null</code></td>
+</tr>
+<tr class="even">
+<td><code>command</code></td>
+<td>the command described, a <strong>command</strong> (below): the root,
+or the one <code>help COMMAND</code> named</td>
+</tr>
+<tr class="odd">
+<td><code>settings</code></td>
+<td>every setting the program reads, each a <strong>setting</strong>:
+the root's first, then each djin's, in the registry's order</td>
+</tr>
+<tr class="even">
+<td><code>variables</code></td>
+<td>the environment variables the kit reads besides the settings', each
+a <strong>variable</strong></td>
+</tr>
+<tr class="odd">
+<td><code>prefixes</code></td>
+<td>the prefixes the settings' variables begin with:
+<code>"DJINTERP_"</code>, then the program's own
+(<code>"BITWISEDOM_"</code>), unless that is the same</td>
+</tr>
+<tr class="even">
+<td><code>exit_statuses</code></td>
+<td>what each exit status means, each
+<code>{ "status": 0, "meaning": "..." }</code>, as the root's help says
+it</td>
+</tr>
+</tbody>
+</table>
+<p>A program then adds members of its own, through its hook
+(<code>d_cli_program_set_help_json</code>). A reader knows these
+three:</p>
+<table>
+<thead>
+<tr class="header">
+<th>Member</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>djins</code></td>
+<td>the program's djins, each a <strong>djin</strong> (below), in the
+order <code>list</code> gives them</td>
+</tr>
+<tr class="even">
+<td><code>reserved</code></td>
+<td>the names a djin's page may not take: the program's commands, and
+its pages in sections 5 and 7 (<code>settings</code>, <code>cli</code>,
+<code>language</code> for <code>djinterp</code>)</td>
+</tr>
+<tr class="odd">
+<td><code>sections</code></td>
+<td>a page's own sections, each a <strong>section</strong> (below)</td>
+</tr>
+</tbody>
+</table>
+<p><code>djinterp</code> writes <code>djins</code> and
+<code>reserved</code>. No program writes <code>sections</code> yet.</p>
+<h3 id="a-command">A command</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Member</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>name</code></td>
+<td>its name: the root's is the program's</td>
+</tr>
+<tr class="even">
+<td><code>path</code></td>
+<td>its full name, as a user types it: <code>"djinterp set"</code></td>
+</tr>
+<tr class="odd">
+<td><code>summary</code></td>
+<td>what help says of it, or left out</td>
+</tr>
+<tr class="even">
+<td><code>usage</code></td>
+<td>its own usage line, where it has one</td>
+</tr>
+<tr class="odd">
+<td><code>footer</code></td>
+<td>its footer, where it has one</td>
+</tr>
+<tr class="even">
+<td><code>aliases</code></td>
+<td>its other names, where it has any</td>
+</tr>
+<tr class="odd">
+<td><code>options</code></td>
+<td>its options, each an <strong>option</strong>: its own, in the order
+they were made, then each option group's</td>
+</tr>
+<tr class="even">
+<td><code>arguments</code></td>
+<td>its positionals, in order, each an <strong>argument</strong></td>
+</tr>
+<tr class="odd">
+<td><code>commands</code></td>
+<td>its subcommands, each a <strong>command</strong>, down</td>
+</tr>
+</tbody>
+</table>
+<p>What help hides is left out: an option or a subcommand in the group
+named <code>""</code>, and a disabled subcommand or option group.</p>
+<h3 id="an-option">An option</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Member</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>names</code></td>
+<td>its names as typed: <code>["-o", "--output"]</code></td>
+</tr>
+<tr class="even">
+<td><code>value</code></td>
+<td>the placeholder of the value it takes, <code>"FILE"</code>; left out
+for a flag</td>
+</tr>
+<tr class="odd">
+<td><code>optional</code></td>
+<td><code>true</code> where a flag's long name may take a value after
+<code>=</code> (<code>--color[=WHEN]</code>)</td>
+</tr>
+<tr class="even">
+<td><code>summary</code></td>
+<td>what help says of it</td>
+</tr>
+<tr class="odd">
+<td><code>group</code></td>
+<td>the heading help lists it under, where it is not the command's
+own</td>
+</tr>
+<tr class="even">
+<td><code>default</code></td>
+<td>its default, as help shows it, where it has one</td>
+</tr>
+<tr class="odd">
+<td><code>env</code></td>
+<td>the environment variable it is read from, where it has one</td>
+</tr>
+<tr class="even">
+<td><code>choices</code></td>
+<td>the values its validators list, where they list any</td>
+</tr>
+<tr class="odd">
+<td><code>required</code></td>
+<td>whether it must be given</td>
+</tr>
+<tr class="even">
+<td><code>standard</code></td>
+<td>whether it is one every program on the kit has: a command's
+<code>-h</code>, <code>--version</code>, <code>-q</code>,
+<code>-v</code>, <code>--color</code> (GRAMMAR.html, section 6). A page
+can refer to <code>djinterp-cli(7)</code> for these.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="an-argument">An argument</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Member</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>name</code></td>
+<td>its name: <code>"SHEET"</code></td>
+</tr>
+<tr class="even">
+<td><code>summary</code></td>
+<td>what help says of it</td>
+</tr>
+<tr class="odd">
+<td><code>min</code>, <code>max</code></td>
+<td>how many values it takes; <code>max</code> is <code>null</code> for
+no limit</td>
+</tr>
+<tr class="even">
+<td><code>required</code></td>
+<td>whether it must be given</td>
+</tr>
+<tr class="odd">
+<td><code>default</code></td>
+<td>its default, where it has one</td>
+</tr>
+<tr class="even">
+<td><code>choices</code></td>
+<td>the values its validators list, where they list any</td>
+</tr>
+</tbody>
+</table>
+<h3 id="a-setting">A setting</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Member</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>name</code></td>
+<td>its full name: <code>"cli.plugin_search"</code>, or
+<code>"plugin_path"</code> on the root</td>
+</tr>
+<tr class="even">
+<td><code>djin</code></td>
+<td>the djin it belongs to; left out on the root</td>
+</tr>
+<tr class="odd">
+<td><code>kind</code></td>
+<td><code>"bool"</code>, <code>"int"</code>, <code>"real"</code>,
+<code>"text"</code>, <code>"choice"</code> or <code>"flags"</code></td>
+</tr>
+<tr class="even">
+<td><code>default</code></td>
+<td>its default, as the kind holds it: a truth value, a number, text or
+<code>null</code>; a choice by its name; flags as a list of names, the
+whole value's one name where it has one (<code>["all"]</code>), else
+each bit's</td>
+</tr>
+<tr class="odd">
+<td><code>knob</code></td>
+<td>the knob its default is, where it is one:
+<code>"D_CFG_CLI_PLUGIN_SEARCH"</code></td>
+</tr>
+<tr class="even">
+<td><code>summary</code></td>
+<td>what it is for</td>
+</tr>
+<tr class="odd">
+<td><code>alias</code></td>
+<td>its older name, where it has one</td>
+</tr>
+<tr class="even">
+<td><code>choices</code></td>
+<td>a choice's or flags' names</td>
+</tr>
+<tr class="odd">
+<td><code>names</code></td>
+<td>an int's named values, each
+<code>{ "name": ..., "value": ... }</code></td>
+</tr>
+<tr class="even">
+<td><code>unbuilt</code></td>
+<td>the names ruled but not built in this build</td>
+</tr>
+<tr class="odd">
+<td><code>min</code>, <code>max</code></td>
+<td>an int's range, where it has one</td>
+</tr>
+<tr class="even">
+<td><code>refuses</code></td>
+<td>the sources it refuses, by name: <code>"file"</code>,
+<code>"environment"</code>, <code>"command line"</code></td>
+</tr>
+<tr class="odd">
+<td><code>env</code></td>
+<td>the variables it is read from, the shared prefix's first; left out
+where it refuses the environment</td>
+</tr>
+</tbody>
+</table>
+<h3 id="a-variable">A variable</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Member</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>name</code></td>
+<td>its name: <code>"NO_COLOR"</code></td>
+</tr>
+<tr class="even">
+<td><code>system</code></td>
+<td><code>"posix"</code> or <code>"windows"</code> where only one reads
+it; left out for both</td>
+</tr>
+<tr class="odd">
+<td><code>summary</code></td>
+<td>what it does</td>
+</tr>
+</tbody>
+</table>
+<p>A setting's variables are in its <code>env</code>, not here.</p>
+<h3 id="a-djin">A djin</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Member</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>name</code></td>
+<td>its name: <code>"awk"</code></td>
+</tr>
+<tr class="even">
+<td><code>version</code></td>
+<td>its version, for a djin with a record</td>
+</tr>
+<tr class="odd">
+<td><code>summary</code></td>
+<td>what it is, for a djin with a record</td>
+</tr>
+<tr class="even">
+<td><code>commands</code></td>
+<td>its commands, each <code>{ "name": ..., "summary": ... }</code>, for
+a djin with a record</td>
+</tr>
+<tr class="odd">
+<td><code>settings_only</code></td>
+<td><code>true</code> for a frame of settings with no record
+(<code>list</code> says "settings only"); its settings are in
+<code>settings</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="a-section">A section</h3>
+<p>A page's own section, for prose the description carries itself.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Member</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>title</code></td>
+<td>its heading</td>
+</tr>
+<tr class="even">
+<td><code>id</code></td>
+<td>its anchor in the wiki, by which other pages refer to it: a
+lower-case name. By default, the title in lower case, with a dash for
+each run of other characters.</td>
+</tr>
+<tr class="odd">
+<td><code>after</code></td>
+<td>the standard section it follows (mdoc(7)'s order, from NAME and
+SYNOPSIS to SEE ALSO). By default, DESCRIPTION. Sections with the same
+<code>after</code> keep their order in the list.</td>
+</tr>
+<tr class="even">
+<td><code>text</code></td>
+<td>its text, CommonMark</td>
+</tr>
+</tbody>
+</table>
+<p>The renderer refuses, naming the line, what mdoc cannot express.</p>
+<h2 id="code-spans">Code spans</h2>
+<p>A page's prose names the program's parts in code spans:
+<code>`--output`</code>, <code>`cli.plugin_search`</code>. The renderer
+checks each against the description, so a page cannot name an option the
+program does not have. How it reads them is a setting of the renderer's,
+with a knob for its default, an entry in a page's manifest, and an
+option for a run:</p>
+<table>
+<thead>
+<tr class="header">
+<th>Mode</th>
+<th>A code span is read</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>forms</code> (the default)</td>
+<td>by its form, as the table below gives it</td>
+</tr>
+<tr class="even">
+<td><code>markup</code></td>
+<td>by its mark, Pandoc's attribute: <code>`--output`{.opt}</code></td>
+</tr>
+<tr class="odd">
+<td><code>options</code></td>
+<td>as an option where it begins with <code>-</code>; otherwise
+plain</td>
+</tr>
+<tr class="even">
+<td><code>off</code></td>
+<td>never: every span is plain</td>
+</tr>
+</tbody>
+</table>
+<p><code>forms</code> and <code>markup</code> can be on together, so
+that a mark settles what a form leaves open. A form and a mark give the
+same kinds:</p>
+<table>
+<thead>
+<tr class="header">
+<th>A code span that is...</th>
+<th>Kind</th>
+<th>Checked against</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>begun with <code>-</code>: <code>-o</code>, <code>--output</code>,
+<code>--output=FILE</code></td>
+<td><code>opt</code></td>
+<td>the command's <code>options</code> and its parents'; a value after
+<code>=</code> as <code>arg</code> or <code>val</code></td>
+</tr>
+<tr class="even">
+<td>upper case with one of <code>prefixes</code>:
+<code>DJINTERP_CLI_PLUGIN_SEARCH</code></td>
+<td><code>env</code></td>
+<td>the <code>variables</code>, and each setting's <code>env</code></td>
+</tr>
+<tr class="odd">
+<td>dotted lower case: <code>cli.plugin_search</code></td>
+<td><code>set</code></td>
+<td>the <code>settings</code>, when its first part names one of
+<code>djins</code>; otherwise plain, with a warning when it is near a
+known name</td>
+</tr>
+<tr class="even">
+<td><code>NAME=VALUE</code>, its name a setting's</td>
+<td><code>set</code></td>
+<td>the name; the value too, where the setting has <code>choices</code>,
+<code>names</code> or a range</td>
+</tr>
+<tr class="odd">
+<td>an undotted name equal to a root setting's</td>
+<td><code>set</code></td>
+<td>exact match only</td>
+</tr>
+<tr class="even">
+<td>an undotted name equal to a djin's</td>
+<td><code>djin</code></td>
+<td><code>djins</code>, exact match only</td>
+</tr>
+<tr class="odd">
+<td>the program's name, alone or before a command path
+(<code>djinterp set</code>), or a command's exact name</td>
+<td><code>cmd</code></td>
+<td>the <code>command</code> tree</td>
+</tr>
+<tr class="even">
+<td>a path: begun with <code>/</code>, <code>./</code>,
+<code>../</code>, <code>~/</code> or <code>$NAME/</code></td>
+<td><code>file</code></td>
+<td>nothing</td>
+</tr>
+<tr class="odd">
+<td>any other upper case: <code>DJIN</code>, <code>FILE</code></td>
+<td><code>arg</code></td>
+<td>nothing; a warning only when it is near an argument's
+<code>name</code> or an option's <code>value</code> but is neither</td>
+</tr>
+<tr class="even">
+<td>anything else</td>
+<td>plain code</td>
+<td>nothing</td>
+</tr>
+</tbody>
+</table>
+<p>Two kinds come only from a mark:</p>
+<ul>
+<li><code>val</code>, a value an option or a setting takes:
+<code>`json`{.val}</code>. It is checked against the
+<code>choices</code> the description gives. A form gives it only after
+an option's or a setting's <code>=</code>.</li>
+<li><code>lit</code>, never checked: what only looks like an option or a
+setting, such as <code>`--`</code> or <code>`-1`</code>.</li>
+</ul>
+<p>A span two forms claim - an undotted name that is a command and a
+root setting both - is rendered plain, with a warning, for a mark to
+settle.</p>
+<p>The nine kinds, and the mdoc macro each is rendered with:</p>
+<table>
+<thead>
+<tr class="header">
+<th>Kind</th>
+<th>What</th>
+<th>mdoc</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>opt</code></td>
+<td>an option</td>
+<td><code>Fl</code></td>
+</tr>
+<tr class="even">
+<td><code>set</code></td>
+<td>a setting</td>
+<td><code>Va</code></td>
+</tr>
+<tr class="odd">
+<td><code>env</code></td>
+<td>an environment variable</td>
+<td><code>Ev</code></td>
+</tr>
+<tr class="even">
+<td><code>cmd</code></td>
+<td>a command</td>
+<td><code>Cm</code></td>
+</tr>
+<tr class="odd">
+<td><code>file</code></td>
+<td>a path</td>
+<td><code>Pa</code></td>
+</tr>
+<tr class="even">
+<td><code>arg</code></td>
+<td>an argument's or a value's placeholder</td>
+<td><code>Ar</code></td>
+</tr>
+<tr class="odd">
+<td><code>djin</code></td>
+<td>a djin</td>
+<td><code>Va</code></td>
+</tr>
+<tr class="even">
+<td><code>val</code></td>
+<td>a value an option or a setting takes</td>
+<td><code>Cm</code></td>
+</tr>
+<tr class="odd">
+<td><code>lit</code></td>
+<td>text never checked</td>
+<td><code>Li</code></td>
+</tr>
+</tbody>
+</table>
+</body>
+</html>

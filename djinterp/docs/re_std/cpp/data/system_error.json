@@ -214,7 +214,7 @@
       "t_alias_in": null,
       "v_var_in": null,
       "deprecated_in": null,
-      "notes": "re_std::hash specialisation for error_code — deferred out of <functional> to ship with its owning module (this header), as documented in re_std_modules.md §13.7. Specialises the empty re_std::hash primary; combines value() with the address-identity of category() via reinterpret_cast, so it is not constexpr on any tier (matching std and re_std's pointer-hash specialisation). Lives in system_error/hash.hpp.",
+      "notes": "re_std::hash specialisation for error_code — deferred out of <functional> to ship with its owning module (this header), as documented in re_std_modules.html §13.7. Specialises the empty re_std::hash primary; combines value() with the address-identity of category() via reinterpret_cast, so it is not constexpr on any tier (matching std and re_std's pointer-hash specialisation). Lives in system_error/hash.hpp.",
       "depends_on": [],
       "failure_reason": "Cannot reach C++98. <system_error> is a C++11 header: error_category is a runtime-provided abstract polymorphic facility whose category singletons are compared by address identity, and errc is a C++11 scoped enumeration — neither has a portable C++98 implementation. re_std re-exports the std types (identity-preserving) on C++11+; the whole module is gated on D_ENV_LANG_IS_CPP11_OR_HIGHER and expands to nothing on C++98/03.",
       "reexport": false
@@ -232,7 +232,7 @@
       "t_alias_in": null,
       "v_var_in": null,
       "deprecated_in": null,
-      "notes": "re_std::hash specialisation for error_condition, same value()+category()-identity shape as hash<error_code>; not constexpr. RE_STD AHEAD OF STD: std adds hash<error_condition> only in C++17, re_std ships it from C++11 — a six-year back-port. Also deferred out of <functional> per re_std_modules.md §13.7; lives in system_error/hash.hpp.",
+      "notes": "re_std::hash specialisation for error_condition, same value()+category()-identity shape as hash<error_code>; not constexpr. RE_STD AHEAD OF STD: std adds hash<error_condition> only in C++17, re_std ships it from C++11 — a six-year back-port. Also deferred out of <functional> per re_std_modules.html §13.7; lives in system_error/hash.hpp.",
       "depends_on": [],
       "failure_reason": "Cannot reach C++98. <system_error> is a C++11 header: error_category is a runtime-provided abstract polymorphic facility whose category singletons are compared by address identity, and errc is a C++11 scoped enumeration — neither has a portable C++98 implementation. re_std re-exports the std types (identity-preserving) on C++11+; the whole module is gated on D_ENV_LANG_IS_CPP11_OR_HIGHER and expands to nothing on C++98/03.",
       "reexport": false

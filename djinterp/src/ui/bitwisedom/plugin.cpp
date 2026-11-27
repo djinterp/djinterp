@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][tools]                                               plugin.cpp
 *
-* The window's module: what `bitwisedom gui` loads (GRAMMAR.md, section 7).
+* The window's module: what `bitwisedom gui` loads (GRAMMAR.html, section 7).
 *   The module is a program of its own, made from the host that runs it --
 * its name, version, verbosity and colours bitwisedom's - so that
 * `bitwisedom gui --help` is the window's help, and what the window says, it

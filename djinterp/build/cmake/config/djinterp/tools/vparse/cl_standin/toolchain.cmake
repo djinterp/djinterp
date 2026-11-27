@@ -10,7 +10,7 @@
 # under cl's identity, linked against the MinGW-w64 runtime, and run through
 # Wine, which ctest is told to use.
 #   Needs clang with lld, a MinGW-w64 GCC for 64-bit Windows (its headers and
-# libraries), and Wine. See README.md, beside this file, for what a run shows
+# libraries), and Wine. See README.html, beside this file, for what a run shows
 # and what it cannot. From the folder above this one, vparse, and then the
 # window's build, which takes uxoxo:
 #

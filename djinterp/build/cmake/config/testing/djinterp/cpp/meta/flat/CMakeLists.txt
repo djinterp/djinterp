@@ -1,6 +1,6 @@
 # flat.hpp unit test suite - leaf recipe (header-only tag module, no src/).
 #
-#   Delivery form (djinterp_testing.md S7.2): this suite ships in its OWN leaf
+#   Delivery form (djinterp_testing.html S7.2): this suite ships in its OWN leaf
 # directory .../container/structure/flat/ so the archive owns every path it
 # writes.  Fold into a shared cluster by merging the call below into a parent
 # CMakeLists and deleting this leaf.

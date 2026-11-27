@@ -4,7 +4,7 @@
 * A command-line program as the kit runs it: the grammar's conventions over
 * the argument parser.
 *   A dj_cli_program holds a parser the caller made, and gives it what every
-* djinterp program has (GRAMMAR.md, section 6): `-h` and `--help`,
+* djinterp program has (GRAMMAR.html, section 6): `-h` and `--help`,
 * `--version`, `-q`, `-v` and `--color`; for a program with commands, the
 * `help` and `completion` commands; the kit's layout of help; an option given
 * twice taking its last value (R8); `/?` on Windows (R10) and no other `/`
@@ -18,11 +18,11 @@
 * command the arguments reached, whose status the program exits with. A
 * program of one command, or a plugin, gives the root a function of its own,
 * or calls d_cli_program_parse and goes on itself.
-*   EXIT STATUS (GRAMMAR.md, section 8). 0 done, 1 done and the answer is
+*   EXIT STATUS (GRAMMAR.html, section 8). 0 done, 1 done and the answer is
 * no, 2 trouble. Help, a version and a completion script are 0; every error
 * the parser reports, whatever CLI11's code for it, is 2.
 *   THE VERSION. `--version` prints `PROGRAM VERSION`; with `-v`, before it
-* or after, the build follows, a `KEY: VALUE` line each (GRAMMAR.md, section
+* or after, the build follows, a `KEY: VALUE` line each (GRAMMAR.html, section
 * 6): the program's file - and, in a module's program, the module's --
 * and where each command that is a module would load it from; how the
 * program was built, as d_cli_program_set_build was told (D_CLI_BUILD_INIT);
@@ -218,7 +218,7 @@ enum dj_cli_severity
 // 1.3.3
 // D_CLI_PROGRAM_PARSER_HELP
 //   flag: help in the argument parser's own layout, as CLI11 lays it out,
-// not the kit's GNU layout (GRAMMAR.md, section 6). djinterp's own programs
+// not the kit's GNU layout (GRAMMAR.html, section 6). djinterp's own programs
 // leave it off (ruling 9). A build without the kit's layout,
 // D_CFG_CLI_FORMATTER 0, gives every program the parser's.
 #define D_CLI_PROGRAM_PARSER_HELP     (1u << 2)
@@ -227,7 +227,7 @@ enum dj_cli_severity
 // D_CLI_PROGRAM_PLAIN_ERRORS
 //   flag: an error said without its word, as the GNU coding standards write
 // one - `PROGRAM: MESSAGE`, `FILE:LINE:COLUMN: MESSAGE` - a warning and a
-// note keeping theirs, as coreutils writes `warning:` (GRAMMAR.md, section
+// note keeping theirs, as coreutils writes `warning:` (GRAMMAR.html, section
 // 8). djinterp's own programs leave it off (ruling 10).
 #define D_CLI_PROGRAM_PLAIN_ERRORS    (1u << 3)
 
@@ -236,7 +236,7 @@ enum dj_cli_severity
 //   flag: a unique prefix of a long option's name stands for the name, as
 // getopt_long takes one - `--verb` for `--verbose` - and one that several
 // names begin is a usage error naming them (d_arg_parser_set_abbreviations).
-// djinterp's own programs leave it off (ruling 6; GRAMMAR.md R5): with it,
+// djinterp's own programs leave it off (ruling 6; GRAMMAR.html R5): with it,
 // a script's abbreviation can stop working when an option is added.
 #define D_CLI_PROGRAM_ABBREVIATIONS   (1u << 4)
 
@@ -244,7 +244,7 @@ enum dj_cli_severity
 // D_CLI_PROGRAM_EDITS_TO_OUTPUT
 //   flag: a command that changes a file writes the result to standard
 // output, as sed does, and back where it was read only with `-i` (cli_edit.h;
-// GRAMMAR.md, section 8). djinterp's own programs leave it off (ruling 12):
+// GRAMMAR.html, section 8). djinterp's own programs leave it off (ruling 12):
 // they write the file back, as `git config` does, `-o` writing elsewhere.
 #define D_CLI_PROGRAM_EDITS_TO_OUTPUT (1u << 5)
 
@@ -899,7 +899,7 @@ D_CLI_API int d_cli_usage_error(
 //   report: `PROGRAM: error: cannot DOING 'PATH': REASON`, REASON the
 // system's words for `_errnum`, and `standard input` or `standard output`
 // for `-`, by whether `_doing` reads; ENOMEM, as every want of memory,
-// `PROGRAM: error: out of memory` (GRAMMAR.md, section 8). Returns
+// `PROGRAM: error: out of memory` (GRAMMAR.html, section 8). Returns
 // D_CLI_EXIT_TROUBLE.
 D_CLI_API int d_cli_file_error(
     const struct dj_cli_program* _program,

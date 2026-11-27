@@ -3,7 +3,7 @@
 *
 * dtime.h's suite in DTest's C face (c/modules/test/test_suite.h).
 *   The first block holds the register's decisions on dtime (#14, #15, #25 to
-* #29 of docs/djinterp_decisions.md, Part B), each with a regression test.
+* #29 of docs/djinterp_decisions.html, Part B), each with a regression test.
 * The standalone suite (dtime_tests_sa*.c) moves in as further blocks.
 *
 *

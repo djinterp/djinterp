@@ -32,9 +32,9 @@
 *
 * HOW TO USE
 * ----------
-*   A suite is four files (docs/djinterp_testing.md, section 12): a header that
-* lists its tests as spec rows, the test sources, a runner and a CMake leaf. The
-* runner hands the specs to d_test_run_modules:
+*   A suite is four files (docs/djinterp_testing.html, section 12): a header
+* that lists its tests as spec rows, the test sources, a runner and a CMake
+* leaf. The runner hands the specs to d_test_run_modules:
 *
 *     static const struct dj_test_module_spec* const modules[] =
 *         { &d_tests_x_module };

@@ -3,7 +3,7 @@
 *
 * bitwisedom's command line.
 *   `bitwisedom COMMAND ...` reads, writes and changes sheets without the
-* window, as GRAMMAR.md (tools/cli/, section 10) sets out: gen, check, show,
+* window, as GRAMMAR.html (tools/cli/, section 10) sets out: gen, check, show,
 * decode, eval, convert and examples read a sheet; new, import, add,
 * remove, rename, move, set, get and op make or change one; gui opens the
 * window, a module the program loads only then. The program is made with
@@ -113,7 +113,7 @@ namespace bitwisedom
  * @param[in] _argc  the argument count.
  * @param[in] _argv  the arguments, `_argv[0]` the program's path.
  * @return the status main returns: 0 done, 1 done and the answer is no, 2
- *         trouble (GRAMMAR.md, section 8).
+ *         trouble (GRAMMAR.html, section 8).
  */
 D_NODISCARD int run_cli(
     int                _argc,

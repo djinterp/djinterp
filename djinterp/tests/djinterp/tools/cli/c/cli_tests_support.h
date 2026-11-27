@@ -465,7 +465,7 @@ void d_tests_cli_restore(
 // 2.9.1
 // d_tests_cli_kit_line
 //   writing: the line `--version --verbose` ends with, as the kit says how it
-// was built (GRAMMAR.md, section 6) - `kit: LEVEL, COMPILER M.m.p, TYPE`
+// was built (GRAMMAR.html, section 6) - `kit: LEVEL, COMPILER M.m.p, TYPE`
 // and a newline, each part where it is known and the compiler `unknown`
 // where it is not - composed from d_cli_kit_build, cut to fit `_text`.
 void d_tests_cli_kit_line(

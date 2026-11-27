@@ -1,7 +1,7 @@
 # =============================================================================
 # djinterp [test]  -  build/cmake/config/testing/djinterp/cpp/container/buffer/CMakeLists.txt
 #
-#   Test leaf for buffer_tests, in DTest's spec idiom (docs/djinterp_testing.md,
+#   Test leaf for buffer_tests, in DTest's spec idiom (docs/djinterp_testing.html,
 # section 6.1): the runner in this directory, the section translation units
 # globbed from the tests tree.
 #

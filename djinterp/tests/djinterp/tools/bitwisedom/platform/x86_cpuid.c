@@ -5,7 +5,7 @@
 * it names, its mask in its register compared with the compiler's at
 * compile time, under each name GCC's and Clang's headers give it.
 * Built where the build targets x86 with GCC or Clang. Written by
-* tools/x86_cpuid_bitfield.py with the example; a name the
+* scripts/bitwisedom/x86_cpuid_bitfield.py with the example; a name the
 * compiler's header does not define is passed over.
 *   A <cpuid.h> names a bit's mask, not the register it is in, so the
 * register each bit is in is the example's word; the example's notes

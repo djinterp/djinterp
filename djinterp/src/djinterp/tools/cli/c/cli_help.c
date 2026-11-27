@@ -724,7 +724,7 @@ d_internal_cli_help_value(
 
 /*
 d_internal_cli_help_standard
-  Whether an option is one every program on the kit has (GRAMMAR.md,
+  Whether an option is one every program on the kit has (GRAMMAR.html,
 section 6): a command's help, the version, -q, -v, --color.
 */
 static bool

@@ -156,7 +156,7 @@ std::string window_host();
  *                      or the screenshot not written; with `-v`, a note
  *                      that it was.
  * @param[in] _options  what the window is asked.
- * @return the status the command exits with (GRAMMAR.md, section 8): 0 when
+ * @return the status the command exits with (GRAMMAR.html, section 8): 0 when
  *         the window closed, or the screenshot was written; 2 when the
  *         window could not be opened or the screenshot not written.
  */

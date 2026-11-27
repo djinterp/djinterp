@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>The djinterp program</title>
+  <style>
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+</head>
+<body>
+<h1 id="the-djinterp-program">The djinterp program</h1>
+<p><code>djinterp</code> is the djinterp language's command line. In
+0.8, the preview of 11-30, it is the djins' and their settings': it
+lists the djins the program registers, describes them, and reads and
+writes their settings. The interpreter, with
+<code>djinterp -c 'LINE'</code>, <code>djinterp FILE</code> and standard
+input, comes in 0.9 (<a href="../../cpp/modules/interp/DESIGN.html">DESIGN.html</a>,
+sections 1 to 5).</p>
+<p>It is a program on the command-line kit, so it has everything the
+kit's grammar gives every program: <code>--help</code>,
+<code>--version</code>, <code>-q</code>, <code>-v</code>,
+<code>--color</code>, <code>help</code>, <code>completion</code>, and
+the settings every program reads (<a
+href="../cli/GRAMMAR.html">GRAMMAR.html</a>, section 6).</p>
+<hr />
+<h2 id="commands">Commands</h2>
+<pre><code>djinterp list                         the djins, a line each: name, version,
+                                      summary; then the frames no djin names
+djinterp describe DJIN [COMMAND]      a djin, or one of its commands, as
+                                      text, or JSON (--format=json)
+djinterp get [--show-origin] [NAME]...
+                                      settings as statements that load back,
+                                      every one without a NAME; where each
+                                      value came from
+djinterp set [--section=PROGRAM] [--unchecked] NAME=VALUE...
+                                      settings written to the user&#39;s file</code></pre>
+<p>The program registers every core djin before it runs: parse's,
+desc's, the environment printer's and the log's. With the kit's own,
+<code>cli</code>, they are what 0.8 lists, each as "settings only",
+since none has commands yet.</p>
+<pre><code>$ djinterp list
+parse        -  settings only
+desc         -  settings only
+env_printer  -  settings only
+log          -  settings only
+cli          -  settings only
+$ djinterp get cli.unknown_settings cli.plugin_strict_version
+cli.unknown_settings = typos
+cli.plugin_strict_version = true
+$ djinterp set cli.unknown_settings=all
+$ djinterp set --section=vparse cli.unknown_settings=none
+$ djinterp get --show-origin cli.unknown_settings
+cli.unknown_settings = all  (file)
+    default    typos   (D_CFG_CLI_UNKNOWN_SETTINGS)</code></pre>
+<p>After the two <code>set</code>s, the user's file holds a line every
+program reads and one for vparse alone:</p>
+<pre><code>cli.unknown_settings = all
+
+[vparse]
+cli.unknown_settings = none</code></pre>
+<ul>
+<li><p><strong><code>get</code></strong> writes statements the file
+reads back, so its output can be pasted into the file; an unset text is
+a comment, <code># plugin_path is unset</code>. With
+<code>--show-origin</code>, each value's source and the bindings under
+it, down to the default and its knob.</p></li>
+<li><p><strong><code>set</code></strong> checks each setting as the file
+will bind it, so a name no djin has, or a value the setting does not
+take, is refused before anything is written, and the run ends with 2. It
+writes the file whole, each setting under its canonical name: among
+every program's lines, or with <code>--section=PROGRAM</code> in that
+program's. A line kept after the new one that sets the same name for a
+program that reads it is said by its line, since that program reads it
+last. The headers are kept even in a run that reads the file as one
+part.</p></li>
+<li><p><strong>Another program's settings.</strong> A djin
+<code>djinterp</code> does not register is one it cannot check, so
+<code>set</code> refuses its settings, with a note. With
+<code>--unchecked</code> it writes them as given, each said, its name's
+shape checked and its value quoted where it must be; the program that
+reads them judges them when it next runs:</p>
+<pre><code>$ djinterp set bitwisedom.keys=paths
+djinterp: error: no djin is named &#39;bitwisedom&#39;
+djinterp: note: --unchecked writes another program&#39;s setting as given, for that program to judge
+$ djinterp set --unchecked --section=bitwisedom bitwisedom.keys=paths
+djinterp: warning: &#39;bitwisedom.keys&#39; is written unchecked: no djin of this program&#39;s has it, and the program that reads it judges it when it runs</code></pre></li>
+<li><p><strong><code>describe</code></strong> writes a djin's
+description, or one command's; for a frame no djin names, its settings.
+<code>--format=json</code> writes <code>"djinterp.describe/1.0"</code>.
+<code>help --format=json</code> adds two members to the kit's
+description, <code>djins</code> and <code>reserved</code> (DESIGN.html,
+6.4).</p></li>
+</ul>
+<p>Where the user's file is, how the file, the environment and the
+command line stand, and how its sections are read: the kit's grammar,
+section 6.</p>
+<hr />
+<h2 id="not-yet">Not yet</h2>
+<ul>
+<li><strong>A djin's commands.</strong>
+<code>djinterp DJIN COMMAND [ARGUMENT]...</code> runs them from the
+first djin with commands of its own, in 0.9. Its names are kept now: no
+djin may be named <code>list</code>, <code>describe</code>,
+<code>get</code>, <code>set</code>, <code>help</code>,
+<code>completion</code>, <code>settings</code>, <code>cli</code> or
+<code>language</code>.</li>
+<li><strong>Loadable djins,</strong> <code>djinterp-DJIN</code> modules
+found as the kit finds a command's module (DESIGN.html, 6.5).</li>
+<li><strong><code>--show-origin</code>'s file and line.</strong> 0.8
+shows the source's word.</li>
+</ul>
+<hr />
+<h2 id="building">Building</h2>
+<p>The program's leaf builds it with the kit, the djin records and the
+core djins' sources, as C99, and runs its tests:</p>
+<pre><code>cmake -S build/cmake/config/djinterp/tools/djinterp -B build/djinterp
+cmake --build build/djinterp
+ctest --test-dir build/djinterp</code></pre>
+<p><code>DJINTERP_PROGRAM_BUILD_TESTS</code> (on by default) builds the
+tests. Each runs the program as a user would, through the kit's
+<code>d_cli_add_test</code>, with a home of its own, so that no user's
+settings file is read or written: the <code>set</code> runs write
+theirs, and the runs after them read it. The djin records' describers
+have a DTest suite of their own, <code>djinterp_djin_desc</code>.</p>
+<hr />
+<h2 id="files">Files</h2>
+<table>
+<thead>
+<tr class="header">
+<th>file</th>
+<th>what it holds</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>src/djinterp/tools/djinterp/djinterp_main.c</code></td>
+<td><code>main</code>: the parser, the program and the kit's run of
+it</td>
+</tr>
+<tr class="even">
+<td><code>src/djinterp/tools/djinterp/djinterp_commands.h</code>,
+<code>.c</code></td>
+<td>the four commands, the core djins registered, and the members
+<code>help --format=json</code> adds</td>
+</tr>
+<tr class="odd">
+<td><code>inc/djinterp/c/modules/interp/djin.h</code>,
+<code>djin_desc.h</code></td>
+<td>the djin records, the set the program keeps them in, and their text
+and JSON describers</td>
+</tr>
+<tr class="even">
+<td><code>build/cmake/config/djinterp/tools/djinterp/</code></td>
+<td>the leaf: the program and its tests</td>
+</tr>
+<tr class="odd">
+<td><code>tests/djinterp/c/modules/interp/djin_desc_tests.c</code></td>
+<td>the describers' suite</td>
+</tr>
+</tbody>
+</table>
+</body>
+</html>

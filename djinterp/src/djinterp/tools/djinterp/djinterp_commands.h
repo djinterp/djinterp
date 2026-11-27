@@ -3,7 +3,7 @@
 *
 * The djinterp program's 0.8 preview: a program on the command-line kit
 * whose commands read the djins and the settings of the program's registry
-* (docs/djinterp/interp/DESIGN.md, 6.4).
+* (docs/djinterp/cpp/modules/interp/DESIGN.html, 6.4).
 *
 *     djinterp list                        the djins, a line each, then the
 *                                          settings no djin names

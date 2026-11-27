@@ -1,5 +1,5 @@
 /* Auto-generated. Do not edit by hand.
- * res/djinterp/tools/dawk/ext/wiki/gen_dwiki_tables.py, from Python unicodedata 15.1.0.
+ * scripts/dawk/ext/wiki/gen_dwiki_tables.py, from Python unicodedata 15.1.0.
  * entities: HTML 4's named references and apos (253);
  * punctuation: General_Category P* or S* (335 ranges);
  * word: L*, M*, Nd, Nl or Pc (763 ranges);

@@ -15,7 +15,7 @@
 *   That distinction is the single most important thing this suite pins down,
 * and the `traits` section exists for it.
 *
-*   Two faces, selected by DTEST_SPEC_MODE (see djinterp_testing.md S3).
+*   Two faces, selected by DTEST_SPEC_MODE (see djinterp_testing.html S3).
 *
 *
 * path:      /tests/djinterp/cpp/util/color/color_rgb_tests.hpp

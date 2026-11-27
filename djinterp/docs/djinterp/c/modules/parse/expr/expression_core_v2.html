@@ -1,0 +1,2883 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Expression core v2: the design</title>
+  <style>
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+    /* CSS for syntax highlighting */
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+</head>
+<body>
+<h1 id="expression-core-v2-the-design">Expression core v2: the
+design</h1>
+<p>Lane F, for agreement with lanes E, G and H and the math session by
+Friday 2026-11-06. The design is the contract: anything that changes it
+after Friday goes back to the lanes it touches.</p>
+<p><strong>Status, Friday 11-13.</strong> The C core is built and
+tested: term, signature, parser with its sub-parse and hole modes,
+diagnostics, folds, walks, the renderer, the default scanner and the
+caller's scratch, with every case of sections 6.3 and 6.4 in its suite,
+on DTest 2.0's C face. Friday 11-13 adds the <code>parse</code> settings
+group on lane E's option_env (section 11), the C++98 face and the bridge
+to v1 (section 13), and the face's suite, which holds the face to the C
+API node for node (section 14). Section 21 lists what is there, what is
+measured, and what building it changed in this text. Lanes E, G and H
+answered section 20 on 11-05 and since; their answers are folded in, and
+decisions F15 to F19 came of them. The owner ruled S190 for core v2 on
+11-08. The round trip at 100,000 terms and the fuzz harness, as suites
+of their own, move to week 3 (section 18).</p>
+<h2 id="0-what-this-settles">0. What this settles</h2>
+<p><strong>The parser holds postfix operators with operands, and
+calls.</strong> A call <code>f(a, b)</code> and an index
+<code>A[i, j]</code> are roles of their opening bracket after an
+operand, at a precedence the language's table gives (math: 100), and
+their arguments are parsed in the same pass, with diagnostics at the
+character. The transpose <code>A'</code> and the factorial
+<code>n!</code> are postfix roles at their own precedences.
+<code>(a + b)[1]</code>, <code>A'[1]</code>, <code>f(x)[1]</code> and
+<code>A[1][2]</code> index any operand, as S252 asks, with no table
+beside the standard one and nothing put back after the parse. So for
+S190 the math session can choose core v2, and S209 and S252 then follow
+it: the parser layer's pass that reads calls and bars as atoms before
+the climb (S209) and the postfix table whose indices are put back after
+it (S252) are no longer needed once math moves onto core v2.</p>
+<p>What else core v2 holds, each of which math's parser layer does by
+hand today:</p>
+<table>
+<thead>
+<tr class="header">
+<th>Today, in math's parser layer</th>
+<th>In core v2</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>a pass gives each token its role before the climb, so <code>-</code>
+is unary or binary by where it stands (S190, chunk 12)</td>
+<td>every token class has a role in operand position and one in operator
+position; the parser asks the one that fits where it stands</td>
+</tr>
+<tr class="even">
+<td>errors mapped from token indices back to characters (chunk 27)</td>
+<td>every token, node and diagnostic carries a byte span; line and
+column on request</td>
+</tr>
+<tr class="odd">
+<td>calls and bars read as atoms before the climb, put back after
+(S209)</td>
+<td>calls and bars are mixfix operators of the table</td>
+</tr>
+<tr class="even">
+<td>indexing as a postfix operator of a second table, indices put back
+(S252)</td>
+<td>indexing is a mixfix operator after an operand</td>
+</tr>
+<tr class="odd">
+<td>brackets read as one operand before the climb, so a bracketed
+relation is no link (S215)</td>
+<td>a group is one node with a <code>grouped</code> flag, so a chain
+never takes it as a link</td>
+</tr>
+<tr class="even">
+<td>chains grouped to the right, then joined by <code>and</code>, the
+shared operand copied (S214)</td>
+<td>chain associativity: the links are joined by the operator the table
+names, the shared operand one node in both links</td>
+</tr>
+<tr class="odd">
+<td>implied multiplication inserted as a <code>*</code> token
+(S196)</td>
+<td>a juxtaposition operator of the table, with the language's rule for
+where it applies</td>
+</tr>
+<tr class="even">
+<td>nested groups cost a stack frame each, depth bound by the stack
+(S250)</td>
+<td>no recursion anywhere: the parser, the folds and the renderer use
+explicit stacks, and a depth guard is a knob and an option</td>
+</tr>
+<tr class="odd">
+<td>a non-associative operator repeated groups to the right silently
+(v1)</td>
+<td>a non-associative operator repeated at one precedence is an error at
+the second, with a note at the first</td>
+</tr>
+<tr class="even">
+<td>folds meet terms made by default (S190's review)</td>
+<td>no node is made by default: a missing operand is a <code>hole</code>
+node with its span, and a term with holes is refused by the folds unless
+asked</td>
+</tr>
+</tbody>
+</table>
+<p>The rest of this document is how.</p>
+<h2 id="1-who-it-is-for">1. Who it is for</h2>
+<table>
+<thead>
+<tr class="header">
+<th>Client</th>
+<th>Lane</th>
+<th>What it needs from the core</th>
+<th>Where it comes from</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>math's expression language</td>
+<td>math session</td>
+<td>the table above: roles by position, calls, indexing, transpose and
+factorial, bars, matrix literals with rows, chains, implied
+multiplication, errors at characters, a depth guard</td>
+<td><code>cpp/modules/math/expr/parse.hpp</code>; S190, S196, S201,
+S207, S209, S213 to S215, S243, S250, S252</td>
+</tr>
+<tr class="even">
+<td>the command language and its DSL</td>
+<td>G</td>
+<td>non-associative comparison (<code>a == b == c</code> refused), a
+command as a primary that takes the arguments after its verb, `</td>
+<td><code>and</code>;<code>as n-ary pipelines and sequences, spans for</code>d_cli_report_at<code>; in December, the grammar's own predicates (explicit </code>and<code>, </code>or<code>, </code>not<code>and comparisons over command primaries) and blocks</code>{
+... }` by the sub-parse, with no juxtaposition</td>
+</tr>
+<tr class="odd">
+<td>bitwisedom's integer expressions</td>
+<td>G</td>
+<td>C's operators at C's precedence, calls <code>BIT(n)</code>,
+<code>GENMASK(h, l)</code>, positions for errors</td>
+<td><code>tools/bitwisedom/expr.hpp</code></td>
+</tr>
+<tr class="even">
+<td>dawk's awk expressions</td>
+<td>H</td>
+<td>concatenation by juxtaposition, which must ask whether the next
+token can begin an operand; non-associative relations; <code>&gt;</code>
+not a comparison inside <code>print</code>'s list; <code>/re/</code> or
+division by where it stands; `cmd</td>
+<td>getline<code>; </code>?:<code>; </code>++` both prefix and
+postfix</td>
+</tr>
+<tr class="odd">
+<td>options, the registry, desc and logging</td>
+<td>E</td>
+<td>diagnostics in the message-code registry; knobs and options in E's
+pattern; nothing printed by the core</td>
+<td>E's brief; the owner's standing rule on knobs and options</td>
+</tr>
+<tr class="even">
+<td>vparse's notation readers</td>
+<td>F</td>
+<td>PEG's <code>/</code>, sequence by juxtaposition, prefix
+<code>&amp;</code> <code>!</code>, postfix <code>*</code> <code>+</code>
+<code>?</code>; EBNF's `</td>
+<td><code>, </code>,<code>, </code>[ ]<code>, </code>{ }`</td>
+</tr>
+<tr class="odd">
+<td>text's template language</td>
+<td>D</td>
+<td>member access, filters, calls, subscripts</td>
+<td>lane D's templates, when they want it</td>
+</tr>
+</tbody>
+</table>
+<p>The core is generic: it knows no language. Each client supplies a
+table of operators and roles, a token source, and, where it needs one, a
+hook; the core parses, reports, folds and renders.</p>
+<h2 id="2-what-v1-cannot-do">2. What v1 cannot do</h2>
+<p>v1 is <code>cpp/modules/parse/expression/</code>: a term
+(<code>expression&lt;OpId, Atom&gt;</code>, the fixed point of one
+functor, over <code>shared_ptr</code>), its folds (<code>cata</code>), a
+renderer, a compile-time mirror, and a precedence climber
+(<code>expression_parse.hpp</code>). The climber's limits are the ones
+S190's review lists:</p>
+<ul>
+<li><strong>One role per token.</strong> <code>op_of(token)</code>
+returns one operator, and the climber decides prefix or infix from the
+descriptor, not from where the token stands; so a language with
+<code>-</code> both unary and binary must assign roles before the climb
+(chunk 12's probe).</li>
+<li><strong>Token offsets.</strong> <code>parse_error</code> carries the
+index of the token, not a character (chunk 27).</li>
+<li><strong>One kind of bracket, and no calls.</strong>
+<code>is_open</code> and <code>is_close</code> match any open with any
+close; a call, an index, a pair of bars or a literal has no form, so
+each is read before the climb and put back after (S209, S252).</li>
+<li><strong>No non-associative operators.</strong>
+<code>DAssocNone</code> climbs as right association
+(<code>_right_min</code> adds 1 only for <code>DAssocLeft</code>), so
+<code>a == b == c</code> parses silently as <code>a == (b == c)</code>,
+and the CLI grammar's rule that it is an error is not kept.</li>
+<li><strong>Recursion.</strong> <code>parse_nud</code> and
+<code>parse_climb</code> recurse for every bracket and every prefix
+operator; S250 bought depth by moving work out of the recursing frame,
+and the depth is still the stack's.</li>
+<li><strong>One error.</strong> The first failure returns; nothing after
+it is seen.</li>
+<li><strong>C++11.</strong> Below it the header is empty; there is no C
+core and no C++98 face, so the parity law has nothing to test.</li>
+</ul>
+<p>v1's term and folds are good and stay (section 15). What v2 replaces
+is the climber, and it adds the C core.</p>
+<h2 id="3-the-shape">3. The shape</h2>
+<pre><code>  C99 core       c/modules/parse/expr/          terms, signatures, parse,
+                                                diagnostics, folds, walks,
+                                                rendering, a default scanner
+     |
+  C++98 face     cpp/modules/parse/expr/        classes over the C core,
+                                                nothing computed twice;
+                                                the levels&#39; extras above 98
+     |
+  C++11 bridge   cpp/modules/parse/expr/        a v2 term to v1&#39;s
+                 bridge.hpp                     expression&lt;OpId, Atom&gt; and
+                                                back, so v1&#39;s folds keep
+                                                working</code></pre>
+<p>The C core reuses the foundation (<code>FOUNDATION.html</code>): its
+diagnostic sink and span (<code>diagnostic.h</code>), its growth policy
+(<code>storage.h</code>), and lane A's checked arithmetic
+(<code>c/dckdint.h</code>). It holds no global state.</p>
+<h2 id="4-the-term">4. The term</h2>
+<h3 id="41-nodes">4.1 Nodes</h3>
+<p>A term is a flat arena of nodes in an array, linked by index, with no
+pointers, so it copies, hashes and serialises whole, as the foundation's
+programs and grammars do.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> dj_parse_expr_node</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint8_t</span>  kind<span class="op">;</span>     <span class="co">// D_PARSE_EXPR_NODE_LEAF, _APPLY or _HOLE</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint8_t</span>  flags<span class="op">;</span>    <span class="co">// D_PARSE_EXPR_NODE_GROUPED, _CHAIN, _JUXTAPOSED, ...</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint16_t</span> depth<span class="op">;</span>    <span class="co">// its longest path to a leaf, 1 for a leaf,</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>                       <span class="co">// saturating at 65535 (section 6.6)</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint32_t</span> op<span class="op">;</span>       <span class="co">// apply: its operator&#39;s id; leaf: its token class</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint32_t</span> first<span class="op">;</span>    <span class="co">// apply: index of its first child in the args array;</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>                       <span class="co">// leaf: its token&#39;s value</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint32_t</span> count<span class="op">;</span>    <span class="co">// apply: its number of children; leaf: 0</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint32_t</span> offset<span class="op">;</span>   <span class="co">// its span&#39;s first byte: a group&#39;s open bracket</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint32_t</span> length<span class="op">;</span>   <span class="co">// its span&#39;s length in bytes, its brackets included</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a><span class="op">};</span>  <span class="co">// 24 bytes, asserted in both languages</span></span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> dj_parse_expr_term</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">struct</span> dj_parse_expr_node<span class="op">*</span> nodes<span class="op">;</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint32_t</span>                   node_count<span class="op">;</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint32_t</span>                   node_capacity<span class="op">;</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint32_t</span><span class="op">*</span>                  args<span class="op">;</span>       <span class="co">// child indices, by node</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint32_t</span>                   arg_count<span class="op">;</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint32_t</span>                   arg_capacity<span class="op">;</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint32_t</span>                   root<span class="op">;</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint32_t</span>                   depth<span class="op">;</span>      <span class="co">// the longest root-to-leaf path</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint32_t</span>                   flags<span class="op">;</span>      <span class="co">// _OWNS_NODES, _OWNS_ARGS, _HAS_HOLES</span></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span></code></pre></div>
+<p>Every value is 32 bits wide: a 64-bit integer does not exist at ISO
+strict C++98 on 32-bit targets, 64-bit Windows or macOS (re_std's rule),
+and the C++ face must compile there. A leaf's value is the language's:
+an index into its own table of atoms, an interned lexeme's offset, or a
+small integer.</p>
+<h3 id="42-invariants">4.2 Invariants</h3>
+<ol type="1">
+<li><strong>Post-order.</strong> A node's children have lower indices
+than the node. The parser builds bottom-up, so this holds by
+construction, and <code>d_parse_expr_term_verify</code> checks it with
+the rest. A fold is therefore one pass over the array, in order, with no
+recursion and no stack.</li>
+<li><strong>A DAG where a chain shares.</strong>
+<code>a &lt; b &lt;= c</code> is <code>and(lt(a, b), le(b, c))</code>
+with <code>b</code> one node, the child of both links: S214's review's
+"the operand shared in the representation later". A fold in arena order
+computes <code>b</code> once. Nothing else shares.</li>
+<li><strong>No node made by default.</strong> A missing operand is a
+<code>hole</code> node at the place it should have stood; the term
+carries <code>_HAS_HOLES</code>, and a fold refuses such a term unless
+its caller passes <code>D_PARSE_EXPR_FOLD_HOLES</code>.</li>
+<li><strong>Spans cover their text.</strong> A node's span covers every
+token it was made from: a group's includes its brackets, a call's its
+callee and its closing bracket, a chain's join its first operand to its
+last.</li>
+<li><strong>Groups leave no node.</strong> <code>(a + b)</code> is the
+node <code>a + b</code> with <code>_GROUPED</code> set and its span
+widened over the brackets, as S215 keeps it; folds and rewrites never
+step through a bracket node. A grouped leaf, <code>(x)</code>, keeps its
+token's span, since a leaf's span is its text (the renderer's default
+atom writes it); the brackets are inside the span of whatever holds it,
+and a diagnostic about the group itself points at them.</li>
+</ol>
+<h3 id="43-building-and-rewriting">4.3 Building and rewriting</h3>
+<p>The builder is public: <code>d_parse_expr_term_leaf</code>,
+<code>d_parse_expr_term_apply</code> (children by index),
+<code>d_parse_expr_term_hole</code>, <code>d_parse_expr_term_copy</code>
+(a subtree of one term into another, its nodes renumbered) and
+<code>d_parse_expr_term_assign</code> (a whole term into another, arena
+for arena, the face's copy; F38). A language's own pass after the parse
+(math's <code>piecewise</code>, a simplifier) writes a new term with
+these, as v1's rewrites write a new <code>expression</code>. Equality
+(<code>d_parse_expr_term_equal</code>, spans and <code>_GROUPED</code>
+ignored unless asked) and a digest
+(<code>d_parse_expr_term_digest</code>, <code>fold.h</code>: 32-bit
+FNV-1a over the subtree as a depth-first walk meets it, each node's
+kind, flags without <code>_GROUPED</code>, operator, number of children
+and a leaf's value, so spans and groups do not change it; F38) serve the
+parity tests and caches.</p>
+<h2 id="5-the-signature">5. The signature</h2>
+<p>A signature is the language: its operators and, for each token class,
+its roles. It is built once, sealed (verified and indexed), and then
+read-only, so threads may share it.</p>
+<h3 id="51-operators">5.1 Operators</h3>
+<div class="sourceCode" id="cb4"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> dj_parse_expr_op</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint32_t</span>    id<span class="op">;</span>          <span class="co">// the language&#39;s, not 0</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint8_t</span>     form<span class="op">;</span>        <span class="co">// D_PARSE_EXPR_FORM_PREFIX, _INFIX, _POSTFIX,</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>                             <span class="co">// _MIXFIX</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint8_t</span>     assoc<span class="op">;</span>       <span class="co">// _LEFT, _RIGHT, _NONE, _CHAIN</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint16_t</span>    flags<span class="op">;</span>       <span class="co">// _FLATTEN, _WORD, _TRANSPARENT, _COMMUTATIVE,</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>                             <span class="co">// _ASSOCIATIVE, _IDEMPOTENT</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int32_t</span>     precedence<span class="op">;</span>  <span class="co">// larger binds tighter</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint32_t</span>    join<span class="op">;</span>        <span class="co">// a chain&#39;s: the operator that joins its links</span></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>    <span class="dt">const</span> <span class="dt">char</span><span class="op">*</span> spelling<span class="op">;</span>    <span class="co">// what the renderer writes</span></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>    <span class="kw">struct</span> dj_parse_expr_mixfix mixfix<span class="op">;</span>  <span class="co">// a mixfix operator&#39;s parts</span></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span></code></pre></div>
+<ul>
+<li><strong>Prefix</strong>, <strong>infix</strong> and
+<strong>postfix</strong> are the classic forms.</li>
+<li><strong>Associativity</strong> is <code>left</code>,
+<code>right</code>, <code>none</code> or <code>chain</code>.
+<code>none</code> refuses a second operator of the same precedence
+beside the first (<code>a == b == c</code> and
+<code>a &lt; b == c</code> in the CLI grammar). <code>chain</code>
+collects <code>a &lt; b &lt;= c</code> and joins its links with
+<code>join</code> (math: <code>and</code>).</li>
+<li><strong><code>_FLATTEN</code></strong> makes a repeated
+left-associative operator one n-ary node: <code>a | b | c</code> is
+<code>pipe(a, b, c)</code>, as the interpreter's pipeline
+(<code>interp/spine.hpp</code>) is a sequence.</li>
+<li><strong><code>_WORD</code></strong> marks an operator spelled as a
+word (<code>and</code>, <code>mod</code>): the renderer spaces it, and
+it never starts a juxtaposed operand.</li>
+<li>The algebraic flags (<code>_COMMUTATIVE</code>,
+<code>_ASSOCIATIVE</code>, <code>_IDEMPOTENT</code>) are v1's, carried
+for simplifiers.</li>
+</ul>
+<h3 id="52-mixfix-operators">5.2 Mixfix operators</h3>
+<p>A mixfix operator has more than one token: a call, an index, a group,
+a list, a pair of bars, <code>?:</code>,
+<code>if ... then ... else</code>. One descriptor covers them all:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> dj_parse_expr_mixfix</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint8_t</span>     lead<span class="op">;</span>           <span class="co">// 1: it follows an operand (a call, an index,</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>                                <span class="co">// ?:); 0: it begins one (a group, a list)</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint8_t</span>     parts<span class="op">;</span>          <span class="co">// its keyword tokens: 2 to 4</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint8_t</span>     list_hole<span class="op">;</span>      <span class="co">// the hole between parts 0 and 1 is a list</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint8_t</span>     tail<span class="op">;</span>           <span class="co">// an operand follows the last part (?:&#39;s</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>                                <span class="co">// third, else&#39;s branch), at the precedence</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint32_t</span>    part<span class="op">[</span><span class="dv">4</span><span class="op">];</span>        <span class="co">// each keyword&#39;s token class</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>    <span class="dt">const</span> <span class="dt">char</span><span class="op">*</span> part_spelling<span class="op">[</span><span class="dv">4</span><span class="op">];</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint32_t</span>    separator<span class="op">;</span>      <span class="co">// the list&#39;s item separator class (`,`)</span></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint32_t</span>    row_separator<span class="op">;</span>  <span class="co">// its row separator class (`;`), or 0</span></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>    <span class="dt">const</span> <span class="dt">char</span><span class="op">*</span> separator_spelling<span class="op">;</span>      <span class="co">// what the renderer writes</span></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>    <span class="dt">const</span> <span class="dt">char</span><span class="op">*</span> row_separator_spelling<span class="op">;</span></span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint32_t</span>    row_op<span class="op">;</span>         <span class="co">// the operator of a row, where rows are seen</span></span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint32_t</span>    rows_op<span class="op">;</span>        <span class="co">// the operator of the whole, where rows are</span></span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint16_t</span>    min_items<span class="op">;</span>      <span class="co">// a list&#39;s bounds; max 0xFFFF for none</span></span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint16_t</span>    max_items<span class="op">;</span></span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span></code></pre></div>
+<p>The holes between keywords are closed: each is parsed from precedence
+0 up to the next keyword, so <code>f(a + b, c)</code> needs no brackets
+inside. A tail is open: it is parsed at the operator's precedence, so
+<code>a ? b : c ? d : e</code> is right-associative as C has it. The
+term of a mixfix operator is one apply node: its lead operand first,
+then its holes' items, then its tail. Math's call is
+<code>call(f, a, b)</code>; its index <code>index(A, i, j)</code>; its
+literal <code>[1, 2; 3, 4]</code> is
+<code>matrix(row(1, 2), row(3, 4))</code> and <code>[1, 2, 3]</code> is
+<code>vector(1, 2, 3)</code> (<code>rows_op</code> and
+<code>row_op</code>, where a row separator is seen; the operator's own
+id where none is); <code>?:</code> is <code>cond(a, b, c)</code>. A
+<code>_TRANSPARENT</code> mixfix of one item is a group:
+<code>(a)</code> is <code>a</code>, flagged <code>_GROUPED</code>. Given
+a list hole (and no rows), it is a group for one item and its own node
+for any other count: awk's <code>(i, j) in arr</code> is
+<code>in(group(i, j), arr)</code>, and a tuple is the same shape. The
+language's check refuses the node where it does not take one (F16).</p>
+<p>Every form math's parser layer reads by hand is one row:</p>
+<table>
+<thead>
+<tr class="header">
+<th>text</th>
+<th>operator</th>
+<th>lead</th>
+<th>parts</th>
+<th>hole</th>
+<th>tail</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>f(a, b)</code></td>
+<td>call</td>
+<td>yes, a callee</td>
+<td><code>(</code> <code>)</code></td>
+<td>list, <code>,</code>, 0 or more</td>
+<td>no</td>
+</tr>
+<tr class="even">
+<td><code>A[i, j]</code></td>
+<td>index</td>
+<td>yes</td>
+<td><code>[</code> <code>]</code></td>
+<td>list, <code>,</code>, 1 or more</td>
+<td>no</td>
+</tr>
+<tr class="odd">
+<td><code>(a)</code></td>
+<td>group, transparent</td>
+<td>no</td>
+<td><code>(</code> <code>)</code></td>
+<td>one</td>
+<td>no</td>
+</tr>
+<tr class="even">
+<td><code>[1, 2; 3, 4]</code></td>
+<td>vector, rows: matrix of rows</td>
+<td>no</td>
+<td><code>[</code> <code>]</code></td>
+<td>list, <code>,</code> and <code>;</code>, 0 or more</td>
+<td>no</td>
+</tr>
+<tr class="odd">
+<td>`</td>
+<td>x</td>
+<td>`</td>
+<td>abs</td>
+<td>no</td>
+<td>`</td>
+</tr>
+<tr class="even">
+<td><code>c ? a : b</code></td>
+<td>cond</td>
+<td>yes</td>
+<td><code>?</code> <code>:</code></td>
+<td>one</td>
+<td>yes</td>
+</tr>
+<tr class="odd">
+<td><code>if c then a else b</code></td>
+<td>if</td>
+<td>no</td>
+<td><code>if</code> <code>then</code> <code>else</code></td>
+<td>one, one</td>
+<td>yes</td>
+</tr>
+</tbody>
+</table>
+<h3 id="53-roles">5.3 Roles</h3>
+<p>A role says what a token class does in one position: in
+<strong>operand position</strong> (nothing before it ends an operand:
+the start, after an operator, after an open bracket or a separator) or
+in <strong>operator position</strong> (an operand ends just before
+it).</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> dj_parse_expr_role</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint32_t</span> cls<span class="op">;</span>       <span class="co">// the token class</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint8_t</span>  position<span class="op">;</span>  <span class="co">// D_PARSE_EXPR_OPERAND or D_PARSE_EXPR_OPERATOR</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint8_t</span>  kind<span class="op">;</span>      <span class="co">// _ATOM, _OP (the op&#39;s form says which), _CUSTOM</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint16_t</span> flags<span class="op">;</span>     <span class="co">// _CALLABLE, _CALLEE, _ADJACENT, _NO_JUXTAPOSE</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint32_t</span> op<span class="op">;</span>        <span class="co">// the operator this token begins; a custom role&#39;s,</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>                        <span class="co">// the operator it reads as (below)</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint32_t</span> modes<span class="op">;</span>     <span class="co">// the modes it is a role in; 0 for all</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint32_t</span> order<span class="op">;</span>     <span class="co">// set when defined: roles are tried in this order</span></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>    dj_parse_expr_custom_fn custom<span class="op">;</span>  <span class="co">// a _CUSTOM role&#39;s hook</span></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>    <span class="dt">void</span><span class="op">*</span>    custom_ctx<span class="op">;</span></span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span></code></pre></div>
+<ul>
+<li>An <strong>atom</strong> role makes a leaf; <code>_CALLABLE</code>
+marks a class that may stand before a call's bracket (math's names, not
+its numbers).</li>
+<li>An <strong>op</strong> role begins its operator: a prefix operator
+or a mixfix one without a lead in operand position; an infix or postfix
+operator, or a mixfix one with a lead, in operator position.</li>
+<li><strong><code>_CALLEE</code></strong> on a lead mixfix role: only
+where the operand before it is an ungrouped leaf of a
+<code>_CALLABLE</code> class. Math: <code>f(x)</code> is a call,
+<code>2(y)</code> and <code>(x)(y)</code> are not (S201), and with
+implied multiplication on they are products.</li>
+<li><strong><code>_ADJACENT</code></strong>: only where no space
+precedes the token (awk's call of a function of its own,
+<code>f(x)</code> but not <code>f (x)</code>).</li>
+<li><strong>Modes</strong>: a bit set. A parse runs in a mode, and a
+custom hook may run a sub-parse in another; a role whose
+<code>modes</code> miss it is not there. awk's
+<code>print a &gt; "f"</code> reads its list in a mode without the
+relational <code>&gt;</code>.</li>
+<li>A class may have several roles in one position, tried in order; the
+first whose conditions hold is the one. A custom role that declines is
+passed over, and where no role takes a token in operator position,
+juxtaposition is tried next: so a <code>++</code> that declines after
+something that cannot be assigned begins the next operand, and awk's
+<code>1 ++i</code> is <code>concat(1, ++i)</code>.</li>
+<li>A <strong>custom role in operator position may name an
+operator</strong> (<code>op</code>). It is then called after the frames
+that bind tighter than that operator are reduced, so its
+<code>_left</code> is the operand that operator would take:
+<code>$i++</code> hands <code>++</code> the <code>$i</code>, and
+<code>"a" "b" | getline</code> hands <code>| getline</code> the whole
+concatenation (F15). With no operator named, it is given what is on
+top.</li>
+<li>The <strong>closing tokens</strong> and <strong>separators</strong>
+need no role: a mixfix operator's parts declare them, and the parser
+knows which open operator expects which.</li>
+</ul>
+<h3 id="54-juxtaposition">5.4 Juxtaposition</h3>
+<p>A signature may name one juxtaposition operator, an infix operator
+with no token. Where a token in operator position has no role there
+whose conditions hold, but has one in operand position, the parser
+applies the juxtaposition operator and reads the token as an operand.
+The language's hook, <code>may_juxtapose(ctx, term, left, token)</code>,
+refuses where it must: math refuses between two numbers (S196); awk's
+concatenation takes it as it comes. A <code>_NO_JUXTAPOSE</code> role
+never begins a juxtaposed operand. Math's implied multiplication is the
+operator <code>mul</code> at 60, present only when G5's option is on
+(math builds two signatures, or one with the operator in a mode). The
+node is flagged <code>_JUXTAPOSED</code>, and its span covers both
+operands as any infix node's does (invariant 4); where a diagnostic
+needs the implied operator's place, it is the first byte of the operand
+it stands before, as math's implied <code>*</code> has the offset of the
+operand after it today.</p>
+<h3 id="55-sealing">5.5 Sealing</h3>
+<p><code>d_parse_expr_signature_seal</code> checks the signature and
+indexes it. It refuses, with a diagnostic each: an operator id 0 or used
+twice; a form or an association that is not one of the four; a role
+whose operator is not defined, or whose form does not fit its position,
+an atom role in operator position, a custom role without a hook, a role
+for the end of the input; a chain whose <code>join</code> is not an
+infix operator; a mixfix with fewer than two parts or more than four, a
+part that is the end of the input, a list hole with
+<code>min_items</code> above <code>max_items</code>, rows whose
+operators are not defined, a <code>_TRANSPARENT</code> operator that is
+not a group, or has rows; a custom role that names an operator not
+defined; a juxtaposition operator that is not infix. An operator that no
+role begins is not refused: it is one only a hook builds (the command
+language's <code>cmd</code>), sealed and rendered by its form like any
+other. A closing part that is also an infix role is not refused: the
+order of section 6.2 reads it as the close wherever its operator is the
+innermost open, so an infix <code>|</code> inside a pair of bars needs
+brackets, as it does in every notation with both. Roles are sorted by
+class and position, and found by a binary search.</p>
+<h2 id="6-the-parser">6. The parser</h2>
+<h3 id="61-tokens">6.1 Tokens</h3>
+<div class="sourceCode" id="cb7"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> dj_parse_expr_token</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint32_t</span> cls<span class="op">;</span>     <span class="co">// the language&#39;s class; 0 is the end of the input</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint32_t</span> flags<span class="op">;</span>   <span class="co">// D_PARSE_EXPR_TOKEN_SPACE_BEFORE, _LINE_BEFORE</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint32_t</span> offset<span class="op">;</span>  <span class="co">// its first byte in the text</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint32_t</span> length<span class="op">;</span>  <span class="co">// its bytes</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint32_t</span> value<span class="op">;</span>   <span class="co">// the language&#39;s: what a leaf of it holds</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span></code></pre></div>
+<p>Tokens come from a <strong>source</strong>, pulled one at a time:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> dj_parse_expr_source</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span>   <span class="op">(*</span>next<span class="op">)(</span><span class="dt">void</span><span class="op">*</span>                       _ctx<span class="op">,</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>                  <span class="dt">uint32_t</span>                    _position<span class="op">,</span>  <span class="co">// operand or operator</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>                  <span class="dt">uint32_t</span>                    _mode<span class="op">,</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>                  <span class="kw">struct</span> dj_parse_expr_token<span class="op">*</span> _out<span class="op">);</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>    <span class="dt">void</span><span class="op">*</span> ctx<span class="op">;</span></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span></code></pre></div>
+<p>The parser tells the source where it stands. That is what lets awk
+read <code>/</code> as a regular expression in operand position and as
+division in operator position, and math tell an opening bar from a
+closing one without a pass of its own. A language with a context-free
+lexer ignores the position; one with its tokens already in an array uses
+<code>d_parse_expr_source_array</code>. A source that fails (a character
+no token begins with) emits its own diagnostic, in its own domain, and
+returns the failure; the parse stops there.</p>
+<h3 id="62-the-algorithm">6.2 The algorithm</h3>
+<p>Operator precedence over two explicit stacks, an operand stack of
+node indices and an operator stack of frames, in one pass over the
+tokens: the shunting-yard machine with Pratt's two positions. Each token
+is pushed and popped at most once, so the parse is linear in the tokens.
+Nothing recurses, so the depth is bounded by memory and by the guard,
+never by the C stack.</p>
+<p>In <strong>operand position</strong> a token is:</p>
+<ul>
+<li>an atom: a leaf is pushed, and the parser moves to operator
+position;</li>
+<li>a prefix operator, or a mixfix one with no lead: a frame is pushed,
+and the parser stays in operand position;</li>
+<li>a custom role: its hook is called (section 6.5);</li>
+<li>the next part of the innermost open mixfix, a separator of its list,
+or the end: a hole is pushed and <code>missing operand</code> reported
+(<code>(1 + )</code>, <code>[1, ]</code>, <code>x[]</code>), unless the
+open list is empty and takes zero items (<code>f()</code>,
+<code>[]</code>); with <code>D_PARSE_EXPR_OPTION_STOP</code>, so is a
+token with no role in either position, which then ends the expression
+(below);</li>
+<li>anything else: <code>unexpected token</code>.</li>
+</ul>
+<p>In <strong>operator position</strong> a token is, in this order:</p>
+<ol type="1">
+<li>the next part of the innermost open mixfix, or a separator of its
+list: the frames above it are reduced, and its hole or item is
+done;</li>
+<li>an infix or postfix operator, or a lead mixfix whose conditions
+hold: frames that bind tighter are reduced first (below), then an infix
+or lead mixfix frame is pushed and the parser moves to operand position,
+or a postfix node is built at once and the parser stays; a custom role
+is called, after the same reductions where it names its operator, and
+one that declines is passed over;</li>
+<li>a token with a role in operand position, where the signature has a
+juxtaposition operator and the hook allows: the juxtaposition operator
+is taken as an infix, and the token read in operand position;</li>
+<li>a closing part of an outer open operator: <code>mismatched</code> at
+the token, with a note at the innermost open part; the frames inside the
+outer one are closed, and the token read again as its part (a separator
+of an outer operator is step 8's: <code>f((a, b))</code>'s comma stands
+in a group, not in the call);</li>
+<li>the end: every frame is reduced; an open mixfix is
+<code>unclosed</code>, at its first part, the innermost one reported, as
+math has it; and, with <code>D_PARSE_EXPR_OPTION_STOP</code>, any token
+the expression cannot go on with, which is left unread in the result's
+<code>next</code> (F17): the <code>;</code>, the newline, the
+<code>)</code> of a statement's own <code>if (</code>, the next
+statement's word. Inside an open bracket it ends the parse the same way,
+and the bracket is <code>unclosed</code>; a closing part of another kind
+there is step 6's;</li>
+<li>a closing part that no open operator awaits, where one is open:
+<code>mismatched</code>, with the same note, and the token taken as the
+innermost one's close: <code>(1 + 2]</code> is one slip and one error,
+not an <code>unopened</code> and an <code>unclosed</code>;</li>
+<li>a closing part where nothing is open: <code>unopened</code>;</li>
+<li>anything else: <code>unexpected token</code>.</li>
+</ol>
+<p><strong>Reduction.</strong> On an infix or postfix operator of
+precedence <code>p</code>, the frames on top are reduced while they bind
+tighter: a frame of precedence <code>q &gt; p</code>; or
+<code>q == p</code> and the incoming operator is left-associative; for
+<code>none</code>, <code>q == p</code> is <code>non-associative</code>,
+at the incoming operator, with a note at the frame's; for
+<code>chain</code>, <code>q == p</code> with a chain frame extends the
+chain. A prefix frame of precedence <code>q</code> is reduced while
+<code>q &gt; p</code>, so a prefix operator takes into its operand every
+operator at least as tight as itself, as v1's climber does
+(<code>-x ^ 2</code> is <code>-(x ^ 2)</code> with <code>-</code> at 70
+and <code>^</code> at 80; <code>-x * y</code> is <code>(-x) * y</code>).
+A chain frame and a flattening frame collect their operands and build
+one node when reduced. Brackets are not reduced past: a mixfix frame
+stops the reduction, as a group does in every operator-precedence
+parser.</p>
+<h3 id="63-maths-cases-as-core-v2-parses-them">6.3 Math's cases, as core
+v2 parses them</h3>
+<p>With math's table (section 17.1): prefix <code>-</code>
+<code>+</code> at 70, <code>^</code> at 80 right, <code>'</code> at 75,
+<code>!</code> at 90, call and index at 100, relations 40 as a chain
+joined by <code>and</code>, <code>not</code> at 30, <code>and</code> 20,
+<code>or</code> 10, <code>*</code> 60, and implied multiplication
+on:</p>
+<table>
+<thead>
+<tr class="header">
+<th>text</th>
+<th>term</th>
+<th>the rule</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>-v[1]</code></td>
+<td><code>neg(index(v, 1))</code></td>
+<td>the index (100) binds before the prefix (70) is reduced</td>
+</tr>
+<tr class="even">
+<td><code>2 ^ v[1]</code></td>
+<td><code>pow(2, index(v, 1))</code></td>
+<td></td>
+</tr>
+<tr class="odd">
+<td><code>A[1][2]</code></td>
+<td><code>index(index(A, 1), 2)</code></td>
+<td>a lead mixfix takes any operand</td>
+</tr>
+<tr class="even">
+<td><code>x'[1]</code></td>
+<td><code>index(transpose(x), 1)</code></td>
+<td></td>
+</tr>
+<tr class="odd">
+<td><code>f(x)[1]</code>, <code>(a + b)[1]</code></td>
+<td><code>index(call(f, x), 1)</code>,
+<code>index(add(a, b), 1)</code></td>
+<td>the group is the node <code>add</code>, <code>_GROUPED</code></td>
+</tr>
+<tr class="even">
+<td><code>A' ^ 2</code>, <code>A ^ 2'</code></td>
+<td><code>pow(transpose(A), 2)</code>,
+<code>transpose(pow(A, 2))</code></td>
+<td><code>'</code> (75) reduces <code>^</code> (80) first, as MATLAB
+reads it (S252)</td>
+</tr>
+<tr class="odd">
+<td><code>-A'</code>, <code>x!'</code></td>
+<td><code>neg(transpose(A))</code>,
+<code>transpose(factorial(x))</code></td>
+<td></td>
+</tr>
+<tr class="even">
+<td><code>2 ^ 3!</code>, <code>-3!</code>, <code>n!!</code></td>
+<td><code>pow(2, factorial(3))</code>, <code>neg(factorial(3))</code>,
+<code>factorial(factorial(n))</code></td>
+<td>S206</td>
+</tr>
+<tr class="odd">
+<td><code>sin(x) ^ 2</code></td>
+<td><code>pow(call(sin, x), 2)</code></td>
+<td></td>
+</tr>
+<tr class="even">
+<td><code>2 sin(x)</code>, <code>2(y)</code>, <code>(x)(y)</code>,
+<code>x(y)</code></td>
+<td><code>mul(2, call(sin, x))</code>, <code>mul(2, y)</code>,
+<code>mul(x, y)</code>, <code>call(x, y)</code></td>
+<td><code>_CALLEE</code> holds only after an ungrouped name (S201)</td>
+</tr>
+<tr class="odd">
+<td>`</td>
+<td>x</td>
+<td></td>
+</tr>
+<tr class="even">
+<td><code>a &lt; b &lt;= c</code></td>
+<td><code>and(lt(a, b), le(b, c))</code>, <code>b</code> one node</td>
+<td>chain, joined by <code>and</code> (S214)</td>
+</tr>
+<tr class="odd">
+<td><code>(a &lt; b) = c</code></td>
+<td><code>eq(lt(a, b), c)</code></td>
+<td>a grouped relation is one operand, no link (S215)</td>
+</tr>
+<tr class="even">
+<td><code>x &gt; 0 and x &lt; 1</code>, <code>not x = y</code></td>
+<td><code>and(gt(x, 0), lt(x, 1))</code>,
+<code>not(eq(x, y))</code></td>
+<td>S213</td>
+</tr>
+<tr class="odd">
+<td><code>[1, 2; 3, 4]</code>, <code>[a, b]</code>, <code>[]</code></td>
+<td><code>matrix(row(1, 2), row(3, 4))</code>,
+<code>vector(a, b)</code>, <code>vector()</code></td>
+<td>rows where a <code>;</code> is seen (S260, S261)</td>
+</tr>
+<tr class="even">
+<td><code>1/2x</code></td>
+<td><code>mul(div(1, 2), x)</code></td>
+<td>juxtaposition as tight as <code>*</code>, left (S196)</td>
+</tr>
+</tbody>
+</table>
+<p>What stays math's: which name is a constant, the shapes of a
+literal's rows (<code>bad_shape</code>), <code>piecewise</code>'s
+branches (S216), and the folds. Each is a check over the finished term,
+or a check hook on each node as it is built (section 6.5), with the
+node's span for the error.</p>
+<h3 id="64-the-command-languages-and-awks-cases">6.4 The command
+language's and awk's cases</h3>
+<p>The command language:</p>
+<ul>
+<li><code>a == b == c</code>, <code>a &lt; b == c</code>:
+<code>non-associative</code> at the second operator, with a note at the
+first, as the grammar's section III requires.</li>
+<li><code>ls -l | grep x ; echo done</code>: the command is a custom
+role on the verb's class (section 6.5) that takes its arguments while
+they are options or operands; <code>|</code> (20) and <code>;</code>
+(10) are flattening infix operators:
+<code>seq(pipe(cmd(ls, -l), cmd(grep, x)), cmd(echo, done))</code>.</li>
+<li><code>not a and b</code>: <code>and(not(a), b)</code> with
+<code>not</code> at 50 above <code>and</code> at 40.</li>
+</ul>
+<p>awk, as dawk's <code>dparse.c</code> has it (lane H's review of
+11-05). Its ladder, lowest first, with the precedences the suite gives
+it:</p>
+<table>
+<thead>
+<tr class="header">
+<th>level</th>
+<th>operators</th>
+<th>precedence</th>
+<th>association</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>assignment</td>
+<td><code>=</code> and the compound forms</td>
+<td>10</td>
+<td>right</td>
+</tr>
+<tr class="even">
+<td>conditional</td>
+<td><code>?:</code>, a lead mixfix with a tail</td>
+<td>20</td>
+<td>right</td>
+</tr>
+<tr class="odd">
+<td>or, and</td>
+<td><code>||</code>, <code>&amp;&amp;</code></td>
+<td>30, 40</td>
+<td>left</td>
+</tr>
+<tr class="even">
+<td>membership</td>
+<td><code>in</code>, a word</td>
+<td>50</td>
+<td>left</td>
+</tr>
+<tr class="odd">
+<td>matching</td>
+<td><code>~</code>, <code>!~</code></td>
+<td>60</td>
+<td>left</td>
+</tr>
+<tr class="even">
+<td>relations</td>
+<td><code>&lt;</code> <code>&lt;=</code> <code>!=</code> <code>==</code>
+<code>&gt;</code> <code>&gt;=</code></td>
+<td>70</td>
+<td>none</td>
+</tr>
+<tr class="odd">
+<td>input pipe</td>
+<td><code>| getline</code>, a custom role on <code>|</code> that names
+it</td>
+<td>80</td>
+<td>left</td>
+</tr>
+<tr class="even">
+<td>concatenation</td>
+<td>juxtaposition, flattening</td>
+<td>90</td>
+<td>left</td>
+</tr>
+<tr class="odd">
+<td>additive, multiplicative</td>
+<td><code>+</code> <code>-</code>, <code>*</code> <code>/</code>
+<code>%</code></td>
+<td>100, 110</td>
+<td>left</td>
+</tr>
+<tr class="even">
+<td>unary</td>
+<td><code>!</code> <code>+</code> <code>-</code></td>
+<td>120</td>
+<td>prefix</td>
+</tr>
+<tr class="odd">
+<td>power</td>
+<td><code>^</code></td>
+<td>130</td>
+<td>right</td>
+</tr>
+<tr class="even">
+<td>steps</td>
+<td><code>++</code> <code>--</code>: prefix, and postfix as a custom
+role</td>
+<td>140</td>
+<td></td>
+</tr>
+<tr class="odd">
+<td>field</td>
+<td><code>$</code></td>
+<td>150</td>
+<td>prefix</td>
+</tr>
+<tr class="even">
+<td>call, index, group</td>
+<td><code>f(</code>, <code>a[</code>, <code>(</code>, mixfix</td>
+<td>160</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><code>| getline</code> stands between concatenation and the
+relations, as a reference awk reads it:
+<code>cmd | getline line &gt; 0</code> is
+<code>gt(pipeget(cmd, line), 0)</code>, and in
+<code>"a" "b" | getline</code> the pipe's left is the whole
+concatenation. The cases, each in the suite with its term (section
+21):</p>
+<ol type="1">
+<li><strong>A step after what cannot be assigned begins the next
+operand.</strong> The postfix <code>++</code> and <code>--</code> are a
+custom role that names its operator and declines unless its operand is
+an ungrouped name, a field or an element; the declined token is then
+juxtaposed and read as a prefix: <code>1 ++i</code> is
+<code>concat(1, preinc(i))</code>, <code>a ++b</code> is
+<code>concat(postinc(a), b)</code>, <code>(a)++ b</code> is
+<code>concat(a, preinc(b))</code>. Because the role names its operator,
+<code>$</code> is reduced first: <code>$i++</code> is
+<code>postinc(field(i))</code>, and <code>$++i</code> is
+<code>field(preinc(i))</code>.</li>
+<li><strong>A bracketed list only <code>in</code> takes.</strong>
+<code>(</code> is a transparent operator with a list hole (5.2):
+<code>(a)</code> is <code>a</code>, <code>(i, j)</code> is
+<code>group(i, j)</code>, and the check refuses the list everywhere but
+on <code>in</code>'s left, at the list. (`print (a, b)
+<blockquote>
+<p>"f"<code>is the statement parser's.) That</code>in`'s right is an
+array's name is a check too.</p>
+</blockquote></li>
+<li><strong>The ladder</strong> above:
+<code>a = b ? c : d ? x : y</code>, <code>a || b &amp;&amp; c</code>,
+<code>a &amp;&amp; b in arr</code>, <code>a ~ b &lt; c</code>
+(<code>match(a, lt(b, c))</code>), <code>a &lt; b c</code>
+(<code>lt(a, concat(b, c))</code>), <code>a + b * c % d</code>.</li>
+<li><strong><code>getline</code> in operand position</strong>, a custom
+role with <code>_NO_JUXTAPOSE</code>: <code>getline</code> and
+<code>getline var</code>; <code>getline &lt; file</code> and
+<code>getline var &lt; file</code> read the file at concatenation's
+floor, by the sub-parse (6.5, built 11-10):
+<code>getline &lt; f x</code> is <code>concat(getfile(f), x)</code>. The
+pipe form takes the same optional target.</li>
+<li><strong><code>print</code>'s mode is scoped.</strong> The statement
+parser reads <code>print</code>'s list with
+<code>D_PARSE_EXPR_OPTION_STOP</code> in a mode without the relational
+<code>&gt;</code>, so the list ends at <code>,</code>,
+<code>&gt;</code>, <code>&gt;&gt;</code> or a <code>|</code> not
+followed by <code>getline</code> (whose role declines), and the
+statement parser reads the redirection. Inside brackets
+<code>&gt;</code> compares again (<code>print (a &gt; b)</code>): each
+mixfix names the mode its holes are read in, <code>hole_mode</code>, 0
+for the mode outside (F18, built 11-10 with the sub-parse).</li>
+<li><strong><code>^</code> above a sign, its right operand free to begin
+with one</strong>: <code>-2^2</code> is <code>neg(pow(2, 2))</code>,
+<code>2^-3</code> reads, <code>2^-3^2</code> is
+<code>pow(2, neg(pow(3, 2)))</code>.</li>
+<li><strong>A call only where <code>(</code> touches its name.</strong>
+dawk's lexer makes the adjacent name a class of its own, so its table
+gives <code>(</code> no call role after an ordinary operand and
+<code>x (y)</code> is a concatenation (F4); the core's
+<code>_ADJACENT</code> flag does the same from a token's spacing, as the
+suite has it: <code>f(x)</code> is <code>call(f, x)</code>,
+<code>f (x)</code> is <code>concat(f, x)</code>. A builtin that takes a
+space before <code>(</code>, and <code>length</code> without one, are a
+custom role on the builtin class, each one's arity a check.</li>
+<li><strong>What begins a concatenated operand.</strong> A name, number,
+string, <code>/re/</code>, <code>$</code>, <code>!</code>,
+<code>++</code>, <code>--</code> or <code>(</code> may
+(<code>a !b</code>, <code>a $1</code>, <code>a (b)</code>);
+<code>-</code> and <code>+</code> may not, as their infix roles come
+first (<code>a b -1</code> is <code>concat(a, sub(b, 1))</code>);
+<code>getline</code> may not (<code>_NO_JUXTAPOSE</code>);
+<code>in</code> has no operand role. <code>/=</code> is divide-assign in
+operator position and begins a regular expression in operand position:
+the source's (F4). A newline ends an expression except after
+<code>&amp;&amp;</code>, <code>||</code>, <code>,</code> or a backslash:
+the source skips the ones that do not end it, and
+<code>D_PARSE_EXPR_OPTION_STOP</code> ends the expression at the ones
+that do, without an error.</li>
+</ol>
+<h3 id="65-hooks">6.5 Hooks</h3>
+<p>Hooks are where a language does what no table can say. Each is a C
+function pointer with a context, and each is optional.</p>
+<ul>
+<li><strong>A custom role</strong> (<code>_CUSTOM</code>) is called with
+the parser, the token, and the operand before it (in operator position).
+It may peek at and take tokens (<code>d_parse_expr_peek</code>,
+<code>d_parse_expr_take</code>), build nodes into the parse's term
+(<code>d_parse_expr_parser_term</code>), report
+(<code>d_parse_expr_report</code>), run a sub-parse, or decline.
+<code>peek</code> and <code>take</code> read in a mode of the hook's (0
+for the parse's; a mode is one bit, and a parse's own is 1 unless its
+options give another, so a hook's own is another bit, 2 or 4), so a hook
+can have its source read a block raw, as awk's is between its braces
+(F19); since the parser cannot read a token again, a hook takes what it
+read in another mode before it returns, and a hook that leaves one stops
+the parse. The nodes it builds may be of an operator no role begins,
+defined for its form and spelling so that the renderer writes it: the
+command, <code>cmd</code>, a flattening infix spelled <code>""</code>.
+It returns 1 with the node it made, 0 to decline (the token is then read
+as if the role were not there; what it peeked stays peeked), or -1 for a
+failure it has reported. A node it returns must be of the term and
+within the guard.</li>
+<li><strong>The sub-parse</strong> (<code>d_parse_expr_sub</code>, built
+11-10) reads one expression inside a hook:
+<code>(parser, floor, mode, &amp;node)</code>, the operators taken those
+that bind tighter than <code>floor</code>
+(<code>D_PARSE_EXPR_FLOOR_NONE</code> for every one), in
+<code>mode</code>, ending without an error at the first token it cannot
+go on with, which stays read for the hook to peek.
+<code>getline &lt; file</code> reads the file with the floor at
+concatenation: <code>getline &lt; f x</code> is
+<code>concat(getfile(f), x)</code>, and
+<code>f(getline &lt; g, x)</code> ends the file at the comma. The floor
+holds only while no bracket of the sub-parse's own is open; inside one
+every operator is taken and every error is one, as in the parse. It runs
+on the parse's own stacks behind a barrier, so it allocates nothing of
+its own; it counts against the depth guard like any nesting, and its
+errors against the allowance. A hook that ran a sub-parse may not
+decline, since what it read cannot be read again: doing so stops the
+parse with a bad-argument failure, as a token left read in another mode
+does.</li>
+<li><strong>Modes in brackets</strong> (F18, built 11-10). A mixfix
+operator's <code>hole_mode</code> is the mode its holes are read in, one
+bit, 0 for the mode outside it. The parse switches to it at the opening
+part and back at the closing one; at its last part when it has a tail,
+so a tail is read in the mode outside. An end of input is read in any
+mode.</li>
+<li><strong><code>may_juxtapose</code></strong> (section 5.4).</li>
+<li><strong><code>check</code></strong> is called on each apply node as
+it is built, with its span; it may refuse it with a diagnostic of the
+language's domain. Math's <code>when</code> and <code>otherwise</code>
+outside <code>piecewise</code>, an index of three indices, a literal's
+rows of different lengths.</li>
+</ul>
+<h3 id="66-the-depth-guard">6.6 The depth guard</h3>
+<p><code>depth</code> is the term's longest path from the root to a
+leaf, kept as nodes are built (each node's in its <code>depth</code>).
+Past <code>max_depth</code> the parse reports <code>too deep</code> and
+stops: at the token that would open an operator past it (open operators
+nest at least as deep as the term they make), or at the operator whose
+node is built past it (a long left-nested chain opens nothing). A node's
+depth is 16 bits, so the guard is 1 to 65535, or
+<code>D_PARSE_EXPR_DEPTH_UNBOUNDED</code>; a value between is refused,
+knob and option both, as no node could record it. The core needs no
+guard, since nothing in it recurses; the guard is for what consumes the
+term and does recurse: v1's <code>cata</code> through the bridge, math's
+simplifier. S250's review asked for it, with the bound the owner's to
+set: the knob's default is 1000 (a 1 MB stack, Windows' default, holds
+that many of v1's <code>cata</code> frames with room to spare), the
+option overrides it, and <code>D_PARSE_EXPR_DEPTH_UNBOUNDED</code>
+leaves only memory.</p>
+<h2 id="7-diagnostics">7. Diagnostics</h2>
+<h3 id="71-the-channel">7.1 The channel</h3>
+<p>Every diagnostic goes into the foundation's sink
+(<code>dj_parse_diag_sink</code>), in a new domain,
+<code>D_PARSE_DIAG_DOMAIN_EXPR</code> (4), with a byte span. So a parse,
+the lexer before it, and the language's checks after it report into one
+ordered report, as the foundation intends; a caller reads it as it reads
+any other stage's.</p>
+<table>
+<thead>
+<tr class="header">
+<th>code</th>
+<th>name (<code>parse.expr.</code>)</th>
+<th>where</th>
+<th>when</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>0</td>
+<td><code>unexpected</code></td>
+<td>the token</td>
+<td>no role fits where it stands; a token after a whole expression</td>
+</tr>
+<tr class="even">
+<td>1</td>
+<td><code>missing_operand</code></td>
+<td>where it should stand: the token there, or the end</td>
+<td>the end, a closing part or a separator where an operand must
+stand</td>
+</tr>
+<tr class="odd">
+<td>2</td>
+<td><code>unclosed</code></td>
+<td>the open part</td>
+<td>a mixfix never closed; with a note where the expression ended</td>
+</tr>
+<tr class="even">
+<td>3</td>
+<td><code>unopened</code></td>
+<td>the token</td>
+<td>a closing part with nothing open</td>
+</tr>
+<tr class="odd">
+<td>4</td>
+<td><code>mismatched</code></td>
+<td>the token</td>
+<td>a closing part of another open operator than the innermost; with a
+note at the innermost open part</td>
+</tr>
+<tr class="even">
+<td>5</td>
+<td><code>non_associative</code></td>
+<td>the second operator</td>
+<td>two <code>none</code> operators of one precedence side by side
+(<code>'==' cannot follow '&lt;' without brackets</code>); with a note
+at the first</td>
+</tr>
+<tr class="odd">
+<td>6</td>
+<td><code>arity</code></td>
+<td>the operator's first part</td>
+<td>a list of fewer or more items than its bounds</td>
+</tr>
+<tr class="even">
+<td>7</td>
+<td><code>too_deep</code></td>
+<td>the token, or the operator past the guard</td>
+<td>past the depth guard</td>
+</tr>
+<tr class="odd">
+<td>8</td>
+<td><code>refused</code></td>
+<td>the node</td>
+<td>the language's check refused it; its own message</td>
+</tr>
+<tr class="even">
+<td>9</td>
+<td><code>bad_signature</code></td>
+<td>none</td>
+<td>sealing found the table inconsistent</td>
+</tr>
+</tbody>
+</table>
+<p>The names are the codes registry's (agreed 11-05): the enum's tails,
+lower-cased, under <code>parse.expr</code>, one spelling for the
+code.</p>
+<p><strong>One definition for each message (built 11-25).</strong> The
+ten rows are a table beside the enum,
+<code>D_PARSE_EXPR_CODES(X, m)</code> in <code>expr/parse.h</code>, in
+the log's form (<code>log.h</code>'s section 2.4): each row's number,
+name, class, grade, template and facts. The core domain's ten codes have
+theirs beside <code>diagnostic.h</code>'s enum,
+<code>D_PARSE_CORE_CODES</code>, as the module <code>parse.core</code>.
+A diagnostic carries its facts, the values its template names: a token's
+text, unquoted, or none where neither the text nor a spelling is known;
+a count; a flag (<code>after_operand</code>, <code>at_end</code>,
+<code>unbounded</code>). The parser hands each error to the sink with
+its row's template and its facts (<code>d_parse_diag_report</code>), and
+the sink writes the text from them, only where it stores the text or a
+streaming hook asks for it. So the sink's text and the log's record come
+from one template, written by two writers of the same template language,
+and parse's suites hold them to each other: every message is its
+template written from the facts stored with it, and for every row the
+log's body is the sink's text, byte for byte. A template uses the
+language's text, fields and blocks (<code>{?fact}...{:}...{/}</code>); a
+field's specification is not parse's, and
+<code>d_parse_diag_template_check</code> refuses it.</p>
+<p>The messages read as before, so math's tests see no change: a token
+is quoted where it is named (<code>unexpected '*'</code>,
+<code>'(' is never closed</code>), and named by its class's spelling
+without the text, or as <code>a token</code> without either. A long
+token is cut at 32 bytes, before a character's lead byte, so no UTF-8
+sequence is split.</p>
+<p>What a diagnostic carries is chosen three ways, each on by
+default:</p>
+<table>
+<thead>
+<tr class="header">
+<th>layer</th>
+<th>text</th>
+<th>facts</th>
+<th>the log</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>a build's knob</td>
+<td><code>D_CFG_PARSE_DIAG_TEXT</code></td>
+<td><code>D_CFG_PARSE_DIAG_FACTS</code></td>
+<td><code>D_CFG_PARSE_LOG</code></td>
+</tr>
+<tr class="even">
+<td>a run's row of <code>parse</code></td>
+<td><code>diag_text</code></td>
+<td><code>diag_facts</code></td>
+<td><code>log</code></td>
+</tr>
+<tr class="odd">
+<td>a streaming hook's flag</td>
+<td><code>D_PARSE_DIAG_STREAM_TEXT</code></td>
+<td><code>D_PARSE_DIAG_STREAM_FACTS</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p>A sink stores a record's facts in an arena of their own, which the
+caller gives it (<code>d_parse_diag_sink_facts</code>) or its heap form
+allocates, so a sink sized for messages keeps every message it kept
+before. A record is 36 bytes, offsets into its arenas and no pointers,
+and the arenas copy with it. The streaming hook
+(<code>d_parse_diag_sink_stream</code>) is given each diagnostic once,
+with its notes, after the per-record hook has seen each record; it is
+given its text and its facts as it asked, of what the sink's diagnostics
+carry, and its installation returns what that is.</p>
+<p>Parse's log unit (<code>parse_log.h</code>, built where
+<code>D_CFG_PARSE_LOG</code> is on) is such a hook. It declares and
+defines both tables for the log, registers them, and writes each
+diagnostic as one record of its code at its grade's level, with its
+span, its facts, and its notes as a level <code>note</code>, or
+<code>notes</code> keyed <code>"0"</code>, <code>"1"</code>. It asks for
+facts alone, since the log writes the text from the template. A
+diagnostic whose emitter gave words of its own (the machine's, the
+program's) is written with its code's template and those words as the
+fact <code>message</code>.</p>
+<p>Math maps them onto its statuses: 0 to <code>unexpected_token</code>,
+1 to <code>missing_operand</code>, 2, 3 and 4 to
+<code>unbalanced</code>, 6 to <code>wrong_arity</code>, 7 to a new
+<code>too_deep</code>, and its own checks keep their statuses.</p>
+<h3 id="72-line-and-column">7.2 Line and column</h3>
+<p>A span is bytes.
+<code>d_parse_expr_locate(text, length, offset, &amp;line, &amp;column)</code>
+gives the 1-based line, counting <code>\n</code>, <code>\r\n</code> and
+a lone <code>\r</code> each as one break, and the 1-based column in
+characters (Unicode code points, as the style guide counts a line's
+length). The lane G kit's <code>d_cli_report_at</code> takes them:
+<code>g.vp:2:12: error: ...</code> (cli-taken 80).</p>
+<h3 id="73-which-error-first">7.3 Which error first</h3>
+<p>The parse goes on after an error, so that it can find one further
+left that it only learns of later (a bracket never closed is known at
+the end, and placed at its opening). Recovery is plain: a missing
+operand becomes a hole; an unexpected token is skipped; a mismatched
+close closes the frames inside the one it matches, or, where none awaits
+it, closes the innermost; a non-associative pair is taken as
+left-associative; the end closes what is open. It stops after
+<code>max_errors</code> errors.</p>
+<p>The result names one diagnostic as <strong>the</strong> error: by
+default the leftmost, which is math's rule ("of two errors the one
+further left is given", S209) and every compiler's. One difference from
+math's parser layer: today a bracket's error comes before a grammar
+error wherever it is, because brackets are matched in a pass of their
+own. <code>1 + * 2)</code> is today <code>unbalanced</code> at the
+<code>)</code>, and with core v2 <code>unexpected '*'</code>, which is
+further left. The option <code>error_order</code> keeps math's order
+where its tests need it: <code>structure_first</code> names the leftmost
+bracket error where there is one.</p>
+<h2 id="8-folds-and-walks">8. Folds and walks</h2>
+<p>A fold is an algebra applied bottom-up: one pass over the arena in
+order, each node's value computed from its children's, held in an array
+of values the caller sizes (or the core allocates, under the heap
+knob).</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="kw">typedef</span> <span class="dt">int</span> <span class="op">(*</span>dj_parse_expr_algebra<span class="op">)(</span><span class="dt">void</span><span class="op">*</span>                              _ctx<span class="op">,</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>                                     <span class="dt">const</span> <span class="kw">struct</span> dj_parse_expr_fold_view<span class="op">*</span> _view<span class="op">,</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>                                     <span class="dt">void</span><span class="op">*</span>                              _out<span class="op">);</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> d_parse_expr_fold<span class="op">(</span><span class="dt">const</span> <span class="kw">struct</span> dj_parse_expr_term<span class="op">*</span> _term<span class="op">,</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>                      <span class="dt">uint32_t</span>                         _root<span class="op">,</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>                      <span class="dt">size_t</span>                           _value_size<span class="op">,</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>                      <span class="dt">void</span><span class="op">*</span>                            _values<span class="op">,</span>   <span class="co">// a value per node</span></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>                      <span class="dt">unsigned</span> <span class="dt">char</span><span class="op">*</span>                   _marks<span class="op">,</span>    <span class="co">// a byte per node</span></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>                      dj_parse_expr_algebra            _algebra<span class="op">,</span></span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>                      <span class="dt">void</span><span class="op">*</span>                            _ctx<span class="op">,</span></span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>                      <span class="dt">uint32_t</span>                         _flags<span class="op">,</span></span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>                      <span class="dt">void</span><span class="op">*</span>                            _out<span class="op">);</span></span></code></pre></div>
+<p>The view gives the node and its children's values, by index, with no
+copy. A fold marks the nodes the root reaches, then visits them, each
+once, in arena order, so a chain's shared operand is folded once. An
+algebra that fails stops the fold and its failure is returned. Strict
+evaluation suits math's folds as they are (v1's <code>cata</code> is
+strict too); for the lazy case, <code>and</code>'s second operand or
+<code>piecewise</code>'s branches, there is the walk: depth first with
+an explicit stack, an <code>enter</code> that may skip a node's children
+(<code>D_PARSE_EXPR_WALK_SKIP</code>) or end the walk
+(<code>D_PARSE_EXPR_WALK_STOP</code>), and a <code>leave</code>. The
+command language skips a pipeline's later stages after its first
+failure, and <code>and</code>'s right side after a false left, so
+<code>f1 | b ; d</code> still runs <code>d</code>; it stops only to
+abandon a script (lane G's probe of 11-10, seven cases under ASan and
+UBSan).</p>
+<h2 id="9-rendering">9. Rendering</h2>
+<p><code>d_parse_expr_render</code> writes a term back as text, through
+a write function (<code>size_t (*)(void*, const char*, size_t)</code>,
+which lane D's stream takes), or into a buffer as <code>snprintf</code>
+writes (<code>d_parse_expr_render_buffer</code>), with an atom writer
+for the leaves (by default, the leaf's span's text where the source is
+given and holds it, nothing for an empty span, and otherwise its value
+in decimal). It is iterative too, and the bracket rule below is the
+parser's own decision (one function, shared), so the two cannot
+drift.</p>
+<p><strong>Brackets</strong> are written where reading the text back
+would group otherwise:</p>
+<ul>
+<li>the operand on an operator's left needs them where it is an infix or
+prefix node that binds looser than the operator, or as tightly on the
+wrong side (a right- or non-associative or chain operator);</li>
+<li>the operand on its right needs them where it is an infix or postfix
+node that binds looser, or as tightly on the wrong side (a left- or
+non-associative or chain operator): <code>A ^ (2')</code>,
+<code>a - (b - c)</code>;</li>
+<li>a postfix node on the left and a prefix node on the right never need
+them, since nothing can reach into them: <code>x'[1]</code>,
+<code>2 ^ -x</code>; S252's rule for the index ("bare where the operand
+is a leaf, a call, a literal, an index or a postfix operator's") is this
+rule;</li>
+<li>a mixfix node's holes never need them;</li>
+<li>the rule looks at an operand's whole open edge, not only its top
+operator: in <code>(a + not b) &lt;= n</code> the left operand's top
+operator, <code>+</code>, binds tighter than <code>&lt;=</code>, but its
+right edge ends in the prefix <code>not</code>, looser than
+<code>&lt;=</code>, which would take <code>b &lt;= n</code> if the
+brackets went, so they stay.</li>
+</ul>
+<p>A chain's join (<code>_CHAIN</code>) is written as the chain,
+<code>a &lt; b &lt;= c</code>; a flattened node with its operator
+between each operand; a juxtaposed node with the operator's spelling, so
+math's implied product is written <code>2 * x</code> as the term holds a
+product, or, for an operator spelled <code>""</code> (awk's
+concatenation), as a space, with brackets around a right operand that
+begins with a token that has a role in operator position
+(<code>a (-1)</code>). Options: keep the author's groups
+(<code>_KEEP_GROUPS</code>), and the spacing (<code>_COMPACT</code>:
+spaces only around words).</p>
+<p>The renderer's promise, tested both ways: reading a rendered term
+gives the same term, spans and <code>_GROUPED</code> aside; and
+rendering a read text gives a text that reads as the same term.</p>
+<h2 id="10-the-default-scanner">10. The default scanner</h2>
+<p>Most clients need no lexer of their own.
+<code>d_parse_expr_scan</code> (<code>scan.h</code>, built 11-10, behind
+<code>D_CFG_PARSE_EXPR_SCAN</code>) binds a source to a text, a sealed
+signature and a configuration of class numbers, the caller's, so it
+fills <code>dj_parse_expr_token</code> as any source does and brings no
+record or numbering of its own:</p>
+<ul>
+<li>blanks are skipped; a newline is a token of
+<code>newline_class</code> where that is not 0, a blank otherwise, and
+either way the next token carries
+<code>D_PARSE_EXPR_TOKEN_LINE_BEFORE</code> (after any blank,
+<code>D_PARSE_EXPR_TOKEN_SPACE_BEFORE</code>);</li>
+<li>names (<code>[A-Za-z_]</code>, and the bytes 0x80 and above, so
+UTF-8 names pass whole, then those and digits) are
+<code>name_class</code>;</li>
+<li>numbers are digits, then a point and digits, then an exponent
+(<code>e</code> or <code>E</code>, a sign, digits), each part only where
+a digit follows it, so <code>3.e</code> is <code>3</code> then
+<code>.</code> then <code>e</code>: <code>number_class</code>;</li>
+<li>strings in <code>"</code> or <code>'</code>, a backslash keeping the
+byte after it, are <code>string_class</code>;</li>
+<li>every spelling the signature gives an operator's token, a mixfix's
+parts and a list's separators, and the words the caller adds for tokens
+only its hooks read (<code>getline</code>, <code>|</code>), longest
+first, so <code>&lt;=</code> before <code>&lt;</code> and
+<code>&lt;&lt;</code> before <code>&lt;</code>; where two spell alike
+the caller's word comes first. A spelling in word characters
+(<code>and</code>) is the token only as a whole name:
+<code>android</code> is a name;</li>
+<li>a byte that begins nothing, and a string never closed, is
+<code>stray_class</code>, which the parser reports as unexpected; with 0
+the source fails there.</li>
+</ul>
+<p>The source does not consult the position or the mode it is told, so a
+language whose tokens differ by either brings its own. Math keeps its
+own lexer (its numbers are <code>decimal.h</code>'s grammar, S189), and
+the command language its own reader (its option shapes and word parts,
+G's P1 to P8); the scanner is for bitwisedom, the templates, vparse's
+notations and tests.</p>
+<h2 id="11-control-knobs-and-options">11. Control: knobs and
+options</h2>
+<p>Each setting that takes a default and an override is a knob that sets
+the default and an option that overrides it, the owner's rule, in lane
+E's knob-and-option pattern (agreed 11-05, its API frozen 11-13). Three
+are rows of a program-wide <code>parse</code> group, flat rows in a djin
+named <code>parse</code> (agreed with lane E 11-10: a scope in
+<code>option_env</code> is a context within a frame, not a group of
+names), each defaulting to its knob:</p>
+<ul>
+<li><code>expr_max_depth</code>:
+<code>D_OPTION_ENV_INT_RANGE_KNOB_NAMED</code>, 1 to 65535, with the
+named value <code>unbounded</code>
+(<code>D_PARSE_EXPR_DEPTH_UNBOUNDED</code>), which lane E's named INT
+rows bring in its window of 11-11;</li>
+<li><code>expr_max_errors</code>:
+<code>D_OPTION_ENV_INT_RANGE_KNOB</code>, 1 to 65535;</li>
+<li><code>expr_error_order</code>: <code>D_OPTION_ENV_CHOICE_KNOB</code>
+over <code>leftmost</code> (1) and <code>structure_first</code> (2), the
+values <code>cfg_parse.h</code> gives the knob;</li>
+<li><code>diag_text</code>, <code>diag_facts</code> and <code>log</code>
+(built 11-25): <code>D_OPTION_ENV_BOOL_KNOB</code> each, defaulting to
+<code>D_CFG_PARSE_DIAG_TEXT</code>, <code>D_CFG_PARSE_DIAG_FACTS</code>
+and <code>D_CFG_PARSE_LOG</code>: whether diagnostics carry their text
+and their facts, and whether parse's log unit attaches (section 7.1).
+Each chooses among what the build has: on, in a build without its
+facility, gives nothing, and the sink says so. A record reaches the log
+only where <code>log</code> is on and the log wants its code
+(<code>log.level</code>, <code>log.parse_expr.level</code> and its
+grade's level), so <code>log</code> off saves even gathering its
+facts.</li>
+</ul>
+<p>So <code>DJINTERP_PARSE_EXPR_MAX_DEPTH=unbounded</code> and
+<code>--parse.expr_error_order=structure_first</code> work. An option of
+0 means the setting in force, read through its cache when a parse
+starts; the group sits in a unit of parse's own
+(<code>parse/settings.h</code>, built 11-12), and a knob
+(<code>D_CFG_PARSE_SETTINGS</code>, default 1 or
+<code>D_CFG_PARSE_ALL</code>) compiles it out, 0 then meaning the knob
+again. <code>D_PARSE_EXPR_OPTION_STOP</code> gets no row: it is a
+caller's choice per parse, not a setting. The group is registered
+(<code>d_parse_register(registry)</code>) before a program starts its
+threads, and its header says so (promise 8);
+<code>d_parse_unregister()</code> takes it off again, and
+<code>d_parse_djin()</code> gives the djin to a caller that reads
+it.</p>
+<p>The core does not call the option layer (F33). It reads the settings
+in force through one function,
+<code>d_parse_expr_settings(&amp;settings)</code>: the knobs, unless a
+reader has been installed with
+<code>d_parse_expr_settings_from(reader)</code>, in which case the
+reader fills them and each value is checked as an option's would be, a
+value out of range falling back to its knob.
+<code>d_parse_register</code> installs the group's reader, which reads
+the three rows through their caches, and the diagnostics' reader of the
+last three (<code>d_parse_diag_settings_from</code>);
+<code>d_parse_unregister</code> takes both out. So a program that links
+the core alone links no option code, and a parse costs one call more
+than it did when 0 meant the knob.</p>
+<table>
+<thead>
+<tr class="header">
+<th>knob (<code>cfg_parse.h</code>)</th>
+<th>default</th>
+<th>option (<code>dj_parse_expr_options</code>)</th>
+<th>what it is</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>D_CFG_PARSE_EXPR_HEAP</code></td>
+<td><code>D_CFG_PARSE_ALL</code>, else 1</td>
+<td>none</td>
+<td>the heap forms; off, every term, signature and scratch is the
+caller's storage</td>
+</tr>
+<tr class="even">
+<td><code>D_CFG_PARSE_EXPR_MAX_DEPTH</code></td>
+<td>1000</td>
+<td><code>max_depth</code></td>
+<td>the depth guard (section 6.6)</td>
+</tr>
+<tr class="odd">
+<td><code>D_CFG_PARSE_EXPR_MAX_ERRORS</code></td>
+<td>16</td>
+<td><code>max_errors</code></td>
+<td>errors before the parse stops, 1 to 65535; 1 stops at the first
+met</td>
+</tr>
+<tr class="even">
+<td><code>D_CFG_PARSE_EXPR_ERROR_ORDER</code></td>
+<td>leftmost</td>
+<td><code>error_order</code></td>
+<td>which error is the error (section 7.3)</td>
+</tr>
+<tr class="odd">
+<td><code>D_CFG_PARSE_EXPR_RENDER</code></td>
+<td>1</td>
+<td>none</td>
+<td>the renderer compiled in</td>
+</tr>
+<tr class="even">
+<td><code>D_CFG_PARSE_EXPR_SCAN</code></td>
+<td><code>D_CFG_PARSE_ALL</code>, else 1</td>
+<td>none</td>
+<td>the default scanner compiled in (section 10)</td>
+</tr>
+<tr class="odd">
+<td><code>D_CFG_PARSE_SETTINGS</code></td>
+<td><code>D_CFG_PARSE_ALL</code>, else 1</td>
+<td>none</td>
+<td>the <code>parse</code> settings group compiled in; off, an option of
+0 is the knob</td>
+</tr>
+<tr class="even">
+<td><code>D_CFG_PARSE_DIAG_TEXT</code></td>
+<td><code>D_CFG_PARSE_ALL</code>, else 1</td>
+<td>none</td>
+<td>diagnostics carry their text; off, no text and no templates are
+built</td>
+</tr>
+<tr class="odd">
+<td><code>D_CFG_PARSE_DIAG_FACTS</code></td>
+<td><code>D_CFG_PARSE_ALL</code>, else 1</td>
+<td>none</td>
+<td>diagnostics carry their facts</td>
+</tr>
+<tr class="even">
+<td><code>D_CFG_PARSE_LOG</code></td>
+<td><code>D_CFG_PARSE_ALL</code>, else
+<code>D_CFG_LOG_ENABLED</code></td>
+<td>none</td>
+<td>parse's log unit compiled in</td>
+</tr>
+<tr class="odd">
+<td><code>D_CFG_PARSE_LOG_CODES</code></td>
+<td><code>D_CFG_LOG_CODES</code></td>
+<td>none</td>
+<td>the tables' names, templates and facts built into the log's
+records</td>
+</tr>
+<tr class="even">
+<td>none</td>
+<td></td>
+<td><code>flags</code></td>
+<td><code>D_PARSE_EXPR_OPTION_STOP</code>: end at a token the expression
+cannot go on with (F17)</td>
+</tr>
+</tbody>
+</table>
+<p>A build without the heap is a full one: every structure has a
+fixed-storage initializer. The parser's stacks (operands, open
+operators, a chain's links) start in its own frame, 128, 64 and 32 deep,
+which holds what a person writes; with the heap they grow past that, and
+without it a parse that needs more stops at <code>capacity</code>. The
+caller's scratch (built 11-10) is for those parses: <code>scratch</code>
+and <code>scratch_size</code> in the options, a buffer aligned as
+<code>malloc</code>'s, used when it is larger than the parser's own
+rooms and shared by no two parses at once.
+<code>d_parse_expr_scratch_size(tokens)</code> is the size that holds
+any parse of that many tokens: the stacks are carved from it in units of
+two operands, two open operators and a link, at least 64 units. The
+parser never frees or grows the caller's scratch; past it, the parse
+stops at <code>capacity</code> as before.
+<code>d_parse_expr_term_copy_with</code> copies a subtree with the
+caller's scratch for its marks and map, an index and a byte per node up
+to the root, <code>d_parse_expr_term_copy_scratch(root)</code> bytes, so
+a build without the heap copies too.</p>
+<p>No setting is thread-related: the core has no shared state, a sealed
+signature is read-only, and a parse writes only its own term, scratch
+and sink. That is promise 8's "says why not".</p>
+<h2 id="12-memory-and-sizes">12. Memory and sizes</h2>
+<p>Every allocation goes through <code>d_parse_grow</code> or one call
+of the caller's choosing, and every size is computed with
+<code>d_ckd_mul</code> and <code>d_ckd_add</code> before the call
+(promise 3). Counts are 32 bits; a text of 4 GiB or more, or a term of
+more than 2^32 - 1 nodes, is <code>capacity</code>, not a wrap.
+<code>sizeof</code> and <code>offsetof</code> of the node, the token and
+the term are asserted in the C headers, which the face includes at every
+C++ level (promise 3's layout gate): the node is 24 bytes, the token 20
+with its offset at 8 and its value at 16, and the term's nodes and count
+lead it. Each of the face's classes that is its C structure
+(<code>DOptions</code>, <code>DMixfix</code>, <code>DScanConfig</code>,
+<code>DRenderOptions</code>) is asserted to add nothing to it.</p>
+<h2 id="13-the-c98-face">13. The C++98 face</h2>
+<p><code>djinterp::parse::expr</code>
+(<code>inc/djinterp/cpp/modules/parse/expr/</code>, built 11-12), at
+every level from ISO strict C++98 to C++26. Each class holds its C
+structure and calls the C functions, so nothing is computed twice and
+the parity tests compare like with like. The names are the C++ style
+guide's: classes <code>D</code> and Pascal case, functions and members
+in snake case (F34).</p>
+<ul>
+<li><code>DSignature</code> (<code>signature.hpp</code>): builder
+methods <code>atom</code>, <code>token</code>, <code>prefix</code>,
+<code>infix</code>, <code>postfix</code>, <code>chain</code>,
+<code>mixfix</code>, <code>op</code>, <code>juxtapose</code>,
+<code>custom</code> and <code>role</code>, each returning
+<code>*this</code>; a refused row leaves <code>good()</code> false and
+the chain goes on; <code>seal()</code>, <code>sealed()</code>,
+<code>find(id)</code> (once sealed). On the heap or in the caller's
+arrays; not copyable, movable from C++11. <code>DMixfix</code> builds a
+mixfix's descriptor: <code>bracket</code>, <code>list</code>,
+<code>rows</code>, <code>with_tail</code>, <code>in</code>.</li>
+<li><code>DTerm</code> (<code>term.hpp</code>): <code>leaf</code>,
+<code>apply</code> (an array, or from C++11 an initializer list),
+<code>hole</code>, <code>copy</code>, <code>set_root</code>,
+<code>clear</code>; nodes as <code>DNodeView</code> (kind, operator,
+value, children, span, flags, depth); <code>verify</code>,
+<code>equal</code>, <code>digest</code>, <code>==</code>. On the heap or
+in the caller's storage; copyable at every level (by
+<code>d_parse_expr_term_assign</code>, <code>good()</code> false where
+the copy cannot be held), movable from C++11.</li>
+<li><code>parse(signature, source, options, sink)</code>
+(<code>parse.hpp</code>) returns a <code>DResult</code>: the term, the
+status, the error's domain, code, span and index, the token the parse
+ended at, and the diagnostics as <code>DDiagnostic</code> copies with
+their messages (F36), so a result is a plain value. With the caller's
+sink the diagnostics stay there. A source is a C source (the default
+scanner's, through <code>DScanner</code>), an array or vector of tokens,
+or any object with a <code>next</code> member of the C shape's
+arguments: a C++98 class, or a callable through
+<code>make_source</code>, a lambda from C++11. <code>DOptions</code> is
+the C options, zeroed.</li>
+<li><code>fold&lt;Value&gt;(term, root, algebra, out, flags)</code>
+(<code>fold.hpp</code>): the algebra any object with
+<code>Value operator()(DNodeView, const Value* children, std::size_t count)</code>,
+the values held in a <code>std::vector&lt;Value&gt;</code>, each reached
+node once, in arena order, no recursion;
+<code>walk(term, root, visitor)</code> with <code>enter</code> and
+<code>leave</code>, depth first on an explicit stack. Both are C++ of
+their own over the same rules as the C fold and walk, not the C ones
+under a thunk, so an algebra or a visitor may throw (F35); the parity
+suite holds them to the C ones node for node.</li>
+<li><code>render(signature, term, root, out, options)</code> into a
+<code>std::string</code>, and <code>render_to(..., writer)</code>
+through any writer
+<code>bool operator()(const char*, std::size_t)</code>, each with an
+optional C++ atom writer
+<code>bool operator()(DNodeView, std::string&amp;)</code>
+(<code>render.hpp</code>); <code>DRenderOptions</code> is the C options,
+zeroed.</li>
+<li><code>DScanner</code> and <code>DScanConfig</code>
+(<code>scan.hpp</code>) bind the default scanner.</li>
+</ul>
+<p>A source, a writer or an atom writer is called from inside the C
+parser or renderer; what it throws stops at the face and is a failure
+there (a fatal parse, a render that returns false), so no exception
+crosses a C frame (F37). <code>expr.hpp</code> is the umbrella for all
+of it.</p>
+<p>Above C++98, and only as additions: move constructors and
+<code>noexcept</code> from C++11, lambdas and initializer lists from
+C++11. Nothing that changes a result depends on the level, and the suite
+says so at each one.</p>
+<p>The <strong>bridge</strong> (<code>bridge.hpp</code>, C++11 and up,
+v1's floor; below it the file is empty):
+<code>to_expression&lt;OpId, Atom&gt;(term, root, op_of, atom_of, out, flags)</code>
+builds v1's <code>expression&lt;OpId, Atom&gt;</code> from a v2 subtree
+by the face's fold, each application through
+<code>op_of(DNodeView)</code> and each leaf through
+<code>atom_of(DNodeView)</code>, so math's folds, its simplifier and
+lane D's layout keep their v1 term. OpId and Atom are given, since v1's
+term is an alias no argument deduces through. A node a chain shares is
+built once, and v1's nodes, held by shared pointer, share it too. A term
+with holes is refused unless <code>D_PARSE_EXPR_FOLD_HOLES</code> is
+given, <code>out</code> then untouched.
+<code>from_operator_signature(table, id_of, signature)</code> defines a
+v1 table's prefix, infix and postfix rows in a v2 signature, its ids
+through <code>id_of</code>, with their precedence (both bind the higher
+tighter), associativity, spelling and algebraic flags, a word's spelling
+flagged <code>D_PARSE_EXPR_OP_WORD</code>. The token classes are the
+language's own, so it adds its roles and seals; a nullary or matchfix
+row has no form one spelling can give, and is left to the caller and
+counted (F39).</p>
+<h2 id="14-tests">14. Tests</h2>
+<table>
+<thead>
+<tr class="header">
+<th>suite</th>
+<th>language</th>
+<th>what it holds</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>parse_expr</code> (DTest's C face:
+<code>tests/.../parse/expr/expr_tests*</code>, leaf
+<code>build/.../parse/expr/</code>)</td>
+<td>C99 to C23</td>
+<td>signatures sealed and refused, each form, each role condition, each
+diagnostic with its span and note, recovery, the depth guard, the
+sub-parse and hole modes, folds, walks, rendering, the scanner, the
+caller's scratch, each fixed-storage form</td>
+</tr>
+<tr class="even">
+<td><code>parse_expr_face</code> (DTest's C face from C++:
+<code>tests/.../cpp/modules/parse/expr/expr_face_tests*</code>, leaf
+<code>build/.../cpp/modules/parse/expr/</code>)</td>
+<td>ISO strict C++98, C++98 to C++26</td>
+<td>three blocks (F40). <code>face</code>: the face's own rules
+(storage, copies and moves, the builder's refusals, C++ sources, the
+result's copies, writers, folds and walks, a callback's throw).
+<code>parity</code>: a calculator built by the C API and by the face,
+the same rows; 24 texts, well formed and not, parsed both ways with the
+settings in force and three sets of options: the same arena node for
+node, the same result and diagnostics field for field and message for
+message; every term rendered five ways, folded from every node with and
+without holes, walked five ways, digested at every node: the same each
+time. <code>bridge</code>, from C++11: parsed terms as v1's, a chain's
+shared node shared, holes and bad roots refused, a v1 table moved and
+parsed by</td>
+</tr>
+<tr class="odd">
+<td><code>parse_settings</code> (DTest's C face:
+<code>tests/.../c/modules/parse/settings/</code>)</td>
+<td>C99 to C23</td>
+<td>the <code>parse</code> group: the knobs as defaults, each source (a
+file, the environment, the command line), the standing, a forced value
+given back, <code>unbounded</code> by name, a misspelling's suggestion,
+a parse reading the rows, and the knobs again once unregistered</td>
+</tr>
+<tr class="even">
+<td><code>t_parse_expr_roundtrip</code></td>
+<td>C</td>
+<td>100,000 random terms over a test signature with every form,
+rendered, read back, compared; and random texts read and rendered, read
+again</td>
+</tr>
+<tr class="odd">
+<td><code>t_parse_expr_math</code></td>
+<td>C++, with the math session</td>
+<td>every text of math's face test and fuzz, through math's v2 table and
+through its parser layer: the same term, the same status at the same
+character, but where 7.3's difference is the reason</td>
+</tr>
+<tr class="even">
+<td>the command grammar's</td>
+<td>C++, lane G's, in
+<code>tests/djinterp/cpp/modules/interp/</code></td>
+<td>the command grammar's examples, on the interpreter's table</td>
+</tr>
+<tr class="odd">
+<td>fuzz harness</td>
+<td>C, clang</td>
+<td>the parser over random bytes through the scanner: no crash, no leak,
+no undefined behaviour, time linear in the input</td>
+</tr>
+</tbody>
+</table>
+<p>All of it in DTest 2.0 (frozen Friday 11-06), on the ladders with GCC
+and Clang, plain and testing, under ASan and UBSan, and under the knob
+matrix (heap off, renderer off, scanner off). The parse is held to
+linear time by a test that doubles the input and expects at most twice
+the steps, counted, not timed.</p>
+<h2 id="15-files-names-and-what-happens-to-v1">15. Files, names, and
+what happens to v1</h2>
+<p><strong>C core</strong>,
+<code>inc/djinterp/c/modules/parse/expr/</code> and
+<code>src/djinterp/c/modules/parse/expr/</code>: <code>term.h</code>,
+<code>signature.h</code>, <code>parse.h</code>, <code>fold.h</code>,
+<code>render.h</code>, <code>scan.h</code>, and <code>expr.h</code>, the
+umbrella; the sources share one header of their own,
+<code>expr_internal.h</code>, which holds the decision the parser and
+the renderer both make. <strong>Settings</strong>,
+<code>inc/djinterp/c/modules/parse/settings.h</code> and
+<code>src/djinterp/c/modules/parse/settings.c</code>, beside the core,
+not in it. <strong>C++ face</strong>,
+<code>inc/djinterp/cpp/modules/parse/expr/</code>: the same stems in
+<code>.hpp</code>, and <code>bridge.hpp</code>, which the umbrella
+leaves out, being C++11's. <strong>Config</strong>: the knobs join
+<code>cfg_parse.h</code>, one file for the subframework as the config
+readme asks. <strong>Tests</strong>:
+<code>tests/djinterp/c/modules/parse/expr/</code>,
+<code>.../parse/settings/</code> and
+<code>tests/djinterp/cpp/modules/parse/expr/</code>, each with its leaf
+at the same path under <code>build/cmake/config/testing/</code>.</p>
+<p><strong>Names</strong>: functions <code>d_parse_expr_*</code>, types
+<code>dj_parse_expr_*</code>, macros <code>D_PARSE_EXPR_*</code>, the
+namespace <code>djinterp::parse::expr</code> (<code>NS_EXPR</code>
+inside <code>NS_PARSE</code>). Guards and banner tags follow their
+siblings in the tree: <code>DJINTERP_C_PARSE_EXPR_TERM_H</code>,
+<code>DJINTERP_PARSE_EXPR_TERM_HPP</code>, <code>[c/parse]</code>. The
+style guide derives a guard from every segment
+(<code>..._C_MODULES_PARSE_...</code>) and a tag from the top directory
+(<code>[c]</code>); all 171 of the tree's headers under a
+<code>modules/</code> directory leave it out of their guards, and its
+parse banners say <code>[c/parse]</code>. When lane A settles which is
+right, these follow in the same sweep.</p>
+<p><strong>v1</strong>:</p>
+<ul>
+<li><code>expression.hpp</code>, <code>expression_ops.hpp</code>,
+<code>expression_static.hpp</code>, <code>expression_render.hpp</code>:
+kept, the C++11 algebraic view over a term (math, lane D's layout);
+preview in 0.8; reached from v2 by the bridge.</li>
+<li><code>expression_parse.hpp</code>, the climber: deprecated in 0.8
+(its banner says so, and points at v2); retired when math has moved, in
+0.9 at the latest.</li>
+<li><code>cpp/modules/parse/expression_ops.hpp</code>,
+<code>expression_parse.hpp</code>, <code>expression_render.hpp</code>
+and <code>expression_static.hpp</code>, one directory up: stale copies
+of 09.21 that include <code>../math/expression.hpp</code>, which does
+not exist, and fail at every level; nothing includes them. Retired.</li>
+<li>Parse's other stale copies retire on 11-13:
+<code>cpp/modules/parse/vparse/</code> (17 files,
+<code>parsegen/vparse/</code> from before the restructure),
+<code>cpp/modules/parsegen/peg.cpp</code>, which included it, and
+<code>cpp/modules/parse/parsers/cpp/c.hpp</code>, an older copy of
+<code>parsers/c/c.hpp</code>. Nothing builds or includes any of
+them.</li>
+</ul>
+<h2 id="16-the-two-parse-foundations-style-80">16. The two
+<code>/parse/</code> foundations (style #80)</h2>
+<p>The parse session and the vparse session each built a substrate under
+<code>/parse/</code>. What overlaps:</p>
+<table>
+<thead>
+<tr class="header">
+<th>concept</th>
+<th>the parse session's</th>
+<th>the vparse session's (FOUNDATION.html)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>diagnostics</td>
+<td><code>parse_error</code> (C++: a status, a token offset, a string),
+and the C BNF parsers' booleans</td>
+<td><code>dj_parse_diag_sink</code> (C, with spans, domains and codes;
+the lexer reports into it too)</td>
+</tr>
+<tr class="even">
+<td>a grammar</td>
+<td><code>dj_parse_grammar</code> of <code>parsers/bnf</code>,
+<code>abnf</code>, <code>ebnf</code> (C)</td>
+<td><code>dj_parsegen_grammar</code>, the neutral grammar (C)</td>
+</tr>
+<tr class="odd">
+<td>a token</td>
+<td><code>parse/token/token.hpp</code>, the BNF parsers'
+<code>dj_parse_token</code>, <code>lex/lex_token.h</code></td>
+<td>the machine's family-private cursor</td>
+</tr>
+<tr class="even">
+<td>a cursor and a result</td>
+<td><code>parse_state&lt;T&gt;</code>,
+<code>parse_result&lt;R&gt;</code></td>
+<td>the machine and its program</td>
+</tr>
+<tr class="odd">
+<td>an older vparse</td>
+<td><code>cpp/modules/parse/vparse/</code> and its sources</td>
+<td><code>cpp/modules/parsegen/vparse/</code>, the consolidated one</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Options.</strong></p>
+<ul>
+<li><strong>A. One architecture</strong>, joined from the bottom: one
+diagnostic channel (the sink), one span, one growth policy, under
+everything; core v2 the first module built on it, used by the
+combinators' expression parsing and by the CLI; <code>parse_error</code>
+gains a span and writes itself into a sink, so the combinator substrate
+stays and reports where everything else does; the C BNF, ABNF and EBNF
+parsers become parsegen frontends producing the neutral grammar, and
+<code>dj_parse_grammar</code> retires; the older vparse retires. For:
+one report from any pipeline, which is what the sink was built for; one
+grammar model for parsegen's analysis to run on; the parity law
+satisfied once, in the C layer. Against: the most work, spread over two
+releases; the BNF parsers' callers change in 0.9.</li>
+<li><strong>B. Both kept, the boundary documented</strong>: combinators
+for hand-written parsers, the machine for generated ones; a converter
+between the two diagnostic shapes. For: nothing moves. Against: three
+channels stay three, two grammar models drift apart, and every new
+module chooses between them.</li>
+<li><strong>C. One retired</strong>: the combinator substrate (C++ only,
+no C core) or the machine. Against: the first holds the CLI and most of
+parse's C++ users, the second holds parsegen; neither can go.</li>
+</ul>
+<p><strong>Recommendation: A</strong>, in this order. 0.8 (November):
+the sink and the span for everything 0.8 makes stable, which is core v2
+and the lexer (already), with <code>parse_error</code> given a span and
+<code>emit_into(sink)</code>; the older vparse and the stale expression
+copies retired; the BNF parsers keep their API and gain the sink as an
+optional second channel. 0.9 (December): the BNF family as parsegen
+frontends, <code>dj_parse_grammar</code> retired, and parse's outer
+layers fixed as lane B's suites find faults. Each step is a delivery of
+its own, so nothing waits on the whole.</p>
+<h2 id="17-adoption-by-client">17. Adoption, by client</h2>
+<h3 id="171-math-the-math-session">17.1 Math (the math session)</h3>
+<p><strong>S190</strong>: decided for core v2 (its parser holds postfix
+operators with operands and calls); <strong>S209</strong> and
+<strong>S252</strong> follow (their passes retire when math moves).</p>
+<p>Math's table, in v2's terms:</p>
+<table>
+<thead>
+<tr class="header">
+<th>class</th>
+<th>position</th>
+<th>role</th>
+<th>operator</th>
+<th>precedence</th>
+<th>association</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>number</td>
+<td>operand</td>
+<td>atom</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="even">
+<td>name</td>
+<td>operand</td>
+<td>atom, <code>_CALLABLE</code></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="odd">
+<td><code>-</code> <code>+</code></td>
+<td>operand</td>
+<td>prefix</td>
+<td><code>neg</code>, <code>pos</code></td>
+<td>70</td>
+<td></td>
+</tr>
+<tr class="even">
+<td><code>-</code> <code>+</code></td>
+<td>operator</td>
+<td>infix</td>
+<td><code>sub</code>, <code>add</code></td>
+<td>50</td>
+<td>left</td>
+</tr>
+<tr class="odd">
+<td><code>*</code> <code>/</code> <code>mod</code></td>
+<td>operator</td>
+<td>infix (<code>mod</code> a word)</td>
+<td><code>mul</code>, <code>div</code>, <code>mod</code></td>
+<td>60</td>
+<td>left</td>
+</tr>
+<tr class="even">
+<td>none</td>
+<td>operator</td>
+<td>juxtaposition, with G5's option</td>
+<td><code>mul</code></td>
+<td>60</td>
+<td>left</td>
+</tr>
+<tr class="odd">
+<td><code>^</code></td>
+<td>operator</td>
+<td>infix</td>
+<td><code>pow</code></td>
+<td>80</td>
+<td>right</td>
+</tr>
+<tr class="even">
+<td><code>'</code></td>
+<td>operator</td>
+<td>postfix</td>
+<td><code>transpose</code></td>
+<td>75</td>
+<td></td>
+</tr>
+<tr class="odd">
+<td><code>!</code></td>
+<td>operator</td>
+<td>postfix</td>
+<td><code>factorial</code></td>
+<td>90</td>
+<td></td>
+</tr>
+<tr class="even">
+<td><code>=</code> <code>!=</code> <code>&lt;</code> <code>&lt;=</code>
+<code>&gt;</code> <code>&gt;=</code></td>
+<td>operator</td>
+<td>infix</td>
+<td><code>eq</code> to <code>ge</code></td>
+<td>40</td>
+<td>chain, joined by <code>and</code></td>
+</tr>
+<tr class="odd">
+<td><code>not</code></td>
+<td>operand</td>
+<td>prefix, a word</td>
+<td><code>logical_not</code></td>
+<td>30</td>
+<td></td>
+</tr>
+<tr class="even">
+<td><code>and</code>, <code>or</code></td>
+<td>operator</td>
+<td>infix, words</td>
+<td><code>logical_and</code>, <code>logical_or</code></td>
+<td>20, 10</td>
+<td>left</td>
+</tr>
+<tr class="odd">
+<td><code>(</code></td>
+<td>operand</td>
+<td>mixfix, transparent</td>
+<td>group</td>
+<td></td>
+<td></td>
+</tr>
+<tr class="even">
+<td><code>(</code></td>
+<td>operator</td>
+<td>mixfix, lead, <code>_CALLEE</code></td>
+<td><code>call</code></td>
+<td>100</td>
+<td></td>
+</tr>
+<tr class="odd">
+<td><code>[</code></td>
+<td>operand</td>
+<td>mixfix, list with rows</td>
+<td><code>vector</code>; rows: <code>matrix</code> of
+<code>row</code>s</td>
+<td></td>
+<td></td>
+</tr>
+<tr class="even">
+<td><code>[</code></td>
+<td>operator</td>
+<td>mixfix, lead, list of 1 or more</td>
+<td><code>index</code></td>
+<td>100</td>
+<td></td>
+</tr>
+<tr class="odd">
+<td>`</td>
+<td>`</td>
+<td>operand</td>
+<td>mixfix, one item, with G5's option</td>
+<td><code>abs</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p>The plan, step by step, each step checked by every text of math's
+face test and fuzz reading as before:</p>
+<ol type="1">
+<li>Math's lexer becomes a v2 source (its tokens already carry their
+offset).</li>
+<li>Its table is built as above; <code>piecewise</code>, the constants
+and the literal's shapes as a check hook and a pass over the finished
+term.</li>
+<li><code>expr_parse</code> runs core v2 and converts through the bridge
+to <code>expr_term</code>; the folds, the renderer and the simplifier
+are untouched.</li>
+<li>The parser layer's passes (roles, brackets and bars, groups put
+back, chains joined, the index table) are deleted.</li>
+<li>Later, at math's choice: its folds onto the arena (one pass, no
+recursion, the shared operand folded once), its renderer onto v2's
+(S208's adapter gone).</li>
+</ol>
+<p>What math must accept or set: the error order (section 7.3), for
+which the option exists; <code>too_deep</code> as a new status; a call's
+term has its callee as its first child (<code>call(f, x)</code>), which
+the bridge turns into math's <code>expr_op</code> with its name.</p>
+<h3 id="172-lane-g-the-command-language-the-dsl-bitwisedom">17.2 Lane G:
+the command language, the DSL, bitwisedom</h3>
+<p>Lane G agreed to core v2 for the command language on 11-05. Week 2: G
+builds its source (the reader, its P1 to P8) and its table on the C core
+as delivered: 11-06's until Wednesday 11-11's window, which brings the
+scanner, the sub-parse and the caller's scratch. The reader fills
+<code>dj_parse_expr_token</code> itself, with its own classes; the
+scanner (section 10) has no record or numbering to share. Week 3 (16 to
+22): the two are joined, with lane F: the table of
+<code>djinterp.peg</code>'s section III (<code>;</code> 10 and
+<code>|</code> 20 flattening, <code>or</code> 30 and <code>and</code>
+40, which G flattens too, <code>not</code> 50 prefix, the comparisons 60
+non-associative), the command as a custom role on <code>WORD</code> in
+operand position building <code>cmd(verb, arg1, ..., argN)</code>, each
+word a leaf whose span is the word as written, groups. The spine moved
+to lane G's interpreter module as <code>interp/spine.hpp</code> (G's
+11-09 r2, in Wednesday 11-11's window, with parse's
+<code>functional_cli.hpp</code> deleted in the same window); until the
+join it still includes parse's C++ combinators (<code>parse.hpp</code>,
+<code>parser/parser.hpp</code>, <code>primitives.hpp</code>,
+<code>parser/combinators.hpp</code>), and after it only core v2's
+headers. A pipeline's first failure skips its later stages (the walk's
+SKIP), and STOP ends the walk, which the interpreter uses only to
+abandon a script (lane G's request F5, met as section 8 has it; G's
+probe of 11-10). December, by Friday 12-04: the grammar's own
+predicates, explicit <code>and</code>, <code>or</code>, <code>not</code>
+and comparisons over command primaries, and blocks,
+<code>{ Sequence }</code> (G's P8), as an apply node among a command's
+arguments, read by the sub-parse with <code>}</code> among its ends; the
+language has no juxtaposition and no <code>if ... then ... else</code>.
+G drafted the edits to <code>djinterp.peg</code> and its ABNF and EBNF
+companions for P1 to P8 (a <code>NEWLINE</code> token, words of parts,
+<code>!Joins</code> on the shapes, numbers before short options,
+<code>{ }</code> as metacharacters, <code>Block</code>, and notes 7 to
+11 for the orders the ABNF and EBNF cannot state); parse delivers them
+in Wednesday 11-11's window. bitwisedom's integer expressions stay on
+their own parser in 0.8 and 0.9.</p>
+<p>Answered 11-05: <code>d_cli_report_at</code> takes a 1-based line and
+column, which the interpreter gets from
+<code>d_parse_expr_locate</code>; a command's arguments are leaves of
+its node. The command language's table and its suite live in the
+interpreter's module (<code>tests/djinterp/cpp/modules/interp/</code>),
+the table being the interpreter's; this suite keeps its own CLI-like
+cases.</p>
+<h3 id="173-lane-h-dawk">17.3 Lane H: dawk</h3>
+<p>Section 6.4 shows awk's expressions on v2, with the eight constructs
+lane H's review of 11-05 found 6.4 missing; each is in the suite with
+its term, <code>getline &lt; file</code> and <code>print</code>'s scoped
+mode among them since the sub-parse and <code>hole_mode</code> were
+built on 11-10. Lane H moves dawk's expressions onto core v2 in
+December, when awk becomes a dialect of the DSL, and until then dawk's
+suite is the reference core v2's awk table is checked against.</p>
+<p>The syntax items dawk's checker reads are parse's too, outside core
+v2: <code>pp_of</code> (F20), the include guard recognized exactly
+(F21), the namespace macros a caller names (F22), C++ heads (F23; from
+11-11 a macro's call in a template head is the head's, lane H's
+<code>net/client.hpp</code>), and, from 11-11, the level of a block
+among a label's statements (F24), which lands in one commit with lane
+H's removal of dawk's own correction
+(<code>d_internal_down_a_case</code>). Their suite is
+<code>parse_syntax</code>
+(<code>tests/.../parse/syntax/syntax_tests*</code>).</p>
+<h3 id="174-lane-e">17.4 Lane E</h3>
+<p>Answered 11-05: domain 4 and its ten codes are agreed, named as in
+7.1; a note carries its error's code (done); section 11's settings are
+rows of a <code>parse</code> group in E's pattern (built 11-12 on
+option_env's named INT rows, which E delivered 11-11; the rows as
+section 11 gives them, agreed 11-10); a describer for a signature
+(identity, state, each operator's spellings, role, precedence,
+association and arity, its bytes) in December, once desc's describer
+interface is frozen. The core logs nothing and prints nothing: the log
+reaches parse's diagnostics as a subscriber, through the sink's hook.
+For the code registry in week 3, E proposes (11-10) five shared syntax
+classes rather than one per code, graded rejected:
+<code>syntax.unexpected</code> (unexpected), <code>syntax.missing</code>
+(missing_operand), <code>syntax.unbalanced</code> (unclosed, unopened,
+mismatched), <code>syntax.ambiguous</code> (non_associative) and
+<code>syntax.arity</code> (arity); and <code>too_deep</code> as
+<code>quantity.depth</code>, rejected, <code>refused</code> as
+<code>resource.memory</code>, failed, <code>bad_signature</code> as
+<code>argument.invalid</code>, rejected. The code names stay parse's.
+Lane C is asked to agree by 11-13; parse's table follows.</p>
+<h2 id="18-schedule">18. Schedule</h2>
+<table>
+<thead>
+<tr class="header">
+<th>date</th>
+<th>what</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Wed 11-04</td>
+<td>the C core built and tested (section 21); the 22 allocation sites
+checked</td>
+</tr>
+<tr class="even">
+<td>Fri 11-06</td>
+<td>this design agreed; S190 and style #80 decided</td>
+</tr>
+<tr class="odd">
+<td>Wed 11-11</td>
+<td>(Monday's, moved) the scanner; the sub-parse and
+<code>hole_mode</code> (F18); the caller's scratch; parse's four C
+suites on DTest 2.0's C face; F24 with lane H</td>
+</tr>
+<tr class="even">
+<td>Fri 11-13</td>
+<td>(Wednesday's, moved) the C++98 face; the bridge; the parity suite,
+as the face's suite. Interfaces agreed; the <code>parse</code> settings
+group on lane E's option_env; parse polish begun: the stale copies
+retired (<code>parse/vparse</code>, <code>parsegen/peg.cpp</code>,
+<code>parsers/cpp/c.hpp</code>), <code>parse_bnf.h</code>'s path and
+<code>traversable.hpp</code>'s floor fixed, <code>stress.cpp</code>
+marked as a lexer's data (lane A's ruling)</td>
+</tr>
+<tr class="odd">
+<td>week 3</td>
+<td>the round trip at 100,000 terms and the fuzz harness, as suites of
+their own (moved from 11-13); parse's long functions
+(<code>syntax_item.c</code>, <code>css_match</code>); parsegen's and
+vparse's notation readers on v2; the command grammar with lane G;
+vparse's long functions split; the five held guard renames, once math's
+chunk 46 lands</td>
+</tr>
+<tr class="even">
+<td>week 4</td>
+<td>suites for parse's stable core, docs; the bison, flex and LLVM
+adapters' design note</td>
+</tr>
+<tr class="odd">
+<td>December</td>
+<td>the DSL's hooks for lane G by 12-04; v1's climber retired once math
+has moved; a result flag saying every error could be mended by more
+input (a missing operand at the end, an unclosed bracket), for the
+interpreter's continuation prompt (lane G)</td>
+</tr>
+</tbody>
+</table>
+<h2 id="19-decisions">19. Decisions</h2>
+<p>Each with its alternatives; the recommendation is the one taken.</p>
+<p><strong>F1. The term is a flat arena in post-order, linked by
+index.</strong></p>
+<ul>
+<li><em>For:</em> copies, hashes and serialises whole, as the
+foundation's programs and grammars do; a fold is one pass, with no
+recursion; a chain's shared operand is one node, folded once; C and C++
+hold the same bytes, so parity is exact.</li>
+<li><em>Against:</em> a subtree is not a value of its own; a rewrite
+writes a new term, as v1's do anyway.</li>
+<li><em>Alternative, a tree of pointers in C:</em> each node allocated;
+no serialisation, and the depth bound by recursion again.</li>
+<li><em>Alternative, v1's term in C++ over a C parser:</em> no C term,
+so no C folds and no parity at the term.</li>
+</ul>
+<p><strong>F2. The parser is operator precedence over explicit stacks,
+with a role per token class and position.</strong></p>
+<ul>
+<li><em>For:</em> linear, no recursion, any depth; roles by position are
+Pratt's, which every language here needs; mixfix and juxtaposition fit
+as frames; recovery is a local decision at each token.</li>
+<li><em>Against:</em> harder to read than a recursive Pratt parser.</li>
+<li><em>Alternative, a recursive Pratt parser:</em> simpler code, and
+the depth bound by the stack, which S250 spent a chunk working
+around.</li>
+<li><em>Alternative, LR tables from parsegen:</em> parsegen is preview,
+and a table needs a generator step before every change of a language's
+table.</li>
+</ul>
+<p><strong>F3. Diagnostics go into the foundation's sink, in a domain of
+their own, the leftmost error first, with recovery.</strong>
+<em>For:</em> one report per pipeline; the S209 rule made general.
+<em>Against:</em> math's bracket-first order changes, which the option
+keeps where needed. <em>Alternative, the first error only:</em> cheaper,
+and an unclosed bracket further left is missed.</p>
+<p><strong>F4. Tokens are pulled, and the source told the
+position.</strong> <em>For:</em> awk's <code>/</code>, math's bars and
+any lexer that must know whether an operand ends here. <em>Against:</em>
+a callback per token. <em>Alternative, an array only:</em> those lexers
+need a pass of their own again. The array form is given too.</p>
+<p><strong>F5. Names: <code>d_parse_expr_</code>,
+<code>dj_parse_expr_</code>, <code>D_PARSE_EXPR_</code>,
+<code>djinterp::parse::expr</code>, directories
+<code>expr/</code>.</strong> <em>For:</em> the siblings' pattern
+(<code>d_parse_diag_</code>, <code>d_parse_machine_</code>);
+<code>D_EXPR_</code> is already the math lane's macro prefix
+(<code>D_EXPR_RELATION_OP</code> in
+<code>math/function/function.hpp</code>); <code>expr/</code> keeps v2
+apart from v1's <code>expression/</code>. <em>Against:</em> long names.
+<em>Alternative, <code>d_expr_</code> and <code>expression/</code>:</em>
+shorter, and two prefixes and two generations in one directory.</p>
+<p><strong>F6. 32-bit values throughout.</strong> <em>For:</em> the face
+compiles at ISO strict C++98 on every target. <em>Against:</em> a leaf
+holds an index, not a pointer or a 64-bit number. <em>Alternative, a
+64-bit payload:</em> the face then has a 64-bit floor, as
+<code>pool.h</code> has.</p>
+<p><strong>F7. A depth guard as a knob of 1000 and an option, over a
+core that needs none.</strong> <em>For:</em> S250's review; recursing
+consumers protected on a 1 MB stack. <em>Against:</em> a sum of more
+than 1000 terms is refused by default, and the option is the way past
+it. <em>Alternative, unbounded by default:</em> the core is safe, and
+v1's <code>cata</code> overflows a small stack on a deep enough
+term.</p>
+<p><strong>F8. v1's term and folds stay, as the C++11 algebraic view,
+with a bridge; its climber is deprecated in 0.8.</strong> <em>For:</em>
+math's folds and lane D's layout unchanged; math moves at its pace.
+<em>Against:</em> two term types until math's folds move.
+<em>Alternative, retire v1 in 0.8:</em> math and lane D rewrite in
+November.</p>
+<p><strong>F9. Style #80: one architecture, joined from the bottom (16,
+A).</strong></p>
+<p><strong>F10. The depth guard is 1 to 65535, or unbounded.</strong> A
+node keeps its depth in the 16 bits its 24-byte layout has free.
+<em>For:</em> the node stays 24 bytes; no consumer that recurses can use
+a bound near 65535 frames on an ordinary stack. <em>Against:</em> no
+bound between 65536 and none can be asked for. <em>Alternative, a 32-bit
+depth:</em> the node grows to 28 bytes, a sixth more per node, for a
+range nobody uses. <em>Alternative, a guard above 65535 clamped or read
+as none:</em> silent, and it either refuses terms the caller allowed or
+drops the protection asked for.</p>
+<p><strong>F11. A closing part that nothing open awaits, inside an open
+operator, is one <code>mismatched</code> error, and closes the
+innermost.</strong> <em>For:</em> one slip, one error, at the character
+(<code>(1 + 2]</code>), and the parse goes on in step with the text.
+<em>Against:</em> where the writer left out an opening bracket, the
+close lands on the wrong one; the note at the innermost open part shows
+which. <em>Alternative, <code>unopened</code> at the token and
+<code>unclosed</code> at the end:</em> two errors for one slip, the
+second far from it.</p>
+<p>Five more came of the lanes' review on 11-05 (H, E, G).</p>
+<p><strong>F15. A custom role in operator position may name its
+operator, and is then called after the reductions that operator would
+make.</strong> <em>For:</em> the hook is given the operand the operator
+would take (<code>$i++</code>'s <code>$i</code>, the whole concatenation
+before <code>| getline</code>) with no parser internals in its hands; a
+role naming no operator behaves as before. <em>Against:</em> a hook that
+declines leaves those reductions made; they are the ones any looser
+operator would make next, so only a later role of the same class at a
+tighter precedence could tell, and roles are tried in their order.
+<em>Alternative, a predicate on operator roles:</em> the same question
+of what the predicate sees, and a second way to write what a custom role
+already is. <em>Alternative, a reduce call in the hook interface:</em>
+every hook then reasons about frames.</p>
+<p><strong>F16. A transparent operator with a list hole is a group for
+one item and its own node for any other count.</strong> <em>For:</em>
+<code>(a)</code> stays the bracket-free node of invariant 5, and awk's
+<code>(i, j)</code> (a tuple, elsewhere) is a node a check can place.
+<em>Against:</em> one operator id for two shapes; a fold tells them
+apart by the node's kind, a leaf or an application of the group's id.
+<em>Alternative, two operators on <code>(</code>:</em> the parser would
+have to choose before it has seen the comma. <em>Alternative, a node for
+every group:</em> every client then steps through bracket nodes, which
+invariant 5 exists to spare it.</p>
+<p><strong>F17. <code>D_PARSE_EXPR_OPTION_STOP</code> ends an expression
+at a token it cannot go on with, and the result gives the token
+back.</strong> <em>For:</em> a statement's parser (awk's, the DSL's
+blocks, C's <code>if (</code>) hands the core an expression and takes
+back the <code>;</code>, the newline or the <code>)</code>, and the
+table, which already says what continues an expression, says what ends
+it. <em>Against:</em> a typo that would have been
+<code>unexpected</code> ends the expression instead, and the statement
+parser reports it. <em>Alternative, the source ending the input
+there:</em> the source cannot know what the table continues with, and
+the statement parser loses the token. <em>Alternative, a set of ending
+classes per parse:</em> each language lists its terminators and misses
+one at a time.</p>
+<p><strong>F18. A mixfix's holes are read in the mode it names
+(<code>hole_mode</code>, 0 for the mode outside).</strong> <em>For:</em>
+<code>print (a &gt; b)</code> compares while <code>print a &gt; b</code>
+redirects, by the table, and a sub-parse's mode reaches no further than
+its brackets. <em>Against:</em> one more field in the descriptor.
+<em>Alternative, every bracket restoring the parse's first mode:</em>
+wrong where the statement parser starts the parse in
+<code>print</code>'s mode, as dawk's would. (Built 11-10, with the
+sub-parse.)</p>
+<p><strong>F19. <code>peek</code> and <code>take</code> read in a mode
+of the hook's, and a hook may not leave behind a token read in another
+mode.</strong> <em>For:</em> a source reads awk's block raw when a hook
+asks for it, unaware of hooks, as lane G recommends; the rule follows
+from a pull source, which cannot read a token twice. <em>Against:</em> a
+hook must take what it read raw. <em>Alternative, the sub-parse's mode
+alone:</em> a raw block is not an expression. <em>Alternative, letting a
+hook change its source's state between takes:</em> the source then knows
+of hooks, and the parser must promise how far it reads ahead.</p>
+<p>F20 to F32 are the syntax layer's and the deliveries' (lane F's
+handoffs of 11-06 and 11-11). Eight more came of building the settings
+group and the face, 11-12.</p>
+<p><strong>F33. The core reads the settings in force through a reader it
+is given, and calls no option code.</strong>
+<code>d_parse_expr_settings_from</code> installs the reader;
+<code>d_parse_register</code> installs the <code>parse</code> group's.
+<em>For:</em> a program that links the core alone links no option layer,
+and the core's suite runs without one; the group is replaceable (a
+test's, an embedder's), and its values are checked where they are used.
+<em>Against:</em> one function pointer of program-wide state, written
+before threads start, as the group's registration already must be.
+<em>Alternative, the core calling <code>option_env</code> itself:</em>
+every client of the core links the option layer and its registry.
+<em>Alternative, the caller passing the settings in each parse's
+options:</em> every caller fetches them, and an option of 0 can no
+longer mean "the setting in force".</p>
+<p><strong>F34. The face's names are the C++ style guide's: classes
+<code>D</code> and Pascal case (<code>DTerm</code>,
+<code>DSignature</code>, <code>DNodeView</code>, <code>DResult</code>),
+functions in snake case (<code>parse</code>, <code>fold</code>,
+<code>render_to</code>).</strong> <em>For:</em> the guide's rule for
+classes, as the foundation's C++ follows it. <em>Against:</em> this
+design's draft names (<code>term</code>, <code>node_view</code>,
+<code>result</code>) move. <em>Alternative, the draft's lower-case
+names:</em> the guide keeps snake case for what the standard's protocols
+name, traits and <code>re_std</code>, and these are none of them.</p>
+<p><strong>F35. The face's fold and walk are C++ of their own over the C
+ones' rules, not the C fold and walk under a thunk.</strong>
+<em>For:</em> an algebra or a visitor may throw, and its exception
+unwinds no C frame; a value is any copyable type (a
+<code>std::string</code>, v1's term), not a byte size; neither recurses.
+<em>Against:</em> two implementations of one rule; the parity suite
+holds them to each other at every node of every text, with holes allowed
+and not, and a bad root. <em>Alternative, a thunk over
+<code>d_parse_expr_fold</code>:</em> values must then be trivially
+copyable bytes, and a throw must be caught at the thunk and the fold
+stopped, losing the exception.</p>
+<p><strong>F36. The face carries its own C++98 view of the diagnostics:
+a result copies each record and its message.</strong> <em>For:</em> a
+result is a plain value at every level, outliving the sink it came from;
+the foundation's <code>diagnostic.hpp</code> keeps its C++11 floor.
+<em>Against:</em> a copy per diagnostic; a caller who wants none passes
+its own sink, and the result then holds no copies. <em>Alternative,
+bringing <code>diagnostic.hpp</code> down to C++98:</em> another lane's
+header ported for a view that still could not outlive its sink.</p>
+<p><strong>F37. What a source, a writer or an atom writer throws stops
+at the face, and is that callback's failure.</strong> <em>For:</em> they
+are called from inside the C parser and renderer, whose frames an
+exception must not cross; the C shapes already have a failure
+(<code>-1</code>, a short write, <code>false</code>), and the face maps
+a throw onto it. <em>Against:</em> the exception's message is lost; a
+caller who needs it keeps it in the callback. <em>Alternative, letting
+it through:</em> undefined in C frames, and the parser's own state left
+behind.</p>
+<p><strong>F38. The C core gains <code>d_parse_expr_term_assign</code>
+and <code>d_parse_expr_term_digest</code>.</strong> <em>For:</em> the
+face's copy is the C arena copied whole, indices and unreached nodes
+too, so parity holds for copies; C clients (math's memo, lane G's
+caches) get the digest the face has, spans and groups not changing it.
+<em>Against:</em> two functions more in C. <em>Alternative, the face
+copying by <code>d_parse_expr_term_copy</code> from the root:</em> the
+nodes renumber, and a copy is no longer the same arena. <em>Alternative,
+the digest in C++ only:</em> C callers write their own.</p>
+<p><strong>F39. The bridge takes its ids and atoms from the caller, and
+leaves to it what v2 cannot take from one row.</strong>
+<code>to_expression&lt;OpId, Atom&gt;</code> maps each node through
+<code>op_of</code> and <code>atom_of</code>;
+<code>from_operator_signature</code> maps ids through
+<code>id_of</code>, flags a word's spelling, and counts the nullary and
+matchfix rows it leaves. <em>For:</em> v1's ids and atoms are any types,
+and v2's classes are the language's lexer's, which no v1 table names.
+<em>Against:</em> a language moving its table still writes its roles,
+and its constants and matchfix operators. <em>Alternative, inventing
+classes and sealing:</em> the classes would not be the lexer's.
+<em>Alternative, a nullary row as an atom, a matchfix row as a
+mixfix:</em> an atom needs a class, and a mixfix two parts where v1's
+row has one spelling.</p>
+<p><strong>F40. The face's suite is one module of three blocks,
+<code>face</code>, <code>parity</code> and <code>bridge</code>, at every
+C++ level, the bridge's tests skipped below C++11.</strong>
+<em>For:</em> one set of fixtures (the calculator built both ways, the C
+parse), as F25 has it for the syntax suites; a skipped test says why
+(F26). The C units it stands on are built once, at C99. <em>Alternative,
+the three suites this design first named (<code>t_parse_expr_cpp</code>,
+<code>t_parse_expr_parity</code> and a bridge suite):</em> three copies
+of the fixtures.</p>
+<h2 id="20-what-each-lane-is-asked">20. What each lane is asked</h2>
+<p>By Friday 11-06, and where each stands:</p>
+<ul>
+<li><strong>The math session:</strong> S190 for core v2. <em>Ruled by
+the owner 11-08: core v2; S209 and S252 follow it.</em> With chunk 46
+(Thursday night or Friday): whether the error order of 7.3 should be
+math's default (the option exists either way); the depth guard's default
+(1000, or the bound chunk 33's probe measured), within F10's range;
+whether F11's reading of <code>(1 + 2]</code> suits (it maps to
+<code>unbalanced</code> either way, now at the <code>]</code> alone).
+The first two become the knobs' and the settings group's defaults; until
+they come, 1000 and <code>leftmost</code>. <em>11-12: chunk 46 has not
+landed; the five v1 guard renames wait for it (F29).</em></li>
+<li><strong>Lane G:</strong> the two questions of 17.2; whether week 3
+suits the command grammar. <em>Answered 11-05 (17.2); F19 came of it.
+11-10: the grammar's edits for P1 to P8, whole; the walk's skip meets
+its F5 (section 8).</em></li>
+<li><strong>Lane H:</strong> whether awk's grammar has a construct 6.4
+misses. <em>Answered 11-05: eight, now in 6.4 (F15 to F18 came of them).
+11-08: F24 lands with H's removal of <code>d_internal_down_a_case</code>
+(17.3).</em></li>
+<li><strong>Lane E:</strong> the domain and codes of 17.4. <em>Answered
+11-05 (17.4, 11), and 11-10: the settings rows of section 11, and the
+syntax classes of 17.4.</em></li>
+</ul>
+<h2 id="21-the-build-in-this-delivery">21. The build in this
+delivery</h2>
+<p>Friday 11-13's, over Wednesday 11-11's.</p>
+<h3 id="211-what-is-there">21.1 What is there</h3>
+<table>
+<thead>
+<tr class="header">
+<th>file</th>
+<th>what</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>inc/.../parse/expr/term.h</code>,
+<code>src/.../term.c</code></td>
+<td>the arena: fixed or heap storage, leaves, applications, holes, copy
+(and <code>copy_with</code>, in the caller's scratch), assign (11-12),
+verify, equality</td>
+</tr>
+<tr class="even">
+<td><code>inc/.../parse/expr/signature.h</code>,
+<code>src/.../signature.c</code></td>
+<td>operators of the four forms, chains, mixfix descriptors with their
+<code>hole_mode</code>, juxtaposition, roles, sealing with its
+diagnostics, lookup</td>
+</tr>
+<tr class="odd">
+<td><code>inc/.../parse/expr/parse.h</code>,
+<code>src/.../parse.c</code></td>
+<td>tokens and sources (the array source), the parser of section 6, the
+hook interface and the sub-parse, the caller's scratch and
+<code>d_parse_expr_scratch_size</code>,
+<code>d_parse_expr_locate</code>; the settings in force and their reader
+(11-12)</td>
+</tr>
+<tr class="even">
+<td><code>inc/.../parse/expr/scan.h</code>,
+<code>src/.../scan.c</code></td>
+<td>the default scanner of section 10</td>
+</tr>
+<tr class="odd">
+<td><code>inc/.../parse/expr/fold.h</code>,
+<code>src/.../fold.c</code></td>
+<td>the fold (marks, then arena order), the walk (<code>enter</code>,
+<code>leave</code>, skip and stop) and the digest (11-12)</td>
+</tr>
+<tr class="even">
+<td><code>inc/.../parse/expr/render.h</code>,
+<code>src/.../render.c</code></td>
+<td>the renderer, through a write function or into a buffer</td>
+</tr>
+<tr class="odd">
+<td><code>inc/.../parse/expr/expr.h</code></td>
+<td>the umbrella</td>
+</tr>
+<tr class="even">
+<td><code>src/.../parse/expr/expr_internal.h</code></td>
+<td>the frame kinds and the one bracket decision the parser and the
+renderer share</td>
+</tr>
+<tr class="odd">
+<td><code>inc/djinterp/config/.../cfg_parse.h</code></td>
+<td>the seven knobs of section 11, validated</td>
+</tr>
+<tr class="even">
+<td><code>inc/.../parse/settings.h</code>,
+<code>src/.../parse/settings.c</code></td>
+<td>the <code>parse</code> group of section 11 on lane E's option_env:
+three rows, register, unregister, the reader</td>
+</tr>
+<tr class="odd">
+<td><code>inc/djinterp/cpp/modules/parse/expr/*.hpp</code></td>
+<td>the C++98 face of section 13: <code>term.hpp</code>,
+<code>signature.hpp</code>, <code>parse.hpp</code>,
+<code>fold.hpp</code>, <code>render.hpp</code>, <code>scan.hpp</code>,
+<code>expr.hpp</code>; and <code>bridge.hpp</code>, from C++11</td>
+</tr>
+<tr class="even">
+<td><code>inc/.../parse/diagnostic.h</code></td>
+<td><code>D_PARSE_DIAG_DOMAIN_EXPR</code> (4)</td>
+</tr>
+<tr class="odd">
+<td><code>tests/.../parse/expr/expr_tests*</code>, leaf
+<code>build/.../parse/expr/</code></td>
+<td>the C suite, <code>parse_expr</code>, on DTest 2.0's C face: five
+blocks, sixteen tests; every case of 6.3 and 6.4 (dawk's ladder and lane
+H's eight among them), every code of 7.1, recovery, both error orders,
+the guard, a full arena on caller storage, the stop option, the
+sub-parse and hole modes, a hook's own mode, the command language
+rendered back, 3,000 random round trips, the renderings named in 9,
+folds and walks, <code>locate</code>, the scanner, the caller's
+scratch</td>
+</tr>
+<tr class="even">
+<td><code>tests/.../parse/syntax/syntax_tests*</code>,
+<code>tests/.../parse/overflow/overflow_tests*</code>, leaves beside the
+expression suite's</td>
+<td>parse's other two C suites on the same face: the syntax items (F20
+to F24) and the allocation sites' refusals</td>
+</tr>
+<tr class="odd">
+<td><code>tests/.../c/modules/parse/settings/settings_tests*</code>, its
+leaf</td>
+<td><code>parse_settings</code>: two blocks, seven tests (section
+14)</td>
+</tr>
+<tr class="even">
+<td><code>tests/.../cpp/modules/parse/expr/expr_face_tests*</code>, leaf
+<code>build/.../cpp/modules/parse/expr/</code></td>
+<td><code>parse_expr_face</code>: three blocks, nineteen tests (section
+14), at ISO strict C++98 and C++98 to C++26</td>
+</tr>
+</tbody>
+</table>
+<h3 id="212-measured">21.2 Measured</h3>
+<ul>
+<li>The four C suites pass at C99, C11, C17 and C23 with GCC under ASan
+and UBSan: <code>parse_expr</code> 16 of 16, <code>parse_syntax</code>
+12 of 12, <code>parse_overflow</code> 3 of 4 with one skipped, the
+refusals that exist only where <code>size_t</code> is 32 bits, and
+<code>parse_settings</code> 7 of 7, which also passes with Clang under
+valgrind (no errors, no leaks).</li>
+<li><code>parse_expr_face</code> passes 19 of 19 (640 checks) at C++11,
+14, 17, 20, 23 and 26, and 15 of 19 at ISO strict C++98 and C++98, the
+bridge's four skipped, with GCC and Clang (GCC 13 has no C++26); with
+GCC at C++98 and C++17 under ASan and UBSan, and with GCC at C++11 and
+Clang at C++98 and C++26 under valgrind (no errors, no leaks). Its leaf
+builds and passes standing alone and inside the whole project.</li>
+<li>The parity suite fails when the face is changed: a message copied
+with one byte more, the fold's children taken in reverse, the walk's
+skip ignored; each is caught by its parity test and the face test beside
+it.</li>
+<li>Under the knob matrix: <code>parse_settings</code> skips its seven
+tests with the group compiled out (<code>D_CFG_PARSE_SETTINGS</code> or
+<code>D_CFG_PARSE_ALL</code> 0) and passes them without the heap, the
+scanner or the renderer; <code>parse_expr_face</code> skips its nineteen
+without the heap, the scanner or the renderer, or with a guard under 16,
+and passes with the group compiled out and with the guard at 16 or
+unbounded.</li>
+<li>Line coverage of the core's six sources under
+<code>parse_expr</code>: 89.8% (term 86%, signature 91%, parse 92%, fold
+96%, render 81%, scan 97%), against the floor of 80%.</li>
+<li>Each rule added on 11-10 fails its cases when taken out: without the
+sub-parse's barrier in the innermost bracket,
+<code>getline &lt; f x</code> reads as
+<code>getfile(concat(f, x))</code>; without longest-first,
+<code>x&lt;&lt;y</code> scans <code>&lt;</code> <code>&lt;</code>;
+without the digit rule, <code>3.e</code> scans as one number; without
+F24, the blocks among a label's statements stand a level out.</li>
+<li>11-05's measures stand: 840,000 random terms (every form of math's
+table, depth 1 to 6) rendered and read back as themselves; each rule of
+11-05 failing its cases when taken out.</li>
+<li>Every header and source compiles at every C level and every C++
+level, GCC and Clang, plain and testing, ISO strict C++98 included; and
+under the knob matrix (heap off, renderer off, scanner off, all three,
+<code>D_CFG_PARSE_ALL</code> off, the guard at 1 and unbounded). With
+the scanner off, <code>parse_expr</code> skips its scanner test and
+passes the rest.</li>
+<li>A build without the heap reads a 10,001-token left chain and 40
+nested groups in its own stack rooms, and stops a 5,001-deep right chain
+and 3,000 nested groups at <code>capacity</code>, with nothing overrun;
+with the caller's scratch of <code>d_parse_expr_scratch_size</code>, it
+reads both.</li>
+</ul>
+<h3 id="213-not-yet">21.3 Not yet</h3>
+<p>The round trip at 100,000 terms and the fuzz harness as suites of
+their own (week 3); concepts for the algebra and the source from C++20,
+and <code>std::string_view</code> texts from C++17 (section 13:
+additions, none yet needed); the face's own tests of the caller's
+storage without the heap, which the C suite covers.</p>
+<h3 id="214-what-building-it-changed-in-this-text">21.4 What building it
+changed in this text</h3>
+<p>Each is folded into its section above; listed here so a reader of the
+draft of Monday 11-02 sees what moved.</p>
+<ul>
+<li>4.1: the node's spare 16 bits hold its depth.</li>
+<li>4.2, invariant 5: a grouped leaf keeps its token's span.</li>
+<li>5.2, 5.3: the separators' spellings, for the renderer; a role's
+<code>order</code>.</li>
+<li>5.4: a juxtaposed node's span covers both operands.</li>
+<li>5.5: sealing's refusals, as built.</li>
+<li>6.2: a closing part nothing awaits, inside an open operator, is one
+<code>mismatched</code> (F11); an outer operator's part re-reads its
+token.</li>
+<li>6.5: the hook interface, as built.</li>
+<li>6.6: the guard is checked at open operators and at built nodes, and
+is 1 to 65535 or unbounded (F10).</li>
+<li>7.1: <code>capacity</code> against <code>out of memory</code>; notes
+as continuations.</li>
+<li>8: the fold takes a mark per node.</li>
+<li>9: the buffer form; the bracket rule over an operand's whole open
+edge, found by the round trip.</li>
+<li>11: the stack rooms of a build without the heap.</li>
+</ul>
+<p>And from building the face and the settings group, 11-12:</p>
+<ul>
+<li>4.3: <code>d_parse_expr_term_assign</code>, and the digest's
+definition (F38).</li>
+<li>11: the core reads the settings through a reader it is given (F33);
+the knob <code>D_CFG_PARSE_SETTINGS</code>.</li>
+<li>12: the token's and the term's layout asserted; the face's classes
+that are their C structures asserted to add nothing.</li>
+<li>13: the face as built: its names (F34), its own fold and walk (F35),
+its own copy of the diagnostics (F36), throws stopped at C frames (F37),
+and the bridge's arguments (F39).</li>
+<li>14: the face's suites as one (F40); the settings suite.</li>
+</ul>
+<p>And from building week 2's part, 11-10:</p>
+<ul>
+<li>6.5: the sub-parse's floor holds only while no bracket of its own is
+open; it runs on the parse's stacks behind a barrier; a hook that ran
+one may not decline.</li>
+<li>6.5: a mixfix's mode comes back at its last part, so a tail is read
+in the mode outside; an end of input is read in any mode.</li>
+<li>10: a number's point and exponent only where a digit follows; the
+caller's words first where two spell alike; the stray class.</li>
+<li>11: the caller's scratch in units, and <code>copy_with</code> for
+builds without the heap.</li>
+</ul>
+<p>And from the lanes' review of 11-05:</p>
+<ul>
+<li>1, 17.2: lane G's December language corrected: explicit predicates
+and blocks, no juxtaposition, no <code>if ... then ... else</code>.</li>
+<li>5.2: a transparent operator with a list (F16).</li>
+<li>5.3, 6.2: a declined role falls through to juxtaposition; a custom
+role may name its operator (F15); the stop option (F17).</li>
+<li>5.5, 6.5: an operator only a hook builds is allowed;
+<code>peek</code> and <code>take</code> in a mode (F19); the sub-parse's
+shape, and <code>hole_mode</code> (F18).</li>
+<li>6.4: dawk's whole ladder and lane H's eight constructs.</li>
+<li>6.6, 7.1: <code>too_deep</code> at the operator past the guard; the
+registry's names; a note under its error's code;
+<code>non_associative</code> names both operators.</li>
+<li>11: the settings as lane E's <code>parse</code> group rows; the
+error allowance 1 to 65535; the <code>flags</code> option.</li>
+</ul>
+<p>And from lane G's check of the merged deliveries, 11-06:</p>
+<ul>
+<li>6.5: a mode is one bit, and a parse's own is 1, so a hook's own is
+another.</li>
+<li>9: a leaf with an empty span renders as nothing, not as its
+value.</li>
+</ul>
+</body>
+</html>

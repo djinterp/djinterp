@@ -17,7 +17,7 @@
 *     compare   run two grammars over the same inputs
 *
 * and the kit gives it what every djinterp program has (the kit's
-* GRAMMAR.md, section 6): `-h`, `--version`, `-q`, `-v`, `--color`, and the
+* GRAMMAR.html, section 6): `-h`, `--version`, `-q`, `-v`, `--color`, and the
 * `help` and `completion` commands; help in the kit's layout; and failures in
 * the GNU shape, `vparse: error: MESSAGE`, with the kit's exit statuses.
 *   Every command drives the model the window drives (run.hpp, store.hpp),
@@ -87,7 +87,7 @@ namespace cli
 // 1.1.1
 // exit_status
 //   struct: the statuses a run of the command line ends with, as constants:
-// the kit's three (GRAMMAR.md, section 8), as vparse's commands answer.
+// the kit's three (GRAMMAR.html, section 8), as vparse's commands answer.
 // NO_MATCH and NOT_ACCEPTED are the kit's no, each the answer of the
 // commands it names. REFUSED is the kit's trouble, D_CLI_EXIT_TROUBLE: a
 // grammar refused, for every command but check, whose answer it is, as a

@@ -311,7 +311,7 @@ void d_cli_internal_parser_layout(
 // 4.2.1
 // D_CLI_INTERNAL_EXIT_MEANINGS, d_cli_internal_exit_meanings
 //   constant: what each exit status of a program the kit made means
-// (GRAMMAR.md, section 8), as the root's help says it and the description
+// (GRAMMAR.html, section 8), as the root's help says it and the description
 // gives it (cli_help.h): one for each of D_CLI_EXIT_OK, _NO and _TROUBLE.
 #define D_CLI_INTERNAL_EXIT_MEANINGS 3u
 

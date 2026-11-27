@@ -67,7 +67,7 @@ namespace
 
 // EXAMPLE_PREFIX / EXAMPLE_WHAT
 //   constants: the prefix of a named operand that is a built-in example,
-// without its colon (GRAMMAR.md, R13); and what one is, as the kit's
+// without its colon (GRAMMAR.html, R13); and what one is, as the kit's
 // warning of a file with its name says it.
 const char* const EXAMPLE_PREFIX = "example";
 const char* const EXAMPLE_WHAT   = "the built-in example";

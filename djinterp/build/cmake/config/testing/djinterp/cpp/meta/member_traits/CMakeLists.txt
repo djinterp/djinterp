@@ -1,6 +1,6 @@
 # member_traits.hpp unit test suite - leaf recipe (header-only module, no src/).
 #
-#   Delivery form (djinterp_testing.md S7.2): this suite ships in its OWN leaf
+#   Delivery form (djinterp_testing.html S7.2): this suite ships in its OWN leaf
 # directory .../meta/member_traits/ so the archive owns every path it writes and
 # cannot overwrite a sibling's wiring.  To fold it into a shared cluster later,
 # merge this djinterp_add_test_executable(...) call into the CMakeLists that

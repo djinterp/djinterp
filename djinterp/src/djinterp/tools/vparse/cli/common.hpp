@@ -258,7 +258,7 @@ long number_of(
 //   A failure is said as the kit says one - `vparse: error: MESSAGE`, on the
 // error stream, through the context's program - and is trouble, REFUSED;
 // an output is written whole, once nothing is left to fail but the writing.
-// A message starts in lower case and has no full stop (GRAMMAR.md, section
+// A message starts in lower case and has no full stop (GRAMMAR.html, section
 // 8).
 
 
@@ -341,7 +341,7 @@ int emit(
  * @brief Says why a grammar was refused, as an error, and ends the
  *        subcommand with REFUSED: `NAME:LINE:COLUMN: error: SENTENCE`
  *        where its reader stopped at a place, as a compiler puts the place
- *        first (GRAMMAR.md, section 8), and `vparse: error: NAME: SENTENCE`
+ *        first (GRAMMAR.html, section 8), and `vparse: error: NAME: SENTENCE`
  *        where there is none - the sentence the run's headline, the place
  *        taken out of it, as a diagnostic is written.
  *

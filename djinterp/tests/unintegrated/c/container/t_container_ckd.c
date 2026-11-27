@@ -32,7 +32,7 @@
 * so that a size that fits but cannot be allocated fails as malloc does
 * rather than stopping the run.
 *   A standalone program, as the other tests not yet in DTest are
-* (tests/unintegrated/README.md): it prints a line per failed check, ends
+* (docs/tests/unintegrated/README.html): it prints a line per failed check, ends
 * with "N checks, M failed", and exits 0 only when nothing failed. It moves
 * into DTest 2.0 with the container suites in week 2.
 *

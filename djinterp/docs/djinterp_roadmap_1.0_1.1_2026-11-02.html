@@ -298,7 +298,7 @@ Thanksgiving; lane A checks every base and keeps the punch list.</span></li>
 <li><b>1.1's scope and date</b>, as section 1 sets them out: v1.1.0 on Wednesday 12-30, with
 Thursday 12-31 as the hard limit. <span class="rec">Recommended: as proposed.</span></li>
 <li><b>The djinterp CLI in 1.1.</b> Its command language has had a normative grammar since July
-(<code>parse/grammar/djinterp.peg</code>), and <code>functional_cli.hpp</code> already runs it in
+(<code>res/grammar/djinterp.peg</code>), and <code>functional_cli.hpp</code> already runs it in
 C++. <span class="rec">Recommended: the command language stable in 1.1 if its suites are green at
 the freeze, preview otherwise; the interpreter's library API preview, and C++ only until a C core
 gives it the C face the parity law asks for.</span></li>
@@ -762,7 +762,7 @@ says in one line what its lane does in December; December&#x27;s full briefs com
 on Sunday 11-29, written from 1.0&#x27;s outcome.
 
 Standing rules
-- Follow the project&#x27;s style guides (style_guide_c.md, style_guide_cpp.md)
+- Follow the project&#x27;s style guides (style_guide_c.html, style_guide_cpp.html)
   and the dconfig readme. C99 floor; C++98 (ISO strict) up to C++26. D_CFG_*
   knobs live in config/.../cfg_*.h; run-time choices are options.
 - Work on the newest base tree the owner sends (base-N: the restructured c/
@@ -837,7 +837,7 @@ passes at every ladder level on Linux, Windows and macOS.
 December (1.1): coverage past the floors (85% in the core, 70% elsewhere
 stable); suites for parse&#x27;s outer layers, parsegen and vparse, and for what
 1.1 makes stable; a planted-fault trial over the core modules.
-Read first: the roadmap&#x27;s sections 6 and 8; docs/djinterp_testing.md.</pre></details><details class="brief"><summary><b>Lane C</b>: Containers, functional and meta</summary><div class="bhead"><span class="dim">Paste after the text for every lane.</span><button type="button" class="copy" data-for="b-C">Copy</button></div><pre id="b-C">Lane C: containers, functional and meta
+Read first: the roadmap&#x27;s sections 6 and 8; docs/djinterp_testing.html.</pre></details><details class="brief"><summary><b>Lane C</b>: Containers, functional and meta</summary><div class="bhead"><span class="dim">Paste after the text for every lane.</span><button type="button" class="copy" data-for="b-C">Copy</button></div><pre id="b-C">Lane C: containers, functional and meta
 
 Mission: bring the core data structures and the functional layer to the
 stable tier, and test them.
@@ -936,7 +936,7 @@ December (1.1): the bison, flex and LLVM adapters; parsegen and vparse made
 stable; parse&#x27;s outer layers fixed as lane B&#x27;s suites find faults; the
 DSL&#x27;s hooks on core v2 for lane H.
 Read first: the math lane&#x27;s decisions S190, S209 and S252; parsegen&#x27;s
-FOUNDATION.md.</pre></details><details class="brief"><summary><b>Lane G</b>: Math <span class="dim">(the math98 lane, continuing)</span></summary><div class="bhead"><span class="dim">Paste after the text for every lane.</span><button type="button" class="copy" data-for="b-G">Copy</button></div><pre id="b-G">Lane G: math (the math98 lane, continuing)
+FOUNDATION.html.</pre></details><details class="brief"><summary><b>Lane G</b>: Math <span class="dim">(the math98 lane, continuing)</span></summary><div class="bhead"><span class="dim">Paste after the text for every lane.</span><button type="button" class="copy" data-for="b-G">Copy</button></div><pre id="b-G">Lane G: math (the math98 lane, continuing)
 
 Mission: finish step 23, move the lane onto the restructured layout, and
 freeze math at a coherent preview for 1.0.
@@ -984,7 +984,7 @@ December.
 Done means: net&#x27;s and db&#x27;s stable parts tested on the three platforms; no
 duplicated dawk code in the library; the CLI preview documented.
 December (1.1): the djinterp interpreter and DSL (functional_cli.hpp&#x27;s spine
-on core v2, the grammar in parse/grammar/djinterp.peg), with djins run
+on core v2, the grammar in res/grammar/djinterp.peg), with djins run
 through it and awk modules run by dawk.
 Read first: docs/DECISIONS.md, sections 4.3 and 4.6; desc.txt (dawk).</pre></details>
 </main>

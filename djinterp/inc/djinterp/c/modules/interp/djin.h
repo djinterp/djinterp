@@ -2,8 +2,8 @@
 * djinterp [c][interp]                                                    djin.h
 *
 *   Djins: the named, versioned units of djinterp a program can list,
-* describe, configure and run (docs/djinterp/interp/DESIGN.md, section 6). A
-* djin is a record of constant data - its name, version and summary, the
+* describe, configure and run (docs/djinterp/cpp/modules/interp/DESIGN.html,
+* section 6). A djin is a record of constant data - its name, version and summary, the
 * commands it registers, and its settings, which are its frame in the
 * program's option_env registry - so that a djin can be written in C or C++
 * and, later, carried by a module the command-line kit loads.

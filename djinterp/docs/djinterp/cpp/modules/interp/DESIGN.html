@@ -1,0 +1,1378 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>The djinterp interpreter and its command language:
+design</title>
+  <style>
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+    /* CSS for syntax highlighting */
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+</head>
+<body>
+<h1 id="the-djinterp-interpreter-and-its-command-language-design">The
+djinterp interpreter and its command language: design</h1>
+<p>Written 2026-11-04, amended 2026-11-09, 2026-11-11, 2026-11-13,
+2026-11-18, 2026-11-20, 2026-11-25 and 2026-11-27. Agreed with the
+designs it depends on: expression core v2's, the options' and the
+registry's, and dawk's. The owner rules what they do not settle.</p>
+<p>Release numbers are the renumbered ones:</p>
+<ul>
+<li><strong>0.8, on 11-30:</strong> the CLI preview, with djins.</li>
+<li><strong>0.9, on 12-30:</strong> the interpreter and the
+language.</li>
+</ul>
+<p>Read it with:</p>
+<ul>
+<li><code>res/grammar/djinterp.peg</code>,
+the normative grammar;</li>
+<li><code>inc/djinterp/cpp/modules/interp/spine.hpp</code>, the spine
+that runs a subset of the grammar today;</li>
+<li><code>docs/djinterp/c/modules/parse/expr/expression_core_v2.html</code>, core v2's
+design, whose section 17.2 is this note's other half;</li>
+<li><code>docs/djinterp/c/option/knob_and_option.html</code>, the pattern
+every setting follows;</li>
+<li><code>docs/djinterp/tools/djinterp/README.html</code>, the program as
+0.8 has it;</li>
+<li>the cli registers' rulings in
+<code>docs/djinterp_decisions.html</code>, Part C;</li>
+<li><code>desc.txt</code>.</li>
+</ul>
+<h2 id="0-agreed-since-11-04">0. Agreed since 11-04</h2>
+<h3 id="expression-core-v2">Expression core v2</h3>
+<p>Agreed on 11-05 (core v2's design, 17.2) and checked on the core
+delivered 11-06; the scanner, the sub-parse and the caller's scratch
+followed on 11-11.</p>
+<ul>
+<li><p><strong>Core v2 carries the command language.</strong> Its C core
+gives what section 8 asked of it:</p>
+<ul>
+<li>non-associative comparisons, refused at the second operator with a
+note at the first
+(<code>'==' cannot follow '&lt;' without brackets</code>);</li>
+<li>the command, as a custom role on a word in operand position;</li>
+<li>tokens of the interpreter's own classes, pulled from its source,
+which is told the position and the mode;</li>
+<li>spans that <code>d_parse_expr_locate</code> turns into the line and
+the column (in code points) that the kit's <code>d_cli_report_at</code>
+takes;</li>
+<li>a term in a post-order arena;</li>
+<li>the renderer.</li>
+</ul>
+<p>The grammar's fixes of section 4 are in <code>djinterp.peg</code> and
+its companions since 11-11.</p></li>
+<li><p><strong>A command's node</strong> is
+<code>cmd(verb, arg1, ..., argN)</code>:</p>
+<ul>
+<li>the verb first;</li>
+<li>each word a leaf of its token's class, whose span is the word as
+written and whose value indexes the interpreter's table of words, with
+the quoting taken out;</li>
+<li>a block an apply node in its place.</li>
+</ul>
+<p><code>cmd</code> is an operator only the role builds, which core v2
+allows. It is a flattening infix spelled <code>""</code> at 90, so that
+the renderer writes <code>ls -l | grep x</code> back.</p></li>
+<li><p><strong>Blocks.</strong></p>
+<ul>
+<li>A block, <code>{ Sequence }</code>, is read by core v2's sub-parse,
+with <code>}</code> among the classes that end it.</li>
+<li>A raw block, awk's, is read through a hook's own mode. The hook
+takes <code>{</code> in the parse's mode, the body in its own (a bit
+other than 1, the parse's), and <code>}</code> in the parse's
+again.</li>
+<li>Where awk's block ends is dawk's to find (section 7).</li>
+<li>Core v2's stop option is the other way to read a block's sequence.
+The choice between them is made when blocks are built.</li>
+</ul></li>
+<li><p><strong>The reader keeps its own tokens.</strong> Core v2's
+scanner takes the caller's class numbers and fills the same token
+record. It does not consult the position or the mode it is told, and the
+command language's tokens depend on both (the option shapes, the word
+parts, P1 to P8). So the interpreter's reader fills
+<code>dj_parse_expr_token</code> itself.</p></li>
+<li><p><strong>Choices made here, from core v2's design:</strong></p>
+<ul>
+<li><code>and</code> and <code>or</code> are built flattened, as
+<code>|</code> and <code>;</code> are. The meaning is the same,
+short-circuit runs over the list, and a long predicate stays shallow
+under the depth guard.</li>
+<li>The source reads a newline as <code>;</code> in operator position
+and as nothing in operand position. It drops a separator before a
+closing bracket, a closing brace or the end (P1).</li>
+<li>The evaluator walks the arena with its own frames (3.3). Strict
+folds serve <code>describe</code> and rendering.</li>
+</ul></li>
+<li><p><strong>Not in the language:</strong> an implied <code>and</code>
+between two predicates, and <code>if ... then ... else</code>. Core v2's
+design said both, and is corrected.</p></li>
+<li><p><strong>The command language's table and suites</strong> live in
+the interpreter's module
+(<code>tests/djinterp/cpp/modules/interp/</code>). Core v2's suite keeps
+its own command-line-like cases.</p></li>
+</ul>
+<h3 id="the-options-and-the-registry">The options and the registry</h3>
+<p>Agreed on 11-10, against <code>knob_and_option.html</code>,
+<code>c/option/option_env.h</code> and
+<code>c/option/option_env_registry.h</code>. Section 6 is written to
+them.</p>
+<h3 id="dawk">dawk</h3>
+<p>Agreed on 11-10, against <code>tools/dawk/</code>
+(<code>dinterp.h</code>, <code>dsource.h</code>, <code>dhost.h</code>,
+<code>dvalue.h</code>) and <code>c/util/dregex.h</code>. Sections 5 and
+7 are written to them.</p>
+<h2 id="1-what-is-decided-here">1. What is decided here</h2>
+<ol type="1">
+<li>Where the interpreter lives, and what moves into it (section
+2).</li>
+<li>The spine: reader, grammar and fold, each mapped onto expression
+core v2 (section 3).</li>
+<li>The grammar's defects, found reading <code>djinterp.peg</code>
+against the reader and the kit's rulings, each with its fix (section
+4).</li>
+<li>What a value is, and what <code>|</code>, <code>;</code>,
+<code>and</code>, <code>or</code>, <code>not</code> and the comparisons
+do with one (section 5).</li>
+<li>What a djin is, how it reaches the registry, and the 0.8 preview's
+commands (section 6).</li>
+<li>Where awk meets the language (section 7).</li>
+<li>What the interpreter depends on, and where each stands (section
+8).</li>
+</ol>
+<p>Nothing here changes a stable API.</p>
+<ul>
+<li>The interpreter's library is preview in 0.9.</li>
+<li>It is C++ only until a C core gives it the C face the parity law
+asks for (the roadmap's ruling 13).</li>
+<li>The records a djin is made of are C from the start, so that a djin
+can be written in C or C++ (section 6.2).</li>
+</ul>
+<h2 id="2-the-module">2. The module</h2>
+<p><strong>Decision 1. The interpreter is a module of its own,
+<code>interp</code>.</strong></p>
+<table>
+<tbody>
+<tr class="odd">
+<td>headers</td>
+<td><code>inc/djinterp/cpp/modules/interp/</code></td>
+</tr>
+<tr class="even">
+<td>sources</td>
+<td><code>src/djinterp/cpp/modules/interp/</code></td>
+</tr>
+<tr class="odd">
+<td>suites</td>
+<td><code>tests/djinterp/cpp/modules/interp/</code></td>
+</tr>
+<tr class="even">
+<td>namespace</td>
+<td><code>djinterp::interp</code></td>
+</tr>
+<tr class="odd">
+<td>whole-module docs</td>
+<td><code>docs/djinterp/interp/</code> (ruling rs c)</td>
+</tr>
+</tbody>
+</table>
+<p>Later its C core goes in <code>c/modules/interp/</code>, as parse has
+both.</p>
+<ul>
+<li><p><strong>The spine moved there on 11-10</strong>, as
+<code>interp/spine.hpp</code>. It was parse's
+<code>functional_cli.hpp</code>, which is deleted.</p>
+<ul>
+<li>Its namespace is <code>djinterp::interp</code>, opened by
+<code>D_KEYWORD_INTERP</code> and <code>NS_INTERP</code>.</li>
+<li>The header defines those two until the root's keyword list
+(<code>djinterp.h</code>) names them, on 11-13.
+<code>D_KEYWORD_CLI</code> is the root's, and stays.</li>
+<li>Its two variable templates take <code>D_CONSTEXPR_INLINE_VAR</code>,
+as the old <code>cpp/cli</code> headers did before they retired
+(11-25).</li>
+<li>Its suite,
+<code>tests/djinterp/cpp/modules/interp/spine_tests.cpp</code>, holds
+what it does, with its leaf in
+<code>build/cmake/config/testing/djinterp/cpp/modules/interp/</code>.</li>
+</ul></li>
+<li><p><strong>The program, <code>djinterp</code>, is a tool on the
+kit</strong>, like bitwisedom and vparse:</p>
+<ul>
+<li><code>src/djinterp/tools/djinterp/</code> holds its
+<code>main</code> and its built-in djins;</li>
+<li>its CMake leaf is
+<code>build/cmake/config/djinterp/tools/djinterp/</code>.</li>
+</ul>
+<p>The doubled name is the one cost. <code>tools/interp</code> would
+name the library, not the program.</p></li>
+</ul>
+<p><strong>Alternatives considered:</strong></p>
+<ul>
+<li>Keeping the interpreter inside parse. Against: parse's core is
+stable in 0.8, while the interpreter is preview until a C core, so one
+module would carry two tiers.</li>
+<li>Putting it under <code>tools/</code>. Against: the library is meant
+to be used by programs other than <code>djinterp</code>, dawk among
+them.</li>
+</ul>
+<h2 id="3-the-spine-on-expression-core-v2">3. The spine on expression
+core v2</h2>
+<p>The spine has the right shape - read, parse, fold - and runs a subset
+of the language: commands joined by <code>|</code>. The interpreter
+keeps the shape and replaces each leg's insides.</p>
+<h3 id="31-reading">3.1 Reading</h3>
+<p>Two readers, as today:</p>
+<ul>
+<li><code>read_argv</code>, for a command line the shell has already
+split;</li>
+<li><code>read_line</code>, for a script or an interactive line.</li>
+</ul>
+<p>They differ in one way that matters: <strong>a word the shell split
+is one token, whatever its characters.</strong> Only its shape
+(<code>--name</code>, <code>-x</code>, <code>--</code>, a number, a
+keyword, an operator) decides its kind. A line is lexed by the grammar's
+section I.</p>
+<p><strong>Decision 2. Every argument token keeps its text as
+written.</strong> The grammar decides where a command's arguments end:
+at an operator, a keyword, a bracket or the end. The command's own
+parser decides what they mean.</p>
+<ul>
+<li>The spine's <code>build_invocation</code> goes. It splits
+<code>-xvf</code> into three flags and <code>--k=v</code> into a binding
+without knowing the command's options.</li>
+<li>But <code>-ofile</code> is one option with a value to a command
+whose <code>-o</code> takes one, and only that command's parser
+knows.</li>
+<li>So a command is handed its words, as <code>argv</code>, and parses
+them with the kit (<code>dj_cli_program</code> over a
+<code>dj_arg_parser</code>). Then:
+<ul>
+<li>a command reads the same typed in a script as typed at a shell;</li>
+<li>its help and its errors are the kit's;</li>
+<li>the rulings on the kit's grammar (R1 to R20, cli-taken 13 to 85)
+hold inside the language unchanged.</li>
+</ul></li>
+</ul>
+<p>This is cli-taken 51's principle - one reading of a command line, the
+parser's - carried into the language.</p>
+<h3 id="32-the-grammar">3.2 The grammar</h3>
+<p>The PEG's syntactic grammar (section II) is a precedence cascade:</p>
+<table>
+<thead>
+<tr class="header">
+<th>level</th>
+<th>operators</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>10</td>
+<td><code>;</code></td>
+</tr>
+<tr class="even">
+<td>20</td>
+<td><code>|</code></td>
+</tr>
+<tr class="odd">
+<td>30</td>
+<td><code>or</code></td>
+</tr>
+<tr class="even">
+<td>40</td>
+<td><code>and</code></td>
+</tr>
+<tr class="odd">
+<td>50</td>
+<td><code>not</code>, prefix</td>
+</tr>
+<tr class="even">
+<td>60</td>
+<td>the comparisons, non-associative</td>
+</tr>
+</tbody>
+</table>
+<p>Primaries sit above them. That is a precedence climber's table, and
+core v2 is one. The interpreter gives core v2:</p>
+<ul>
+<li>the operator table above, as core v2's signature;</li>
+<li>a <strong>primary hook</strong>: the command sub-parser (verb, then
+arguments until a token that cannot be one), and
+<code>( Sequence )</code>;</li>
+<li>the token stream of 3.1, as core v2's input alphabet. Each token
+carries its span in the source, so that a diagnostic points at the
+word.</li>
+</ul>
+<p>It takes back a term: core v2's tree, whose leaves are commands and
+literals and whose inner nodes are the operators.
+<code>command_pipeline</code>, the spine's stand-in for the free-monad
+term, goes, and the fold walks core v2's term instead (3.3).</p>
+<h3 id="33-the-fold">3.3 The fold</h3>
+<p>The interpreter is a fold over the term, through
+<code>functional</code>'s <code>result</code> and <code>maybe</code>
+(promise 5: "the interpreter folds its pipelines through functional's
+result and maybe"). Each node's rule is in section 5.</p>
+<ul>
+<li><strong>Evaluation walks the arena</strong> with
+<code>d_parse_expr_walk</code> and its own frames, one per node entered.
+<ul>
+<li><code>enter</code> is given the node's parent, and the evaluator's
+frame for the parent says what came before.</li>
+<li><code>enter</code> answers <code>D_PARSE_EXPR_WALK_SKIP</code> for
+an operand that need not run: under an <code>and</code> whose earlier
+operand was false, under an <code>or</code> whose earlier operand was
+true, and for a pipeline's later stages once a stage has failed. So
+<code>f1 | b ; d</code> still runs <code>d</code>, and short-circuiting
+needs nothing of core v2 past the term's layout.</li>
+<li><code>D_PARSE_EXPR_WALK_STOP</code> ends the whole walk. The
+interpreter uses it only to abandon a script.</li>
+</ul></li>
+<li><strong>Commands are resolved through the registry</strong> (section
+6), not the spine's <code>command_registry</code> of first-match names.
+A djin's commands are the registry's.</li>
+</ul>
+<h3 id="34-two-faces">3.4 Two faces</h3>
+<p>Promise 6 asks that each djin command be tested both as a call and in
+the language. The C++ library exposes the fold's steps as calls:</p>
+<ul>
+<li><code>interp::parse(text)</code>;</li>
+<li><code>interp::evaluate(term, context)</code>;</li>
+<li><code>interp::run(djin, command, argv, input)</code>.</li>
+</ul>
+<p>The suites hold every command run through the language to the same
+command run as a call.</p>
+<h2 id="4-the-grammar-what-djinterppeg-got-wrong">4. The grammar: what
+<code>djinterp.peg</code> got wrong</h2>
+<p>Found reading the grammar against the reader, the kit's rulings and
+the commands that exist. The fixes are in the grammar since 11-11. The
+numbers are this note's.</p>
+<table>
+<thead>
+<tr class="header">
+<th>#</th>
+<th>Defect</th>
+<th>Example</th>
+<th>Fix</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>P1</td>
+<td>The sequence's note says a newline separates pipelines, but
+<code>Skip</code> discards <code>Newline</code> before the syntactic
+grammar sees it.</td>
+<td><code>a</code> newline <code>b</code> is <code>a b</code>: one
+command with an operand.</td>
+<td>A <code>NEWLINE</code> token, read as <code>;</code>.
+<code>Skip</code> loses <code>Newline</code>.</td>
+</tr>
+<tr class="even">
+<td>P2</td>
+<td><code>--name=</code> cannot be lexed: <code>OptionValue</code> needs
+a character, and <code>=</code> is in no token.</td>
+<td><code>--note=</code> is a lexical error; R7 and cli-taken 33 make it
+the empty value.</td>
+<td><code>LONG_OPTION &lt;- "--" OptionName ("=" OptionValue?)?</code>.</td>
+</tr>
+<tr class="odd">
+<td>P3</td>
+<td><code>-1</code> is a <code>SHORT_OPTION</code> (tried first), so
+<code>NUMBER</code>'s <code>"-"?</code> never matches, and
+<code>-1.5</code> lexes as <code>-1</code> and <code>.5</code>.</td>
+<td><code>size &gt; -1</code> compares to the command
+<code>-1</code>.</td>
+<td>A word that is wholly a number is a <code>NUMBER</code>, tried
+before <code>SHORT_OPTION</code>. In argument position both are handed
+to the command as written (decision 2), so <code>ls -1</code> is
+unchanged.</td>
+</tr>
+<tr class="even">
+<td>P4</td>
+<td>A token in word shape has no end check, so a word splits where a
+token ends.</td>
+<td><code>2file</code> is <code>2</code> and <code>file</code>;
+<code>-x.txt</code> is <code>-x</code> and <code>.txt</code>.</td>
+<td><code>!Joins</code> after <code>NUMBER</code> and
+<code>SHORT_OPTION</code>; otherwise the whole is a
+<code>WORD</code>.</td>
+</tr>
+<tr class="odd">
+<td>P5</td>
+<td><code>=</code> cannot be in a word.</td>
+<td><code>bitwisedom set s.json gen.level=c11</code>,
+<code>make CC=gcc</code> and <code>dd if=x</code> cannot be
+written.</td>
+<td>A word takes <code>=</code>. <code>COMPARE</code> and the keywords
+are tokens only standing alone, as <code>and</code> already was.</td>
+</tr>
+<tr class="even">
+<td>P6</td>
+<td><code>#</code> begins a comment anywhere.</td>
+<td><code>C#</code> and <code>http://h/p#frag</code> are cut.</td>
+<td>A comment begins only where a token could: at the start of input or
+after a blank, as <code>sh</code> reads it.</td>
+</tr>
+<tr class="odd">
+<td>P7</td>
+<td>A string has no escape for its own quote, and quoted and bare parts
+do not join into one word, which the reader already does.</td>
+<td><code>"say \"hi\""</code>; <code>--name="a b"c</code>.</td>
+<td><code>sh</code>'s rules. Single quotes are literal; in double
+quotes, <code>\"</code> and <code>\\</code>. A word is a run of bare and
+quoted parts. The reader and the grammar then agree.</td>
+</tr>
+<tr class="even">
+<td>P8</td>
+<td>A command takes no expression as an argument, so a predicate cannot
+be handed to a command that applies it.</td>
+<td><code>ls | where size &gt; 100</code> parses as
+<code>ls | ((where size) &gt; 100)</code>: the comparison is the stage,
+and <code>where</code> never sees it.</td>
+<td>A block operand, <code>{ Sequence }</code>, evaluated by the command
+that takes it, once per item or once, as it says:
+<code>ls | where { size &gt; 100 }</code>. It is also awk's
+<code>pattern { action }</code> shape (section 7).</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Amended 11-09, when the fixes were written.</strong> Reading
+the grammar again to write them changed two rows.</p>
+<ul>
+<li><strong>P1.</strong> Inside brackets, a newline is read as it is
+outside, as <code>sh</code> reads it: <code>(a</code> newline
+<code>b)</code> is two commands. One rule is simpler, and a pipeline or
+predicate already continues on the next line after its operator. A
+separator may end a sequence, inside brackets too.</li>
+<li><strong>P6.</strong> The grammar already begins a comment only where
+a token could, and the reader has no comments at all. The one word a
+comment cut is a quoted part before <code>#</code> (<code>"x"#y</code>),
+which P7's joined words make whole. So P6 is a note in the grammar, not
+a change to a rule.</li>
+</ul>
+<p>The fixes also make <code>{</code> and <code>}</code> metacharacters,
+as <code>(</code> and <code>)</code> are, for P8. The grammar was run,
+as written, by a small PEG interpreter over 81 cases.</p>
+<p><strong>Decision 3. Precedence stays as the PEG has it</strong>:
+<code>|</code> binds looser than <code>and</code> and <code>or</code>,
+so <code>test -f x and test -r x | report</code> hands the predicate's
+answer to <code>report</code>.</p>
+<ul>
+<li><code>sh</code> binds <code>&amp;&amp;</code> looser than
+<code>|</code>. But the language's predicates are values, not exit
+statuses alone, and a predicate is most often a stage of its own.</li>
+<li>The keywords stay reserved at word boundaries: a command or operand
+named <code>and</code> is quoted.</li>
+</ul>
+<p>P8 is a new construct, not a fix.</p>
+<ul>
+<li><strong>The alternative</strong> is commands that filter by running
+a predicate command per item - find's model - with no block syntax.</li>
+<li><strong>Recommended: the block.</strong> The same construct carries
+awk's shape and the language's own <code>where</code>, <code>each</code>
+and <code>sort-by</code>. A predicate command run per item cannot see
+the item it is run for without a convention outside the grammar.</li>
+</ul>
+<h2 id="5-values-and-what-the-operators-do">5. Values and what the
+operators do</h2>
+<p><strong>Decision 4. A value is a tagged value.</strong> It is one
+of:</p>
+<ul>
+<li>nothing;</li>
+<li>a truth value;</li>
+<li>an integer, 64-bit signed;</li>
+<li>a real, a double;</li>
+<li>text, UTF-8;</li>
+<li>bytes;</li>
+<li>a list;</li>
+<li>a record, with text keys in insertion order;</li>
+<li>a command's status alone.</li>
+</ul>
+<p>dawk's <code>dvalue</code> moves into the library as "the tagged
+value and hash array" (<code>desc.txt</code>'s table), and the
+interpreter's value is that module's, not a second one.</p>
+<ul>
+<li>Its header and its code come together on 12-04. It carries the tags
+above: a list, integers apart from reals, a truth value, bytes apart
+from text, and keys kept in insertion order.</li>
+<li>A status needs no tag: the djin call carries it beside the value
+(6.2).</li>
+<li>awk's own rules stay in dawk, over the tags awk uses.</li>
+<li>Until the header lands, the interpreter's suites use a stand-in with
+the same tags.</li>
+</ul>
+<table>
+<thead>
+<tr class="header">
+<th>Construct</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>a ; b</code></td>
+<td>Run <code>a</code>, then <code>b</code>, whatever <code>a</code>
+came to; the sequence comes to <code>b</code>'s value and status, as
+<code>sh</code> does.</td>
+</tr>
+<tr class="even">
+<td><code>a | b</code></td>
+<td><code>b</code> takes <code>a</code>'s value as its input. The first
+stage that fails ends the pipeline with its error (functional's
+<code>result</code>). The seed of a pipeline is nothing, or standard
+input's text where the program was given some.</td>
+</tr>
+<tr class="odd">
+<td><code>a and b</code> / <code>a or b</code></td>
+<td>Short-circuit on <code>a</code>'s truth: a truth value as it is;
+nothing, zero, an empty text, list or record false; a status true when
+it is 0. The construct comes to the value that decided it.</td>
+</tr>
+<tr class="even">
+<td><code>not a</code></td>
+<td>The truth value opposite to <code>a</code>'s truth.</td>
+</tr>
+<tr class="odd">
+<td><code>a == b</code>, <code>!=</code>, <code>&lt;</code>,
+<code>&lt;=</code>, <code>&gt;</code>, <code>&gt;=</code></td>
+<td>On two numbers, numerically. On two texts, by code point. A number
+and a text that reads wholly as a number, numerically. Two lists, or two
+records, <code>==</code> and <code>!=</code> by
+<code>d_value_equal_with</code> with the language's own rule for the
+scalars inside, so <code>[1] == [1.0]</code> is true as
+<code>1 == 1.0</code> is; a record's keys compare without regard to
+order. Anything else: <code>==</code> and <code>!=</code> by structure,
+and the rest an error. Never chained (the grammar's rule).</td>
+</tr>
+<tr class="even">
+<td><code>a =~ b</code></td>
+<td><code>b</code> is a pattern, in <code>c/util/dregex</code>'s POSIX
+ERE; true when it matches anywhere in <code>a</code>'s text.</td>
+</tr>
+<tr class="odd">
+<td>a command</td>
+<td>Run with its words and the input value; it comes to its result value
+and status (6.3).</td>
+</tr>
+<tr class="even">
+<td>a literal</td>
+<td>Its value: a number, or a text. A bare word is a command (PEG note
+4).</td>
+</tr>
+</tbody>
+</table>
+<p><code>=~</code> in 0.9:</p>
+<ul>
+<li><strong>It is ERE alone.</strong> BRE comes with dsed, after
+0.9.</li>
+<li><strong>It has no case-insensitive form.</strong> Folding ASCII only
+would be half a feature over UTF-8 text. A later release may add one as
+a new member of the regex module's options.</li>
+</ul>
+<p>The status the program exits with is the last construct's, by GRAMMAR
+section 8: 0 done and yes, 1 done and no, 2 trouble. A predicate that
+comes to false is 1, not an error.</p>
+<h2 id="6-djins">6. Djins</h2>
+<h3 id="61-what-a-djin-is">6.1 What a djin is</h3>
+<p>A djin is a named, versioned unit of djinterp that a program can
+list, describe, configure and run. It registers:</p>
+<ul>
+<li><strong>commands:</strong> verbs, each with its options as the kit
+defines them;</li>
+<li><strong>settings:</strong> its rows in the program's registry, each
+with its type, default and accepted values, and where its value came
+from;</li>
+<li><strong>descriptions:</strong> desc facts.</li>
+</ul>
+<p>awk is one: <code>run</code> is its command, and the awk machine's
+variables are its settings. bitwisedom's model could be another.</p>
+<h3 id="62-the-records">6.2 The records</h3>
+<p>C records, as the kit's plugin records are, so that a djin is C or
+C++. The same djin can later be a loadable module through the kit's
+plugin ABI (cli-taken 13 to 15, 40).</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">// a command a djin registers</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> dj_djin_command</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint32_t</span>    size<span class="op">;</span>          <span class="co">// the record grows, by size, as the kit&#39;s do</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">const</span> <span class="dt">char</span><span class="op">*</span> name<span class="op">;</span>          <span class="co">// the verb, a lowercase word (R1, cli-taken 66)</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">const</span> <span class="dt">char</span><span class="op">*</span> summary<span class="op">;</span>       <span class="co">// a line, as the command list shows it</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    <span class="co">// its options and operands, defined through the kit</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span>       <span class="op">(*</span>define<span class="op">)(</span><span class="kw">struct</span> dj_cli_program<span class="op">*,</span> <span class="kw">struct</span> dj_arg_command<span class="op">*);</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    <span class="co">// its work: the parsed command, the input value, the output value</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span>       <span class="op">(*</span>run<span class="op">)(</span><span class="kw">struct</span> dj_djin_call<span class="op">*</span> _call<span class="op">);</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="co">// a djin</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> dj_djin</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint32_t</span>                      abi<span class="op">;</span></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint32_t</span>                      size<span class="op">;</span></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>    <span class="dt">const</span> <span class="dt">char</span><span class="op">*</span>                   name<span class="op">;</span>      <span class="co">// `awk`</span></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>    <span class="dt">const</span> <span class="dt">char</span><span class="op">*</span>                   version<span class="op">;</span></span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>    <span class="dt">const</span> <span class="dt">char</span><span class="op">*</span>                   summary<span class="op">;</span></span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>    <span class="dt">const</span> <span class="kw">struct</span> dj_djin_command<span class="op">*</span> commands<span class="op">;</span></span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>    <span class="dt">size_t</span>                        command_count<span class="op">;</span></span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>    <span class="co">// its settings: its frame in the program&#39;s registry, named as the djin</span></span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>    <span class="kw">struct</span> dj_option_env<span class="op">*</span>         settings<span class="op">;</span></span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>    <span class="co">// its description: desc facts, through desc&#39;s sink (11-18, ABI 2)</span></span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> <span class="op">(*</span>describe<span class="op">)(</span><span class="dt">const</span> <span class="kw">struct</span> dj_djin<span class="op">*,</span> <span class="kw">struct</span> dj_desc_sink<span class="op">*</span> _sink<span class="op">);</span></span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span></code></pre></div>
+<ul>
+<li><p><strong>The settings are an option_env frame.</strong> The
+registry has no command face, so commands stay the djin's records, and
+the settings are its frame:</p>
+<ul>
+<li>the frame's name is the djin's;</li>
+<li>it is static and initialised before <code>main</code>;</li>
+<li><code>d_djin_register</code> registers it with
+<code>d_option_env_registry_add</code> at start, before the program has
+threads.</li>
+</ul></li>
+<li><p><strong><code>dj_djin_call</code></strong> carries:</p>
+<ul>
+<li>the program, for reports, <code>-q</code> and <code>-v</code>;</li>
+<li>the command reached;</li>
+<li>the input value, and a place for the output value;</li>
+<li>the status.</li>
+</ul>
+<p>Its exact shape follows the tagged value's header (12-04).</p></li>
+</ul>
+<p><strong>The set</strong> (<code>c/modules/interp/djin.h</code>, in
+the tree since 11-11). A program keeps its djins in a
+<code>dj_djin_set</code> over its registry, in room it gives, with the
+names it keeps for its own commands. <code>d_djin_register</code>
+refuses, and changes nothing, when:</p>
+<ul>
+<li>the record is out of shape: another ABI, a record smaller than the
+build's, a name that is not a lowercase identifier, a command that is
+not a lowercase word or is there twice, a summary of more than one line,
+or a frame named other than the djin;</li>
+<li>the name is one of the program's own commands (<code>list</code>,
+<code>describe</code>, <code>get</code>, <code>set</code>, and the kit's
+<code>help</code> and <code>completion</code>), or names one of its
+manual's pages in sections 5 and 7 (<code>settings</code>,
+<code>cli</code>, <code>language</code>), which a djin's page would
+share <em>(added 11-18)</em>;</li>
+<li>a djin of the name is in the set, or another frame of it is in the
+registry;</li>
+<li>the set is full, or the registry refuses the frame.</li>
+</ul>
+<p>A frame already in the registry, as a module's static frame may be,
+is taken as it is. <code>d_djin_write_list</code> and
+<code>d_djin_write_description</code> write the text <code>list</code>
+and <code>describe</code> print, through a sink: a line a djin, in
+columns, and a registry frame no djin names after them, as "settings
+only"; and a djin's commands and its settings, with the full name, kind,
+default, knob and help of each.</p>
+<h3 id="63-through-the-registry">6.3 Through the registry</h3>
+<p><strong>Decision 5. Djins reach the program only through the
+program's registry.</strong></p>
+<ul>
+<li><p><strong>At start, the program</strong>:</p>
+<ul>
+<li>registers its built-in djins;</li>
+<li>reads the user's settings file;</li>
+<li>imports the environment;</li>
+<li>and takes the command line.</li>
+</ul>
+<p>Standing decides which binding holds, not the order of reading. The
+standing rises through <code>DEFAULT</code>, <code>PROGRAM</code>,
+<code>FILE</code>, <code>ENVIRONMENT</code>, <code>COMMAND_LINE</code>
+and <code>OVERRIDE</code>, and a binding remembers its source.</p></li>
+<li><p><strong>A setting's full name</strong> is
+<code>djin[.scope].variable</code>. On the command line it is
+<code>--djin.variable=VALUE</code>,
+<code>--set djin.variable=VALUE</code>, or <code>--djin.flag</code> and
+<code>--no-djin.flag</code>.</p>
+<ul>
+<li>The kit offers the registry only long options it does not define
+whose names hold a <code>.</code>, plus <code>--set</code> and
+<code>--no-X.Y</code>. So the registry never takes an option the kit
+defines, and a dotted name is never abbreviated.</li>
+<li>A name that names nothing is a usage error, with the registry's
+nearest name as its "did you mean".</li>
+</ul></li>
+<li><p><strong>In the environment</strong>, a setting is
+<code>DJINTERP_</code> and its full name, upper-cased, with
+<code>.</code> as <code>_</code>:
+<code>DJINTERP_NET_TIMEOUT_MS</code>.</p>
+<ul>
+<li>A program built on the kit also imports its own name's prefix
+(<code>BITWISEDOM_</code>), after <code>DJINTERP_</code>, so the
+program's own name wins.</li>
+<li>A program's own rows sit on the registry's root, so they read
+<code>BITWISEDOM_KEYS</code>.</li>
+</ul></li>
+<li><p><strong>The user's settings file</strong> is
+<code>$XDG_CONFIG_HOME/djinterp/settings</code>, or else
+<code>~/.config/djinterp/settings</code>, and
+<code>%APPDATA%\djinterp\settings</code> on Windows. Its bindings are
+<code>FILE</code>'s.</p>
+<ul>
+<li>A program may read a file of its own after it, and the program's
+file wins.</li>
+<li>A statement that fails is reported by its line, and reading goes on
+at the next.</li>
+<li>0.8 has no system or project file. They come in 0.9, once a row can
+refuse a source, since a project file is the one an untrusted checkout
+could carry.</li>
+</ul></li>
+</ul>
+<p>So <code>--help</code> (from desc, in December),
+<code>describe</code>, <code>get</code> and <code>set</code> all read
+one source, and cannot disagree with the code (<code>desc.txt</code>,
+"three uses from one source").</p>
+<h3 id="64-the-08-previews-command-line">6.4 The 0.8 preview's command
+line</h3>
+<p><em>(Final for 0.8, 11-27.)</em></p>
+<pre><code>djinterp list                         the djins, a line each: name, version,
+                                      summary; then the frames no djin names
+djinterp describe DJIN [COMMAND]      a djin, or one of its commands, as
+                                      text, or JSON (--format=json)
+djinterp get [--show-origin] [NAME]...
+                                      settings as statements that load back,
+                                      every one without a NAME; where each
+                                      value came from
+djinterp set [--section=PROGRAM] [--unchecked] NAME=VALUE...
+                                      settings written to the user&#39;s file
+djinterp help, completion, --version  the kit&#39;s</code></pre>
+<p>Each djin is a command group, as <code>git</code>'s subcommands are:
+<code>djinterp DJIN COMMAND [ARGUMENT]...</code> runs a djin's command.
+0.8 registers no djin with commands of its own, so the form waits for
+0.9's first, but its names are kept from now: a djin is refused at
+registration, by name, where its name is one of the program's commands
+or the kit's (<code>list</code>, <code>describe</code>,
+<code>get</code>, <code>set</code>, <code>help</code>,
+<code>completion</code>), or the name of one of the manual's pages in
+sections 5 and 7 (<code>settings</code>, <code>cli</code>,
+<code>language</code>), which its own page,
+<code>djinterp-NAME(1)</code>, would otherwise share.</p>
+<p>With no djin of the program's own yet, <code>list</code> names the
+registry's frames as "settings only": every core djin's, parse's,
+desc's, the environment printer's and the log's, which
+<code>djinterp</code> registers before it runs, and the kit's
+<code>cli</code>. bitwisedom's djin is bitwisedom's to register, and
+djinterp does not.</p>
+<ul>
+<li><strong><code>describe DJIN</code></strong> writes a djin's
+description, and <strong><code>describe DJIN COMMAND</code></strong> one
+of its commands alone; for a frame no djin names, its settings. A name
+no djin or frame has is a usage error,
+<code>no djin is named 'net'</code>. <code>--format=json</code> writes
+an object of the shape <code>"djinterp.describe/1.0"</code>, named first
+as <code>"format"</code>, through desc's JSON machine
+(<code>c/modules/interp/djin_desc.h</code>). The settings in it are the
+option core's own reading of them (<code>option_env_desc.h</code>), so
+<code>describe</code>, <code>help</code> and
+<code>get --show-origin</code> cannot disagree.</li>
+<li><strong><code>help --format=json</code></strong> is the kit's
+description of the program, <code>"djinterp.help/1.0"</code> (the kit's
+<code>HELP_JSON.html</code>), with two members of djinterp's own:
+<code>djins</code>, each djin's name, version, summary and commands,
+then each frame no djin names, its settings alone, in
+<code>list</code>'s order; and <code>reserved</code>, the names above
+that a djin may not take.</li>
+<li><strong><code>get</code></strong> prints statements,
+<code>net.timeout_ms = 5000</code>, one a line, with
+<code>d_option_env_format_quoted</code>, so its output can be pasted
+into a settings file. Without a NAME it prints every setting the
+registry holds.
+<ul>
+<li><p>An unset text prints as a comment,
+<code># plugin_path is unset</code>, which loads as nothing.</p></li>
+<li><p>With <code>--show-origin</code>, each value is followed by its
+source and the bindings under it:</p>
+<pre class="text"><code>net.timeout_ms = 5000  (command line)
+    under it   10000   (file)
+    default    30000   (D_CFG_NET_TIMEOUT_MS)</code></pre>
+<p>0.8 shows the source's word. When a binding carries its origin (the
+file and line, or the variable's name), 0.9 shows that too.</p></li>
+</ul></li>
+<li><strong><code>set</code></strong> writes each statement to the
+user's settings file, with <code>d_option_env_format_quoted</code>. Its
+bindings are <code>FILE</code>'s on the next run.
+<ul>
+<li>Each is checked first as the file will bind it
+(<code>d_option_env_registry_check_from</code>), then bound for the run,
+so a name no djin has, or a value the setting does not take, is refused,
+each refusal said, before anything is written.</li>
+<li>Each is written under its canonical name: its row's, after its
+djin's.</li>
+<li>The file is written whole, as the run reads it, in sections (the
+kit's grammar, section 6): <code>[PROGRAM]</code> begins the lines that
+program alone reads, and <code>[*]</code> every program's again. Without
+<code>--section</code>, or with <code>--section='*'</code>, the
+statements go among every program's lines: a line there that sets the
+same name alone is replaced, and the new ones go after the last
+statement before the first header. With <code>--section=PROGRAM</code>
+they go in that program's lines: a line of its sections that sets the
+name alone is replaced, and the new ones go after the last statement of
+its last section, which is made at the file's end where it has none.
+Either way, a line kept after the new ones that sets the same name for a
+program that reads them is said by its line, as a warning, since that
+program reads it last. A line among other programs' is never
+replaced.</li>
+<li>The headers are the file's structure, kept even in a run that reads
+the file as one part (<code>cli.settings_sections</code> false, from the
+environment), so that no other program's lines are taken for this
+one's.</li>
+<li>A setting of a djin <code>djinterp</code> does not register, as
+<code>bitwisedom.keys</code>, is another program's, told as the kit
+tells the file's lines (<code>cli.unknown_djin</code>). <code>set</code>
+refuses it as one no djin has, with a note. With
+<code>--unchecked</code> it writes it as given, where
+<code>--section</code> says, each said as a warning: its name's shape
+checked, two names or more of letters, digits and <code>_</code> joined
+by <code>.</code>, and its value quoted as the option core quotes a
+text, so that the file reads back what was given. Its own program judges
+it when it next runs, and says by line what it refuses. A setting of a
+djin <code>djinterp</code> has is checked even so.</li>
+<li>A one-run override is <code>--set NAME=VALUE</code>, as in every
+program on the kit.</li>
+<li>In the 0.9 interpreter's prompt, <code>set</code> binds from
+<code>COMMAND_LINE</code> for the session instead.</li>
+</ul></li>
+<li><strong>A djin whose settings come from a file of its own.</strong>
+<code>get</code> and <code>set</code> are to take the registry's names
+and fall back to that file's raw path for anything the registry does not
+list: bitwisedom's rule (cli-taken 16), made the language's. No djin
+<code>djinterp</code> registers in 0.8 has such a file, so the fallback
+comes with the first that does.</li>
+</ul>
+<p>The 0.9 interpreter adds <code>djinterp -c 'LINE'</code>,
+<code>djinterp FILE</code> for scripts, and standard input.</p>
+<h3 id="65-loadable-djins">6.5 Loadable djins</h3>
+<p><em>(Final for 0.8, 11-27: what 0.8 has of it is the search list's
+rules.)</em></p>
+<p>Not in 0.8. In 0.9:</p>
+<ul>
+<li>A djin may be a module the kit loads, <code>djinterp-DJIN</code>,
+found beside the program or along its search list (cli-taken 14,
+<code>D_CFG_CLI_PLUGIN_SEARCH</code>). Its plugin record carries a
+<code>dj_djin</code>.</li>
+<li>A module of another version is refused, or loaded with a warning, as
+the program says (cli-taken 15,
+<code>D_CFG_CLI_PLUGIN_STRICT_VERSION</code>).</li>
+<li><code>list</code> then names where each came from.</li>
+</ul>
+<p><strong>The search list is a setting that decides what code
+runs</strong>, so where <code>D_CFG_CLI_PLUGIN_VARIABLE</code> is 0 its
+rows - <code>plugin_path</code> and <code>cli.plugin_search</code> -
+refuse every source the program's caller controls: the user's file, the
+environment and the command line
+(<code>D_OPTION_ENV_REFUSES_CALLER</code>, option_env's decision 69).
+The program and an override still bind them. A builder who trusts one of
+those sources defines <code>D_OPTION_ENV_REFUSES_CALLER</code> as its
+own set; no run-time option relaxes it. A row names the sources it
+refuses, and a binding from one fails by name.</p>
+<p><strong>A run with privileges its caller lacks</strong> (a
+set-user-ID or set-group-ID program, or one given capabilities) refuses
+its caller the same rows, whatever
+<code>D_CFG_CLI_PLUGIN_VARIABLE</code> says, where
+<code>D_CFG_CLI_PRIVILEGED_REFUSE</code> (1 by default) or the program
+(<code>d_cli_program_set_plugin_privileged</code>) has it so. In such a
+run <code>cli.privileged_refuse</code> is the program's alone, and
+<code>D_CFG_CLI_PRIVILEGED_OPTION</code> 0 compiles it out. A privileged
+run that trusts its caller says so, as a warning naming whose word it
+is, the program's or the build's. The run asks the system as its loader
+does (<code>env_cli.h</code>, <code>D_ENV_CLI_PRIVILEGE</code>):
+<code>AT_SECURE</code> on Linux and Android, <code>issetugid</code> on
+the BSDs and Apple's systems, the user and group ids on any other POSIX
+system; on Windows no run is privileged.</p>
+<p>Both rules hold from 0.8 for every program's plugins; 0.9's djins
+inherit them.</p>
+<h2 id="7-awk">7. awk</h2>
+<p><code>desc.txt</code> settles the boundary: the djinterp language is
+native, and awk is a dialect over a shared core. <strong>They mix at
+module granularity</strong>, never inside an expression, so that awk's
+string-and-number duality does not leak into the language's types.</p>
+<ul>
+<li><p><strong>awk is a djin, <code>awk</code>, in djinterp's
+registry.</strong> dawk the tool keeps a registry of its own,
+<code>dawk</code>, whose environment prefix is <code>DAWK_</code>.</p>
+<ul>
+<li>Its command is <code>run</code>, which takes a program - text, or a
+file - and its operands.</li>
+<li>Its settings are the awk machine's own, spelled as rows:
+<code>awk.fs</code>, <code>awk.ofs</code>, <code>awk.rs</code> and
+<code>awk.ors</code>.</li>
+<li>They map into the program once, at the start of a run, as
+<code>-v</code> assigns. A program's <code>FS</code> never writes back
+to its row: the FS bug of last time came from mixing the two.</li>
+</ul></li>
+<li><p><strong>In a pipeline, awk takes its input value as
+records.</strong></p>
+<ul>
+<li>A text goes to dawk whole, and awk's <code>RS</code> splits it. So
+paragraphs (<code>RS = ""</code>) and a regular-expression
+<code>RS</code> work.</li>
+<li>A list goes through a <code>dj_awk_source</code>, one record per
+element.</li>
+<li>Output comes back as text, through dawk's output sink, each record
+ended by <code>ORS</code>.</li>
+</ul>
+<p>So <code>ls | awk run '{ print $1 }' | count</code> works on values
+the language already has.</p></li>
+<li><p><strong>A block handed to awk's <code>run</code> is an awk
+program</strong>, read by dawk, not by the language's grammar. This is
+Racket's <code>#lang</code> boundary, at the size of a block.</p>
+<ul>
+<li>When the reader meets <code>{</code> after <code>#lang awk</code>,
+it hands dawk the text after the brace.</li>
+<li>dawk's block-end scanner finds the closing brace, and gives back its
+offset; or an error at the place awk's lexer reports it; or that the
+text ran out before the block closed
+(<code>D_AWK_BLOCK_UNCLOSED</code>), which the reader marks incomplete
+(<code>D_PARSE_DIAG_FLAG_INCOMPLETE</code>), so a prompt waits for
+more.</li>
+<li>The reader gives core v2 that span as the block's raw text. The
+interpreter counts no braces in awk.</li>
+</ul></li>
+</ul>
+<p><strong>Decision 6. The interpreter calls dawk only through its
+implemented hooks</strong>:</p>
+<ul>
+<li><code>dinterp.h</code>, with <code>d_awk_interp_new</code> and
+<code>d_awk_interp_run</code>;</li>
+<li><code>dsource.h</code>, for records;</li>
+<li><code>dhost.h</code>, for host functions;</li>
+<li><code>dvalue.h</code>'s extern values.</li>
+</ul>
+<p><code>desc.txt</code> names these as the extension points the new
+engine keeps.</p>
+<ul>
+<li>They freeze with the command language on 12-11. After that, a member
+may be added, but not changed.</li>
+<li>The output sink, text input that keeps <code>RS</code>, and the
+block-end scanner join them by 12-04.</li>
+</ul>
+<h2 id="8-what-the-interpreter-depends-on">8. What the interpreter
+depends on</h2>
+<table>
+<thead>
+<tr class="header">
+<th>On</th>
+<th>What</th>
+<th>Where it stands</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>expression core v2</td>
+<td>non-associative levels, a primary hook, a client token alphabet,
+diagnostics at the character, the term in an arena, the renderer</td>
+<td>in the C core since 11-06</td>
+</tr>
+<tr class="even">
+<td>expression core v2</td>
+<td>the walk's skip, for <code>and</code>, <code>or</code> and a
+pipeline's first failure</td>
+<td>in the C core since 11-06 (3.3)</td>
+</tr>
+<tr class="odd">
+<td>expression core v2</td>
+<td>the sub-parse, for blocks</td>
+<td>in the C core since 11-11</td>
+</tr>
+<tr class="even">
+<td>the grammar</td>
+<td>P1 to P8 in <code>djinterp.peg</code>, its ABNF and its EBNF</td>
+<td>in the tree since 11-11</td>
+</tr>
+<tr class="odd">
+<td>option_env and the registry</td>
+<td>rows, frames, sources and standing; <code>take_option</code>;
+<code>format_quoted</code>; text knobs</td>
+<td>in the tree since 11-10</td>
+</tr>
+<tr class="even">
+<td>option_env and the registry</td>
+<td>rows that refuse a source</td>
+<td>11-13</td>
+</tr>
+<tr class="odd">
+<td>option_env and the registry</td>
+<td>a binding's origin, for <code>--show-origin</code></td>
+<td>0.9, at the earliest</td>
+</tr>
+<tr class="even">
+<td>desc</td>
+<td>its fact sink, for a djin's <code>describe</code></td>
+<td>11-13; JSON 11-20</td>
+</tr>
+<tr class="odd">
+<td>desc</td>
+<td><code>--help</code> from desc facts, laid out by the kit's help
+formatter, so the kit's rulings on help (84, 57, 65, 66) hold in one
+place</td>
+<td>December</td>
+</tr>
+<tr class="even">
+<td>the tagged value</td>
+<td>its header, with the tags of decision 4, and
+<code>d_value_equal_with</code></td>
+<td>12-04, header and code together</td>
+</tr>
+<tr class="odd">
+<td><code>c/util/dregex</code></td>
+<td>POSIX ERE, for <code>=~</code></td>
+<td>in the tree</td>
+</tr>
+<tr class="even">
+<td>dawk</td>
+<td>the hooks of decision 6, frozen; the output sink, RS-keeping text
+input and the block-end scanner</td>
+<td>frozen 12-11; additions by 12-04</td>
+</tr>
+<tr class="odd">
+<td>the root</td>
+<td><code>D_KEYWORD_INTERP</code> and <code>NS_INTERP</code> in
+<code>djinterp.h</code></td>
+<td>11-13</td>
+</tr>
+<tr class="even">
+<td>the build</td>
+<td>an export switch for each library, <code>D_&lt;NAME&gt;_API</code>,
+from <code>djinterp_add_library(... API &lt;NAME&gt; ...)</code>; there
+is no one <code>D_CORE_API</code></td>
+<td>in the tree; a shared build is tested once the runtime is
+shared</td>
+</tr>
+</tbody>
+</table>
+<h2 id="9-schedule">9. Schedule</h2>
+<table>
+<thead>
+<tr class="header">
+<th>When</th>
+<th>What</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Fri 11-06</td>
+<td>This note agreed or amended with the designs it depends on. <em>Core
+v2 agreed 11-05; the options and dawk 11-10.</em></td>
+</tr>
+<tr class="even">
+<td>Mon 11-09</td>
+<td>The grammar's fixes; the spine moved to <code>interp</code>.</td>
+</tr>
+<tr class="odd">
+<td>Wed 11-11</td>
+<td>The djin records (6.2): the set, registration into the registry, and
+the text that <code>list</code> and <code>describe</code> print.</td>
+</tr>
+<tr class="even">
+<td>Fri 11-13</td>
+<td>The <code>djinterp</code> program on the records
+(<code>src/djinterp/tools/djinterp/</code>, its leaf
+<code>build/cmake/config/djinterp/tools/djinterp/</code>):
+<code>list</code>, <code>describe DJIN</code>,
+<code>get [--show-origin] [NAME]...</code> and
+<code>set NAME=VALUE...</code>. The kit's settings on the
+knob-and-option pattern (<code>tools/cli/c/cli_settings.h</code>): the
+user's file, both imports, and the command line's settings.</td>
+</tr>
+<tr class="odd">
+<td>Wed 11-18</td>
+<td>The records' <code>describe</code> takes desc's sink, and
+<code>D_DJIN_ABI</code> is 2. <code>get --show-origin</code> reads the
+default from the layers where they end with it. Every result is written
+through the kit's watched output, so a full disk is said with its
+reason. <code>settings</code>, <code>cli</code> and
+<code>language</code> are reserved.</td>
+</tr>
+<tr class="even">
+<td>Fri 11-20</td>
+<td><code>djinterp</code> registers every core djin.
+<code>describe DJIN [COMMAND]</code> and <code>--format=json</code>.
+<code>set</code> checks each setting as the file will bind it, and
+writes its canonical name. The plugin rows refuse the caller's sources
+where <code>D_CFG_CLI_PLUGIN_VARIABLE</code> is 0. The kit's suites run
+on DTest. The kit holds what the user's file and the environment could
+not set, and says it once the parse ends, as two settings of its own
+say: <code>cli.unknown_settings</code> (by default, nothing for a djin
+the program does not register) and <code>cli.shared_refusals</code> (by
+default, a note at <code>-v</code>).</td>
+</tr>
+<tr class="odd">
+<td>Mon 11-23</td>
+<td>The kit reads the command line's settings through the argument
+parser's setting hook. <code>help --format=json</code> writes the
+program's description, <code>"djinterp.help/1.0"</code>
+(<code>docs/djinterp/tools/cli/HELP_JSON.html</code>). The interpreter's
+skeleton, its first step: <code>language.hpp</code> reads a line or a
+command line, sequences and pipelines, into core v2's term through its C
+API, and <code>evaluate.hpp</code> walks it, a pipeline ended by its
+first stage in trouble. Its suite runs at each C++ level from C++11, in
+its own leaf
+(<code>build/cmake/config/testing/djinterp/cpp/modules/interp/skeleton/</code>);
+nothing of it is installed.</td>
+</tr>
+<tr class="even">
+<td>Wed 11-25</td>
+<td>The user's settings file read in sections, <code>[PROGRAM]</code>
+and <code>[*]</code> (<code>cli.settings_sections</code>), and
+<code>djinterp set --section=PROGRAM</code>. A privileged run refuses
+the plugin settings from its caller's sources unless the program or the
+build trusts it (<code>cli.privileged_refuse</code>). An unknown djin
+told either way, by the registry's reason or the kit's lookup
+(<code>cli.unknown_djin</code>). bitwisedom's own djin,
+<code>bitwisedom.keys</code> and <code>bitwisedom.sheets</code>. The
+skeleton's second step: <code>and</code>, <code>or</code> and
+<code>not</code> by truth, short-circuiting; the comparisons by number,
+text and structure, <code>=~</code> by ERE; numbers and strings as
+literals. Its suite has 11 tests.</td>
+</tr>
+<tr class="odd">
+<td>Fri 11-27</td>
+<td><code>set --unchecked</code> for another program's settings. The
+preview's docs: 6.4 and 6.5 final, the kit's grammar's section 6 on its
+settings and the file's sections, and the kit's and
+<code>djinterp</code>'s READMEs. Every header of the kit,
+<code>djinterp::ui</code> and the kit's environment carries HOW TO USE,
+OPTIONS and CONFIGURATION.</td>
+</tr>
+<tr class="even">
+<td>Weeks 2 and 3</td>
+<td>The 0.8 preview (6.4) whole: <code>describe DJIN COMMAND</code> and
+<code>--format=json</code> on desc's sink, and a djin's commands run.
+The interpreter's skeleton on core v2 - sequences and pipelines - behind
+it.</td>
+</tr>
+<tr class="odd">
+<td>Week 4</td>
+<td>The preview's suites and docs; this note's December half,
+refined.</td>
+</tr>
+<tr class="even">
+<td>December</td>
+<td>Predicates, blocks and values; djins through the interpreter; awk
+run by dawk; the language frozen 12-11; suites, docs and the man page by
+12-18.</td>
+</tr>
+</tbody>
+</table>
+<p>If checkpoint 2 (11-15) finds the interpreter a week behind, the cut
+is the roadmap's trigger 1: the preview shrinks to this note and a
+skeleton.</p>
+</body>
+</html>

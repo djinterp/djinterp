@@ -1,6 +1,6 @@
 # lifetime.hpp unit test suite - leaf recipe (header-only module, no src/).
 #
-#   Delivery form (djinterp_testing.md S7.2): ships in its OWN leaf directory
+#   Delivery form (djinterp_testing.html S7.2): ships in its OWN leaf directory
 # .../meta/lifetime/.  Fold into a shared cluster by merging the call below into
 # a parent CMakeLists and deleting this leaf.
 #

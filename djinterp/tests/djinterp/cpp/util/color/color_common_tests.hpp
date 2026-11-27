@@ -5,7 +5,7 @@
 * scalar, the two generic scalar helpers (clamp_channel / approx_equal), the
 * model-tag hierarchy, and the is_color_model detection trait.
 *
-*   Two faces, selected by DTEST_SPEC_MODE (see djinterp_testing.md S3):
+*   Two faces, selected by DTEST_SPEC_MODE (see djinterp_testing.html S3):
 * normal mode pulls the header under test plus the fixtures and the check
 * macro; spec mode pulls test_defaults.hpp and exposes color_common_spec().
 *

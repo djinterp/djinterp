@@ -5,7 +5,7 @@
 * writers are log_writers.c's. The threshold and each grade's level are
 * cached per module, and read again only when the djin's generation moves,
 * so the level check is a comparison; settings are written before the
-* program starts its threads (knob_and_option.md, point 4).
+* program starts its threads (knob_and_option.html, point 4).
 *
 *
 * path:      /src/djinterp/c/log/log.c

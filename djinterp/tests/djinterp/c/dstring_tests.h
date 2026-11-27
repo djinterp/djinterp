@@ -8,7 +8,7 @@
 * spec provider, d_tests_dstring_spec().
 *
 *   The first block holds the register's decisions on dstring (#13, #19, #22,
-* #23 and #24 of docs/djinterp_decisions.md, Part B): each fix that the
+* #23 and #24 of docs/djinterp_decisions.html, Part B): each fix that the
 * settlement of 2026.10.04 made, with a test that fails on the code before
 * it. The standalone suite (dstring_tests_sa*.c) moves in as further blocks
 * as it is converted.

@@ -1200,7 +1200,7 @@ int d_cli_usage_error(
 /*
 d_cli_file_error
   `cannot DOING 'PATH': REASON`, the standard streams named for what they
-are; the want of memory, `out of memory`, whatever the file (GRAMMAR.md,
+are; the want of memory, `out of memory`, whatever the file (GRAMMAR.html,
 section 8).
 */
 int d_cli_file_error(
@@ -3671,7 +3671,7 @@ int d_cli_internal_files_said(
 
 /**
  * @brief Composes what `--version --verbose` says after the version's line
- *        (GRAMMAR.md, section 6): the files first - the program's, a
+ *        (GRAMMAR.html, section 6): the files first - the program's, a
  *        module's own, and where each command that is a module would load
  *        it from - then how the program was built, its own lines, and how
  *        the kit was built.

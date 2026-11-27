@@ -4,7 +4,7 @@
 * The commands that make a sheet or a row: new, import, add and change.
 *   A changing command reads its sheet, changes it in memory, and writes it
 * back where it came from, in the shape it came in, whole or not at all
-* (GRAMMAR.md, R20): the change is made by the model's own edits - those
+* (GRAMMAR.html, R20): the change is made by the model's own edits - those
 * the window makes - so a row the window would refuse is refused here in
 * the same words. Every operand is checked before anything is written, so
 * a command that fails leaves the file as it was.

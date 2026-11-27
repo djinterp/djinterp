@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>bitwisedom in the djinterp repository</title>
+  <style>
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+</head>
+<body>
+<h1 id="bitwisedom-in-the-djinterp-repository">bitwisedom in the
+djinterp repository</h1>
+<p>This package is an overlay for the root of the
+<strong>djinterp</strong> repository. Extract it there while preserving
+the directory structure. It does not include the rest of djinterp or any
+Dear ImGui or uxoxo sources.</p>
+<p>The window is made with uxoxo, which the djinterp tree does not hold,
+so it lives beside djinterp's directories rather than in them -
+<code>ui/</code> where djinterp's are <code>djinterp/</code> - and has a
+build of its own (2026.10.23). <code>bitwisedom gui</code> loads it as a
+module; the command line carries none of it.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Repository-relative path</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>inc/djinterp/tools/bitwisedom/</code></td>
+<td>Public headers: the model's and the command line's</td>
+</tr>
+<tr class="even">
+<td><code>src/djinterp/tools/bitwisedom/</code></td>
+<td>The model, the command line (<code>cli/</code>) and the programs'
+mains (<code>tools/</code>)</td>
+</tr>
+<tr class="odd">
+<td><code>tests/djinterp/tools/bitwisedom/</code></td>
+<td>Tests and test fixtures; the command line's transcripts in
+<code>cli/</code></td>
+</tr>
+<tr class="even">
+<td><code>build/cmake/djinterp/tools/bitwisedom/</code></td>
+<td>The command line's CMake files and presets; generated build
+intermediates in <code>out/</code></td>
+</tr>
+<tr class="odd">
+<td><code>inc/ui/bitwisedom/</code></td>
+<td>The window's headers</td>
+</tr>
+<tr class="even">
+<td><code>src/ui/bitwisedom/</code></td>
+<td>The window, its two hosts, and the module's run function</td>
+</tr>
+<tr class="odd">
+<td><code>tests/ui/bitwisedom/</code></td>
+<td>The window's smoke test</td>
+</tr>
+<tr class="even">
+<td><code>build/ui/bitwisedom/</code></td>
+<td>The window's CMake files and presets, which build the command line's
+within them; intermediates in <code>out/</code></td>
+</tr>
+<tr class="odd">
+<td><code>bin/tools/bitwisedom/</code></td>
+<td>Release executables/libraries named
+<code>&lt;target&gt;-&lt;platform&gt;&lt;bits&gt;.&lt;ext&gt;</code></td>
+</tr>
+<tr class="even">
+<td><code>bin/tools/bitwisedom/debug/</code></td>
+<td>Debug executables, libraries and PDB files</td>
+</tr>
+<tr class="odd">
+<td><code>res/djinterp/tools/bitwisedom/examples/</code></td>
+<td>JSON examples and large fixtures</td>
+</tr>
+<tr class="even">
+<td><code>docs/bitwisedom/</code></td>
+<td>Documentation, schema and screenshots</td>
+</tr>
+</tbody>
+</table>
+<p>Use <code>cmake --preset msvc</code> from
+<code>build/ui/bitwisedom/</code> for everything, or from
+<code>build/cmake/djinterp/tools/bitwisedom/</code> for the command line
+alone (on Windows, in a Developer Command Prompt). The window's build
+finds uxoxo where <code>UXOXO_ROOT</code> names it -
+<code>-DUXOXO_ROOT=&lt;path&gt;</code>, or the environment's -- and
+otherwise at the sibling checkout: <code>uxoxo</code> beside djinterp's
+checkout, or <code>uxoxo/uxoxo-project</code> there, then the same a
+level up, as a directory of projects with a folder for each keeps them.
+It is found when the window is built, never when it runs, and never
+inside djinterp's tree. A previous standalone bitfield_manager build
+should not be reused. The public header paths are now
+<code>#include &lt;djinterp/tools/bitwisedom/sheet.hpp&gt;</code>, etc.
+The library's C++ namespace remains <code>bitwisedom</code>. The target
+names are unchanged.</p>
+<p>This overlay does <strong>not</strong> change djinterp's main build
+registration. bitwisedom currently builds from its own CMake entrypoint
+under <code>build/</code>.</p>
+<h2 id="binary-filenames">Binary filenames</h2>
+<p>On a Windows x64 build, outputs include:</p>
+<pre class="text"><code>bin/tools/bitwisedom/bitwisedom-win64.exe
+bin/tools/bitwisedom/bitwisedom-gui-win64.dll
+bin/tools/bitwisedom/bitwisedom-gen-win64.exe
+bin/tools/bitwisedom/bitwisedom_core-win64.lib
+bin/tools/bitwisedom/debug/bitwisedom-win64.exe
+bin/tools/bitwisedom/debug/bitwisedom-win64.pdb</code></pre>
+<p>All bitwisedom-owned test binaries and libraries use the same
+convention. Dependencies such as uxoxo keep their own output layout.
+Build intermediate files remain under the build's own <code>out/</code>:
+<code>build/cmake/djinterp/tools/bitwisedom/out/</code>, or
+<code>build/ui/bitwisedom/out/</code>. The tag is selected from the
+target OS/architecture, and can be overridden using the CMake cache
+variable <code>BITWISEDOM_PLATFORM_TAG</code>.</p>
+<p><strong>Migration:</strong> The ZIP overlays the new paths;
+extracting a ZIP cannot delete your old
+<code>build/djinterp/tools/bitwisedom/</code> directory. Remove that
+obsolete configuration manually when the new build is working. Since
+2026.10.23 the same holds for what moved out of the djinterp tree:
+delete <code>src/djinterp/tools/bitwisedom/app/</code> (now
+<code>inc/ui/bitwisedom/</code> and <code>src/ui/bitwisedom/</code>),
+<code>tests/djinterp/tools/bitwisedom/ui_smoke.cpp</code> (now
+<code>tests/ui/bitwisedom/</code>) and
+<code>build/cmake/djinterp/tools/bitwisedom/cmake/Uxoxo.cmake</code>
+(now <code>build/ui/bitwisedom/cmake/</code>).</p>
+<p><strong>uxoxo's Dear ImGui, patched.</strong> The Options can set a
+sheet's tabs over one of its columns, which Dear ImGui's dock nodes do
+not do by themselves: uxoxo's <code>inc/imgui/imgui.cpp</code> and
+<code>imgui_internal.h</code> carry a small patch, marked
+<code>[uxoxo]</code> and announced by
+<code>IMGUI_DOCK_TAB_BAR_INSET</code>. With uxoxo's own <code>1</code>
+(2026.10.25, which 0.9 takes by ruling cli e) a dock node's tab bar may
+begin inset: the tabs begin at the column and run on to the right edge.
+With the overlay's <code>2</code> (2026.10.20) it may also end inset and
+keep to its right: the tabs end where the column does, at its left or
+its right. With neither the window still builds, configure says so, and
+the tabs run across the whole width from the left, as they do by default
+anyway.</p>
+<p><strong>After unzipping an overlay, configure before
+building</strong> (<code>cmake --preset msvc</code>): extraction keeps
+the archive's file times, which can be older than your last build's
+objects, and configure marks every source whose content changed to
+compile again. <a href="BUILD.html">BUILD.html</a> says how.</p>
+</body>
+</html>

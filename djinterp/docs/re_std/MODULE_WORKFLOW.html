@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>restd module implementation workflow</title>
+  <style>
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+    /* CSS for syntax highlighting */
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+</head>
+<body>
+<h1 id="re_std-module-implementation-workflow">re_std module
+implementation workflow</h1>
+<p>This document describes the end-to-end process for shipping a re_std
+module. It supersedes step 7 of <code>RE_STD_AGENT_README.html</code>
+("Update documentation"), which referenced now-deprecated tables. The
+workflow has three phases, in strict order:</p>
+<ol type="1">
+<li><strong>Header files</strong> — the actual implementation.</li>
+<li><strong>Coverage JSON</strong> — one file per std header, the
+workbook's data source.</li>
+<li><strong>Workbook build</strong> — regenerate
+<code>re_std_cpp_coverage.xlsx</code> and update the roadmap.</li>
+</ol>
+<p>Each phase is verified before moving to the next.</p>
+<hr />
+<h2 id="phase-1--header-files">Phase 1 — Header files</h2>
+<p>Implement the module per <code>RE_STD_AGENT_README.html</code> §
+<em>How to Implement a New Module</em>, steps 1–6 (granular per-symbol
+<code>.hpp</code>s, umbrella header, tiered <code>#if</code> guards).
+Then <strong>compile-test</strong> before considering the phase
+done:</p>
+<ul>
+<li>Build a small smoke fixture under
+<code>/home/claude/&lt;module&gt;/test_stubs/</code> that supplies any
+missing re_std dependencies with <code>std::</code> aliases.</li>
+<li>Compile the umbrella under every supported standard tier with
+<code>g++ -Wall -Wextra</code> and confirm zero warnings.</li>
+<li>Run an end-to-end exercise (<code>./smoke</code>) that prints
+<code>ok</code> from every tier.</li>
+</ul>
+<p>Common pitfalls:</p>
+<ul>
+<li>Trailing return types that reference <code>m_storage</code> parse
+before private members are visible. Use
+<code>std::declval&lt;T&amp;&gt;()</code> etc. in the trailing return;
+bodies can use the real member.</li>
+<li><code>bad_*_access</code> exception classes need three inheritance
+fallbacks (<code>std::bad_cast</code> → <code>std::exception</code> →
+standalone) gated on <code>D_ENV_CPP98_HAS_TYPEINFO</code> and
+<code>D_ENV_CPP98_HAS_EXCEPTION</code>. Pattern is in
+<code>any/bad_any_cast.hpp</code> and
+<code>expected/bad_expected_access.hpp</code>.</li>
+<li>C++11+ modules should gate every header on
+<code>#if D_ENV_LANG_IS_CPP11_OR_HIGHER</code> (whole-file include
+guards), not just the symbols that use C++11 features. Otherwise tag
+types and exception bases compile on C++98 but fail later because of
+ref-qualifiers / <code>constexpr</code> ctors.</li>
+</ul>
+<p>Output: <code>inc/re_std/cpp/&lt;module&gt;/*.hpp</code> + the
+umbrella.</p>
+<hr />
+<h2 id="phase-2--coverage-json">Phase 2 — Coverage JSON</h2>
+<p>Each std header has exactly one JSON file:
+<code>docs/re_std/cpp/data/&lt;header&gt;.json</code>. These files are
+the data source; the workbook builder <strong>discovers them by
+globbing</strong> <code>docs/re_std/cpp/data/*.json</code> — any file
+whose name starts with <code>_</code> (such as <code>_config.json</code>
+and <code>_roadmap.json</code>) is skipped. One header JSON → one data
+sheet. There is no manifest or module list to maintain: drop a JSON in
+the directory and it becomes a sheet. The schema below is what
+<code>build_coverage_workbook.py</code> consumes (see <em>Tooling
+architecture</em> at the end of this doc).</p>
+<h3 id="schema">Schema</h3>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;header&quot;</span><span class="fu">:</span>       <span class="st">&quot;&lt;expected&gt;&quot;</span><span class="fu">,</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;subtitle&quot;</span><span class="fu">:</span>     <span class="st">&quot;Long per-header description shown in the title bar.&quot;</span><span class="fu">,</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;legend_blurb&quot;</span><span class="fu">:</span> <span class="st">&quot;Short blurb shown in the Legend sheet&#39;s listing.&quot;</span><span class="fu">,</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;symbols&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">{</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;name&quot;</span><span class="fu">:</span>               <span class="st">&quot;expected&lt;T,E&gt;&quot;</span><span class="fu">,</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;group&quot;</span><span class="fu">:</span>              <span class="st">&quot;Wrapper class&quot;</span><span class="fu">,</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;primary_in&quot;</span><span class="fu">:</span>             <span class="st">&quot;C++23&quot;</span><span class="fu">,</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;secondary_min&quot;</span><span class="fu">:</span>          <span class="st">&quot;C++11&quot;</span><span class="fu">,</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;constexpr_in_primary&quot;</span><span class="fu">:</span>   <span class="st">&quot;C++23&quot;</span><span class="fu">,</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;constexpr_in_secondary&quot;</span><span class="fu">:</span> <span class="st">&quot;C++20&quot;</span><span class="fu">,</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;intrinsic_required&quot;</span><span class="fu">:</span> <span class="kw">false</span><span class="fu">,</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;intrinsic_names&quot;</span><span class="fu">:</span>    <span class="st">&quot;&quot;</span><span class="fu">,</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;detection_macro&quot;</span><span class="fu">:</span>    <span class="st">&quot;&quot;</span><span class="fu">,</span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;t_alias_in&quot;</span><span class="fu">:</span>         <span class="kw">null</span><span class="fu">,</span></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;v_var_in&quot;</span><span class="fu">:</span>           <span class="kw">null</span><span class="fu">,</span></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;deprecated_in&quot;</span><span class="fu">:</span>      <span class="kw">null</span><span class="fu">,</span></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;notes&quot;</span><span class="fu">:</span>              <span class="st">&quot;Implementation notes, especially where re_std differs from std.&quot;</span><span class="fu">,</span></span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;depends_on&quot;</span><span class="fu">:</span>         <span class="ot">[]</span><span class="fu">,</span></span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;failure_reason&quot;</span><span class="fu">:</span>     <span class="kw">null</span><span class="fu">,</span></span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;reexport&quot;</span><span class="fu">:</span>           <span class="kw">false</span></span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span><span class="ot">,</span></span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>    <span class="er">...</span></span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>  <span class="ot">]</span></span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<h3 id="field-semantics">Field semantics</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Field</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>primary_in</code></td>
+<td>Earliest C++ tier in std (e.g. <code>"C++23"</code>). Use
+<code>null</code> only for never-in-std symbols.</td>
+</tr>
+<tr class="even">
+<td><code>secondary_min</code></td>
+<td>Earliest tier re_std ships at. <code>null</code> means not
+implemented. <strong><code>&lt; std_in</code> is the back-port
+win</strong> — those tiers are <em>covered by re_std before std has
+them</em>, painted <strong>green</strong> (re_std coverage) on the data
+sheet. Tiers where only std has the symbol (re_std hasn't reached them,
+or <code>secondary_min</code> is <code>null</code>) are
+<strong>yellow</strong> — a coverage gap.</td>
+</tr>
+<tr class="odd">
+<td><code>constexpr_in_primary</code> /
+<code>constexpr_in_secondary</code></td>
+<td>Same axis, for compile-time eval. <code>null</code> if N/A (e.g. tag
+types). In re_std's layout this is <strong>merged into the support
+cell</strong>: a covered cell shows <code>cx</code> at the tiers where
+the symbol is constexpr (there is no separate constexpr column
+block).</td>
+</tr>
+<tr class="even">
+<td><code>intrinsic_required</code></td>
+<td><code>true</code> if the symbol cannot be implemented without a
+compiler builtin (e.g. <code>__is_class</code>).</td>
+</tr>
+<tr class="odd">
+<td><code>reexport</code></td>
+<td><code>true</code> if the symbol is an identity-preserving re-export
+of a runtime/ABI/compiler/language-provided std entity that cannot be
+portably reimplemented — re_std contributes only the in-namespace alias
+(<code>using std::X;</code> or a typedef), so <code>re_std::X</code>
+<strong>is</strong> <code>std::X</code>. Drives the
+<strong>Re-exports</strong> sheet. Distinct from
+<code>intrinsic_required</code> (re_std <em>owns</em> the symbol, its
+body just uses a builtin) and from a back-port
+(<code>secondary_min &lt; std_in</code>, where re_std <em>does</em>
+provide its own implementation). See the README directive "Marking
+re-exports".</td>
+</tr>
+<tr class="even">
+<td><code>intrinsic_names</code> / <code>detection_macro</code></td>
+<td>Surface only when <code>intrinsic_required</code> is true.</td>
+</tr>
+<tr class="odd">
+<td><code>t_alias_in</code> / <code>v_var_in</code></td>
+<td>When the <code>&lt;symbol&gt;_t</code> alias /
+<code>&lt;symbol&gt;_v</code> variable was added to std (typically
+C++14/17).</td>
+</tr>
+<tr class="even">
+<td><code>deprecated_in</code></td>
+<td>When std deprecated the symbol (e.g. legacy <code>!=</code>
+operators since C++20).</td>
+</tr>
+<tr class="odd">
+<td><code>notes</code></td>
+<td>Implementation reality — algorithm choices, fallback behaviour,
+limitations.</td>
+</tr>
+<tr class="even">
+<td><code>depends_on</code></td>
+<td>List of unmet re_std dependencies (e.g.
+<code>"&lt;compare&gt;"</code>, <code>"re_std::invoke"</code>). Empty
+when fully shipped.</td>
+</tr>
+<tr class="odd">
+<td><code>failure_reason</code></td>
+<td>Explanation when <code>secondary_min</code> cannot reach C++98.
+Required when <code>secondary_min != "C++98"</code> — drives the
+Coverage Failures sheet.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="validation">Validation</h3>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python3</span> <span class="at">-c</span> <span class="st">&quot;import json; json.load(open(&#39;docs/re_std/cpp/data/&lt;header&gt;.json&#39;))&quot;</span></span></code></pre></div>
+<p>If JSON parses, move to phase 3.</p>
+<hr />
+<h2 id="phase-3--workbook-build--roadmap-update">Phase 3 — Workbook
+build + roadmap update</h2>
+<h3 id="3a-roadmap-entry">3a. Roadmap entry</h3>
+<p>Edit <code>docs/re_std/cpp/data/_roadmap.json</code>:</p>
+<ol type="1">
+<li><strong>If the module had a planned entry</strong> (priority &gt;
+0), remove it.</li>
+<li><strong>Add a priority-0 SHIPPED entry</strong> right after the most
+recent priority-0 entry, e.g.:</li>
+</ol>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;priority&quot;</span><span class="fu">:</span> <span class="dv">0</span><span class="fu">,</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;header&quot;</span><span class="fu">:</span> <span class="st">&quot;&lt;expected&gt;&quot;</span><span class="fu">,</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;summary&quot;</span><span class="fu">:</span> <span class="st">&quot;SHIPPED YYYY-MM-DD. ...one-paragraph summary including any deferred language-feature-ceiling symbols and design limitations...&quot;</span><span class="fu">,</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;blockers&quot;</span><span class="fu">:</span> <span class="st">&quot;—&quot;</span><span class="fu">,</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;est_min_cpp&quot;</span><span class="fu">:</span> <span class="st">&quot;C++11 / C++17 / C++20&quot;</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<ol start="3" type="1">
+<li><strong>If the module's local conventions land in the meta
+entry</strong> (e.g. another <code>D_CONSTEXPR_CPP14</code> user), add
+the header to the meta entry's list (priority 9999).</li>
+</ol>
+<h3 id="3b-regenerate">3b. Regenerate</h3>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python3</span> scripts/re_std/re_std.py build            <span class="co"># C++</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="ex">python3</span> scripts/re_std/re_std.py build <span class="at">--lang</span> c   <span class="co"># C</span></span></code></pre></div>
+<p><code>re_std.py</code> is re_std's thin specialization: it injects
+re_std's config (see <em>Tooling architecture</em> below) and calls the
+generic <code>build_coverage_workbook.py</code>. The builder reads every
+<code>*.json</code> in <code>docs/re_std/cpp/data/</code> (skipping
+anything starting with <code>_</code>) — one header JSON per data sheet
+— and produces sheets in this order:</p>
+<pre><code>Legend → To Do → &lt;header sheets, alphabetical&gt; → Pending Dependencies → Coverage Failures → Re-exports</code></pre>
+<p>…writing to <code>docs/re_std/cpp/re_std_cpp_coverage.xlsx</code>.
+The first two and last sheets are <strong>synthesized</strong> with no
+backing data file: Legend, To Do (which also reads
+<code>_roadmap.json</code>), Pending Dependencies, Coverage Failures,
+and Re-exports aggregate across all header JSONs and are toggled by the
+<code>sheets</code> booleans in the config. The Re-exports sheet is
+emitted only when at least one symbol is flagged
+<code>reexport: true</code>.</p>
+<h3 id="3c-verify">3c. Verify</h3>
+<p>Open the xlsx and spot-check:</p>
+<ul>
+<li>The new module's data sheet has the right colour pattern:
+<strong>green where re_std covers the symbol</strong>, <strong>yellow
+where only std has it</strong> (a coverage gap — re_std hasn't reached
+that tier, or the symbol is unimplemented), <strong>red where neither
+covers it</strong>.</li>
+<li>Covered cells show <code>cx</code> at the tiers where the symbol is
+constexpr. (The support and constexpr axes are merged into a single
+column block in re_std's layout — there is no separate constexpr
+matrix.)</li>
+<li>The bottom of the sheet has a <strong>Coverage Failures (this sheet
+only)</strong> section if any symbol has a non-trivial
+<code>failure_reason</code>.</li>
+<li>The To Do sheet shows the module with a green completion fill if
+every symbol shipped at the lowest viable tier, or yellow/red
+otherwise.</li>
+<li>The Coverage Failures sheet picked up every symbol whose
+<code>secondary_min</code> isn't <code>"C++98"</code> — each with a
+clear language-feature-ceiling reason.</li>
+<li>If the module re-exports any runtime/ABI/compiler/language-provided
+std entity (<code>reexport: true</code>), those symbols appear on the
+<strong>Re-exports</strong> sheet.</li>
+</ul>
+<hr />
+<h2 id="tooling-architecture">Tooling architecture</h2>
+<p>The workbook is built by two files in
+<code>scripts/re_std/</code>:</p>
+<ul>
+<li><strong><code>build_coverage_workbook.py</code></strong> — the
+generic, project-agnostic engine. It knows nothing re_std-specific: it
+speaks of a "primary" baseline tier and an optional "secondary"
+back-port tier and is driven entirely by a config object. Its canonical
+symbol fields are <code>primary_in</code> / <code>secondary_min</code> /
+<code>constexpr_in_primary</code> / <code>constexpr_in_secondary</code>,
+but it transparently accepts the re_std field names
+(<code>primary_in</code> / <code>secondary_min</code> /
+<code>constexpr_in_primary</code> / <code>constexpr_in_secondary</code>)
+as aliases, so the data files load unchanged.</li>
+<li><strong><code>re_std.py</code></strong> — re_std's thin
+specialization. It holds re_std's config as the
+<code>RE_STD_CONFIG</code> dict (primary = <code>std</code>, secondary =
+<code>re_std</code>, the library-centric "coverage" colouring, lowercase
+categories, and the merged support/constexpr column block) and exposes
+<code>build</code>, <code>scaffold</code>, and <code>show-config</code>
+subcommands. <code>python3 scripts/re_std/re_std.py build</code> is the
+equivalent of the old <code>build_workbook.py</code> run.</li>
+</ul>
+<p><strong>Config is layered</strong>, deep-merged in this order:</p>
+<ol type="1">
+<li><code>DEFAULT_CONFIG</code> in
+<code>build_coverage_workbook.py</code> — generic baseline
+defaults.</li>
+<li>An optional <code>_config.json</code> in the data dir — read if
+present.</li>
+<li>An optional in-memory <code>config=</code> argument to
+<code>build()</code>.</li>
+</ol>
+<p>re_std uses layer 3: <code>re_std.py</code> calls
+<code>build_coverage_workbook.build(data_dir, config=RE_STD_CONFIG)</code>
+(or <code>RE_STD_C_CONFIG</code> with <code>--lang c</code>). re_std's
+configuration is baked into <code>re_std.py</code>, the single source of
+truth (dump it with
+<code>python3 scripts/re_std/re_std.py show-config</code>). The
+<code>_config.json</code> beside each data dir is a copy written by
+<code>re_std.py config</code>; a build never reads or rewrites it, and
+it exists so a direct run of the generic builder looks the same. Running
+the generic <code>build_coverage_workbook.py</code> directly, without
+that config, produces a neutral baseline look; re_std's appearance only
+comes through <code>re_std.py</code>.</p>
+<p><strong>Data discovery is by globbing, not a list:</strong> every
+<code>*.json</code> in <code>docs/re_std/cpp/data/</code> whose name
+does not start with <code>_</code> becomes one data sheet
+(alphabetical). <code>_config.json</code> and <code>_roadmap.json</code>
+are skipped by that leading-underscore rule.</p>
+<p><strong>Synthesized sheets</strong> have no backing JSON — Legend, To
+Do (also reads <code>_roadmap.json</code>), Pending Dependencies,
+Coverage Failures, and Re-exports — aggregating across every header
+JSON, toggled by the <code>sheets</code> booleans in the config.
+Re-exports appears only when some symbol is flagged
+<code>reexport: true</code>.</p>
+<h3 id="changing-the-workbooks-appearance">Changing the workbook's
+appearance</h3>
+<p>re_std's look — colours, the coverage-vs-baseline colouring mode,
+category casing, and which column blocks appear — lives in
+<code>RE_STD_CONFIG</code> in <code>scripts/re_std/re_std.py</code>.
+Engine-wide visual primitives that aren't exposed through config (the
+<code>FILLS</code> / <code>FONTS</code> / fixed dimensions) live in the
+<code>STYLE</code> section near the top of
+<code>build_coverage_workbook.py</code>. To re-theme: edit
+<code>RE_STD_CONFIG</code> for re_std-specific choices, or the
+<code>STYLE</code> block for engine-wide primitives, then re-run
+<code>python3 scripts/re_std/re_std.py build</code>.</p>
+<hr />
+<h2 id="common-deliverables-checklist-per-module">Common deliverables
+checklist (per module)</h2>
+<ul class="task-list">
+<li><label><input type="checkbox" />Granular per-symbol
+<code>.hpp</code> files under
+<code>inc/re_std/cpp/&lt;module&gt;/</code></label></li>
+<li><label><input type="checkbox" />Umbrella header at
+<code>inc/re_std/cpp/&lt;module&gt;</code></label></li>
+<li><label><input type="checkbox" />Compile-tested under every supported
+<code>-std=</code> tier with <code>-Wall -Wextra</code></label></li>
+<li><label><input type="checkbox" />Smoke test prints <code>ok</code> at
+every tier</label></li>
+<li><label><input
+type="checkbox" /><code>docs/re_std/cpp/data/&lt;header&gt;.json</code>
+exists with the full symbol roster</label></li>
+<li><label><input type="checkbox" /><code>failure_reason</code>
+populated for every symbol whose <code>secondary_min</code> isn't
+<code>"C++98"</code></label></li>
+<li><label><input type="checkbox" /><code>depends_on</code> accurate
+(empty if no external blockers)</label></li>
+<li><label><input type="checkbox" /><code>reexport: true</code> set on
+any runtime/ABI/compiler/language re-export</label></li>
+<li><label><input type="checkbox" /><code>_roadmap.json</code>
+priority-0 SHIPPED entry added; any prior planned entry
+removed</label></li>
+<li><label><input type="checkbox" /><code>re_std.py build</code> re-run;
+xlsx regenerated and visually checked</label></li>
+</ul>
+<hr />
+<h2 id="field-names-use-the-canonical-generic-spelling">Field names: use
+the canonical generic spelling</h2>
+<p>The data files now use the <strong>tier-neutral</strong> field names,
+not the project-named ones:</p>
+<table>
+<thead>
+<tr class="header">
+<th>use this</th>
+<th>not this</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>primary_in</code></td>
+<td><code>std_in</code></td>
+</tr>
+<tr class="even">
+<td><code>secondary_min</code></td>
+<td><code>restd_min</code> / <code>re_std_min</code></td>
+</tr>
+<tr class="odd">
+<td><code>constexpr_in_primary</code></td>
+<td><code>constexpr_in_std</code></td>
+</tr>
+<tr class="even">
+<td><code>constexpr_in_secondary</code></td>
+<td><code>constexpr_in_restd</code> /
+<code>constexpr_in_re_std</code></td>
+</tr>
+</tbody>
+</table>
+<p><code>build_coverage_workbook.py</code> reads both spellings —
+<code>_pick("secondary_min", "restd_min")</code> — but only the
+canonical one survives a project rename. The <code>restd</code> →
+<code>re_std</code> rename broke the project-named spelling exactly once
+already: the JSON keys moved, the builder still looked for
+<code>restd_min</code>, and every symbol would have silently rendered as
+<em>uncovered</em> rather than failing loudly. Tier-neutral names cannot
+be broken that way.</p>
+<p><code>re_std.py</code>'s scaffolder still emits the old names.
+Convert its output before committing, or fix
+<code>RESTD_STUB_FIELDS</code> in that file.</p>
+<h2 id="a-new-field-dep_status">A new field:
+<code>dep_status</code></h2>
+<p><code>depends_on</code> alone was doing three jobs, which made 38
+writable items look blocked. Each symbol with a non-empty
+<code>depends_on</code> now also carries:</p>
+<table>
+<thead>
+<tr class="header">
+<th>value</th>
+<th>meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>blocked</code></td>
+<td>a dependency genuinely does not exist yet</td>
+</tr>
+<tr class="even">
+<td><code>ready</code></td>
+<td>every dependency has landed; the symbol is just unwritten</td>
+</tr>
+<tr class="odd">
+<td><code>stale</code></td>
+<td>the dependency landed <strong>and</strong> the symbol already uses
+it — clear the field</td>
+</tr>
+<tr class="even">
+<td><code>shipped</code></td>
+<td>backfilled; <code>depends_on</code> emptied</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Verify <code>ready</code> against the filesystem, not against
+the data.</strong> Two symbols were marked ready because their
+dependency appeared in a JSON — but the dependency was itself a
+catalogued-yet-unimplemented symbol. A data claim is not a file.</p>
+<p>The uploaded <code>build_coverage_workbook.py</code> ignores
+<code>dep_status</code>; the field is harmless without the patch that
+adds the Status column to Pending Dependencies.</p>
+</body>
+</html>

@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>The knob-and-option pattern</title>
+  <style>
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+    /* CSS for syntax highlighting */
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+</head>
+<body>
+<h1 id="the-knob-and-option-pattern">The knob-and-option pattern</h1>
+<p>Proposed on 2026-11-04 and agreed on Friday 11-13 by the modules it
+touches: the option core, the CLI kit, parse, net and the build. Where
+the owner has ruled since, the decision is cited by its module and
+number. The interfaces named here exist in the tree:
+<code>c/option/option_env.h</code>,
+<code>c/option/option_env_registry.h</code> and
+<code>cpp/option/option_env.hpp</code>. <code>env/env_printer.c</code>
+is the reference implementation.</p>
+<h2 id="what-it-is-for">What it is for</h2>
+<p>The owner's standing rule: wherever it makes sense, give the user
+both a compile-time knob that sets the default and a run-time option
+that overrides it, with the most sensible default. The pattern makes
+that one thing to do, the same way in every module, in four parts:</p>
+<ol type="1">
+<li>the knob's value becomes the default of an option_env row;</li>
+<li>a run-time binding overrides it, from a source whose standing is
+known;</li>
+<li>the row says where its value came from;</li>
+<li>a module reads it on a hot path for the cost of a global.</li>
+</ol>
+<h2 id="1-the-knob-becomes-a-rows-default">1. The knob becomes a row's
+default</h2>
+<p>The knob stays where knobs live:
+<code>config/&lt;area&gt;/cfg_&lt;module&gt;.h</code>, an
+<code>#ifndef</code> default and an <code>#error</code> in the file's
+VALIDATION section, as <code>config/env/cfg_env_printer.h</code>
+does.</p>
+<p>The module's schema row is declared with the <code>_KNOB</code> form
+of its row macro:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>D_OPTION_ENV_INT_RANGE_KNOB<span class="op">(</span><span class="st">&quot;timeout_ms&quot;</span><span class="op">,</span> D_CFG_NET_TIMEOUT_MS<span class="op">,</span> <span class="dv">1</span><span class="op">,</span> <span class="dv">3600000</span><span class="op">,</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>                            <span class="st">&quot;how long a connection may take, in ms&quot;</span><span class="op">)</span></span></code></pre></div>
+<p>The macro evaluates the knob once, for the default, and stringises
+its name into the row's <code>knob</code> member. The forms are
+<code>D_OPTION_ENV_BOOL_KNOB</code>, <code>_INT_KNOB</code>,
+<code>_INT_RANGE_KNOB</code>, <code>_CHOICE_KNOB</code> and
+<code>_FLAGS_KNOB</code>; a REAL or TEXT form is added when a module
+first needs one.</p>
+<ul>
+<li><p><strong>A range row repeats the knob's validation</strong>, so a
+value the build refuses is refused at run time with the same bounds
+(<code>INVALID_ARGUMENT</code>).</p></li>
+<li><p><strong>A value ruled but not built</strong> is listed in the
+row's <code>unbuilt</code> names (<code>D_OPTION_ENV_ROW</code>):
+binding it fails with <code>POLICY_REJECTED</code>, by name. It is never
+accepted and ignored: a setting that changes nothing is a silent
+lie.</p></li>
+<li><p><strong>A row with no knob</strong> is a run-time option alone;
+that is fine where a compile-time default would mean nothing.</p></li>
+<li><p><strong>A value with a name, outside the range</strong>: an INT
+row may name values. Text gives one by its name, ignoring case, or by
+its number; it is written back by its name, and
+<code>d_option_env_text</code> gives the name; it is taken even outside
+the range, which still holds for every other value. The knob may be a
+named value too. Parse's depth guard is the first:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="dt">static</span> <span class="dt">const</span> <span class="kw">struct</span> dj_option_env_name D_PARSE_EXPR_DEPTHS<span class="op">[]</span> <span class="op">=</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    <span class="op">{</span> <span class="st">&quot;unbounded&quot;</span><span class="op">,</span> D_PARSE_EXPR_DEPTH_UNBOUNDED <span class="op">}</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>D_OPTION_ENV_INT_RANGE_KNOB_NAMED<span class="op">(</span><span class="st">&quot;expr_max_depth&quot;</span><span class="op">,</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>                                  D_CFG_PARSE_EXPR_MAX_DEPTH<span class="op">,</span> <span class="dv">1</span><span class="op">,</span> <span class="dv">65535</span><span class="op">,</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>                                  D_PARSE_EXPR_DEPTHS<span class="op">,</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>                                  <span class="st">&quot;1 to 65535, or unbounded&quot;</span><span class="op">)</span></span></code></pre></div>
+<p><code>D_OPTION_ENV_INT_RANGE_NAMED</code> is the same with a plain
+default. An INT's <code>unbuilt</code> names are refused by name, as a
+choice's are.</p></li>
+</ul>
+<h2 id="2-a-run-time-option-overrides-it">2. A run-time option overrides
+it</h2>
+<p>A module's rows are declared in its <strong>djin</strong>: a frame
+named after the module's slug, registered in the program's registry
+before the program starts its threads. The djin's frame can be static
+and initialised before <code>main</code>, as
+<code>env_printer.c</code>'s is, so no first call can race another:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> dj_option_result d_net_register<span class="op">(</span><span class="kw">struct</span> dj_option_env_registry<span class="op">*</span> _registry<span class="op">);</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="co">// d_env_printer_register is the model: null registers in the program&#39;s</span></span></code></pre></div>
+<p>Every value is a <strong>binding from a source</strong>, in ascending
+standing:</p>
+<table>
+<thead>
+<tr class="header">
+<th>source</th>
+<th>who binds from it</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>DEFAULT</code></td>
+<td>nobody: what an unbound row reads, the knob's or the schema's</td>
+</tr>
+<tr class="even">
+<td><code>PROGRAM</code></td>
+<td>the program, in code: <code>d_option_env_put</code>,
+<code>set_int</code> and the rest</td>
+</tr>
+<tr class="odd">
+<td><code>FILE</code></td>
+<td>a configuration file or sheet</td>
+</tr>
+<tr class="even">
+<td><code>ENVIRONMENT</code></td>
+<td>the process's environment</td>
+</tr>
+<tr class="odd">
+<td><code>COMMAND_LINE</code></td>
+<td>the command line</td>
+</tr>
+<tr class="even">
+<td><code>OVERRIDE</code></td>
+<td>forced: a test, a scoped override</td>
+</tr>
+</tbody>
+</table>
+<p>A binding yields only to one of higher standing, so the order in
+which a program reads its file, its environment and its command line
+cannot change the outcome. Among bindings of one standing, the innermost
+frame's holds, and in it a scoped binding before a global one.</p>
+<p>By full name - <code>djin.variable</code> or
+<code>djin.scope.variable</code> - through the registry:</p>
+<ul>
+<li>a file:
+<code>d_option_env_registry_load(reg, text, D_OPTION_ENV_SOURCE_FILE, &amp;offset)</code>,
+lines of <code>net.timeout_ms = 5000</code>, <code>#</code>
+comments;</li>
+<li>the environment:
+<code>d_option_env_registry_import(reg, "DJINTERP_")</code>, so
+<code>DJINTERP_NET_TIMEOUT_MS=5000</code>, and a scope's as its unscoped
+name is made, <code>DJINTERP_DESC_SHELF_RING=4</code> for
+<code>desc.shelf.ring</code>
+(<code>D_CFG_OPTION_ENV_SCOPED_IMPORT</code>, 1). Two settings that
+would make one name are refused when the second is declared, scope or
+variable, so an import never reads a name two ways (option_env's
+decision 47). Each name is read through a reader a program may replace,
+per frame or per registry (<code>d_option_env_set_getenv</code>,
+<code>d_option_env_registry_set_getenv</code>): <code>getenv</code> by
+default, and a build for a host with no environment of its own names the
+host's in <code>D_CFG_OPTION_ENV_GETENV</code>. A value is copied into
+the import's own room, <code>D_CFG_OPTION_ENV_VALUE_MAX</code> bytes; a
+longer one is refused and reported, never cut short (option_env's
+decision 83);</li>
+<li>the command line:
+<code>d_option_env_registry_take_option(reg, argc, argv, &amp;i, &amp;result)</code>
+takes <code>--net.timeout_ms=5000</code>,
+<code>--set net.timeout_ms=5000</code>, <code>--net.verbose</code> and
+<code>--no-net.verbose</code>; a misspelling returns -1, and
+<code>d_option_env_registry_suggest</code> gives the name meant;</li>
+<li>a test: <code>djinterp::DOptionEnvOverride</code> in C++ forces a
+value from <code>OVERRIDE</code> for its scope's life and gives it back;
+in C, <code>d_option_env_set_value</code> with
+<code>D_OPTION_ENV_SOURCE_OVERRIDE</code>, then
+<code>d_option_env_unset_from</code>.</li>
+</ul>
+<p>A <strong>row may refuse sources</strong> it should not trust. A
+binding from a refused source fails by name, with
+<code>D_OPTION_STATUS_POLICY_REJECTED</code>, as an unbuilt value does;
+the value is untouched, and <code>import</code> reports the refusal and
+reads the rest. A row whose value chooses what code a privileged program
+loads must not take its caller's word, and its caller controls more than
+the environment: it writes the command line, and it picks the settings
+file, which the program finds through <code>XDG_CONFIG_HOME</code>,
+<code>HOME</code> or <code>APPDATA</code>. So such a row refuses all
+three, <code>D_OPTION_ENV_REFUSES_CALLER</code>, and only the program's
+own code, and a test's override, set it (option_env's decision 69):</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>D_OPTION_ENV_ROW_REFUSING<span class="op">(</span>D_OPTION_ENV_KIND_TEXT<span class="op">,</span> <span class="st">&quot;plugin_search&quot;</span><span class="op">,</span> NULL<span class="op">,</span> <span class="dv">0</span><span class="bu">u</span><span class="op">,</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>                          NULL<span class="op">,</span> <span class="dv">0</span><span class="bu">u</span><span class="op">,</span> D_CFG_CLI_PLUGIN_SEARCH<span class="op">,</span> <span class="dv">0</span><span class="op">,</span> INT64_MIN<span class="op">,</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>                          INT64_MAX<span class="op">,</span> <span class="dv">0</span><span class="er">.0</span><span class="op">,</span> NULL<span class="op">,</span> <span class="st">&quot;D_CFG_CLI_PLUGIN_SEARCH&quot;</span><span class="op">,</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>                          <span class="st">&quot;where modules are loaded from&quot;</span><span class="op">,</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>                          <span class="op">(</span>D_CFG_CLI_PLUGIN_VARIABLE <span class="op">!=</span> <span class="dv">0</span><span class="op">)</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>                              <span class="op">?</span> <span class="dv">0</span><span class="bu">u</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>                              <span class="op">:</span> D_OPTION_ENV_REFUSES_CALLER<span class="op">)</span></span></code></pre></div>
+<p>The row is still declared, so <code>get</code>, <code>describe</code>
+and <code>--help</code> show the setting, and say why a value was
+refused. A program whose builder trusts one of those sources - a file in
+<code>/etc</code> that only an administrator writes -- defines its own
+<code>D_OPTION_ENV_REFUSES_CALLER</code> before including
+<code>option_env.h</code>. No run-time option relaxes a refusal: it
+could be set from the very sources it guards.</p>
+<p>The refused sources are <code>D_OPTION_ENV_REFUSES</code> bits,
+joined by <code>|</code>; any source but <code>DEFAULT</code> may be
+refused, and a row that names another is not declared. Use them where
+trust decides, not for taste: a setting a user may want from the
+environment should not refuse it.
+<code>d_option_env_refuses(env, scope, var, source)</code> reads a row's
+refusals as binding does, so help can say a source is not taken before
+anything is bound.</p>
+<h2 id="3-the-row-says-where-its-value-came-from">3. The row says where
+its value came from</h2>
+<ul>
+<li><code>d_option_env_get</code> gives the value in force with its
+<code>source</code> (<code>DEFAULT</code> when unbound) and the binding
+frame's <code>depth</code>.</li>
+<li><code>d_option_env_layers</code> lists every binding that bears on a
+row in a scope, the one in force first, and the default last: what the
+CLI's <code>get --show-origin</code> shows. The default's layer names
+its knob (<code>knob</code>), so a row nothing binds has one layer, the
+default, in force.</li>
+<li><code>d_option_env_var_at(env, var)-&gt;knob</code> names the knob
+when the default is one.</li>
+<li><code>d_option_env_check_from</code> (and, by full name, the
+registry's <code>d_option_env_registry_check_from</code>) checks a value
+as binding it from a source would, by the same rules, and writes it as a
+settings file needs it, binding nothing. Name and value come apart, as a
+shell gives them, so a value is never split again; an optional record,
+<code>dj_option_env_checked</code>, says which frame, scope and variable
+the name resolved, so a writer of settings names the setting
+canonically, and why a value was refused (option_env's decision 72).
+<code>d_option_env_registry_check</code> takes <code>NAME=VALUE</code>
+over it.</li>
+<li><code>d_option_env_import_each</code> (and
+<code>d_option_env_registry_import_each</code>) imports as
+<code>d_option_env_import</code> does, telling a report of each value it
+could not bind: a record, <code>dj_option_env_report</code>, with the
+variable as read, its text, the setting's full name
+("cli.plugin_strict_version"), the frame, scope and variable, the status
+and the reason. It grows by its <code>size</code> member, so members can
+be added after the freeze (option_env's decision 71). The stock report,
+<code>d_option_env_report_write</code>, writes "DJINTERP_X=maybe: not a
+bool" through djinterp's stream, a <code>struct dj_ostream*</code> its
+context, standard error through the stream's console for none, control
+bytes escaped (option_env's decision 86); a program with a
+<code>FILE*</code> wraps it with <code>d_ostream_init_file</code>. It is
+a unit of its own, <code>option_env_report.c</code>, so a program that
+never reports links neither it nor the console. The plain imports use it
+with <code>D_CFG_OPTION_ENV_IMPORT_REPORT 1</code>, and say nothing by
+default, since a library writes to a program's error stream only when
+asked (option_env's decision 38).</li>
+<li>A <strong>reason</strong> says which rule refused a value, finer
+than its status: a name, a kind, a refused source, a value not built, a
+range, a choice, text the kind does not read, room.
+<code>d_option_env_reason_of</code> gives it for any status binding
+answered, and <code>d_option_env_reason_name</code> its stock words
+(option_env's decision 70). A registry's check adds one, the frame: a
+dotted name whose first part names no djin and that the root does not
+take, <code>net.timeout</code> with no djin <code>net</code>, which the
+stock report words "no djin named net". The check's record names the
+frame the name addressed, found or not (option_env's decision 84).</li>
+<li><code>d_option_env_describe(env, sink, flags)</code>
+(<code>option_env_desc.h</code>) writes a frame's settings as desc
+facts, a level each: value, source, default, knob, help and refused
+sources, and on request each setting's layers, what it accepts and each
+scope's settings. It is the one reading of the provenance: describe,
+help and <code>--show-origin</code> cannot disagree (option_env's
+decision 73). It lives in a unit of its own, above desc.</li>
+</ul>
+<p>A rendering for the kit's <code>get</code>:</p>
+<pre class="text"><code>net.timeout_ms = 5000   (command line)
+    under it      10000 (file)
+    default       30000 (D_CFG_NET_TIMEOUT_MS)</code></pre>
+<h2 id="4-a-module-reads-it-cheaply-on-a-hot-path">4. A module reads it
+cheaply on a hot path</h2>
+<div class="sourceCode" id="cb6"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="dt">static</span> <span class="kw">struct</span> dj_option_env_cache timeout <span class="op">=</span> D_OPTION_ENV_CACHE_INIT<span class="op">;</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="dt">const</span> <span class="dt">int64_t</span> ms <span class="op">=</span> d_option_env_cached<span class="op">(&amp;</span>net_djin<span class="op">,</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>                                       D_OPTION_ENV_GLOBAL<span class="op">,</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>                                       net_var_base <span class="op">+</span> D_NET_TIMEOUT_MS<span class="op">,</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>                                       <span class="op">&amp;</span>timeout<span class="op">)-&gt;</span>integer<span class="op">;</span></span></code></pre></div>
+<p>The cache reads the frame again only when the chain's generation
+moved: any binding, declaration or new parent anywhere in the chain
+moves it. Measured on this machine (GCC 13, <code>-O2</code>, x86-64; a
+djin under the registry root, one binding; each figure includes the
+loop's own cost):</p>
+<table>
+<thead>
+<tr class="header">
+<th>read</th>
+<th>per read</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>d_option_env_int</code></td>
+<td>12.5 ns</td>
+</tr>
+<tr class="even">
+<td><code>d_option_env_cached</code></td>
+<td>2.5 ns</td>
+</tr>
+<tr class="odd">
+<td>a plain <code>static int64_t</code></td>
+<td>2.4 ns</td>
+</tr>
+</tbody>
+</table>
+<p>A module that need not see a change mid-operation can instead read
+its rows once where it starts one - a connection's open - into its own
+fields.</p>
+<p>A row's id is the schema's first id, from
+<code>d_option_env_declare_all</code> (a schema's ids are consecutive),
+plus the row's place. It stays the same once the djin is registered: a
+frame with children cannot be given another parent.</p>
+<h2 id="a-modules-checklist">A module's checklist</h2>
+<ol type="1">
+<li>The knob, in its cfg header, with its validation.</li>
+<li>The row, with the <code>_KNOB</code> macro and the same range; its
+unbuilt values.</li>
+<li>One line of help in the row: desc and <code>--help</code> render
+it.</li>
+<li>The djin: static, named after the module's slug, and
+<code>d_&lt;module&gt;_register(registry)</code>.</li>
+<li>A hot path reads through a cache.</li>
+<li>Tests: the default from the knob (a build with <code>-D</code>),
+each source, the standing, a forced value, a misspelling's
+suggestion.</li>
+</ol>
+<h2 id="agreed-on-friday-11-13">Agreed on Friday 11-13</h2>
+<p>Each point says which module agreed to it: the CLI kit on 11-10,
+parse on 11-11 and 11-13, the build and net on 11-12.</p>
+<ol type="1">
+<li><strong>Djin names</strong> are module slugs: <code>net</code>,
+<code>cli</code>, <code>env_printer</code>; full names are
+<code>djin[.scope].variable</code>.
+<ul>
+<li>Agreed by the kit (its own rows go in <code>cli</code>) and by parse
+(<code>parse</code>).</li>
+</ul></li>
+<li><strong>The environment prefix.</strong> Proposed: the registry
+root's name, upper-cased, then <code>_</code>: the program's registry is
+"djinterp", so <code>DJINTERP_</code>; a tool's own registry,
+<code>d_option_env_registry_init(&amp;registry, "dawk")</code>,
+<code>DAWK_</code>.
+<ul>
+<li>Agreed by parse: its rows answer to <code>DJINTERP_PARSE_*</code>,
+and its suite checks <code>DJINTERP_PARSE_EXPR_MAX_ERRORS</code>.</li>
+<li>Agreed by the kit for <code>djinterp</code>. A program of the kit
+imports <code>DJINTERP_</code> and then its own prefix, as
+<code>BITWISEDOM_</code>: for a setting both name, the program's wins,
+since the second import's binding replaces the first's; a setting only
+<code>DJINTERP_</code> names still binds. The kit's probe checks all
+three.</li>
+</ul></li>
+<li><strong>The CLI's <code>set</code>.</strong> Proposed: it binds from
+<code>COMMAND_LINE</code>, so a setting typed at the prompt holds over a
+file and the environment, and a test's <code>OVERRIDE</code> still holds
+over it.
+<ul>
+<li>Agreed by the kit, by where <code>set</code> is typed:
+<ul>
+<li>at the 0.9 interpreter's prompt, it binds from
+<code>COMMAND_LINE</code>;</li>
+<li>in 0.8, <code>djinterp set DJIN.KEY=VALUE</code> is a run of its
+own, and a binding would die with it, so it writes the statement to the
+user's settings file, whose bindings are <code>FILE</code>'s on the next
+run;</li>
+<li>a one-run override is <code>--set NAME=VALUE</code>, which every
+program of the kit takes through
+<code>d_option_env_registry_take_option</code>.</li>
+</ul></li>
+<li>The settings file is <code>$XDG_CONFIG_HOME/djinterp/settings</code>
+(else <code>~/.config/djinterp/settings</code>), and
+<code>%APPDATA%\djinterp\settings</code> on Windows. The program reads
+it at start, after its djins register, with
+<code>d_option_env_registry_load</code>; a statement that fails is
+reported by its line, and the rest is read on. A program may read a file
+of its own after it; both are <code>FILE</code>, so its own wins. 0.8
+has no system or project file: a project file is one an untrusted
+checkout could carry, so it waits for rows that refuse it (section
+2).</li>
+</ul></li>
+<li><strong>Threads.</strong> Settings are written before the program
+starts its threads; <code>d_option_env_cached</code> is not
+synchronised, so a read concurrent with a write is a race. Proposed for
+0.9: publish the generation with release/acquire where C11 atomics exist
+(c/sync), and keep "configure, then run" as the rule until then.
+<ul>
+<li>Agreed by the kit: the program configures and then runs; 0.8 has no
+threads of its own.</li>
+<li>Agreed by parse: <code>settings.h</code> says to register before a
+program starts its threads.</li>
+</ul></li>
+<li><strong>The kit</strong>: <code>get</code>, <code>set</code> and
+<code>--show-origin</code>'s text. <strong>net</strong>: the knobs it
+listed for 0.8, each mapped to a row.
+<ul>
+<li>Agreed by the kit:
+<ul>
+<li><code>get</code> and <code>set</code> write their values with
+<code>d_option_env_format_quoted</code>, so what they write loads
+back;</li>
+<li>a TEXT that is unset is written by <code>get</code> as a comment,
+<code># plugin_path is unset</code>, so its output still loads;</li>
+<li><code>--show-origin</code> shows the source's word, for the binding
+in force and then the one under it; the file and line come in 0.9, once
+bindings carry them.</li>
+</ul></li>
+</ul></li>
+<li><strong>A per-call options struct.</strong> A module that takes its
+settings per call, as expression core v2 does
+(<code>dj_parse_expr_options</code>,
+<code>docs/djinterp/c/modules/parse/expr/expression_core_v2.html</code>, section 11),
+keeps the struct, and a member left 0 means the setting in force: the
+module's djin row, read through its cache, whose default is the knob. A
+program that sets nothing then still answers to
+<code>DJINTERP_PARSE_EXPR_MAX_DEPTH</code>, and a knob that compiles the
+djin out leaves 0 meaning the knob.
+<ul>
+<li>Agreed by parse. Its rows, in a djin named <code>parse</code>:
+<ul>
+<li><code>expr_max_depth</code>:
+<code>D_OPTION_ENV_INT_RANGE_KNOB_NAMED</code>, 1 to 65535, or
+<code>unbounded</code>;</li>
+<li><code>expr_max_errors</code>:
+<code>D_OPTION_ENV_INT_RANGE_KNOB</code>, 1 to 65535;</li>
+<li><code>expr_error_order</code>: <code>D_OPTION_ENV_CHOICE_KNOB</code>
+over <code>leftmost</code> (1) and <code>structure_first</code> (2), its
+knob defaulting to <code>leftmost</code>;</li>
+<li>none of the three refuses a source (section 2): none chooses code to
+load.</li>
+</ul></li>
+</ul></li>
+</ol>
+</body>
+</html>

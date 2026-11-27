@@ -127,7 +127,7 @@ CONFIGS = {"cpp": RE_STD_CONFIG, "c": RE_STD_C_CONFIG}
 # Symbol stub for `scaffold`. These are the names the existing C++ corpus was
 # first written with (std_in / restd_min); the builder accepts them as
 # aliases of the canonical primary_in / secondary_min. Convert a scaffolded
-# file to the canonical names when it is filled in, as MODULE_WORKFLOW.md
+# file to the canonical names when it is filled in, as MODULE_WORKFLOW.html
 # describes.
 RE_STD_STUB_FIELDS = {
     "name":                None,

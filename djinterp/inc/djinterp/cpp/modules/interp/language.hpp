@@ -3,7 +3,7 @@
 *
 * The command language read: a line or a command line into tokens, and the
 * tokens into a term, on expression core v2's C API (docs/djinterp/interp/
-* DESIGN.md, section 3). The interpreter's skeleton, its second step:
+* DESIGN.html, section 3). The interpreter's skeleton, its second step:
 * sequences, pipelines, `and`, `or`, `not`, the comparisons and literals.
 *   A line is lexed as the grammar's section I has it, with sh's quoting: a
 * word is a run of bare, single-quoted and double-quoted parts, `\"` and
@@ -56,7 +56,7 @@
 *
 *
 * path:      /inc/djinterp/cpp/modules/interp/language.hpp
-* link(s):   /docs/djinterp/interp/DESIGN.md
+* link(s):   /docs/djinterp/cpp/modules/interp/DESIGN.html
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.22
 *                                                            revised: 2026.11.25
 *******************************************************************************/

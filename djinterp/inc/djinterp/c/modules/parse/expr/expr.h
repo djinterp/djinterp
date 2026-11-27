@@ -6,7 +6,8 @@
 * and roles - with diagnostics at the character; folds and walks the term
 * with no recursion; and writes it back as text that reads as the same term.
 * It is generic: it knows no language. The design, and how math, the command
-* language and awk sit on it, is docs/djinterp/parse/expression_core_v2.md.
+* language and awk sit on it, is
+* docs/djinterp/c/modules/parse/expr/expression_core_v2.html.
 *
 * HOW TO USE
 * ----------
@@ -31,7 +32,7 @@
 *
 *
 * path:      /inc/djinterp/c/modules/parse/expr/expr.h
-* link(s):   /docs/djinterp/parse/expression_core_v2.md
+* link(s):   /docs/djinterp/c/modules/parse/expr/expression_core_v2.html
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.04
 *                                                            revised: 2026.11.27
 *******************************************************************************/

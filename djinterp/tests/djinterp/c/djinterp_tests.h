@@ -3,7 +3,7 @@
 *
 * djinterp.h's suite in DTest's C face (c/modules/test/test_suite.h).
 *   The first block holds the register's decision #21
-* (docs/djinterp_decisions.md, Part B): the index macros go through
+* (docs/djinterp_decisions.html, Part B): the index macros go through
 * d_index_is_valid.
 *
 *

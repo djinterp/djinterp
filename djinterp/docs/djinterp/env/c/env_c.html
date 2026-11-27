@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>C-side Modules — envclib.h, envattributes.h,
+envvendorattributes.h</title>
+  <style>
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+</head>
+<body>
+<h1
+id="c-side-modules--env_c_libh-env_attributesh-env_vendor_attributesh">C-side
+Modules — <code>env_c_lib.h</code>, <code>env_attributes.h</code>,
+<code>env_vendor_attributes.h</code></h1>
+<p>These three headers cover the C runtime that <strong>both</strong> C
+and C++ translation units rely on: standard-library/runtime feature
+flags, portable <code>[[…]]</code> attribute wrappers, and
+vendor-specific attribute wrappers. All require <code>env.h</code> to be
+included first.</p>
+<hr />
+<h2
+id="env_c_libh--c-runtime--standard-library-features"><code>env_c_lib.h</code>
+— C runtime / standard-library features</h2>
+<p>Despite the <code>D_ENV_C_HAS_*</code> naming, these flags describe
+the <strong>C runtime</strong>, so the whole header is gated on
+<code>__STDC_HOSTED__</code> (hosted vs. freestanding) rather than on
+source language. Every macro is pre-definable to override detection.
+Each is <code>1</code> if available, <code>0</code> otherwise.</p>
+<h3 id="a-threading-and-concurrency">A. Threading and concurrency</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Symbol</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>D_ENV_C_HAS_C11_THREADS</code></td>
+<td>C11 <code>&lt;threads.h&gt;</code> (C11+ and not
+<code>__STDC_NO_THREADS__</code>)</td>
+</tr>
+<tr class="even">
+<td><code>D_ENV_C_HAS_PTHREAD</code></td>
+<td>POSIX threads (POSIX-like or Android)</td>
+</tr>
+<tr class="odd">
+<td><code>D_ENV_C_HAS_WINDOWS_THREADS</code></td>
+<td>Windows threading API</td>
+</tr>
+<tr class="even">
+<td><code>D_ENV_C_HAS_STDATOMIC</code></td>
+<td>C11 <code>&lt;stdatomic.h&gt;</code> (or C++11 atomics)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="b-standard-headers">B. Standard headers</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Symbol</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>D_ENV_C_HAS_STDBOOL_H</code></td>
+<td><code>&lt;stdbool.h&gt;</code> (C99+)</td>
+</tr>
+<tr class="even">
+<td><code>D_ENV_C_HAS_STDINT_H</code></td>
+<td><code>&lt;stdint.h&gt;</code> (C99+)</td>
+</tr>
+<tr class="odd">
+<td><code>D_ENV_C_HAS_INTTYPES_H</code></td>
+<td><code>&lt;inttypes.h&gt;</code> (C99+)</td>
+</tr>
+<tr class="even">
+<td><code>D_ENV_C_HAS_STDALIGN_H</code></td>
+<td><code>&lt;stdalign.h&gt;</code> (C11+)</td>
+</tr>
+<tr class="odd">
+<td><code>D_ENV_C_HAS_UCHAR_H</code></td>
+<td><code>&lt;uchar.h&gt;</code> (C11+)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="c-posix-headers">C. POSIX headers</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Symbol</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>D_ENV_C_HAS_UNISTD_H</code></td>
+<td><code>&lt;unistd.h&gt;</code> (POSIX-like or Android)</td>
+</tr>
+<tr class="even">
+<td><code>D_ENV_C_HAS_SYS_TYPES_H</code></td>
+<td><code>&lt;sys/types.h&gt;</code> (POSIX-like or Windows)</td>
+</tr>
+<tr class="odd">
+<td><code>D_ENV_C_HAS_SYS_STAT_H</code></td>
+<td><code>&lt;sys/stat.h&gt;</code> (POSIX-like or Windows)</td>
+</tr>
+<tr class="even">
+<td><code>D_ENV_C_HAS_DIRENT_H</code></td>
+<td><code>&lt;dirent.h&gt;</code> (POSIX-like)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="d-string-and-memory-functions">D. String and memory
+functions</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Symbol</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>D_ENV_C_HAS_STRTOK_R</code></td>
+<td>reentrant <code>strtok_r</code> (POSIX)</td>
+</tr>
+<tr class="even">
+<td><code>D_ENV_C_HAS_STRTOK_S</code></td>
+<td><code>strtok_s</code> (Annex K / MSVC)</td>
+</tr>
+<tr class="odd">
+<td><code>D_ENV_C_HAS_SNPRINTF</code></td>
+<td><code>snprintf</code> or close equivalent (C99+ / Windows)</td>
+</tr>
+<tr class="even">
+<td><code>D_ENV_C_HAS_STRDUP</code></td>
+<td><code>strdup</code> (POSIX / C23)</td>
+</tr>
+<tr class="odd">
+<td><code>D_ENV_C_HAS_STRNDUP</code></td>
+<td><code>strndup</code> (POSIX / C23)</td>
+</tr>
+<tr class="even">
+<td><code>D_ENV_C_HAS_STRCASECMP</code></td>
+<td><code>strcasecmp</code> (POSIX)</td>
+</tr>
+<tr class="odd">
+<td><code>D_ENV_C_HAS_STRICMP</code></td>
+<td><code>_stricmp</code> (Windows)</td>
+</tr>
+<tr class="even">
+<td><code>D_ENV_C_HAS_MEMCCPY</code></td>
+<td><code>memccpy</code> (POSIX)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="e-file-system-and-io">E. File system and I/O</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Symbol</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>D_ENV_C_HAS_FLOCK</code></td>
+<td><code>flock</code> file locking (POSIX)</td>
+</tr>
+<tr class="even">
+<td><code>D_ENV_C_HAS_FOPEN_S</code></td>
+<td><code>fopen_s</code> (Annex K / MSVC)</td>
+</tr>
+<tr class="odd">
+<td><code>D_ENV_C_HAS_FSYNC</code></td>
+<td><code>fsync</code> (POSIX)</td>
+</tr>
+<tr class="even">
+<td><code>D_ENV_C_HAS_LOCKFILE</code></td>
+<td><code>LockFile</code> API (Windows)</td>
+</tr>
+<tr class="odd">
+<td><code>D_ENV_C_HAS_MMAP</code></td>
+<td><code>mmap</code> memory-mapped files (POSIX)</td>
+</tr>
+<tr class="even">
+<td><code>D_ENV_C_HAS_SCANF_S</code></td>
+<td><code>scanf_s</code> (Annex K / MSVC)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-time-and-date">F. Time and date</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Symbol</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>D_ENV_C_HAS_TIMESPEC_GET</code></td>
+<td><code>timespec_get</code> (C11)</td>
+</tr>
+<tr class="even">
+<td><code>D_ENV_C_HAS_CLOCK_GETTIME</code></td>
+<td><code>clock_gettime</code> (POSIX)</td>
+</tr>
+<tr class="odd">
+<td><code>D_ENV_C_HAS_GETTIMEOFDAY</code></td>
+<td><code>gettimeofday</code> (POSIX)</td>
+</tr>
+<tr class="even">
+<td><code>D_ENV_C_HAS_QUERYPERFORMANCECOUNTER</code></td>
+<td><code>QueryPerformanceCounter</code> (Windows)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="g-math">G. Math</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Symbol</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>D_ENV_C_HAS_TGMATH_H</code></td>
+<td><code>&lt;tgmath.h&gt;</code> type-generic math (C99+)</td>
+</tr>
+<tr class="even">
+<td><code>D_ENV_C_HAS_COMPLEX_H</code></td>
+<td><code>&lt;complex.h&gt;</code> (C99+ and not
+<code>__STDC_NO_COMPLEX__</code>)</td>
+</tr>
+<tr class="odd">
+<td><code>D_ENV_C_HAS_FENV_H</code></td>
+<td><code>&lt;fenv.h&gt;</code> floating-point environment (C99+)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="h-networking">H. Networking</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Symbol</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>D_ENV_C_HAS_WINSOCK</code></td>
+<td>Winsock (Windows)</td>
+</tr>
+<tr class="even">
+<td><code>D_ENV_C_HAS_BSD_SOCKETS</code></td>
+<td>BSD sockets (POSIX-like)</td>
+</tr>
+<tr class="odd">
+<td><code>D_ENV_C_HAS_GETADDRINFO</code></td>
+<td><code>getaddrinfo</code> (POSIX-like or Windows)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="i-process-and-system">I. Process and system</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Symbol</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>D_ENV_C_HAS_FORK</code></td>
+<td><code>fork</code> (POSIX)</td>
+</tr>
+<tr class="even">
+<td><code>D_ENV_C_HAS_EXECVE</code></td>
+<td><code>execve</code> (POSIX)</td>
+</tr>
+<tr class="odd">
+<td><code>D_ENV_C_HAS_GETPID</code></td>
+<td><code>getpid</code> (POSIX-like or Windows)</td>
+</tr>
+<tr class="even">
+<td><code>D_ENV_C_HAS_SIGNAL_H</code></td>
+<td><code>&lt;signal.h&gt;</code> (POSIX-like or Windows)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="j-memory-management">J. Memory management</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Symbol</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>D_ENV_C_HAS_ALIGNED_ALLOC</code></td>
+<td><code>aligned_alloc</code> (C11, excluding Apple)</td>
+</tr>
+<tr class="even">
+<td><code>D_ENV_C_HAS_POSIX_MEMALIGN</code></td>
+<td><code>posix_memalign</code> (POSIX)</td>
+</tr>
+<tr class="odd">
+<td><code>D_ENV_C_HAS_ALIGNED_MALLOC</code></td>
+<td><code>_aligned_malloc</code> (Windows)</td>
+</tr>
+<tr class="even">
+<td><code>D_ENV_C_HAS_ALLOCA</code></td>
+<td><code>alloca</code> stack allocation (POSIX-like or Windows)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="k-simd-and-hardware-intrinsics">K. SIMD and hardware
+intrinsics</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Symbol</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>D_ENV_C_HAS_SSE</code> / <code>_SSE2</code></td>
+<td>SSE / SSE2 intrinsics (x86/x64)</td>
+</tr>
+<tr class="even">
+<td><code>D_ENV_C_HAS_AVX</code> / <code>_AVX2</code></td>
+<td>AVX / AVX2 intrinsics (x86/x64)</td>
+</tr>
+<tr class="odd">
+<td><code>D_ENV_C_HAS_NEON</code></td>
+<td>ARM NEON intrinsics (ARM/ARM64)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="lm-other">L–M. Other</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Symbol</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>D_ENV_C_HAS_VLA</code></td>
+<td>Variable-length arrays (C99+ and not
+<code>__STDC_NO_VLA__</code>)</td>
+</tr>
+<tr class="even">
+<td><code>D_ENV_C_HAS_SECURE_STRING_LIB</code></td>
+<td>Annex K secure string library</td>
+</tr>
+<tr class="odd">
+<td><code>D_ENV_C_HAS_GETENTROPY</code></td>
+<td><code>getentropy</code> (Linux/Apple/BSD; deliberately narrower than
+POSIX-like)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2
+id="env_attributesh--portable-standard-attributes"><code>env_attributes.h</code>
+— portable standard attributes</h2>
+<p>Defines <code>D_*</code> macros that expand to the correct attribute
+spelling for the detected language, compiler, and version, with graceful
+fallbacks (compiler <code>__attribute__</code> / <code>__declspec</code>
+/ keyword, then no-op). The file splits into a C++ section and a C
+section (<code>__cplusplus</code>); each macro is pre-definable.
+Resolution generally goes: standard <code>[[…]]</code> →
+<code>__has_cpp_attribute</code>/<code>__has_c_attribute</code> probe →
+vendor extension → no-op.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Macro</th>
+<th>Expands to</th>
+<th>Introduced</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>D_DELETE</code></td>
+<td><code>= delete</code> / empty</td>
+<td>C++11</td>
+</tr>
+<tr class="even">
+<td><code>D_NORETURN</code></td>
+<td><code>[[noreturn]]</code> / <code>_Noreturn</code> / vendor</td>
+<td>C++11 / C11 / C23</td>
+</tr>
+<tr class="odd">
+<td><code>D_CARRIES_DEPENDENCY</code></td>
+<td><code>[[carries_dependency]]</code> (C++ only)</td>
+<td>C++11</td>
+</tr>
+<tr class="even">
+<td><code>D_DEPRECATED</code></td>
+<td><code>[[deprecated]]</code> / vendor</td>
+<td>C++14 / C23</td>
+</tr>
+<tr class="odd">
+<td><code>D_DEPRECATED_MSG(msg)</code></td>
+<td><code>[[deprecated("…")]]</code> / vendor</td>
+<td>C++14 / C23</td>
+</tr>
+<tr class="even">
+<td><code>D_FALLTHROUGH</code></td>
+<td><code>[[fallthrough]]</code> / vendor</td>
+<td>C++17 / C23</td>
+</tr>
+<tr class="odd">
+<td><code>D_NODISCARD</code></td>
+<td><code>[[nodiscard]]</code> / <code>warn_unused_result</code></td>
+<td>C++17 / C23</td>
+</tr>
+<tr class="even">
+<td><code>D_NODISCARD_MSG(msg)</code></td>
+<td><code>[[nodiscard("…")]]</code> (falls back to
+<code>D_NODISCARD</code>)</td>
+<td>C++20 / C23</td>
+</tr>
+<tr class="odd">
+<td><code>D_MAYBE_UNUSED</code></td>
+<td><code>[[maybe_unused]]</code> / <code>unused</code></td>
+<td>C++17 / C23</td>
+</tr>
+<tr class="even">
+<td><code>D_NO_UNIQUE_ADDRESS</code></td>
+<td><code>[[no_unique_address]]</code> /
+<code>[[msvc::no_unique_address]]</code></td>
+<td>C++20</td>
+</tr>
+<tr class="odd">
+<td><code>D_LIKELY</code> / <code>D_UNLIKELY</code></td>
+<td><code>[[likely]]</code> / <code>[[unlikely]]</code> (statement
+attrs)</td>
+<td>C++20</td>
+</tr>
+<tr class="even">
+<td><code>D_ASSUME(expr)</code></td>
+<td><code>[[assume(…)]]</code> / <code>__assume</code> /
+<code>__builtin_assume</code></td>
+<td>C++23</td>
+</tr>
+</tbody>
+</table>
+<p>In C mode, attributes with no C equivalent
+(<code>D_CARRIES_DEPENDENCY</code>, <code>D_NO_UNIQUE_ADDRESS</code>,
+<code>D_LIKELY</code>, <code>D_UNLIKELY</code>) are no-ops.</p>
+<hr />
+<h2
+id="env_vendor_attributesh--vendor-specific-attributes"><code>env_vendor_attributes.h</code>
+— vendor-specific attributes</h2>
+<p>Portable wrappers for compiler attributes with <strong>no</strong>
+standard <code>[[…]]</code> equivalent (or whose standard form is too
+recent to rely on). It deliberately avoids redefining anything owned by
+<code>djinterp.h</code> (<code>D_INLINE</code>, <code>D_NOINLINE</code>,
+<code>D_RESTRICT</code>) or <code>env_attributes.h</code>. Every macro
+is pre-definable.</p>
+<h3 id="function-purity-and-optimization">Function purity and
+optimization</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Macro</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>D_PURE</code></td>
+<td>Pure function (reads globals, no side effects)</td>
+</tr>
+<tr class="even">
+<td><code>D_CONST</code></td>
+<td>Const function (depends only on its parameters)</td>
+</tr>
+<tr class="odd">
+<td><code>D_HOT</code> / <code>D_COLD</code></td>
+<td>Hot-/cold-path optimization hint</td>
+</tr>
+<tr class="even">
+<td><code>D_FLATTEN</code></td>
+<td>Inline all calls within the function</td>
+</tr>
+</tbody>
+</table>
+<h3 id="memory-and-allocation">Memory and allocation</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Macro</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>D_MALLOC</code></td>
+<td>Returns a pointer to unaliased memory</td>
+</tr>
+<tr class="even">
+<td><code>D_ALLOC_SIZE(...)</code></td>
+<td>Which params describe the allocation size</td>
+</tr>
+<tr class="odd">
+<td><code>D_ALLOC_ALIGN(n)</code></td>
+<td>Which param gives the alignment</td>
+</tr>
+<tr class="even">
+<td><code>D_ALIGNED(n)</code></td>
+<td>Minimum alignment for a type/variable</td>
+</tr>
+<tr class="odd">
+<td><code>D_PACKED</code></td>
+<td>Remove struct padding</td>
+</tr>
+</tbody>
+</table>
+<h3 id="null-and-parameter-contracts">Null and parameter contracts</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Macro</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>D_NONNULL(...)</code></td>
+<td>Listed pointer params must not be <code>NULL</code></td>
+</tr>
+<tr class="even">
+<td><code>D_NONNULL_ALL</code></td>
+<td>All pointer params must not be <code>NULL</code></td>
+</tr>
+<tr class="odd">
+<td><code>D_RETURNS_NONNULL</code></td>
+<td>Return value is never <code>NULL</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="format-string-checking">Format-string checking</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Macro</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>D_FORMAT_PRINTF(fmt, va)</code></td>
+<td><code>printf</code>-style format/args validation</td>
+</tr>
+<tr class="even">
+<td><code>D_FORMAT_SCANF(fmt, va)</code></td>
+<td><code>scanf</code>-style format/args validation</td>
+</tr>
+</tbody>
+</table>
+<h3 id="visibility-linkage-and-placement">Visibility, linkage, and
+placement</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Macro</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>D_EXPORT</code> / <code>D_IMPORT</code></td>
+<td>Public / imported symbol (<code>dllexport</code> /
+<code>dllimport</code> / visibility)</td>
+</tr>
+<tr class="even">
+<td><code>D_HIDDEN</code></td>
+<td>Hidden (non-exported) symbol</td>
+</tr>
+<tr class="odd">
+<td><code>D_WEAK</code></td>
+<td>Weak symbol</td>
+</tr>
+<tr class="even">
+<td><code>D_USED</code></td>
+<td>Keep symbol even if seemingly unused</td>
+</tr>
+<tr class="odd">
+<td><code>D_SECTION</code></td>
+<td>Place symbol in a named section</td>
+</tr>
+<tr class="even">
+<td><code>D_THREAD_LOCAL</code></td>
+<td>Thread-local storage</td>
+</tr>
+<tr class="odd">
+<td><code>D_CONSTRUCTOR</code> / <code>D_DESTRUCTOR</code></td>
+<td>Run before <code>main</code> / after <code>main</code></td>
+</tr>
+<tr class="even">
+<td><code>D_NAKED</code></td>
+<td>Naked function (no prologue/epilogue)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="branch-and-memory-hints">Branch and memory hints</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Macro</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>D_EXPECT(expr, val)</code></td>
+<td><code>__builtin_expect</code> wrapper</td>
+</tr>
+<tr class="even">
+<td><code>D_EXPECT_TRUE(expr)</code> /
+<code>D_EXPECT_FALSE(expr)</code></td>
+<td>Expression-level likely/unlikely</td>
+</tr>
+<tr class="odd">
+<td><code>D_PREFETCH</code></td>
+<td>Memory prefetch hint</td>
+</tr>
+<tr class="even">
+<td><code>D_UNREACHABLE</code></td>
+<td>Mark code as unreachable</td>
+</tr>
+</tbody>
+</table>
+<p>(<code>D_INTERNAL_GCC_COMPAT_</code> is an internal implementation
+helper, not part of the public surface.)</p>
+</body>
+</html>

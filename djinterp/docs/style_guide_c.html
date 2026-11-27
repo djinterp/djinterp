@@ -1,0 +1,1975 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>C Coding Style Guide</title>
+  <style>
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+    /* CSS for syntax highlighting */
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+</head>
+<body>
+<h1 id="c-coding-style-guide">C Coding Style Guide</h1>
+<hr />
+<h2 id="general-formatting">General Formatting</h2>
+<h3 id="spacing">Spacing</h3>
+<h4 id="line-length">Line Length</h4>
+<p>A line is measured in <strong>characters</strong>: the count of
+Unicode code points on the line, not bytes and not display columns. The
+line terminator is not one of them, so a line of exactly 80 characters
+is 81 bytes on disk with <code>LF</code> and 82 with <code>CRLF</code>,
+and both are within the limit.</p>
+<p>Three rules keep characters, columns, and the count a tool reports in
+agreement, and all three are mandatory rather than stylistic:</p>
+<ul>
+<li><strong>No tab characters</strong> anywhere in a source file, for
+indentation or for alignment. A tab's width depends on the reader's
+settings, so a file containing one has no single well-defined line
+length.</li>
+<li><strong>UTF-8 encoding, no byte-order mark.</strong> Every source
+file must decode as valid UTF-8.</li>
+<li><strong>Single-width characters only.</strong> Every character must
+occupy one display column. Box-drawing characters, arrows, em dashes,
+the section sign, and Greek letters used in mathematical commentary are
+all fine. Characters with an East Asian Width of <code>Wide</code> or
+<code>Fullwidth</code>, and emoji, are not; represent them by code point
+rather than as literals.</li>
+</ul>
+<p>Within that, the limit itself is a target rather than an
+absolute:</p>
+<ul>
+<li>Code and comments should not exceed 80 characters whenever a
+reasonable and readable formatting exists within that limit.</li>
+<li>Do not distort natural C or C++ syntax, introduce excessive
+indentation, or split an otherwise clear expression solely to satisfy
+the limit.</li>
+<li>When a line can be broken naturally at function arguments, template
+arguments, operators, initializer elements, or other syntactic
+boundaries, prefer doing so rather than running long.</li>
+<li>Indivisible or externally defined text — long identifiers, paths,
+URLs, string literals, or generated names — may exceed 80 characters
+when splitting it would reduce readability or alter its meaning.</li>
+<li>Indentation depth is not indivisible text. A line that runs long
+because it sits five levels deep is a signal to extract a function, not
+an exemption.</li>
+</ul>
+<p>Machine-generated files are exempt from this section. The generator
+conforms to this guide; its output need not.</p>
+<h4 id="whitespace">Whitespace</h4>
+<ul>
+<li>Use spaces, not tabs, without exception; see <strong>Line
+Length</strong> above</li>
+<li>No trailing whitespace at the end of any line</li>
+<li>Every file ends with exactly one newline</li>
+<li><code>LF</code> line endings; do not commit <code>CRLF</code></li>
+<li>Align related elements vertically where appropriate</li>
+</ul>
+<h3 id="include-guards">Include Guards</h3>
+<p>Every header carries an include guard derived mechanically from its
+path. The one step that looks past the path is the merge of repeated
+segments (ruling #71): it gives way where it would make two headers'
+guards equal, so a collision stays impossible rather than merely
+unlikely. <code>scripts/ci/check_style.py</code> derives every guard
+over the whole tree (its <code>G</code> check), so tooling can still
+verify and repair them.</p>
+<p><strong>Derivation</strong></p>
+<ol type="1">
+<li>Start with <code>DJINTERP_</code>.</li>
+<li>Under <code>inc/djinterp/</code>, append <code>C_</code> for the C
+tree (<code>c/</code>) and nothing for the C++ tree (<code>cpp/</code>).
+Under <code>config/</code>, append <code>CONFIG_</code>, then
+<code>C_</code> or <code>CPP_</code> for its language folder where it
+has one.</li>
+<li>Append every remaining folder, in order, without
+<code>modules/</code> and <code>core/</code>.</li>
+<li>Append the file's stem.</li>
+<li>Append <code>_H</code> for a <code>.h</code> file, <code>_HPP</code>
+for a <code>.hpp</code> file.</li>
+</ol>
+<p>Uppercase the result and collapse every run of non-alphanumeric
+characters to a single underscore. Then merge each run of words that
+repeats the run before it into one:
+<code>DJINTERP_C_TEST_TEST_COMMON_H</code> is
+<code>DJINTERP_C_TEST_COMMON_H</code>, and
+<code>DJINTERP_TEST_ARCHIVE_TEST_ARCHIVE_HPP</code> is
+<code>DJINTERP_TEST_ARCHIVE_HPP</code>. Where the merged guard would be
+another header's guard, merged or not, keep every segment:
+<code>cpp/modules/parse/parsers/cpp/cpp_dom_node.hpp</code> keeps
+<code>DJINTERP_PARSE_PARSERS_CPP_CPP_DOM_NODE_HPP</code>, because
+<code>dom_node.hpp</code> in the same folder is
+<code>DJINTERP_PARSE_PARSERS_CPP_DOM_NODE_HPP</code>. Do not drop
+segments otherwise, and do not abbreviate.</p>
+<p>The two roots are <code>DJINTERP</code> (<code>c/djinterp.h</code>)
+and <code>DJINTERP_CPP</code> (<code>cpp/djinterp.hpp</code>).</p>
+<table>
+<thead>
+<tr class="header">
+<th>Header</th>
+<th>Guard</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>inc/djinterp/c/djinterp.h</code></td>
+<td><code>DJINTERP</code></td>
+</tr>
+<tr class="even">
+<td><code>inc/djinterp/cpp/djinterp.hpp</code></td>
+<td><code>DJINTERP_CPP</code></td>
+</tr>
+<tr class="odd">
+<td><code>inc/djinterp/c/container/map/hash_map_int.h</code></td>
+<td><code>DJINTERP_C_CONTAINER_MAP_HASH_MAP_INT_H</code></td>
+</tr>
+<tr class="even">
+<td><code>inc/djinterp/c/modules/test/test_common.h</code></td>
+<td><code>DJINTERP_C_TEST_COMMON_H</code></td>
+</tr>
+<tr class="odd">
+<td><code>inc/djinterp/cpp/meta/trait_detect.hpp</code></td>
+<td><code>DJINTERP_META_TRAIT_DETECT_HPP</code></td>
+</tr>
+<tr class="even">
+<td><code>inc/djinterp/cpp/modules/parse/expression/expression.hpp</code></td>
+<td><code>DJINTERP_PARSE_EXPRESSION_HPP</code></td>
+</tr>
+<tr class="odd">
+<td><code>inc/djinterp/config/dconfig.h</code></td>
+<td><code>DJINTERP_CONFIG_DCONFIG_H</code></td>
+</tr>
+<tr class="even">
+<td><code>inc/djinterp/config/c/util/cfg_dmacro.h</code></td>
+<td><code>DJINTERP_CONFIG_C_UTIL_CFG_DMACRO_H</code></td>
+</tr>
+<tr class="odd">
+<td><code>inc/djinterp/env/os/env_linux.h</code></td>
+<td><code>DJINTERP_ENV_OS_ENV_LINUX_H</code></td>
+</tr>
+<tr class="even">
+<td><code>inc/djinterp/tools/dawk/dlex.h</code></td>
+<td><code>DJINTERP_TOOLS_DAWK_DLEX_H</code></td>
+</tr>
+<tr class="odd">
+<td><code>inc/ui/vparse/view.hpp</code></td>
+<td><code>DJINTERP_UI_VPARSE_VIEW_HPP</code></td>
+</tr>
+<tr class="even">
+<td><code>inc/re_std/cpp/cstdint/cstdint.hpp</code></td>
+<td><code>RE_STD_CSTDINT_HPP</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>inc/ui</strong>, the tools' interface tree, sits outside
+<code>inc/djinterp/</code>. Its guards are <code>DJINTERP_UI_</code>,
+then the header's path under <code>inc/ui/</code>, as a tool's own
+headers under <code>inc/djinterp/tools/</code> are guarded (ruled
+2026.11.17).</p>
+<p><strong>re_std is the exception.</strong> It includes nothing from
+djinterp and builds on its own, so its guards are derived from its own
+path: <code>RE_STD_</code>, then <code>C_</code> for a header under
+<code>inc/re_std/c/</code> and nothing for one under
+<code>inc/re_std/cpp/</code>, then the rest of its path with its
+extension, uppercased, every run of non-alphanumeric characters
+collapsed to one underscore, repeated segments merged as above.
+<code>cpp/cstdint/cstdint.hpp</code> is <code>RE_STD_CSTDINT_HPP</code>,
+the extensionless umbrella <code>cpp/cstdint/cstdint</code> is
+<code>RE_STD_CSTDINT</code>, and <code>c/cstdint/dstdint.h</code> is
+<code>RE_STD_C_CSTDINT_DSTDINT_H</code>. Its macros are spelled
+<code>RE_STD_</code>, never <code>D_</code>, and its configuration is
+its own, <code>inc/re_std/config.h</code> and
+<code>config.hpp</code>.</p>
+<p><strong>Format</strong></p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#ifndef DJINTERP_C_CONTAINER_MAP_HASH_MAP_INT_H</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="pp">#define DJINTERP_C_CONTAINER_MAP_HASH_MAP_INT_H </span><span class="dv">1</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co">// contents</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="pp">#endif  </span><span class="co">// DJINTERP_C_CONTAINER_MAP_HASH_MAP_INT_H</span></span></code></pre></div>
+<p><strong>Rules</strong></p>
+<ul>
+<li>No two headers may share a guard. Because the guard is derived from
+the path, and the merge gives way where it would make two equal, this
+cannot happen unless the derivation is broken.</li>
+<li>A guard with every segment kept where the merge applies is still
+accepted while the tree's headers move to the merged form;
+<code>check_style.py</code> reports it as <code>M</code>, a warning,
+rather than <code>G</code>.</li>
+<li>Since <code>modules/</code> adds nothing (nor <code>core/</code>,
+where an older path still has one), no folder under it may share a name
+with a folder beside it: <code>cpp/modules/parse/</code> and a
+<code>cpp/parse/</code> would derive the same guards.</li>
+<li>The <code>#define</code> carries the value <code>1</code>.</li>
+<li>The closing <code>#endif</code> names the guard in a trailing
+comment.</li>
+</ul>
+<p><strong>Why the merge gives way.</strong> Merging a repeated segment
+alone is not safe: a header and a same-named file beside it can shorten
+to the same symbol, <code>parsers/cpp/cpp_dom_node.hpp</code> against
+<code>parsers/cpp/dom_node.hpp</code>. Ruling #71 (2026-11-04) merges
+wherever that does not happen and keeps every segment where it does. The
+cost is that one header's guard can depend on whether another exists:
+adding a header can lengthen a neighbour's guard, which the checker then
+reports.</p>
+<h3 id="macro-names">Macro Names</h3>
+<p>Macros begin with <code>D_</code>, followed by the subsystem's macro
+prefix from the table above, followed by enough of the path and name to
+be unambiguous.</p>
+<p>Unlike include guards, macro names are <strong>not</strong>
+mechanically derived, and should be shortened wherever the full path
+adds length without adding clarity:</p>
+<ul>
+<li>Omit path segments a reader would supply anyway.
+<code>D_CFG_DMACRO_VARG_MAX</code> is better than
+<code>D_CONFIG_C_UTIL_DMACRO_VARG_MAX</code>.</li>
+<li>Omit repeated segments.</li>
+<li>Where the table marks a subsystem skippable, part or all of the path
+may be dropped for a macro that is widely used and unambiguous.</li>
+<li>A macro prefix of <code>none</code> means the macro may follow
+<code>D_</code> directly with no path at all. This is for the universal
+kit — <code>D_STATIC</code>, <code>D_INLINE</code>,
+<code>D_EXTERN_C</code> — that appears in every file.</li>
+</ul>
+<p>Judgement replaces derivation here, so the safety net differs. The
+rule is not about the shape of the name: <strong>no two macros anywhere
+in the project may share a name with different definitions.</strong>
+That is checkable without constraining the name, and it is the only
+property that actually matters.</p>
+<h3 id="include-directives">Include Directives</h3>
+<p><strong>Include what you use.</strong> Every file includes exactly
+what its own contents need, and nothing more. A header includes what its
+declarations require; a source file includes what its definitions
+require, and does not rely on its corresponding header to supply those
+transitively.</p>
+<p>Group include directives by origin, using short category comments
+such as <code>// std</code> and <code>// djinterp</code>.</p>
+<p>Every <code>#include</code> directive should include a very brief
+trailing <code>//</code> comment summarizing why that dependency is
+needed whenever reasonably possible. Standard-library headers should
+always identify the principal types, constants, or functions for which
+they are included.</p>
+<p>Keep the complete <code>#include</code> directive and its summary on
+one line whenever doing so is readable. Additional comment lines may be
+used when they improve readability. When a summary continues onto
+another line, align the continuation with the first summary when
+practical.</p>
+<p>Align trailing include comments vertically within an include group
+whenever practical. There should be at least two spaces between the end
+of the include directive and the beginning of its trailing
+<code>//</code> comment whenever possible.</p>
+<p>An include of <code>djinterp.h</code> or <code>djinterp.hpp</code>,
+regardless of its relative path, must use the exact summary
+<code>// framework root</code>, with one exception: a source file's
+include of its own corresponding header says
+<code>// corresponding header</code>, as every source's does, so
+<code>djinterp.c</code> includes <code>djinterp.h</code> with that
+one.</p>
+<p><strong>The fixed-width integers come from re_std.</strong> A C file
+includes re_std's <code>cstdint/dstdint.h</code> and a C++ file
+<code>cstdint/cstdint.hpp</code>, never <code>&lt;stdint.h&gt;</code>,
+<code>&lt;cstdint&gt;</code>, <code>&lt;inttypes.h&gt;</code> or
+<code>&lt;cinttypes&gt;</code>. Between them they give the types, the
+limits, the constants and the formats at every language level and on
+every platform, and declare no family the build cannot spell. C++ spells
+the names <code>re_std::uint32_t</code>, never
+<code>std::uint32_t</code>; a name written without a namespace stays as
+it is, since <code>dstdint.h</code> declares the global names. The
+include is written like any other, a path relative to the file and a
+comment naming what the file uses, in a <code>// re_std</code> group of
+its own right after the <code>// djinterp</code> group: djinterp's
+configuration, which the framework root brings, is then read before
+re_std's, so that the switches djinterp carries into re_std arrive
+(<code>config/cfg_re_std.h</code> stops the build where they cannot).
+<code>tools/check_stdint_includes.py</code> enforces the rule, in CI as
+the <code>stdint-lint</code> workflow; <code>dstdint.h</code> itself and
+its conformance harness are the only files exempt.</p>
+<p><strong>Format:</strong></p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">// std</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;errno.h&gt;</span><span class="pp">        </span><span class="co">// EINVAL, ERANGE</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;stddef.h&gt;</span><span class="pp">       </span><span class="co">// size_t</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;stdlib.h&gt;</span><span class="pp">       </span><span class="co">// malloc</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;string.h&gt;</span><span class="pp">       </span><span class="co">// memcpy, memset</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="co">// djinterp</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&quot;../djinterp.h&quot;</span><span class="pp">  </span><span class="co">// framework root</span></span></code></pre></div>
+<p><strong>Additional-line example:</strong></p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&quot;../env/env.h&quot;</span><span class="pp">  </span><span class="co">// compiler and platform environment detection</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>                         <span class="co">// used by conditional portability definitions</span></span></code></pre></div>
+<h3 id="brackets">Brackets</h3>
+<ul>
+<li>All opening braces <code>{</code> on their own line</li>
+<li>No bracketless <code>if</code>-statements (always use brackets)
+e.g.</li>
+</ul>
+<div class="sourceCode" id="cb4"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="op">(&lt;</span>condition<span class="op">&gt;)</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    <span class="op">...</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<h3 id="boolean-expressions">Boolean Expressions</h3>
+<p>Boolean expressions with multiple conditions should be broken up into
+individual lines, parenthesized, and enclosed in one set of top-level
+parentheses. Each condition should be on its own line with the boolean
+operators aligned for consecutive terms of similar length.</p>
+<p><strong>Format:</strong></p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="op">(</span> <span class="op">(!</span>_array<span class="op">)</span>                                        <span class="op">||</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>     <span class="op">(!</span>_elements<span class="op">)</span>                                     <span class="op">||</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>     <span class="op">(</span> <span class="op">(</span>some_condition<span class="op">)</span> <span class="op">&amp;&amp;</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>       <span class="op">(</span>other_condition<span class="op">)</span> <span class="op">)</span>                            <span class="op">||</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>     <span class="op">(!</span>d_array_common_validate_params<span class="op">(</span>_element_size<span class="op">))</span> <span class="op">||</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>     <span class="op">(</span>_count <span class="op">==</span> <span class="dv">0</span><span class="op">)</span> <span class="op">)</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>    <span class="co">// handle condition</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p><strong>Rules:</strong></p>
+<ul>
+<li>Enclose the entire expression in one set of top-level
+parentheses</li>
+<li>Each condition on its own line</li>
+<li>Line up the opening parentheses of conditions</li>
+<li>Align boolean operators (<code>||</code>, <code>&amp;&amp;</code>)
+for readability</li>
+<li>Add space between the operator and the next condition</li>
+<li>Use judgment for what is easiest to read when aligning
+operators</li>
+<li>Always parenthesize multi-condition boolean expressions</li>
+</ul>
+<h3 id="function-calls-and-returns">Function Calls and Returns</h3>
+<p>Function calls and return statements should be broken across multiple
+lines when:</p>
+<ol type="1">
+<li>The function has more than 1 parameter, OR</li>
+<li>The full statement exceeds the normal 80-character target and a
+natural, readable break is available</li>
+</ol>
+<p><strong>Format:</strong></p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> d_array_common_resize_amount<span class="op">(</span>_ptr_array<span class="op">-&gt;</span>elements<span class="op">,</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>                                        _ptr_array<span class="op">-&gt;</span>count<span class="op">,</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>                                        <span class="kw">sizeof</span><span class="op">(</span><span class="dt">void</span><span class="op">*),</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>                                        _amount<span class="op">);</span></span></code></pre></div>
+<p><strong>Rules:</strong></p>
+<ul>
+<li>Each parameter on its own line</li>
+<li>All parameters should line up/start in the same column</li>
+<li>Align parameters with the first parameter after the opening
+parenthesis</li>
+</ul>
+<h3 id="variable-declarations-and-initialization">Variable Declarations
+and Initialization</h3>
+<p>Validate parameters first. Then declare each variable at its point of
+first use and give it a value in the same statement.</p>
+<p><strong>Format:</strong></p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> some_struct<span class="op">*</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>d_some_struct_new_copy<span class="op">(</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">const</span> <span class="kw">struct</span> some_struct<span class="op">*</span> _other</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="op">)</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>    <span class="co">// parameter validation first</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="op">(!</span>_other<span class="op">)</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>    <span class="op">{</span></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> NULL<span class="op">;</span></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>    <span class="dt">const</span> <span class="dt">size_t</span> count    <span class="op">=</span> _other<span class="op">-&gt;</span>count<span class="op">;</span></span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>    <span class="dt">const</span> <span class="dt">size_t</span> capacity <span class="op">=</span> _other<span class="op">-&gt;</span>capacity<span class="op">;</span></span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>    <span class="kw">struct</span> some_struct<span class="op">*</span> result <span class="op">=</span> malloc<span class="op">(</span><span class="kw">sizeof</span><span class="op">(*</span>result<span class="op">));</span></span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>    <span class="co">// check if memory allocation was successful</span></span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="op">(!</span>result<span class="op">)</span></span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>    <span class="op">{</span></span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> NULL<span class="op">;</span></span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a>    <span class="dt">void</span><span class="op">*</span> elements <span class="op">=</span> calloc<span class="op">(</span>capacity<span class="op">,</span></span>
+<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a>                            <span class="kw">sizeof</span><span class="op">(</span><span class="dt">void</span><span class="op">*));</span></span>
+<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a>    <span class="co">// rest of function logic...</span></span>
+<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p><strong>Rules:</strong></p>
+<ul>
+<li>Perform parameter validation before declaring or initializing
+anything</li>
+<li>Declare each variable at its point of first use, not at the top of
+the function</li>
+<li>Initialize a variable in its declaration; do not declare it
+uninitialized and assign to it later</li>
+<li>Prefer <code>const</code> for any variable that is never
+reassigned</li>
+<li>Align variable names vertically within a run of consecutive
+declarations when doing so aids scanning</li>
+</ul>
+<p><strong>Exception:</strong> in a C function that uses a single
+<code>goto</code> cleanup label, any resource released at that label may
+be declared and initialized before the first <code>goto</code>, so that
+every jump crosses a fully initialized declaration.</p>
+<h3 id="control-flow-and-spacing">Control Flow and Spacing</h3>
+<h4 id="if-statements-and-loops">if-statements and loops</h4>
+<ul>
+<li>Most <code>if</code>-statements and loops should have a comment
+explaining their purpose.</li>
+<li><code>if</code>-statements should be followed by an empty line,
+unless the next line contains another closing bracket for an outer
+<code>if</code>-statement or <code>for</code>-loop.</li>
+</ul>
+<p><strong>Example:</strong></p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co">// check if memory allocation was successful</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="op">(!</span>result<span class="op">)</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> NULL<span class="op">;</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a><span class="co">// initialize the array elements</span></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>elements <span class="op">=</span> malloc<span class="op">(</span>size <span class="op">*</span> <span class="kw">sizeof</span><span class="op">(</span><span class="dt">void</span><span class="op">*));</span></span></code></pre></div>
+<h4 id="return-statements">Return Statements</h4>
+<ul>
+<li>Return statements should be preceded by an empty line</li>
+<li>Void functions must have an explicit empty <code>return;</code>
+statement at the end</li>
+</ul>
+<p><strong>Example:</strong></p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>d_some_struct_free<span class="op">(</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">struct</span> some_struct<span class="op">*</span> _some_struct</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="op">)</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="op">(</span>_some_struct<span class="op">)</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>    <span class="op">{</span></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="op">(</span>_some_struct<span class="op">-&gt;</span>member<span class="op">)</span></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>        <span class="op">{</span></span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>            free<span class="op">(</span>_some_struct<span class="op">-&gt;</span>member<span class="op">);</span></span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span></span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>        free<span class="op">(</span>_some_struct<span class="op">);</span></span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span><span class="op">;</span></span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<h2 id="naming-conventions">Naming Conventions</h2>
+<h3 id="prefixes">Prefixes</h3>
+<ul>
+<li><strong>Struct/union/enum types</strong>: prefixed with
+<code>d_</code></li>
+<li><strong>Macros</strong>: prefixed with <code>D_</code>, with the
+rest in ALL CAPS</li>
+<li><strong>Named constants</strong>: ALL CAPS, with no <code>D_</code>
+prefix, so a constant is distinguishable from a macro at the point of
+use</li>
+<li><strong>Function parameters</strong>: prefixed with a single leading
+underscore, e.g. <code>_param1</code></li>
+</ul>
+<p>C has no namespaces, so the <code>d_</code> prefix is the only
+collision protection available to a type name. It is not decoration.</p>
+<p>A <strong>named constant</strong> is a <code>const</code> object at
+file or block scope that stands in for a literal —
+<code>MAX_PATH_LENGTH</code>, <code>DEFAULT_CAPACITY</code>. The rule is
+about that role, not about the <code>const</code> qualifier: a
+<code>const</code> parameter, a <code>const</code> pointer, or a
+<code>const</code> local holding a computed value is an ordinary
+variable and stays <code>snake_case</code>.</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="dt">const</span> <span class="dt">size_t</span> MAX_PATH_LENGTH <span class="op">=</span> <span class="dv">4096</span><span class="op">;</span>          <span class="co">// named constant</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="dt">bool</span> d_path_is_valid<span class="op">(</span><span class="dt">const</span> <span class="dt">char</span><span class="op">*</span> _path<span class="op">)</span>       <span class="co">// const parameter, not a constant</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">const</span> <span class="dt">size_t</span> length <span class="op">=</span> strlen<span class="op">(</span>_path<span class="op">);</span>      <span class="co">// const local, not a constant</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> length <span class="op">&lt;</span> MAX_PATH_LENGTH<span class="op">;</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<h3 id="reserved-identifiers">Reserved Identifiers</h3>
+<p>Two forms are reserved to the implementation and must never appear in
+an identifier this project defines, in any scope:</p>
+<ul>
+<li>a leading underscore followed by an upper-case letter
+(<code>_Type</code>, <code>_Args</code>)</li>
+<li>a double underscore anywhere (<code>FOO__BAR</code>,
+<code>__baz</code>)</li>
+</ul>
+<p>C++ [lex.name]/3.1 and C17 §7.1.3 reserve these <em>for any use</em>,
+not merely at file scope, because the implementation is free to define
+them as macros — and macro substitution happens before scope exists. A
+template parameter is not protected by being inside a template.</p>
+<p>A single leading underscore followed by a lower-case letter is
+reserved only in the global namespace and at file scope, which is why
+function parameters may use <code>_param</code>. Do not extend it to
+file-scope names or struct tags.</p>
+<p>Enable <code>-Wreserved-identifier</code> (Clang 13+) to catch
+violations.</p>
+<h2 id="comments">Comments</h2>
+<h3 id="comment-style-in-headers">Comment Style in Headers</h3>
+<ul>
+<li>Use <code>//</code> comments in header files by default.</li>
+<li>Block comments (<code>/* ... */</code>) are permitted for:
+<ul>
+<li>the initial file header comment block,</li>
+<li>the required table of contents, and</li>
+<li>a declaration's Doxygen <code>/** ... */</code> contract, as
+<strong>Function Comments</strong> describes.</li>
+</ul></li>
+<li>Structural section, subsection, and item delineations use the
+<code>//</code> formats defined below.</li>
+<li>Use <code>//</code> comments for ordinary documentation, brief
+entity comments, implementation notes, and other comments.</li>
+<li>The first letter of ordinary comments should be lower-case unless
+the text begins with a proper noun, identifier, acronym, or other term
+whose capitalization should be preserved.</li>
+</ul>
+<h3 id="header-file-header-comments">Header File Header Comments</h3>
+<p>All C and C++ header files must begin with the standard banner
+comment block. The banner is identical in every file: the same fields,
+in the same order, at the same columns, with every line of fixed
+geometry ending on character 80.</p>
+<p><strong>Format:</strong></p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co">/*******************************************************************************</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="co">* djinterp [c][container]                                               vector.h</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="co">*</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="co">* A growable array of fixed-size elements.</span></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a><span class="co">*   Extended description providing more details about the purpose and contents</span></span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a><span class="co">* of this header.</span></span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a><span class="co">*</span></span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a><span class="co">* HOW TO USE</span></span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a><span class="co">* ----------</span></span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a><span class="co">*   How a caller includes the header and uses it, with a short example where</span></span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a><span class="co">* one helps.</span></span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a><span class="co">*</span></span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a><span class="co">* OPTIONS</span></span>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a><span class="co">* -------</span></span>
+<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a><span class="co">*   None: nothing in this header is chosen at run time.</span></span>
+<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a><span class="co">*</span></span>
+<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a><span class="co">* CONFIGURATION</span></span>
+<span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a><span class="co">* -------------</span></span>
+<span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a><span class="co">*   The D_CFG_ knobs that change it at build time, and where each is set.</span></span>
+<span id="cb11-20"><a href="#cb11-20" aria-hidden="true" tabindex="-1"></a><span class="co">*</span></span>
+<span id="cb11-21"><a href="#cb11-21" aria-hidden="true" tabindex="-1"></a><span class="co">*</span></span>
+<span id="cb11-22"><a href="#cb11-22" aria-hidden="true" tabindex="-1"></a><span class="co">* path:      /inc/djinterp/c/container/vector/vector.h</span></span>
+<span id="cb11-23"><a href="#cb11-23" aria-hidden="true" tabindex="-1"></a><span class="co">* link(s):   TBA</span></span>
+<span id="cb11-24"><a href="#cb11-24" aria-hidden="true" tabindex="-1"></a><span class="co">* author(s): Author Name                                     created: YYYY.MM.DD</span></span>
+<span id="cb11-25"><a href="#cb11-25" aria-hidden="true" tabindex="-1"></a><span class="co">*                                                            revised: YYYY.MM.DD</span></span>
+<span id="cb11-26"><a href="#cb11-26" aria-hidden="true" tabindex="-1"></a><span class="co">*******************************************************************************/</span></span></code></pre></div>
+<p><strong>Rules:</strong></p>
+<p>The banner is a fixed template. Every header and every source file
+carries the same one, with the same fields in the same order at the same
+columns. There are no optional fields and no local variants.
+<code>scripts/ci/check_style.py</code> checks all of it (its
+<code>B</code> check), and its <code>H</code> warning checks the three
+sections.</p>
+<p>Geometry (counted in characters, as defined under <strong>Line
+Length</strong>):</p>
+<ul>
+<li>The opening rule is <code>/</code> followed by 79 <code>*</code>,
+ending on character 80.</li>
+<li>The closing rule is 79 <code>*</code> followed by <code>/</code>,
+ending on character 80.</li>
+<li>On the title line, the filename's last character sits on character
+80. Where the first word, the tag and the filename can't fit, the
+filename follows the tag after one space, past character 80.</li>
+<li>On the <code>author(s):</code> line, the <code>created:</code>
+value's last character sits on character 80. The <code>revised:</code>
+line aligns beneath it and ends there too.</li>
+<li><code>path:</code>, <code>link(s):</code>, and
+<code>author(s):</code> values all begin on character 14.</li>
+<li>Two blank <code>*</code> lines precede <code>path:</code>.</li>
+<li>Description lines are prose and are not padded; they wrap at 80
+characters like any other line.</li>
+</ul>
+<p>The title line:</p>
+<ul>
+<li><p>It reads <code>* djinterp</code>, the tag, then the filename. Its
+first word is <code>djinterp</code> in every file of the tree, the
+tools' and the interface's included (ruled 2026.11.17).</p></li>
+<li><p>The tag is <code>[&lt;language&gt;][&lt;module&gt;]</code>,
+derived from the file's path, not chosen (ruled 2026.11.10, 2026.11.11
+and 2026.11.17), so it can be checked:</p>
+<ul>
+<li>The language is the <code>c</code> or <code>cpp</code> folder in the
+path (<code>config/c/</code> and <code>config/cpp/</code> count); a path
+with neither takes its extension's (<code>.h</code> and <code>.c</code>
+are <code>c</code>, <code>.hpp</code> and <code>.cpp</code> are
+<code>cpp</code>).</li>
+<li>The module is the first folder under the language folder, with
+<code>modules/</code> and <code>core/</code> skipped and
+<code>util/</code> written <code>utility</code>.</li>
+<li><code>env/</code>, <code>tools/</code> (every tool, and
+<code>inc/ui/</code>) and <code>config/</code>'s own files, outside its
+language folders, are modules of their own.</li>
+<li>A file directly in a language folder takes its language alone, and
+<code>re_std</code>'s files take <code>[re_std]</code>.</li>
+<li>Sources, tests, runners, <code>tests/unintegrated/</code> and
+benchmarks take the tag of the path they mirror under
+<code>inc/</code>.</li>
+</ul>
+<table>
+<thead>
+<tr class="header">
+<th>Path</th>
+<th>Tag</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>inc/djinterp/c/djinterp.h</code></td>
+<td><code>[c]</code></td>
+</tr>
+<tr class="even">
+<td><code>inc/djinterp/c/container/vector/vector.h</code></td>
+<td><code>[c][container]</code></td>
+</tr>
+<tr class="odd">
+<td><code>inc/djinterp/cpp/modules/parse/expression/expression.hpp</code></td>
+<td><code>[cpp][parse]</code></td>
+</tr>
+<tr class="even">
+<td><code>inc/djinterp/cpp/meta/trait_detect.hpp</code></td>
+<td><code>[cpp][meta]</code></td>
+</tr>
+<tr class="odd">
+<td><code>inc/djinterp/c/util/macro/for_each64.h</code></td>
+<td><code>[c][utility]</code></td>
+</tr>
+<tr class="even">
+<td><code>inc/djinterp/env/os/env_linux.h</code></td>
+<td><code>[c][env]</code></td>
+</tr>
+<tr class="odd">
+<td><code>inc/djinterp/config/dconfig.h</code></td>
+<td><code>[c][config]</code></td>
+</tr>
+<tr class="even">
+<td><code>inc/djinterp/config/c/util/cfg_dmacro.h</code></td>
+<td><code>[c][utility]</code></td>
+</tr>
+<tr class="odd">
+<td><code>inc/djinterp/tools/dawk/dlex.h</code></td>
+<td><code>[c][tools]</code></td>
+</tr>
+<tr class="even">
+<td><code>inc/ui/vparse/view.hpp</code></td>
+<td><code>[cpp][tools]</code></td>
+</tr>
+<tr class="odd">
+<td><code>inc/re_std/cpp/cstdint/cstdint.hpp</code></td>
+<td><code>[re_std]</code></td>
+</tr>
+<tr class="even">
+<td><code>tests/djinterp/c/container/vector/vector_tests.c</code></td>
+<td><code>[c][container]</code></td>
+</tr>
+</tbody>
+</table></li>
+<li><p>The filename is the file's own name, which must match the file on
+disk and the include guard derived from it.</p></li>
+</ul>
+<p>The sections (ruled 2026.11.17):</p>
+<ul>
+<li>Every header under <code>inc/</code> carries HOW TO USE, OPTIONS and
+CONFIGURATION, in that order, after the description. Each heading stands
+over a row of dashes as long as itself, and its text is indented as the
+description's first line is.</li>
+<li>HOW TO USE says how a caller includes the header and uses it;
+OPTIONS, what it lets a run choose; CONFIGURATION, the
+<code>D_CFG_</code> knobs that change it at build time. A section with
+nothing to say says so in one line:
+<code>None: nothing in this header is chosen at run time.</code></li>
+<li>A generated header gets its sections from its generator.</li>
+<li><code>check_style.py</code> warns (<code>H</code>) on a header
+without them. The warning fails no run; the punch list tracks the
+headers still without them.</li>
+</ul>
+<p>Capitals: in a banner, only the three dashed headings are uppercase.
+The uppercase rule for numbered sections (see <strong>Header Structure,
+Numbering, and Tables of Contents</strong>) is for the header's
+body.</p>
+<p>Fields:</p>
+<ul>
+<li>All five fields are mandatory: <code>path:</code>,
+<code>link(s):</code>, <code>author(s):</code>, <code>created:</code>,
+and <code>revised:</code>.</li>
+<li><code>link(s):</code> is spelled with the parenthesized plural. When
+there is no link yet, the value is the literal <code>TBA</code> rather
+than an omitted field.</li>
+<li><code>author(s):</code> uses one canonical spelling per person for
+the life of the project. Do not mix long and short forms of the same
+name.</li>
+<li><code>created:</code> records the original creation date and never
+changes afterward.</li>
+<li><code>revised:</code> records the most recent revision date.</li>
+<li>Both dates use the format <code>YYYY.MM.DD</code>.</li>
+</ul>
+<h3 id="header-structure-numbering-and-tables-of-contents">Header
+Structure, Numbering, and Tables of Contents</h3>
+<p>Header bodies that are divided into structural sections use decimal
+hierarchical numbering at every level, the fourth included. Neither
+Roman numerals nor letters are used.</p>
+<p>Body hierarchy:</p>
+<ul>
+<li>section: <code>1.</code></li>
+<li>subsection: <code>1.1</code></li>
+<li>item: <code>1.1.1</code></li>
+<li>fourth level: <code>1.1.1.1</code></li>
+</ul>
+<p>Top-level section numbers retain a period. Numbers at the second
+level and below do not use a trailing period.</p>
+<p>A fourth-level entry is a decimal marker in the body,
+<code>1.1.1.1</code>, and a local ordinal in the table of contents, as
+<strong>Fourth-Level Notation</strong> shows.</p>
+<p>A table of contents is required for every header containing multiple
+sections. Any header that uses section/subsection/item delineations must
+also contain a table of contents, even if it currently contains only one
+top-level section. The table of contents must agree with the numbering
+and names used in the body.</p>
+<h4 id="table-of-contents-format">Table of Contents Format</h4>
+<p>Tables of contents use local numbering at each indentation level.
+Parent numbers are communicated by indentation and are not repeated on
+child entries.</p>
+<p>Use this hierarchy:</p>
+<pre class="text"><code>1.  TOP-LEVEL SECTION
+    -----------------
+    1.  Subsection
+         1.  Item
+              1.  Fourth-level entry
+              2.  Fourth-level entry</code></pre>
+<p>Rules:</p>
+<ul>
+<li>Do not use blank lines anywhere inside a table of contents.</li>
+<li>Separate a top-level ordinal from its name with two spaces.</li>
+<li>Align the top-level hyphen underline directly beneath the section
+name.</li>
+<li>Indent subsection entries four spaces.</li>
+<li>Indent item entries nine spaces.</li>
+<li>Fourth-level entries are indented so that the ordinal begins
+<strong>one column to the right of the first character of the parent
+item's name</strong>.</li>
+<li>Restart numbering at <code>1.</code> beneath each parent, at every
+level.</li>
+<li>Fourth-level entries appear in the body exactly as the other levels
+do, as a <code>#.#.#.#</code> marker. Every ToC entry has a matching
+marker at its destination.</li>
+<li>For single-digit item ordinals, retain the second spacing column
+before the item name, e.g. <code>1.  name</code>; double-digit ordinals
+use <code>10. name</code>.</li>
+</ul>
+<p>Example:</p>
+<pre class="text"><code>1.  DEFINED CONSTANTS
+    -----------------
+    1.  Architecture types
+         1.  Architecture type identifiers
+              1.  D_ENV_ARCH_TYPE_X86
+              2.  D_ENV_ARCH_TYPE_X64
+              3.  D_ENV_ARCH_TYPE_ARM</code></pre>
+<h4 id="section-delineation">Section Delineation</h4>
+<p>Top-level section names are written in uppercase. Use two spaces
+between the section ordinal and section name:</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co">//==============================================================================</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="co">// 1.  CONFIGURATION SYSTEM</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="co">//==============================================================================</span></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a><span class="co">// Controls variadic argument limits, macro variant selection, and provides</span></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a><span class="co">// user-overridable settings for maximum flexibility.</span></span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a><span class="co">//</span></span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a><span class="co">// CONFIGURATION HIERARCHY (highest to lowest priority):</span></span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a><span class="co">//   1. D_CFG_DMACRO_OVERRIDE - if 1, use D_CFG_DMACRO_* values directly</span></span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a><span class="co">//   2. D_CFG_DMACRO_VARG_MAX - user-specified max (if override enabled)</span></span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a><span class="co">//   3. D_ENV_PP_MAX_MACRO_ARGS - environment-detected limit</span></span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a><span class="co">//   4. D_CFG_DMACRO_VARG_DEFAULT (128) - fallback default</span></span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a><span class="co">// 1.1    Configuration constants</span></span>
+<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a><span class="co">//------------------------------------------------------------------------------</span></span></code></pre></div>
+<p>When a useful section-level description exists, place it immediately
+after the closing
+<code>//==============================================================================</code>
+line, with no empty line before the description. Omit the description
+when it would merely repeat the section name.</p>
+<p>Use <strong>two empty lines</strong> after the section-description
+block before the first subsection. When a section has no description,
+use two empty lines after the closing
+<code>//==============================================================================</code>
+delimiter before its first subsection.</p>
+<h4 id="subsection-delineation">Subsection Delineation</h4>
+<p>Subsection names use their complete hierarchical number with no
+trailing period, followed by a line of hyphens. Use at least two spaces
+between the number and name; pad second-level numbers so subsection and
+item names align:</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co">// 1.1    Architecture types</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="co">//------------------------------------------------------------------------------</span></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="co">// 1.1.1</span></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a><span class="co">// Architecture type identifiers</span></span></code></pre></div>
+<p>Use <strong>zero empty lines</strong> after the
+<code>//------------------------------------------------------------------------------</code>
+delimiter. The subsection's first item, declaration group, or other
+content begins on the immediately following line.</p>
+<h4 id="item-delineation">Item Delineation</h4>
+<p>Third-level item markers use their complete hierarchical number with
+no trailing period and carry <strong>no descriptive text</strong> on the
+numbered line.</p>
+<p>The item name or entity documentation begins on the immediately
+following line, with <strong>zero empty lines</strong> after the item
+marker:</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co">// 1.1.1</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="co">// Architecture type identifiers</span></span></code></pre></div>
+<p>Concrete entities follow the same pattern:</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co">// 1.2.3</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="co">// D_KEYWORD_CONCURRENT</span></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a><span class="co">//   keyword: resolves to `concurrent`.</span></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a><span class="pp">#define D_KEYWORD_CONCURRENT concurrent</span></span></code></pre></div>
+<h4 id="fourth-level-notation">Fourth-Level Notation</h4>
+<p>The fourth level uses decimal ordinals like every other level,
+producing a <code>#.#.#.#</code> marker. In the ToC, place the ordinal
+one column to the right of the first character of its parent item's
+name:</p>
+<pre class="text"><code>    1.  Architecture types
+         1.  Architecture type identifiers
+              1.  D_ENV_ARCH_TYPE_X86
+              2.  D_ENV_ARCH_TYPE_X64
+              3.  D_ENV_ARCH_TYPE_ARM</code></pre>
+<p>The matching body markers are <code>1.1.1.1</code>,
+<code>1.1.1.2</code>, and <code>1.1.1.3</code>. Unlike the lettered
+notation this replaces, a fourth-level ToC entry always has a
+corresponding marker in the body, so every ToC line names a place a
+reader can actually find.</p>
+<h4 id="conditional-block-closures">Conditional-Block Closures</h4>
+<p>In header files, every <code>#endif</code> that closes an
+<code>#ifdef</code> or <code>#ifndef</code> block must identify the
+controlling symbol in a trailing comment:</p>
+<div class="sourceCode" id="cb19"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#ifndef D_SOME_FEATURE</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>    <span class="op">...</span></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a><span class="pp">#endif  </span><span class="co">// D_SOME_FEATURE</span></span></code></pre></div>
+<p>This applies to the file include guard and to nested
+<code>#ifdef</code> / <code>#ifndef</code> blocks. A closing
+<code>#endif</code> for an ordinary expression-based <code>#if</code>
+does not require a comment unless one improves clarity.</p>
+<h3 id="source-file-header-comments">Source File Header Comments</h3>
+<p>All C and C++ definition/source files must begin with a descriptive
+metadata header block. The corresponding header is included immediately
+after it.</p>
+<p><strong>Format:</strong></p>
+<div class="sourceCode" id="cb20"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="co">/*******************************************************************************</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a><span class="co">* djinterp [c]                                                        djinterp.c</span></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a><span class="co">*</span></span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a><span class="co">* Brief description of the source file.</span></span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a><span class="co">*   Extended description providing more details about the implementation</span></span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a><span class="co">* contained in this file.</span></span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a><span class="co">*</span></span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a><span class="co">* path:      /src/djinterp/c/djinterp.c</span></span>
+<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a><span class="co">* link(s):   TBA</span></span>
+<span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a><span class="co">* author(s): Author Name                                     created: YYYY.MM.DD</span></span>
+<span id="cb20-11"><a href="#cb20-11" aria-hidden="true" tabindex="-1"></a><span class="co">*                                                            revised: YYYY.MM.DD</span></span>
+<span id="cb20-12"><a href="#cb20-12" aria-hidden="true" tabindex="-1"></a><span class="co">*******************************************************************************/</span></span>
+<span id="cb20-13"><a href="#cb20-13" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&quot;../../../inc/djinterp/c/djinterp.h&quot;</span><span class="pp">  </span><span class="co">// corresponding header</span></span></code></pre></div>
+<p><strong>Rules:</strong></p>
+<ul>
+<li>Applies to both <code>.c</code> and <code>.cpp</code>
+definition/source files.</li>
+<li>The first line identifies the framework/module and source
+filename.</li>
+<li>Include a brief description of what the definition file implements,
+typically identifying the corresponding header.</li>
+<li>The block includes <code>path:</code>, <code>link(s):</code>,
+<code>author(s):</code>, <code>created:</code>, and
+<code>revised:</code> metadata.</li>
+<li>Align <code>revised:</code> vertically beneath
+<code>created:</code>.</li>
+<li>Use the date format <code>YYYY.MM.DD</code>.</li>
+<li>Include the corresponding <code>.h</code> or <code>.hpp</code>
+immediately after the banner.</li>
+<li>The corresponding header is the first include. Any further headers
+the definitions require follow it, grouped by origin as described under
+<strong>Include Directives</strong>.</li>
+<li>When a trailing include summary is used, write
+<code>// corresponding header</code>.</li>
+<li>Do not place an include-category comment between the source banner
+and the corresponding include.</li>
+</ul>
+<h3 id="comment-formatting">Comment Formatting</h3>
+<ul>
+<li>Only indent the first line of each paragraph in a comment/function
+definition header, not every line.</li>
+<li>Subsequent lines in the same paragraph align with the text rather
+than receiving the paragraph indentation again.</li>
+<li>In ordinary header comments, separate genuinely distinct prose
+paragraphs when doing so improves readability.</li>
+<li>Contract fields use Doxygen tags. See <strong>Function
+Comments</strong> below.</li>
+</ul>
+<p><strong>Example:</strong></p>
+<div class="sourceCode" id="cb21"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="co">/**</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="co"> * </span><span class="an">@brief</span><span class="co"> Creates a `d_ptr_array` with the initial capacity specified.</span></span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a><span class="co"> *</span></span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a><span class="co"> * </span><span class="in">@note</span><span class="co"> An initial size of 0 is valid and creates an empty array.</span></span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a><span class="co"> *</span></span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a><span class="co"> * </span><span class="an">@param[in]</span><span class="co"> </span><span class="cv">_initial_size</span><span class="co">  the initial capacity of the array, in pointer</span></span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a><span class="co"> *                           elements.</span></span>
+<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a><span class="co"> * </span><span class="an">@return</span><span class="co"> the initialized array, or `NULL` if allocation failed.</span></span>
+<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a><span class="co"> */</span></span></code></pre></div>
+<h3 id="brief-comment-format">Brief Comment Format</h3>
+<p>For structs, unions, classes, typedefs, and <code>#define</code>
+items:</p>
+<div class="sourceCode" id="cb22"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="co">// &lt;name&gt;</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="co">//   &lt;category&gt;: &lt;brief description&gt;</span></span></code></pre></div>
+<p>e.g.</p>
+<div class="sourceCode" id="cb23"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="co">// D_KEYWORD_FRAMEWORK_NAME</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a><span class="co">//   constant: keyword corresponding to the name of this framework.</span></span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a><span class="pp">#define D_KEYWORD_FRAMEWORK_NAME    djinterp</span></span></code></pre></div>
+<h2 id="functions">Functions</h2>
+<h3 id="function-declarations-header-files">Function Declarations
+(Header Files)</h3>
+<p>Function declarations in header files must follow these rules:</p>
+<ol type="1">
+<li><p><strong>Group functions by general functionality</strong> —
+related functions should be placed together in logical sections or
+subsections.</p></li>
+<li><p><strong>Include parameter names, not just
+types.</strong></p></li>
+<li><p><strong>One shape: the definition minus its body</strong> (ruled
+2026.11.17), the same in C and C++ at namespace scope:</p>
+<ul>
+<li>any specifiers, attributes and the library's export macro
+(<code>D_&lt;NAME&gt;_API</code>), each on its own line;</li>
+<li>the return type alone on its line;</li>
+<li>the function's name and its opening parenthesis on the next
+line;</li>
+<li>each parameter on its own line, four spaces in, the parameters'
+names (the <code>_</code>) aligned;</li>
+<li><code>);</code> on its own line.</li>
+</ul>
+<p>A function without parameters is written <code>name(void);</code> on
+the name's line. The definition (see <strong>Function
+Definitions</strong>) has the same lines, with <code>)</code> and its
+body where the declaration has <code>);</code>, so a declaration can be
+made from its definition, and checked against it, line for line.</p>
+<div class="sourceCode" id="cb24"><pre
+class="sourceCode c"><code class="sourceCode c"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="dt">int64_t</span></span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>d_counter_value<span class="op">(</span></span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">const</span> <span class="kw">struct</span> dj_counter<span class="op">*</span> _counter</span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a><span class="op">);</span></span></code></pre></div></li>
+<li><p><strong>One empty line between declarations</strong> — every
+function declaration is separated from the next by one empty line,
+within a group as between groups (ruled 2026.11.10 and 2026.11.17). A
+declaration's own comment block sits directly above it, with no empty
+line between them.</p></li>
+<li><p><strong>Use the common decimal header hierarchy</strong> —
+section, subsection, and item delineations must follow the formats
+defined under <strong>Header Structure, Numbering, and Tables of
+Contents</strong>.</p></li>
+<li><p><strong>Keep the table of contents synchronized</strong> — any
+header using structural delineations must contain matching ToC
+entries.</p></li>
+<li><p><strong>Document declarations per the rules under Function
+Comments.</strong> A group comment carries the shared contract for a run
+of related declarations; a function that allocates, invalidates,
+transfers ownership, or can fail carries its own block.</p></li>
+</ol>
+<p><strong>Example (correct):</strong></p>
+<div class="sourceCode" id="cb25"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="co">// 3.1    secure file opening</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a><span class="co">//------------------------------------------------------------------------------</span></span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a><span class="dt">FILE</span><span class="op">*</span></span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>d_fopen<span class="op">(</span></span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">const</span> <span class="dt">char</span><span class="op">*</span> _filename<span class="op">,</span></span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">const</span> <span class="dt">char</span><span class="op">*</span> _mode</span>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a><span class="op">);</span></span>
+<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-9"><a href="#cb25-9" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span></span>
+<span id="cb25-10"><a href="#cb25-10" aria-hidden="true" tabindex="-1"></a>d_fopen_s<span class="op">(</span></span>
+<span id="cb25-11"><a href="#cb25-11" aria-hidden="true" tabindex="-1"></a>    <span class="dt">FILE</span><span class="op">**</span>      _stream<span class="op">,</span></span>
+<span id="cb25-12"><a href="#cb25-12" aria-hidden="true" tabindex="-1"></a>    <span class="dt">const</span> <span class="dt">char</span><span class="op">*</span> _filename<span class="op">,</span></span>
+<span id="cb25-13"><a href="#cb25-13" aria-hidden="true" tabindex="-1"></a>    <span class="dt">const</span> <span class="dt">char</span><span class="op">*</span> _mode</span>
+<span id="cb25-14"><a href="#cb25-14" aria-hidden="true" tabindex="-1"></a><span class="op">);</span></span>
+<span id="cb25-15"><a href="#cb25-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-16"><a href="#cb25-16" aria-hidden="true" tabindex="-1"></a><span class="dt">FILE</span><span class="op">*</span></span>
+<span id="cb25-17"><a href="#cb25-17" aria-hidden="true" tabindex="-1"></a>d_fdopen<span class="op">(</span></span>
+<span id="cb25-18"><a href="#cb25-18" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span>         _fd<span class="op">,</span></span>
+<span id="cb25-19"><a href="#cb25-19" aria-hidden="true" tabindex="-1"></a>    <span class="dt">const</span> <span class="dt">char</span><span class="op">*</span> _mode</span>
+<span id="cb25-20"><a href="#cb25-20" aria-hidden="true" tabindex="-1"></a><span class="op">);</span></span>
+<span id="cb25-21"><a href="#cb25-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-22"><a href="#cb25-22" aria-hidden="true" tabindex="-1"></a><span class="co">// 3.2    file descriptor operations</span></span>
+<span id="cb25-23"><a href="#cb25-23" aria-hidden="true" tabindex="-1"></a><span class="co">//------------------------------------------------------------------------------</span></span>
+<span id="cb25-24"><a href="#cb25-24" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span></span>
+<span id="cb25-25"><a href="#cb25-25" aria-hidden="true" tabindex="-1"></a>d_fileno<span class="op">(</span></span>
+<span id="cb25-26"><a href="#cb25-26" aria-hidden="true" tabindex="-1"></a>    <span class="dt">FILE</span><span class="op">*</span> _stream</span>
+<span id="cb25-27"><a href="#cb25-27" aria-hidden="true" tabindex="-1"></a><span class="op">);</span></span>
+<span id="cb25-28"><a href="#cb25-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-29"><a href="#cb25-29" aria-hidden="true" tabindex="-1"></a><span class="dt">ssize_t</span></span>
+<span id="cb25-30"><a href="#cb25-30" aria-hidden="true" tabindex="-1"></a>d_read<span class="op">(</span></span>
+<span id="cb25-31"><a href="#cb25-31" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span>    _fd<span class="op">,</span></span>
+<span id="cb25-32"><a href="#cb25-32" aria-hidden="true" tabindex="-1"></a>    <span class="dt">void</span><span class="op">*</span>  _buf<span class="op">,</span></span>
+<span id="cb25-33"><a href="#cb25-33" aria-hidden="true" tabindex="-1"></a>    <span class="dt">size_t</span> _count</span>
+<span id="cb25-34"><a href="#cb25-34" aria-hidden="true" tabindex="-1"></a><span class="op">);</span></span>
+<span id="cb25-35"><a href="#cb25-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-36"><a href="#cb25-36" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span></span>
+<span id="cb25-37"><a href="#cb25-37" aria-hidden="true" tabindex="-1"></a>d_open<span class="op">(</span></span>
+<span id="cb25-38"><a href="#cb25-38" aria-hidden="true" tabindex="-1"></a>    <span class="dt">const</span> <span class="dt">char</span><span class="op">*</span> _path<span class="op">,</span></span>
+<span id="cb25-39"><a href="#cb25-39" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span>         _flags<span class="op">,</span></span>
+<span id="cb25-40"><a href="#cb25-40" aria-hidden="true" tabindex="-1"></a>    <span class="op">...</span></span>
+<span id="cb25-41"><a href="#cb25-41" aria-hidden="true" tabindex="-1"></a><span class="op">);</span></span>
+<span id="cb25-42"><a href="#cb25-42" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-43"><a href="#cb25-43" aria-hidden="true" tabindex="-1"></a><span class="dt">long</span></span>
+<span id="cb25-44"><a href="#cb25-44" aria-hidden="true" tabindex="-1"></a>d_page_size<span class="op">(</span><span class="dt">void</span><span class="op">);</span></span></code></pre></div>
+<p><strong>Incorrect (do NOT do this):</strong></p>
+<div class="sourceCode" id="cb26"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="co">/// d_arg_parser_init</span></span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a><span class="co">///   function: initialize a parser with default settings.</span></span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a><span class="co">/// Returns 0 on success, non-zero on failure.</span></span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span>                  d_arg_parser_init<span class="op">(</span><span class="kw">struct</span> d_arg_parser<span class="op">*</span> _parser<span class="op">);</span></span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span>                  d_some_other_function<span class="op">(</span><span class="dt">const</span> <span class="dt">char</span><span class="op">*</span> _name<span class="op">,</span></span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a>                                           <span class="dt">size_t</span>      _length<span class="op">);</span></span></code></pre></div>
+<p>This is wrong because:</p>
+<ul>
+<li>Uses an obsolete decorative/unnumbered comment style instead of the
+decimal hierarchy</li>
+<li>Documents a declaration in free text
+(<code>/// ... Returns 0 on success</code>) instead of a
+<code>/** */</code> contract with <code>@param</code> and
+<code>@return</code>, so <code>-Wdocumentation</code> has nothing to
+check</li>
+<li>Pads the return type into a column and aligns the parameters after
+the name, the shape this guide used before 2026.11.17, instead of the
+definition's lines</li>
+<li>Has no empty line between the two declarations</li>
+</ul>
+<h3 id="function-definitions">Function Definitions</h3>
+<h4 id="standard-functions">Standard Functions</h4>
+<p>For non-unit-test functions, use a compact structured block
+immediately above the definition:</p>
+<p>In the header, on the declaration - the contract:</p>
+<div class="sourceCode" id="cb27"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="co">/**</span></span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a><span class="co"> * </span><span class="an">@brief</span><span class="co"> Brief description of the function.</span></span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a><span class="co"> *</span></span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a><span class="co"> * </span><span class="in">@note</span><span class="co">    Optional note belonging to the description.</span></span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a><span class="co"> * </span><span class="wa">@warning</span><span class="co"> Optional warning when misuse could be dangerous or destructive.</span></span>
+<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a><span class="co"> *</span></span>
+<span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a><span class="co"> * </span><span class="an">@param[in]</span><span class="co">     </span><span class="cv">_param1</span><span class="co">  description1.</span></span>
+<span id="cb27-8"><a href="#cb27-8" aria-hidden="true" tabindex="-1"></a><span class="co"> * </span><span class="an">@param[in,out]</span><span class="co"> </span><span class="cv">_param2</span><span class="co">  description2.</span></span>
+<span id="cb27-9"><a href="#cb27-9" aria-hidden="true" tabindex="-1"></a><span class="co"> * </span><span class="an">@pre</span><span class="co">    optional conditions that must already be true before the call.</span></span>
+<span id="cb27-10"><a href="#cb27-10" aria-hidden="true" tabindex="-1"></a><span class="co"> * </span><span class="an">@post</span><span class="co">   optional conditions guaranteed after a successful call, including</span></span>
+<span id="cb27-11"><a href="#cb27-11" aria-hidden="true" tabindex="-1"></a><span class="co"> *         any pointer or iterator this call invalidates.</span></span>
+<span id="cb27-12"><a href="#cb27-12" aria-hidden="true" tabindex="-1"></a><span class="co"> * </span><span class="an">@return</span><span class="co"> `true` if the operation succeeds, `false` otherwise.</span></span>
+<span id="cb27-13"><a href="#cb27-13" aria-hidden="true" tabindex="-1"></a><span class="co"> */</span></span>
+<span id="cb27-14"><a href="#cb27-14" aria-hidden="true" tabindex="-1"></a><span class="dt">bool</span></span>
+<span id="cb27-15"><a href="#cb27-15" aria-hidden="true" tabindex="-1"></a>d_some_boolean_fn<span class="op">(</span></span>
+<span id="cb27-16"><a href="#cb27-16" aria-hidden="true" tabindex="-1"></a>    <span class="dt">const</span> <span class="dt">void</span><span class="op">*</span>       _param1<span class="op">,</span></span>
+<span id="cb27-17"><a href="#cb27-17" aria-hidden="true" tabindex="-1"></a>    <span class="dt">const</span> <span class="dt">void</span><span class="op">*</span> <span class="dt">const</span> _param2</span>
+<span id="cb27-18"><a href="#cb27-18" aria-hidden="true" tabindex="-1"></a><span class="op">);</span></span></code></pre></div>
+<p>In the source, on the definition - the mechanism:</p>
+<div class="sourceCode" id="cb28"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="co">/*</span></span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a><span class="co">d_some_boolean_fn</span></span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a><span class="co">  Why this algorithm, what is subtle about it, and which invariant is easy to</span></span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a><span class="co">break. No parameter list and no return description: those are in the header,</span></span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a><span class="co">and a second copy of them would drift.</span></span>
+<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a><span class="co">*/</span></span>
+<span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a><span class="dt">bool</span></span>
+<span id="cb28-8"><a href="#cb28-8" aria-hidden="true" tabindex="-1"></a>d_some_boolean_fn<span class="op">(</span></span>
+<span id="cb28-9"><a href="#cb28-9" aria-hidden="true" tabindex="-1"></a>    <span class="dt">const</span> <span class="dt">void</span><span class="op">*</span>       _param1<span class="op">,</span></span>
+<span id="cb28-10"><a href="#cb28-10" aria-hidden="true" tabindex="-1"></a>    <span class="dt">const</span> <span class="dt">void</span><span class="op">*</span> <span class="dt">const</span> _param2</span>
+<span id="cb28-11"><a href="#cb28-11" aria-hidden="true" tabindex="-1"></a><span class="op">)</span></span>
+<span id="cb28-12"><a href="#cb28-12" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb28-13"><a href="#cb28-13" aria-hidden="true" tabindex="-1"></a>    <span class="op">...</span></span>
+<span id="cb28-14"><a href="#cb28-14" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p><strong>Function-comment rules:</strong></p>
+<p>Contracts are written in Doxygen syntax. This is a format, not a
+build dependency: clang parses these tags natively, so
+<code>-Wdocumentation</code> validates them and <code>clangd</code> and
+Visual Studio render them in hover tooltips without any generator being
+run. Running Doxygen itself remains possible and is nobody's
+obligation.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Tag</th>
+<th>Use</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>@brief</code></td>
+<td>one-sentence summary; the first sentence if <code>@brief</code> is
+omitted</td>
+</tr>
+<tr class="even">
+<td><code>@param[in]</code> / <code>@param[out]</code> /
+<code>@param[in,out]</code></td>
+<td>one per parameter, direction always marked</td>
+</tr>
+<tr class="odd">
+<td><code>@pre</code></td>
+<td>precondition the caller must establish</td>
+</tr>
+<tr class="even">
+<td><code>@post</code></td>
+<td>what holds after a successful call, including invalidation</td>
+</tr>
+<tr class="odd">
+<td><code>@return</code></td>
+<td>the value, and what it means on failure</td>
+</tr>
+<tr class="even">
+<td><code>@retval</code></td>
+<td>a specific return value, when enumerating them is clearer</td>
+</tr>
+<tr class="odd">
+<td><code>@throws</code></td>
+<td>rare; see the exceptions policy in this guide</td>
+</tr>
+<tr class="even">
+<td><code>@note</code> / <code>@warning</code></td>
+<td>description appendices, before the parameter block</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>Every parameter gets a <code>@param</code> with an explicit
+direction. <code>-Wdocumentation</code> checks these names against the
+signature, which is the main reason to use the tags at all.</li>
+<li><code>@pre</code> and <code>@post</code> are optional but are the
+only place a caller learns about ownership transfer, invalidation, or
+required initialization. Prefer stating them over assuming they are
+obvious.</li>
+<li>Parameter descriptions align vertically when practical.</li>
+<li>Document the return value; omit <code>@return</code> entirely for
+<code>void</code> functions rather than writing <code>none</code>.</li>
+<li>Use spaces, not tabs, for alignment.</li>
+</ul>
+<p><strong>Where each comment goes.</strong> The declaration comment
+describes how to use the function; the definition comment describes how
+it works. Contract tags belong on the declaration, in the header,
+because a consumer's translation unit contains only the header — a
+contract on the definition is invisible to their editor and absent from
+a binary distribution. The definition carries prose about mechanism: why
+this algorithm, what is subtle, which invariant is easy to break. The
+two do not duplicate each other.</p>
+<p><strong>File-local functions.</strong> A function with internal
+linkage has no declaration in a header, so its contract has no header to
+live in. It goes above the function's first declaration in the source
+file, in the same Doxygen form. Where that first declaration is the
+definition, one block above it carries both: the contract's tags first,
+then the mechanism, as prose after them.</p>
+<div class="sourceCode" id="cb29"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="co">/**</span></span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a><span class="co"> * </span><span class="an">@brief</span><span class="co"> Folds an ASCII letter to lower case.</span></span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a><span class="co"> *</span></span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a><span class="co"> * </span><span class="an">@param[in]</span><span class="co"> </span><span class="cv">_c</span><span class="co">  the character, as an int.</span></span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a><span class="co"> * </span><span class="an">@return</span><span class="co"> the lower-case letter, or `_c` itself for anything else.</span></span>
+<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a><span class="co"> *</span></span>
+<span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a><span class="co"> * Compared with the ASCII range directly, so the result does not follow the</span></span>
+<span id="cb29-8"><a href="#cb29-8" aria-hidden="true" tabindex="-1"></a><span class="co"> * C locale the way tolower does.</span></span>
+<span id="cb29-9"><a href="#cb29-9" aria-hidden="true" tabindex="-1"></a><span class="co"> */</span></span>
+<span id="cb29-10"><a href="#cb29-10" aria-hidden="true" tabindex="-1"></a><span class="dt">static</span> <span class="dt">int</span></span>
+<span id="cb29-11"><a href="#cb29-11" aria-hidden="true" tabindex="-1"></a>d_internal_ascii_tolower<span class="op">(</span></span>
+<span id="cb29-12"><a href="#cb29-12" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> _c</span>
+<span id="cb29-13"><a href="#cb29-13" aria-hidden="true" tabindex="-1"></a><span class="op">)</span></span>
+<span id="cb29-14"><a href="#cb29-14" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb29-15"><a href="#cb29-15" aria-hidden="true" tabindex="-1"></a>    <span class="op">...</span></span>
+<span id="cb29-16"><a href="#cb29-16" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p><strong>Not every declaration needs a block.</strong> A group comment
+carries the shared contract for a run of related declarations, which
+keeps the declarations of a group together:</p>
+<div class="sourceCode" id="cb30"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="co">// basic accessors -- all O(1), none allocate, all require a non-NULL _string</span></span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a><span class="dt">size_t</span></span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>d_string_length<span class="op">(</span></span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">const</span> <span class="kw">struct</span> d_string<span class="op">*</span> _string</span>
+<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a><span class="op">);</span></span>
+<span id="cb30-6"><a href="#cb30-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-7"><a href="#cb30-7" aria-hidden="true" tabindex="-1"></a><span class="dt">size_t</span></span>
+<span id="cb30-8"><a href="#cb30-8" aria-hidden="true" tabindex="-1"></a>d_string_size<span class="op">(</span></span>
+<span id="cb30-9"><a href="#cb30-9" aria-hidden="true" tabindex="-1"></a>    <span class="dt">const</span> <span class="kw">struct</span> d_string<span class="op">*</span> _string</span>
+<span id="cb30-10"><a href="#cb30-10" aria-hidden="true" tabindex="-1"></a><span class="op">);</span></span>
+<span id="cb30-11"><a href="#cb30-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-12"><a href="#cb30-12" aria-hidden="true" tabindex="-1"></a><span class="dt">const</span> <span class="dt">char</span><span class="op">*</span></span>
+<span id="cb30-13"><a href="#cb30-13" aria-hidden="true" tabindex="-1"></a>d_string_cstr<span class="op">(</span></span>
+<span id="cb30-14"><a href="#cb30-14" aria-hidden="true" tabindex="-1"></a>    <span class="dt">const</span> <span class="kw">struct</span> d_string<span class="op">*</span> _string</span>
+<span id="cb30-15"><a href="#cb30-15" aria-hidden="true" tabindex="-1"></a><span class="op">);</span></span>
+<span id="cb30-16"><a href="#cb30-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-17"><a href="#cb30-17" aria-hidden="true" tabindex="-1"></a><span class="dt">bool</span></span>
+<span id="cb30-18"><a href="#cb30-18" aria-hidden="true" tabindex="-1"></a>d_string_is_empty<span class="op">(</span></span>
+<span id="cb30-19"><a href="#cb30-19" aria-hidden="true" tabindex="-1"></a>    <span class="dt">const</span> <span class="kw">struct</span> d_string<span class="op">*</span> _string</span>
+<span id="cb30-20"><a href="#cb30-20" aria-hidden="true" tabindex="-1"></a><span class="op">);</span></span></code></pre></div>
+<p>A function carries its own block when it <strong>allocates,
+invalidates, transfers ownership, or can fail</strong>. Those four are
+the cases a caller cannot infer from the signature.</p>
+<h4 id="void-function-requirements">Void Function Requirements</h4>
+<p>Functions with a <code>void</code> return type must:</p>
+<ol type="1">
+<li>Omit <code>@return</code> from the contract: Clang's
+<code>-Wdocumentation</code> reports a <code>@return</code> on a
+function returning <code>void</code></li>
+<li>Include an explicit empty <code>return;</code> statement at the end
+of the function</li>
+</ol>
+<p><strong>Example:</strong></p>
+<p>Declaration, in the header:</p>
+<div class="sourceCode" id="cb31"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="co">/**</span></span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a><span class="co"> * </span><span class="an">@brief</span><span class="co"> Frees a `d_some_struct` and all associated memory.</span></span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a><span class="co"> *</span></span>
+<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a><span class="co"> * </span><span class="an">@param[in]</span><span class="co"> </span><span class="cv">_some_struct</span><span class="co">  the struct to free; may be `NULL`.</span></span>
+<span id="cb31-5"><a href="#cb31-5" aria-hidden="true" tabindex="-1"></a><span class="co"> * </span><span class="an">@post</span><span class="co"> Every pointer previously obtained from `_some_struct` is invalid.</span></span>
+<span id="cb31-6"><a href="#cb31-6" aria-hidden="true" tabindex="-1"></a><span class="co"> */</span></span>
+<span id="cb31-7"><a href="#cb31-7" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span></span>
+<span id="cb31-8"><a href="#cb31-8" aria-hidden="true" tabindex="-1"></a>d_some_struct_free<span class="op">(</span></span>
+<span id="cb31-9"><a href="#cb31-9" aria-hidden="true" tabindex="-1"></a>    <span class="kw">struct</span> some_struct<span class="op">*</span> _some_struct</span>
+<span id="cb31-10"><a href="#cb31-10" aria-hidden="true" tabindex="-1"></a><span class="op">);</span></span></code></pre></div>
+<p>Definition, in the source - no <code>@return</code> for a
+<code>void</code> function:</p>
+<div class="sourceCode" id="cb32"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="co">/*</span></span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a><span class="co">d_some_struct_free</span></span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a><span class="co">  Members are released before the struct itself so the free order stays</span></span>
+<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a><span class="co">readable; the NULL check is first so callers need no guard of their own.</span></span>
+<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a><span class="co">*/</span></span>
+<span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span></span>
+<span id="cb32-7"><a href="#cb32-7" aria-hidden="true" tabindex="-1"></a>d_some_struct_free<span class="op">(</span></span>
+<span id="cb32-8"><a href="#cb32-8" aria-hidden="true" tabindex="-1"></a>    <span class="kw">struct</span> some_struct<span class="op">*</span> _some_struct</span>
+<span id="cb32-9"><a href="#cb32-9" aria-hidden="true" tabindex="-1"></a><span class="op">)</span></span>
+<span id="cb32-10"><a href="#cb32-10" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb32-11"><a href="#cb32-11" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="op">(</span>_some_struct<span class="op">)</span></span>
+<span id="cb32-12"><a href="#cb32-12" aria-hidden="true" tabindex="-1"></a>    <span class="op">{</span></span>
+<span id="cb32-13"><a href="#cb32-13" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="op">(</span>_some_struct<span class="op">-&gt;</span>member<span class="op">)</span></span>
+<span id="cb32-14"><a href="#cb32-14" aria-hidden="true" tabindex="-1"></a>        <span class="op">{</span></span>
+<span id="cb32-15"><a href="#cb32-15" aria-hidden="true" tabindex="-1"></a>            free<span class="op">(</span>_some_struct<span class="op">-&gt;</span>member<span class="op">);</span></span>
+<span id="cb32-16"><a href="#cb32-16" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span></span>
+<span id="cb32-17"><a href="#cb32-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-18"><a href="#cb32-18" aria-hidden="true" tabindex="-1"></a>        free<span class="op">(</span>_some_struct<span class="op">);</span></span>
+<span id="cb32-19"><a href="#cb32-19" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb32-20"><a href="#cb32-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-21"><a href="#cb32-21" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span><span class="op">;</span></span>
+<span id="cb32-22"><a href="#cb32-22" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<h4 id="unit-test-functions">Unit Test Functions</h4>
+<p>Simplified format for unit tests (both standalone AND DTest):</p>
+<p>in the header (declarations) *.h file:</p>
+<div class="sourceCode" id="cb33"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="co">// group of tests name (corresponding one section of the module&#39;s header</span></span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a><span class="co">// file, if applicable)</span></span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a><span class="dt">bool</span></span>
+<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a>d_tests_some_feature<span class="op">(</span></span>
+<span id="cb33-5"><a href="#cb33-5" aria-hidden="true" tabindex="-1"></a>    parameters</span>
+<span id="cb33-6"><a href="#cb33-6" aria-hidden="true" tabindex="-1"></a><span class="op">);</span></span>
+<span id="cb33-7"><a href="#cb33-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-8"><a href="#cb33-8" aria-hidden="true" tabindex="-1"></a><span class="dt">bool</span></span>
+<span id="cb33-9"><a href="#cb33-9" aria-hidden="true" tabindex="-1"></a>d_tests_another_feature<span class="op">(</span></span>
+<span id="cb33-10"><a href="#cb33-10" aria-hidden="true" tabindex="-1"></a>    parameters</span>
+<span id="cb33-11"><a href="#cb33-11" aria-hidden="true" tabindex="-1"></a><span class="op">);</span></span></code></pre></div>
+<p>in the source (definitions) *.c file:</p>
+<div class="sourceCode" id="cb34"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="co">/*</span></span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a><span class="co">d_tests_some_feature</span></span>
+<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a><span class="co">  brief description</span></span>
+<span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a><span class="co">  Tests the following:</span></span>
+<span id="cb34-5"><a href="#cb34-5" aria-hidden="true" tabindex="-1"></a><span class="co">  - summary</span></span>
+<span id="cb34-6"><a href="#cb34-6" aria-hidden="true" tabindex="-1"></a><span class="co">  - of what</span></span>
+<span id="cb34-7"><a href="#cb34-7" aria-hidden="true" tabindex="-1"></a><span class="co">  - is</span></span>
+<span id="cb34-8"><a href="#cb34-8" aria-hidden="true" tabindex="-1"></a><span class="co">  - specifically tested</span></span>
+<span id="cb34-9"><a href="#cb34-9" aria-hidden="true" tabindex="-1"></a><span class="co">  - in this function</span></span>
+<span id="cb34-10"><a href="#cb34-10" aria-hidden="true" tabindex="-1"></a><span class="co">*/</span></span>
+<span id="cb34-11"><a href="#cb34-11" aria-hidden="true" tabindex="-1"></a><span class="dt">bool</span></span>
+<span id="cb34-12"><a href="#cb34-12" aria-hidden="true" tabindex="-1"></a>d_tests_some_feature<span class="op">(</span></span>
+<span id="cb34-13"><a href="#cb34-13" aria-hidden="true" tabindex="-1"></a>    parameters</span>
+<span id="cb34-14"><a href="#cb34-14" aria-hidden="true" tabindex="-1"></a><span class="op">)</span></span>
+<span id="cb34-15"><a href="#cb34-15" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb34-16"><a href="#cb34-16" aria-hidden="true" tabindex="-1"></a>  <span class="op">...</span></span>
+<span id="cb34-17"><a href="#cb34-17" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<h3 id="macros">Macros</h3>
+<ul>
+<li>Macros and definitions for very specific cases should be hidden with
+the <code>D_INTERNAL_</code> prefix.</li>
+<li>All <code>#define</code> statements, including both constants and
+macros, should consist of the following format (excluding blocks of
+iterative macros, see below):</li>
+</ul>
+<div class="sourceCode" id="cb35"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="co">// D_DEFINED_OR_MACRO_NAME</span></span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a><span class="co">//   macro: a brief, concise description of the macro, using multiple</span></span>
+<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a><span class="co">// lines if necessary to avoid going over 80 total characters.</span></span>
+<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a><span class="pp">#define D_DEFINED_OR_MACRO_NAME </span><span class="dv">42</span></span>
+<span id="cb35-5"><a href="#cb35-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-6"><a href="#cb35-6" aria-hidden="true" tabindex="-1"></a><span class="co">// D_SOME_MACRO</span></span>
+<span id="cb35-7"><a href="#cb35-7" aria-hidden="true" tabindex="-1"></a><span class="co">//   macro: brief macros should be defined on the following line,</span></span>
+<span id="cb35-8"><a href="#cb35-8" aria-hidden="true" tabindex="-1"></a><span class="co">// as shown.</span></span>
+<span id="cb35-9"><a href="#cb35-9" aria-hidden="true" tabindex="-1"></a><span class="pp">#define D_SOME_MACRO</span><span class="op">(</span><span class="pp">param1</span><span class="op">)</span><span class="pp">     MACRO_DEFINITION</span></span>
+<span id="cb35-10"><a href="#cb35-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-11"><a href="#cb35-11" aria-hidden="true" tabindex="-1"></a><span class="co">// D_SOME_OTHER_MACRO</span></span>
+<span id="cb35-12"><a href="#cb35-12" aria-hidden="true" tabindex="-1"></a><span class="co">//   macro: a macro whose parameter list would go over 80</span></span>
+<span id="cb35-13"><a href="#cb35-13" aria-hidden="true" tabindex="-1"></a><span class="co">// characters of total line width should have its parameters</span></span>
+<span id="cb35-14"><a href="#cb35-14" aria-hidden="true" tabindex="-1"></a><span class="co">// spread out:</span></span>
+<span id="cb35-15"><a href="#cb35-15" aria-hidden="true" tabindex="-1"></a><span class="pp">#define D_SOME_OTHER_MACRO</span><span class="op">(</span><span class="pp">param1</span><span class="op">,</span><span class="pp">                                </span><span class="op">\</span></span>
+<span id="cb35-16"><a href="#cb35-16" aria-hidden="true" tabindex="-1"></a><span class="pp">                           param2</span><span class="op">,</span><span class="pp">                                </span><span class="op">\</span></span>
+<span id="cb35-17"><a href="#cb35-17" aria-hidden="true" tabindex="-1"></a><span class="pp">                           param3</span><span class="op">,</span><span class="pp">                                </span><span class="op">\</span></span>
+<span id="cb35-18"><a href="#cb35-18" aria-hidden="true" tabindex="-1"></a><span class="pp">                           param4</span><span class="op">,</span><span class="pp">                                </span><span class="op">\</span></span>
+<span id="cb35-19"><a href="#cb35-19" aria-hidden="true" tabindex="-1"></a><span class="pp">                           param5</span><span class="op">,</span><span class="pp">                                </span><span class="op">\</span></span>
+<span id="cb35-20"><a href="#cb35-20" aria-hidden="true" tabindex="-1"></a><span class="pp">                           param6</span><span class="op">)</span><span class="pp">                                </span><span class="op">\</span></span>
+<span id="cb35-21"><a href="#cb35-21" aria-hidden="true" tabindex="-1"></a><span class="pp">    SOME_OTHER_MACRO_DEFINITION</span></span>
+<span id="cb35-22"><a href="#cb35-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-23"><a href="#cb35-23" aria-hidden="true" tabindex="-1"></a><span class="co">// D_INTERNAL_SOME_STRUCT</span></span>
+<span id="cb35-24"><a href="#cb35-24" aria-hidden="true" tabindex="-1"></a><span class="co">//   macro: a macro whose definition covers multiple lines,</span></span>
+<span id="cb35-25"><a href="#cb35-25" aria-hidden="true" tabindex="-1"></a><span class="co">// ESPECIALLY with macros that define blocks of code or entire</span></span>
+<span id="cb35-26"><a href="#cb35-26" aria-hidden="true" tabindex="-1"></a><span class="co">// functions, should be broken up into smaller lines, with the</span></span>
+<span id="cb35-27"><a href="#cb35-27" aria-hidden="true" tabindex="-1"></a><span class="co">// backslash characters (&#39;\&#39;) lined up. Function definitions in</span></span>
+<span id="cb35-28"><a href="#cb35-28" aria-hidden="true" tabindex="-1"></a><span class="co">// macros should resemble normally-defined functions in formatting.</span></span>
+<span id="cb35-29"><a href="#cb35-29" aria-hidden="true" tabindex="-1"></a><span class="pp">#define D_INTERNAL_SOME_STRUCT</span><span class="op">(</span><span class="pp">ret_type</span><span class="op">,</span><span class="pp">                          </span><span class="op">\</span></span>
+<span id="cb35-30"><a href="#cb35-30" aria-hidden="true" tabindex="-1"></a><span class="pp">                               fn_name</span><span class="op">,</span><span class="pp">                           </span><span class="op">\</span></span>
+<span id="cb35-31"><a href="#cb35-31" aria-hidden="true" tabindex="-1"></a><span class="pp">                               param1</span><span class="op">,</span><span class="pp">                            </span><span class="op">\</span></span>
+<span id="cb35-32"><a href="#cb35-32" aria-hidden="true" tabindex="-1"></a><span class="pp">                               param2</span><span class="op">,</span><span class="pp">                            </span><span class="op">\</span></span>
+<span id="cb35-33"><a href="#cb35-33" aria-hidden="true" tabindex="-1"></a><span class="pp">                               other_fn_name</span><span class="op">,</span><span class="pp">                     </span><span class="op">\</span></span>
+<span id="cb35-34"><a href="#cb35-34" aria-hidden="true" tabindex="-1"></a><span class="pp">                               call_params</span><span class="op">)</span><span class="pp">                       </span><span class="op">\</span></span>
+<span id="cb35-35"><a href="#cb35-35" aria-hidden="true" tabindex="-1"></a><span class="pp">    ret_type                                                      </span><span class="op">\</span></span>
+<span id="cb35-36"><a href="#cb35-36" aria-hidden="true" tabindex="-1"></a><span class="pp">    d_some_struct_hypothetical_example_fn</span><span class="op">(</span><span class="pp">                        </span><span class="op">\</span></span>
+<span id="cb35-37"><a href="#cb35-37" aria-hidden="true" tabindex="-1"></a><span class="pp">        </span><span class="kw">struct</span><span class="pp"> d_some_struct</span><span class="op">*</span><span class="pp"> param1</span><span class="op">,</span><span class="pp">                             </span><span class="op">\</span></span>
+<span id="cb35-38"><a href="#cb35-38" aria-hidden="true" tabindex="-1"></a><span class="pp">        param2                                                    </span><span class="op">\</span></span>
+<span id="cb35-39"><a href="#cb35-39" aria-hidden="true" tabindex="-1"></a><span class="pp">    </span><span class="op">)</span><span class="pp">                                                             </span><span class="op">\</span></span>
+<span id="cb35-40"><a href="#cb35-40" aria-hidden="true" tabindex="-1"></a><span class="pp">    </span><span class="op">{</span><span class="pp">                                                             </span><span class="op">\</span></span>
+<span id="cb35-41"><a href="#cb35-41" aria-hidden="true" tabindex="-1"></a><span class="pp">        </span><span class="cf">if</span><span class="pp"> </span><span class="op">(</span><span class="pp">param1</span><span class="op">)</span><span class="pp">                                               </span><span class="op">\</span></span>
+<span id="cb35-42"><a href="#cb35-42" aria-hidden="true" tabindex="-1"></a><span class="pp">        </span><span class="op">{</span><span class="pp">                                                         </span><span class="op">\</span></span>
+<span id="cb35-43"><a href="#cb35-43" aria-hidden="true" tabindex="-1"></a><span class="pp">            </span><span class="cf">return</span><span class="pp"> other_fn_name</span><span class="op">(</span><span class="pp">                                 </span><span class="op">\</span></span>
+<span id="cb35-44"><a href="#cb35-44" aria-hidden="true" tabindex="-1"></a><span class="pp">                </span><span class="op">(</span><span class="kw">struct</span><span class="pp"> d_some_struct</span><span class="op">*)</span><span class="pp">param1</span><span class="op">,</span><span class="pp">                    </span><span class="op">\</span></span>
+<span id="cb35-45"><a href="#cb35-45" aria-hidden="true" tabindex="-1"></a><span class="pp">                param1</span><span class="op">-&gt;</span><span class="pp">count</span><span class="op">,</span><span class="pp">                                    </span><span class="op">\</span></span>
+<span id="cb35-46"><a href="#cb35-46" aria-hidden="true" tabindex="-1"></a><span class="pp">                call_params</span><span class="op">);</span><span class="pp">                                     </span><span class="op">\</span></span>
+<span id="cb35-47"><a href="#cb35-47" aria-hidden="true" tabindex="-1"></a><span class="pp">        </span><span class="op">}</span><span class="pp">                                                         </span><span class="op">\</span></span>
+<span id="cb35-48"><a href="#cb35-48" aria-hidden="true" tabindex="-1"></a><span class="pp">                                                                  </span><span class="op">\</span></span>
+<span id="cb35-49"><a href="#cb35-49" aria-hidden="true" tabindex="-1"></a><span class="pp">        </span><span class="cf">return</span><span class="pp"> </span><span class="op">(</span><span class="pp">ret_type</span><span class="op">){</span><span class="dv">0</span><span class="op">};</span><span class="pp"> </span><span class="co">/* or appropriate default */</span><span class="pp">        </span><span class="op">\</span></span>
+<span id="cb35-50"><a href="#cb35-50" aria-hidden="true" tabindex="-1"></a><span class="pp">    </span><span class="op">}</span></span></code></pre></div>
+<ul>
+<li>Iterative macros are macros that call one another in a chain,
+typically on adjacent lines with numerical suffixes. Frequently they are
+called by a root, or master function: e.g.</li>
+</ul>
+<div class="sourceCode" id="cb36"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#define D_EVAL</span><span class="op">(...)</span><span class="pp">             D_INTERNAL_ARGS01</span><span class="op">(</span><span class="pp">D_INTERNAL_ARGS01</span><span class="op">(</span><span class="pp">D_INTERNAL_ARGS01</span><span class="op">(</span><span class="pp">__VA_ARGS__</span><span class="op">)))</span></span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a><span class="co">// D_INTERNAL_ARGS&lt;01-10&gt;</span></span>
+<span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a><span class="co">//   macro:</span></span>
+<span id="cb36-5"><a href="#cb36-5" aria-hidden="true" tabindex="-1"></a><span class="pp">#define D_INTERNAL_ARGS01</span><span class="op">(...)</span><span class="pp"> D_INTERNAL_ARGS02</span><span class="op">(</span><span class="pp">D_INTERNAL_ARGS02</span><span class="op">(</span><span class="pp">D_INTERNAL_ARGS02</span><span class="op">(</span><span class="pp">__VA_ARGS__</span><span class="op">)))</span></span>
+<span id="cb36-6"><a href="#cb36-6" aria-hidden="true" tabindex="-1"></a><span class="pp">#define D_INTERNAL_ARGS02</span><span class="op">(...)</span><span class="pp"> D_INTERNAL_ARGS03</span><span class="op">(</span><span class="pp">D_INTERNAL_ARGS03</span><span class="op">(</span><span class="pp">D_INTERNAL_ARGS03</span><span class="op">(</span><span class="pp">__VA_ARGS__</span><span class="op">)))</span></span>
+<span id="cb36-7"><a href="#cb36-7" aria-hidden="true" tabindex="-1"></a><span class="pp">#define D_INTERNAL_ARGS03</span><span class="op">(...)</span><span class="pp"> D_INTERNAL_ARGS04</span><span class="op">(</span><span class="pp">D_INTERNAL_ARGS04</span><span class="op">(</span><span class="pp">D_INTERNAL_ARGS04</span><span class="op">(</span><span class="pp">__VA_ARGS__</span><span class="op">)))</span></span>
+<span id="cb36-8"><a href="#cb36-8" aria-hidden="true" tabindex="-1"></a><span class="pp">#define D_INTERNAL_ARGS04</span><span class="op">(...)</span><span class="pp"> D_INTERNAL_ARGS05</span><span class="op">(</span><span class="pp">D_INTERNAL_ARGS05</span><span class="op">(</span><span class="pp">D_INTERNAL_ARGS05</span><span class="op">(</span><span class="pp">__VA_ARGS__</span><span class="op">)))</span></span>
+<span id="cb36-9"><a href="#cb36-9" aria-hidden="true" tabindex="-1"></a><span class="pp">#define D_INTERNAL_ARGS05</span><span class="op">(...)</span><span class="pp"> D_INTERNAL_ARGS06</span><span class="op">(</span><span class="pp">D_INTERNAL_ARGS06</span><span class="op">(</span><span class="pp">D_INTERNAL_ARGS06</span><span class="op">(</span><span class="pp">__VA_ARGS__</span><span class="op">)))</span></span>
+<span id="cb36-10"><a href="#cb36-10" aria-hidden="true" tabindex="-1"></a><span class="pp">#define D_INTERNAL_ARGS06</span><span class="op">(...)</span><span class="pp"> D_INTERNAL_ARGS07</span><span class="op">(</span><span class="pp">D_INTERNAL_ARGS07</span><span class="op">(</span><span class="pp">D_INTERNAL_ARGS07</span><span class="op">(</span><span class="pp">__VA_ARGS__</span><span class="op">)))</span></span>
+<span id="cb36-11"><a href="#cb36-11" aria-hidden="true" tabindex="-1"></a><span class="pp">#define D_INTERNAL_ARGS07</span><span class="op">(...)</span><span class="pp"> D_INTERNAL_ARGS08</span><span class="op">(</span><span class="pp">D_INTERNAL_ARGS08</span><span class="op">(</span><span class="pp">D_INTERNAL_ARGS08</span><span class="op">(</span><span class="pp">__VA_ARGS__</span><span class="op">)))</span></span>
+<span id="cb36-12"><a href="#cb36-12" aria-hidden="true" tabindex="-1"></a><span class="pp">#define D_INTERNAL_ARGS08</span><span class="op">(...)</span><span class="pp"> D_INTERNAL_ARGS09</span><span class="op">(</span><span class="pp">D_INTERNAL_ARGS09</span><span class="op">(</span><span class="pp">D_INTERNAL_ARGS09</span><span class="op">(</span><span class="pp">__VA_ARGS__</span><span class="op">)))</span></span>
+<span id="cb36-13"><a href="#cb36-13" aria-hidden="true" tabindex="-1"></a><span class="pp">#define D_INTERNAL_ARGS09</span><span class="op">(...)</span><span class="pp"> D_INTERNAL_ARGS10</span><span class="op">(</span><span class="pp">D_INTERNAL_ARGS10</span><span class="op">(</span><span class="pp">D_INTERNAL_ARGS10</span><span class="op">(</span><span class="pp">__VA_ARGS__</span><span class="op">)))</span></span>
+<span id="cb36-14"><a href="#cb36-14" aria-hidden="true" tabindex="-1"></a><span class="pp">#define D_INTERNAL_ARGS10</span><span class="op">(...)</span><span class="pp"> __VA_ARGS__</span></span></code></pre></div>
+<p>Since all of the subfunctions called by <code>D_EVAL</code> are only
+called by <code>D_EVAL</code>, and will probably only ever be used in
+that context, one comment for the entire block is sufficient.</p>
+<ul>
+<li><strong>Variadic macros</strong> stay quiet in the headers that
+define them (ruled 2026.11.17). Pedantic C++98 and C90 builds warn once
+for each variadic macro a header defines, in every unit that includes
+it, so a header that defines one includes <code>env.h</code> and puts
+its variadic definitions between env's pair,
+<code>D_ENV_PP_VARIADIC_QUIET_BEGIN</code> and
+<code>D_ENV_PP_VARIADIC_QUIET_END</code> (<code>env_compiler.h</code>,
+2.1.2 and 2.1.3). The pair silences that one warning for those
+definitions alone, so a user's own variadic macros still warn.
+Definitions that must vanish without variadic macros (ISO strict C++98)
+also sit inside <code>#if D_ENV_PP_HAS_VARIADIC_MACROS</code>, with the
+pair inside it. <code>check_style.py</code>'s <code>V</code> check
+refuses a variadic macro defined outside the pair in a header under
+<code>inc/</code>; its punch list holds the headers not yet converted. A
+generated header gets the pair from its generator.</li>
+</ul>
+<div class="sourceCode" id="cb37"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&quot;../../env/env.h&quot;</span><span class="pp">  </span><span class="co">// D_ENV_PP_HAS_VARIADIC_MACROS and the pair</span></span>
+<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a><span class="pp">#if D_ENV_PP_HAS_VARIADIC_MACROS</span></span>
+<span id="cb37-4"><a href="#cb37-4" aria-hidden="true" tabindex="-1"></a>D_ENV_PP_VARIADIC_QUIET_BEGIN</span>
+<span id="cb37-5"><a href="#cb37-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-6"><a href="#cb37-6" aria-hidden="true" tabindex="-1"></a><span class="co">// D_SOME_LIST_MACRO</span></span>
+<span id="cb37-7"><a href="#cb37-7" aria-hidden="true" tabindex="-1"></a><span class="co">//   macro: applies _fn to each of its other arguments.</span></span>
+<span id="cb37-8"><a href="#cb37-8" aria-hidden="true" tabindex="-1"></a><span class="pp">#define D_SOME_LIST_MACRO</span><span class="op">(</span><span class="pp">_fn</span><span class="op">,</span><span class="pp"> </span><span class="op">...)</span><span class="pp"> D_INTERNAL_SOME_LIST</span><span class="op">(</span><span class="pp">_fn</span><span class="op">,</span><span class="pp"> __VA_ARGS__</span><span class="op">)</span></span>
+<span id="cb37-9"><a href="#cb37-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-10"><a href="#cb37-10" aria-hidden="true" tabindex="-1"></a>D_ENV_PP_VARIADIC_QUIET_END</span>
+<span id="cb37-11"><a href="#cb37-11" aria-hidden="true" tabindex="-1"></a><span class="pp">#endif  </span><span class="co">// D_ENV_PP_HAS_VARIADIC_MACROS</span></span></code></pre></div>
+<h2 id="language-standard-and-diagnostics">Language Standard and
+Diagnostics</h2>
+<p>The framework's floor is <strong>C99</strong>, and MSVC's default C
+mode is supported. Every C unit compiles with GCC and Clang at
+<code>-std=c99</code> and <code>-std=c11</code> under
+<code>-pedantic-errors</code> and <code>-Werror=undef</code>, plain and
+in testing mode (<code>ci/check_c_standards.sh</code>). Anything newer
+than C99 is used only behind the environment layer's tests
+(<code>D_ENV_LANG_IS_C11_OR_HIGHER</code> and its kin, defined at every
+level), with a C99 spelling below it. Vendor extensions are not used
+outside the environment-detection layer, which exists to isolate
+them.</p>
+<p>Feature-test macros come from the build, never from a source file:
+the names are reserved, and a source reaches its first system header
+through its corresponding header, before a line of its own could define
+one. Where the C library hides POSIX in a strict ISO mode, as glibc and
+musl do, every build defines <code>_XOPEN_SOURCE=700</code>
+(POSIX.1-2008 with XSI), as the ladders do; without it the
+<code>c/fs</code> sources, <code>dtime.c</code> and
+<code>dmutex.h</code>, a public header, do not compile. Elsewhere leave
+it undefined: on macOS and the BSDs it hides the system's own
+extensions, <code>timegm</code> among them. A file that needs more than
+POSIX and XSI says so in its banner.</p>
+<p>On Windows, the build defines <code>_WIN32_WINNT</code> to the oldest
+version it targets, as Windows practice has it
+(<code>-D_WIN32_WINNT=0x0A00</code> for Windows 10).
+<code>env_windows.h</code> reads it, with <code>NTDDI_VERSION</code>,
+and never sets one: including <code>&lt;sdkddkver.h&gt;</code> would set
+a default, and a file that then defines its own gets a redefinition.
+Without it, every version-gated Windows feature reads 0.</p>
+<p>Builds are warning-clean. The baseline is
+<code>-Wall -Wextra -Werror</code>, plus:</p>
+<table>
+<thead>
+<tr class="header">
+<th>Flag</th>
+<th>Catches</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>-Wreserved-identifier</code> (Clang 13+)</td>
+<td>identifiers reserved to the implementation; see <strong>Reserved
+Identifiers</strong></td>
+</tr>
+<tr class="even">
+<td><code>-Wdocumentation</code> (Clang)</td>
+<td>a <code>@param</code> whose name no longer matches the
+signature</td>
+</tr>
+<tr class="odd">
+<td><code>-Wshadow</code></td>
+<td>a declaration hiding an outer name</td>
+</tr>
+<tr class="even">
+<td><code>-Wconversion</code></td>
+<td>implicit narrowing</td>
+</tr>
+<tr class="odd">
+<td><code>-Wundef</code>, an error in the ladders
+(<code>-Werror=undef</code>)</td>
+<td>an <code>#if</code> that reads an undefined macro as 0; test a flag
+that may be absent with <code>defined()</code></td>
+</tr>
+</tbody>
+</table>
+<p>A warning that is genuinely not worth fixing is suppressed at the
+narrowest possible scope with a comment explaining why — never
+project-wide.</p>
+<h2 id="assertions">Assertions</h2>
+<p>Assert liberally, and prefer compile-time assertions to run-time ones
+wherever the condition is knowable at compile time. Spell it
+<code>D_STATIC_ASSERT(condition, message)</code>, from the root:
+<code>_Static_assert</code> from C11, <code>static_assert</code> in
+C++11 and up, and below both a declaration that fails to compile when
+the condition is false. It reads the same in both languages and at every
+level, which neither standard spelling does from C99.</p>
+<ul>
+<li>Use a static assertion for every assumption about type size,
+alignment, layout, or trait satisfaction that the code silently depends
+on.</li>
+<li>Give every static assertion a message. The message is what the next
+person reads when the build breaks; the expression is rarely enough on
+its own.</li>
+<li>Run-time assertions check preconditions the type system cannot. They
+are a statement about a bug, never a substitute for validating
+input.</li>
+</ul>
+<h2 id="the-preprocessor">The Preprocessor</h2>
+<p>Object-like <code>#define</code> for constants is fine. Function-like
+macros are not the default tool: prefer a <code>static inline</code>
+function or an <code>enum</code> constant wherever one will do. A macro
+has no scope, no type checking, does not appear in a debugger or a stack
+trace, and cannot be stepped through.</p>
+<p><strong>Carve-out.</strong> Preprocessor recursion, token pasting,
+and macro families that emit declarations are permitted inside
+<code>c/util/macro/</code> and the <code>D_INTERNAL_</code>
+argument-count machinery. Variadic argument handling in C genuinely
+requires them and there is no alternative construct. Outside that
+directory, a function-like macro needs a reason that survives
+review.</p>
+<p>Where a macro is unavoidable:</p>
+<ul>
+<li>Parenthesize every parameter use and the whole body.</li>
+<li>Name it in ALL CAPS with the <code>D_</code> prefix so call sites
+show what it is.</li>
+<li>Evaluate each parameter exactly once, or document that it does
+not.</li>
+</ul>
+<h3 id="conditional-compilation">Conditional Compilation</h3>
+<p>Every <code>#if</code> doubles the number of configurations that
+exist and halves the fraction of the code any single build tests.
+Minimize it.</p>
+<ul>
+<li>Include guards are the one unremarkable use.</li>
+<li>The configuration subframework under <code>config/</code> is built
+on conditional compilation by design; the rule does not constrain
+it.</li>
+<li>Elsewhere, prefer a run-time branch on a compile-time constant, so
+both sides of the branch are always compiled and type-checked.</li>
+<li>Never let an <code>#if</code> split a function body such that the
+two arms have different control flow. Select an implementation at the
+function level.</li>
+<li>Every <code>#endif</code> that closes an <code>#ifdef</code> or
+<code>#ifndef</code> names its symbol; see <strong>Conditional-Block
+Closures</strong>.</li>
+</ul>
+<h2 id="control-transfer">Control Transfer</h2>
+<p><code>goto</code> is permitted where it <strong>removes</strong>
+duplication or nesting. It is not permitted where it adds either. That
+is the whole rule; the cases below are what it usually looks like in
+practice, not an exhaustive list to argue about.</p>
+<ul>
+<li>Resource cleanup and error unwinding through a single exit
+label</li>
+<li>Escaping several levels of loop at once, which C has no labelled
+<code>break</code> for</li>
+<li>Dispatch in state machines, parsers, and interpreters</li>
+<li>A restart or retry point</li>
+<li>A shared continuation reached from several places</li>
+<li>Generated code not intended to be read</li>
+</ul>
+<p>Regardless of the reason:</p>
+<ul>
+<li><strong>Jump forward only.</strong> The one exception is a retry
+point, which is a backward jump by definition and should be obvious
+enough at the label that a reader sees the loop.</li>
+<li><strong>Never jump into a block.</strong> In C++ crossing an
+initialization is ill-formed; in C it compiles and leaves the variable
+uninitialized, which is worse.</li>
+<li><strong>One label per function</strong> for cleanup. Several unwind
+labels means the function is doing several things.</li>
+<li>Name the label for what happens there — <code>cleanup</code>,
+<code>retry</code>, <code>done</code> — not where it is.</li>
+</ul>
+<p>A <code>goto</code> that jumps past a declaration, or that exists
+because the function is too long, is a signal to extract a function
+rather than a use of this rule.</p>
+<h2 id="function-size-and-complexity">Function Size and Complexity</h2>
+<p>A function should do one thing, and the thing should be nameable
+without "and". The prose is the rule; the numbers below are the tripwire
+that catches what the prose misses.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Measure</th>
+<th>Limit</th>
+<th>Escalation</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Length</td>
+<td>100 lines, excluding the comment block; none for a test</td>
+<td>Extract a helper</td>
+</tr>
+<tr class="even">
+<td>Brace nesting</td>
+<td>4 levels inside the body</td>
+<td>Early return, or a <code>goto</code> cleanup label where this guide
+permits one</td>
+</tr>
+</tbody>
+</table>
+<p>A test is a file under <code>tests/</code>, or a runner under
+<code>build/cmake/config/testing/</code>; its functions have no length
+limit (ruled 2026-11-11). <code>scripts/ci/check_style.py</code> warns
+at 100 lines elsewhere.</p>
+<p>Parameters have no limit; related ones may still travel as a struct
+where one reads better (decision 116 of the register).</p>
+<p>Exceeding a limit is not forbidden, it is a signal that needs a
+reason. A dispatch table, a generated function, or a state machine's
+switch may legitimately run long; a 90-line function that validates,
+transforms, and writes should be three functions.</p>
+<p>Indentation depth is not a licence to run past 80 characters. A line
+that is long because it sits four levels deep is telling you about the
+nesting, not the line.</p>
+<h2 id="typedefs">Typedefs</h2>
+<ul>
+<li>Do not use <code>typedef</code> to hide whether a type is a
+<code>struct</code>, <code>union</code>, or <code>enum</code>; that
+information should remain explicit at the point of use.</li>
+<li><code>typedef</code> is permitted for function-pointer types,
+portability aliases, and deliberate scalar abstraction types.</li>
+</ul>
+<h2 id="file-structure">File Structure</h2>
+<h3 id="header-files-h">Header Files (.h)</h3>
+<p>Header files should contain:</p>
+<ol type="1">
+<li>A header comment block at the top of the file (copyright,
+description, etc.)</li>
+<li>A table of contents when required by the common header-structure
+rules</li>
+<li>Include guards</li>
+<li>All <code>#include</code> directives for dependencies, with brief
+trailing summaries</li>
+<li>Type definitions (structs, unions, enums) — with brief comments</li>
+<li>Macro definitions — with brief comments</li>
+<li>Function declarations — grouped by functionality, documented as
+<strong>Function Comments</strong> describes</li>
+</ol>
+<p><strong>Header File Formatting Rules:</strong></p>
+<ul>
+<li>Headers with multiple sections must contain a table of
+contents.</li>
+<li>Any header using structural delineations must use the common decimal
+hierarchy and must contain a matching table of contents.</li>
+<li>Top-level section names are uppercase.</li>
+<li>Subsection and item names use ordinary comment capitalization.</li>
+<li>Declarations take the definition's shape, minus its body (rule 3 of
+<strong>Function Declarations</strong>).</li>
+<li>One empty line between function declarations, in a group as between
+groups.</li>
+<li>A declaration carries a comment of its own only as the
+<code>/** */</code> contract above it, for a function that allocates,
+invalidates, transfers ownership, or can fail; the rest share their
+group's comment, and nothing goes beside a declaration.</li>
+</ul>
+<p><strong>Example header file structure:</strong></p>
+<div class="sourceCode" id="cb38"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="co">/*******************************************************************************</span></span>
+<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a><span class="co">* djinterp [c]                                                             bar.h</span></span>
+<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a><span class="co">*</span></span>
+<span id="cb38-4"><a href="#cb38-4" aria-hidden="true" tabindex="-1"></a><span class="co">* Brief description of the header file.</span></span>
+<span id="cb38-5"><a href="#cb38-5" aria-hidden="true" tabindex="-1"></a><span class="co">*   Extended description providing more details about the purpose and contents</span></span>
+<span id="cb38-6"><a href="#cb38-6" aria-hidden="true" tabindex="-1"></a><span class="co">* of this header.</span></span>
+<span id="cb38-7"><a href="#cb38-7" aria-hidden="true" tabindex="-1"></a><span class="co">*</span></span>
+<span id="cb38-8"><a href="#cb38-8" aria-hidden="true" tabindex="-1"></a><span class="co">* path:      /inc/djinterp/c/foo/bar.h</span></span>
+<span id="cb38-9"><a href="#cb38-9" aria-hidden="true" tabindex="-1"></a><span class="co">* link(s):   TBA</span></span>
+<span id="cb38-10"><a href="#cb38-10" aria-hidden="true" tabindex="-1"></a><span class="co">* author(s): Author Name                                     created: YYYY.MM.DD</span></span>
+<span id="cb38-11"><a href="#cb38-11" aria-hidden="true" tabindex="-1"></a><span class="co">*                                                            revised: YYYY.MM.DD</span></span>
+<span id="cb38-12"><a href="#cb38-12" aria-hidden="true" tabindex="-1"></a><span class="co">*******************************************************************************/</span></span>
+<span id="cb38-13"><a href="#cb38-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-14"><a href="#cb38-14" aria-hidden="true" tabindex="-1"></a><span class="co">/*</span></span>
+<span id="cb38-15"><a href="#cb38-15" aria-hidden="true" tabindex="-1"></a><span class="co">TABLE OF CONTENTS</span></span>
+<span id="cb38-16"><a href="#cb38-16" aria-hidden="true" tabindex="-1"></a><span class="co">=================</span></span>
+<span id="cb38-17"><a href="#cb38-17" aria-hidden="true" tabindex="-1"></a><span class="co">1.  TYPES AND CONSTANTS</span></span>
+<span id="cb38-18"><a href="#cb38-18" aria-hidden="true" tabindex="-1"></a><span class="co">    -------------------</span></span>
+<span id="cb38-19"><a href="#cb38-19" aria-hidden="true" tabindex="-1"></a><span class="co">    1.  Types</span></span>
+<span id="cb38-20"><a href="#cb38-20" aria-hidden="true" tabindex="-1"></a><span class="co">         1.  d_some_type</span></span>
+<span id="cb38-21"><a href="#cb38-21" aria-hidden="true" tabindex="-1"></a><span class="co">    2.  Constants</span></span>
+<span id="cb38-22"><a href="#cb38-22" aria-hidden="true" tabindex="-1"></a><span class="co">         1.  D_SOME_CONSTANT</span></span>
+<span id="cb38-23"><a href="#cb38-23" aria-hidden="true" tabindex="-1"></a><span class="co">2.  OPERATIONS</span></span>
+<span id="cb38-24"><a href="#cb38-24" aria-hidden="true" tabindex="-1"></a><span class="co">    ----------</span></span>
+<span id="cb38-25"><a href="#cb38-25" aria-hidden="true" tabindex="-1"></a><span class="co">    1.  Initialization</span></span>
+<span id="cb38-26"><a href="#cb38-26" aria-hidden="true" tabindex="-1"></a><span class="co">    2.  Core operations</span></span>
+<span id="cb38-27"><a href="#cb38-27" aria-hidden="true" tabindex="-1"></a><span class="co">    3.  Utilities</span></span>
+<span id="cb38-28"><a href="#cb38-28" aria-hidden="true" tabindex="-1"></a><span class="co">*/</span></span>
+<span id="cb38-29"><a href="#cb38-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-30"><a href="#cb38-30" aria-hidden="true" tabindex="-1"></a><span class="pp">#ifndef DJINTERP_C_FOO_BAR_H</span></span>
+<span id="cb38-31"><a href="#cb38-31" aria-hidden="true" tabindex="-1"></a><span class="pp">#define DJINTERP_C_FOO_BAR_H </span><span class="dv">1</span></span>
+<span id="cb38-32"><a href="#cb38-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-33"><a href="#cb38-33" aria-hidden="true" tabindex="-1"></a><span class="co">// std</span></span>
+<span id="cb38-34"><a href="#cb38-34" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;stddef.h&gt;</span><span class="pp">  </span><span class="co">// size_t</span></span>
+<span id="cb38-35"><a href="#cb38-35" aria-hidden="true" tabindex="-1"></a><span class="co">// djinterp</span></span>
+<span id="cb38-36"><a href="#cb38-36" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&quot;../djinterp.h&quot;</span><span class="pp">   </span><span class="co">// framework root</span></span>
+<span id="cb38-37"><a href="#cb38-37" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&quot;./dependency.h&quot;</span><span class="pp">  </span><span class="co">// module dependency</span></span>
+<span id="cb38-38"><a href="#cb38-38" aria-hidden="true" tabindex="-1"></a><span class="co">// re_std</span></span>
+<span id="cb38-39"><a href="#cb38-39" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&quot;../../../re_std/cstdint/dstdint.h&quot;</span><span class="pp">  </span><span class="co">// uint32_t</span></span>
+<span id="cb38-40"><a href="#cb38-40" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-41"><a href="#cb38-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-42"><a href="#cb38-42" aria-hidden="true" tabindex="-1"></a><span class="co">//==============================================================================</span></span>
+<span id="cb38-43"><a href="#cb38-43" aria-hidden="true" tabindex="-1"></a><span class="co">// 1.  TYPES AND CONSTANTS</span></span>
+<span id="cb38-44"><a href="#cb38-44" aria-hidden="true" tabindex="-1"></a><span class="co">//==============================================================================</span></span>
+<span id="cb38-45"><a href="#cb38-45" aria-hidden="true" tabindex="-1"></a><span class="co">// Defines the module&#39;s public data types and compile-time constants.</span></span>
+<span id="cb38-46"><a href="#cb38-46" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-47"><a href="#cb38-47" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-48"><a href="#cb38-48" aria-hidden="true" tabindex="-1"></a><span class="co">// 1.1    types</span></span>
+<span id="cb38-49"><a href="#cb38-49" aria-hidden="true" tabindex="-1"></a><span class="co">//------------------------------------------------------------------------------</span></span>
+<span id="cb38-50"><a href="#cb38-50" aria-hidden="true" tabindex="-1"></a><span class="co">// 1.1.1</span></span>
+<span id="cb38-51"><a href="#cb38-51" aria-hidden="true" tabindex="-1"></a><span class="co">// d_some_type</span></span>
+<span id="cb38-52"><a href="#cb38-52" aria-hidden="true" tabindex="-1"></a><span class="co">//   type: brief description of the type.</span></span>
+<span id="cb38-53"><a href="#cb38-53" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> d_some_type</span>
+<span id="cb38-54"><a href="#cb38-54" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb38-55"><a href="#cb38-55" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span>    member1<span class="op">;</span>     <span class="co">// description</span></span>
+<span id="cb38-56"><a href="#cb38-56" aria-hidden="true" tabindex="-1"></a>    <span class="dt">char</span><span class="op">*</span>  member2<span class="op">;</span>     <span class="co">// description</span></span>
+<span id="cb38-57"><a href="#cb38-57" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span>
+<span id="cb38-58"><a href="#cb38-58" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-59"><a href="#cb38-59" aria-hidden="true" tabindex="-1"></a><span class="co">// 1.2    constants</span></span>
+<span id="cb38-60"><a href="#cb38-60" aria-hidden="true" tabindex="-1"></a><span class="co">//------------------------------------------------------------------------------</span></span>
+<span id="cb38-61"><a href="#cb38-61" aria-hidden="true" tabindex="-1"></a><span class="co">// 1.2.1</span></span>
+<span id="cb38-62"><a href="#cb38-62" aria-hidden="true" tabindex="-1"></a><span class="co">// D_SOME_CONSTANT</span></span>
+<span id="cb38-63"><a href="#cb38-63" aria-hidden="true" tabindex="-1"></a><span class="co">//   constant: brief description.</span></span>
+<span id="cb38-64"><a href="#cb38-64" aria-hidden="true" tabindex="-1"></a><span class="pp">#define D_SOME_CONSTANT </span><span class="dv">42</span></span>
+<span id="cb38-65"><a href="#cb38-65" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-66"><a href="#cb38-66" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-67"><a href="#cb38-67" aria-hidden="true" tabindex="-1"></a><span class="co">//==============================================================================</span></span>
+<span id="cb38-68"><a href="#cb38-68" aria-hidden="true" tabindex="-1"></a><span class="co">// 2.  OPERATIONS</span></span>
+<span id="cb38-69"><a href="#cb38-69" aria-hidden="true" tabindex="-1"></a><span class="co">//==============================================================================</span></span>
+<span id="cb38-70"><a href="#cb38-70" aria-hidden="true" tabindex="-1"></a><span class="co">// Declares the operations exposed by the module.</span></span>
+<span id="cb38-71"><a href="#cb38-71" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-72"><a href="#cb38-72" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-73"><a href="#cb38-73" aria-hidden="true" tabindex="-1"></a><span class="co">// 2.1    initialization</span></span>
+<span id="cb38-74"><a href="#cb38-74" aria-hidden="true" tabindex="-1"></a><span class="co">//------------------------------------------------------------------------------</span></span>
+<span id="cb38-75"><a href="#cb38-75" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span>  d_init<span class="op">(</span><span class="dt">void</span><span class="op">);</span></span>
+<span id="cb38-76"><a href="#cb38-76" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> d_shutdown<span class="op">(</span><span class="dt">void</span><span class="op">);</span></span>
+<span id="cb38-77"><a href="#cb38-77" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-78"><a href="#cb38-78" aria-hidden="true" tabindex="-1"></a><span class="co">// 2.2    core operations</span></span>
+<span id="cb38-79"><a href="#cb38-79" aria-hidden="true" tabindex="-1"></a><span class="co">//------------------------------------------------------------------------------</span></span>
+<span id="cb38-80"><a href="#cb38-80" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span>         d_create<span class="op">(</span><span class="dt">const</span> <span class="dt">char</span><span class="op">*</span> _name<span class="op">,</span></span>
+<span id="cb38-81"><a href="#cb38-81" aria-hidden="true" tabindex="-1"></a>                     <span class="dt">int</span>         _flags<span class="op">);</span></span>
+<span id="cb38-82"><a href="#cb38-82" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span>         d_destroy<span class="op">(</span><span class="dt">int</span> _handle<span class="op">);</span></span>
+<span id="cb38-83"><a href="#cb38-83" aria-hidden="true" tabindex="-1"></a><span class="dt">const</span> <span class="dt">char</span><span class="op">*</span> d_get_name<span class="op">(</span><span class="dt">int</span> _handle<span class="op">);</span></span>
+<span id="cb38-84"><a href="#cb38-84" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-85"><a href="#cb38-85" aria-hidden="true" tabindex="-1"></a><span class="co">// 2.3    utilities</span></span>
+<span id="cb38-86"><a href="#cb38-86" aria-hidden="true" tabindex="-1"></a><span class="co">//------------------------------------------------------------------------------</span></span>
+<span id="cb38-87"><a href="#cb38-87" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span>  d_validate<span class="op">(</span><span class="dt">const</span> <span class="dt">void</span><span class="op">*</span> _data<span class="op">,</span></span>
+<span id="cb38-88"><a href="#cb38-88" aria-hidden="true" tabindex="-1"></a>                <span class="dt">size_t</span>      _size<span class="op">);</span></span>
+<span id="cb38-89"><a href="#cb38-89" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> d_debug_print<span class="op">(</span><span class="dt">const</span> <span class="dt">char</span><span class="op">*</span> _message<span class="op">);</span></span>
+<span id="cb38-90"><a href="#cb38-90" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-91"><a href="#cb38-91" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-92"><a href="#cb38-92" aria-hidden="true" tabindex="-1"></a><span class="pp">#endif  </span><span class="co">// DJINTERP_C_FOO_BAR_H</span></span></code></pre></div>
+<h3 id="source-files-c">Source Files (.c)</h3>
+<p>Source files should contain:</p>
+<ol type="1">
+<li>The source-file header comment block defined in this guide</li>
+<li>The <code>#include</code> directive for the corresponding header
+file, using a relative path, immediately after the source-file
+header</li>
+<li>Any further <code>#include</code> directives the definitions
+require, grouped by origin</li>
+<li>Function definitions</li>
+</ol>
+<ul>
+<li>After the last <code>#include</code>, use exactly two empty lines
+before the first function comment.</li>
+<li>No other location in a <code>.c</code> file should contain two
+consecutive empty lines. Elsewhere, use at most one empty line between
+logical units.</li>
+</ul>
+<p><strong>A header must not carry includes on behalf of its source
+file.</strong> Anything a definition needs but a declaration does not —
+the allocator, <code>memcpy</code>, a logging facility — belongs in the
+<code>.c</code> file. Pushing it into the header makes every consumer
+pay for it and rebuilds them all when it changes.</p>
+<p><strong>Example source file structure:</strong></p>
+<div class="sourceCode" id="cb39"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="co">/*******************************************************************************</span></span>
+<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a><span class="co">* djinterp [c]                                                             bar.c</span></span>
+<span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a><span class="co">*</span></span>
+<span id="cb39-4"><a href="#cb39-4" aria-hidden="true" tabindex="-1"></a><span class="co">* Brief description of the source file.</span></span>
+<span id="cb39-5"><a href="#cb39-5" aria-hidden="true" tabindex="-1"></a><span class="co">*   Extended description providing more details about the implementation</span></span>
+<span id="cb39-6"><a href="#cb39-6" aria-hidden="true" tabindex="-1"></a><span class="co">* contained in this file.</span></span>
+<span id="cb39-7"><a href="#cb39-7" aria-hidden="true" tabindex="-1"></a><span class="co">*</span></span>
+<span id="cb39-8"><a href="#cb39-8" aria-hidden="true" tabindex="-1"></a><span class="co">* path:      /src/djinterp/c/foo/bar.c</span></span>
+<span id="cb39-9"><a href="#cb39-9" aria-hidden="true" tabindex="-1"></a><span class="co">* link(s):   TBA</span></span>
+<span id="cb39-10"><a href="#cb39-10" aria-hidden="true" tabindex="-1"></a><span class="co">* author(s): Author Name                                     created: YYYY.MM.DD</span></span>
+<span id="cb39-11"><a href="#cb39-11" aria-hidden="true" tabindex="-1"></a><span class="co">*                                                            revised: YYYY.MM.DD</span></span>
+<span id="cb39-12"><a href="#cb39-12" aria-hidden="true" tabindex="-1"></a><span class="co">*******************************************************************************/</span></span>
+<span id="cb39-13"><a href="#cb39-13" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&quot;../../../../inc/djinterp/c/foo/bar.h&quot;</span><span class="pp">  </span><span class="co">// corresponding header</span></span>
+<span id="cb39-14"><a href="#cb39-14" aria-hidden="true" tabindex="-1"></a><span class="co">// std</span></span>
+<span id="cb39-15"><a href="#cb39-15" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;stdlib.h&gt;</span><span class="pp">  </span><span class="co">// malloc, free</span></span>
+<span id="cb39-16"><a href="#cb39-16" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;string.h&gt;</span><span class="pp">  </span><span class="co">// memcpy</span></span>
+<span id="cb39-17"><a href="#cb39-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-18"><a href="#cb39-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-19"><a href="#cb39-19" aria-hidden="true" tabindex="-1"></a><span class="co">/*</span></span>
+<span id="cb39-20"><a href="#cb39-20" aria-hidden="true" tabindex="-1"></a><span class="co">d_some_function</span></span>
+<span id="cb39-21"><a href="#cb39-21" aria-hidden="true" tabindex="-1"></a><span class="co">  How the function works: the approach taken, anything subtle about it, and any</span></span>
+<span id="cb39-22"><a href="#cb39-22" aria-hidden="true" tabindex="-1"></a><span class="co">invariant a future maintainer could break without noticing. The contract --</span></span>
+<span id="cb39-23"><a href="#cb39-23" aria-hidden="true" tabindex="-1"></a><span class="co">parameters, preconditions, return value -- lives on the declaration in the</span></span>
+<span id="cb39-24"><a href="#cb39-24" aria-hidden="true" tabindex="-1"></a><span class="co">header and is not repeated here.</span></span>
+<span id="cb39-25"><a href="#cb39-25" aria-hidden="true" tabindex="-1"></a><span class="co">*/</span></span>
+<span id="cb39-26"><a href="#cb39-26" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span></span>
+<span id="cb39-27"><a href="#cb39-27" aria-hidden="true" tabindex="-1"></a>d_some_function<span class="op">(</span></span>
+<span id="cb39-28"><a href="#cb39-28" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span>                        _param1<span class="op">,</span></span>
+<span id="cb39-29"><a href="#cb39-29" aria-hidden="true" tabindex="-1"></a>    <span class="kw">struct</span> d_some_struct_type<span class="op">*</span> _param2<span class="op">,</span></span>
+<span id="cb39-30"><a href="#cb39-30" aria-hidden="true" tabindex="-1"></a>    <span class="dt">const</span> <span class="dt">char</span><span class="op">*</span>                _param3</span>
+<span id="cb39-31"><a href="#cb39-31" aria-hidden="true" tabindex="-1"></a><span class="op">)</span></span>
+<span id="cb39-32"><a href="#cb39-32" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb39-33"><a href="#cb39-33" aria-hidden="true" tabindex="-1"></a>    <span class="op">...</span></span>
+<span id="cb39-34"><a href="#cb39-34" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+</body>
+</html>

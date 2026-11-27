@@ -1,0 +1,1404 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>The djinterp command line</title>
+  <style>
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+</head>
+<body>
+<h1 id="the-djinterp-command-line">The djinterp command line</h1>
+<blockquote>
+<p><strong>Where this file is, what its paths mean, and what has changed
+(2026-11-09).</strong> This is the kit's grammar as it stood before the
+restructure of 2026-11-03, which deleted it with <code>parse/cli/</code>
+(afb60e61); it is restored from that commit's parent. Ruling rs c puts a
+doc about a whole module in <code>docs/djinterp/&lt;module&gt;/</code>,
+so it is here, beside the kit's <code>README.html</code>, as vparse's
+README is in <code>docs/djinterp/tools/vparse/</code>. It is kept as
+written but for the passages the kit's rulings of 11-04 changed, each
+marked <em>(changed 11-04)</em>; read its paths through this table.</p>
+<table>
+<thead>
+<tr class="header">
+<th>the grammar says</th>
+<th>the tree has</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>parse/cli/</code>, the kit, "beside this file"</td>
+<td><code>tools/cli/</code>: C in
+<code>inc/djinterp/tools/cli/c/</code>, its sources in
+<code>src/djinterp/tools/cli/c/</code>, the C++ face in
+<code>inc/djinterp/tools/cli/</code></td>
+</tr>
+<tr class="even">
+<td><code>parse/cli/arg_parser/</code></td>
+<td><code>c/modules/parse/cli/arg_parser/</code>, its C++ face in
+<code>cpp/modules/parse/cli/arg_parser/</code></td>
+</tr>
+<tr class="odd">
+<td><code>docs/djinterp/tools/bitwisedom/json.html</code></td>
+<td>the same</td>
+</tr>
+</tbody>
+</table>
+<p>Section 11, vparse's grammar, is older than vparse's README of
+2026.10.27 (<code>docs/djinterp/tools/vparse/README.html</code>), whose
+command line is the one vparse has, and section 11 is to be brought up
+to it. Sections 10 and 11 are bitwisedom's and vparse's; the rest is
+every program's.</p>
+</blockquote>
+<p>One grammar for every djinterp program - <code>bitwisedom</code>,
+<code>vparse</code>, and the ones after them - written so that the same
+command line means the same thing in sh, bash, zsh, fish, cmd.exe and
+PowerShell, on Linux, the BSDs, macOS and Windows. The argument parser
+(<code>parse/cli/arg_parser/</code>) reads it; the CLI kit beside this
+file (<code>parse/cli/</code>, the <code>d_cli_</code> library and its
+C++ face) installs what every program shares, so that a program only
+declares its own commands.</p>
+<p>It is built from three sources and departs from them only where they
+disagree with each other or with a shell:</p>
+<ul>
+<li>POSIX.1-2017, XBD 12.1 and 12.2: the utility argument syntax and its
+fourteen guidelines - short options, <code>--</code>, <code>-</code> for
+a standard stream;</li>
+<li>the GNU coding standards: long options, <code>--help</code> and
+<code>--version</code>, the shape of a diagnostic, and the exit status
+of a program that answers a question (grep, diff, cmp);</li>
+<li>the Microsoft C runtime's rules for splitting a command line into
+<code>argv</code>, which every Windows program built with any toolchain
+is given.</li>
+</ul>
+<p>Sections 1 to 8 are the rules; section 9 is the grammar itself, in
+ABNF; sections 10 and 11 are the grammars of <code>bitwisedom</code> and
+<code>vparse</code>.</p>
+<hr />
+<h2 id="1-the-shape-of-a-command-line">1. The shape of a command
+line</h2>
+<pre><code>program [global-option]... command [option | operand]... [-- operand...]</code></pre>
+<ul>
+<li><strong>R1.</strong> A program does one thing per run, named by its
+<strong>command</strong>: a lowercase verb, <code>gen</code>,
+<code>check</code>, <code>run</code>. A command may have subcommands,
+one level deep and no more: <code>bitwisedom example list</code>.</li>
+<li><strong>R2.</strong> <strong>Options may come anywhere after the
+program's name</strong> - before the command, after it, between operands
+- as GNU programs take them. A global option (section 6) is accepted
+before the command or after it.</li>
+<li><strong>R3.</strong> <strong><code>--</code> ends the
+options.</strong> Every argument after it is an operand, even one that
+starts with <code>-</code>. <code>--</code> itself is not an operand.
+The command comes before it: <code>bitwisedom -- gen</code> is a usage
+error, not <code>gen</code>.</li>
+<li><strong>R4.</strong> Operands are files, names and values, in the
+order the command's usage gives them. Their meaning never depends on
+where the options fall.</li>
+</ul>
+<p>A program with no command is a usage error (section 8): it prints its
+usage and the list of commands to standard error and exits 2.
+<code>PROGRAM --help</code> prints the whole help to standard output and
+exits 0.</p>
+<h2 id="2-options">2. Options</h2>
+<table>
+<thead>
+<tr class="header">
+<th>form</th>
+<th>example</th>
+<th>means</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>--name</code></td>
+<td><code>--quiet</code></td>
+<td>a flag</td>
+</tr>
+<tr class="even">
+<td><code>--name=VALUE</code></td>
+<td><code>--level=c11</code></td>
+<td>an option and its value</td>
+</tr>
+<tr class="odd">
+<td><code>--name VALUE</code></td>
+<td><code>--level c11</code></td>
+<td>the same, when the option takes a value</td>
+</tr>
+<tr class="even">
+<td><code>-x</code></td>
+<td><code>-q</code></td>
+<td>a short flag</td>
+</tr>
+<tr class="odd">
+<td><code>-xyz</code></td>
+<td><code>-qv</code></td>
+<td>several short flags at once</td>
+</tr>
+<tr class="even">
+<td><code>-xVALUE</code>, <code>-x VALUE</code></td>
+<td><code>-ofile.h</code>, <code>-o file.h</code></td>
+<td>a short option and its value</td>
+</tr>
+<tr class="odd">
+<td><code>--no-name</code></td>
+<td><code>--no-banner</code></td>
+<td>a flag that is on by default, turned off</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong>R5.</strong> A <strong>long name</strong> is lowercase ASCII
+letters, digits and single hyphens between them, starting with a letter:
+<code>--self-test</code>, <code>--int-suffix</code>. Long names are
+never abbreviated: <code>--verb</code> is not <code>--verbose</code>, so
+a script written today runs the same after an option is added tomorrow.
+A name that does not exist is refused, and the nearest one that does is
+suggested.</li>
+<li><strong>R6.</strong> A <strong>short name</strong> is one ASCII
+letter, upper or lower case, and never a digit - so <code>-1</code>,
+<code>-0x10</code> and <code>-.5</code> are always words: negative
+numbers, as an operand or as the value of the option before them.</li>
+<li><strong>R7.</strong> An option's value is <strong>required or
+absent, never optional</strong> when written as a separate argument. An
+option whose value may be left out takes it only after <code>=</code>:
+<code>--color</code> means <code>--color=always</code>, and in
+<code>--color never</code> the word <code>never</code> is an operand.
+<strong><code>--name=</code> is the empty value</strong>, as getopt_long
+reads it - <code>--note=</code> clears a note - and never takes the
+argument after it.</li>
+<li><strong>R8.</strong> An option given twice, where it takes one
+value, <strong>takes the last</strong>:
+<code>--level=c99 --level=c11</code> is c11, as GNU programs do, so that
+a script may append an override to a command line it was given. An
+option that collects values says so in its help, and takes every one in
+order, <strong>one each time it is given</strong>:
+<code>-D A -D B</code>; in <code>-D A B</code>, <code>B</code> is an
+operand.</li>
+<li><strong>R9.</strong> Options are case-sensitive. Commands,
+enumerated values and long names are lowercase.</li>
+<li><strong>R10.</strong> On Windows, <code>/?</code> is
+<code>--help</code>, as Windows users type it. No other option has a
+<code>/</code> form: on every system <code>/x</code> is a path.</li>
+</ul>
+<h2 id="3-operands">3. Operands</h2>
+<ul>
+<li><strong>R11.</strong> <strong><code>-</code> is a standard
+stream</strong>: standard input where the command reads, standard output
+where it writes. A file whose name is <code>-</code> is written
+<code>./-</code>.</li>
+<li><strong>R12.</strong> An operand that starts with <code>-</code>
+follows <code>--</code>, or is written so that it does not -
+<code>./-file</code>.</li>
+<li><strong>R13.</strong> An operand that names something <strong>other
+than a file</strong> says so with a prefix and a colon, as git, docker
+and scp do: <code>example:uart_cr</code> is the built-in example named
+<code>uart_cr</code>. A prefix is two letters or more, so a Windows
+drive (<code>C:</code>) is never one; a file whose name is such a word
+is written <code>./example:x</code>.</li>
+<li><strong>R14.</strong> <strong>Response files</strong>,
+<code>@FILE</code>, are read only by a program that says so in its help
+- on every page of it, each command's page included <em>(changed 11-04:
+cli-taken 84)</em>: each argument in FILE is put in the
+<code>@FILE</code>'s place, split as the platform's own tools split them
+- the POSIX shell's quoting where GCC reads them, the C runtime's where
+cl reads them. PowerShell reads an unquoted <code>@</code> as splatting:
+there, write <code>'@FILE'</code>.</li>
+</ul>
+<h2 id="4-values">4. Values</h2>
+<table>
+<thead>
+<tr class="header">
+<th>kind</th>
+<th>written</th>
+<th>notes</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>integer</td>
+<td><code>42</code>, <code>0x2A</code>, <code>0o52</code>,
+<code>0b101010</code>, <code>1_000</code></td>
+<td>decimal unless prefixed; a leading zero is not octal
+(<code>010</code> is ten); <code>-</code> before a negative one</td>
+</tr>
+<tr class="even">
+<td>boolean</td>
+<td><code>true</code> <code>false</code>, <code>yes</code>
+<code>no</code>, <code>on</code> <code>off</code>, <code>1</code>
+<code>0</code></td>
+<td>any case</td>
+</tr>
+<tr class="odd">
+<td>enumeration</td>
+<td><code>c11</code>, <code>cpp17</code>,
+<code>twos_complement</code></td>
+<td>one of the words the help lists, which are the words the program's
+files use</td>
+</tr>
+<tr class="even">
+<td>range</td>
+<td><code>4..6</code>, <code>6..4</code>, <code>5</code></td>
+<td>inclusive, either way round; one number is one bit</td>
+</tr>
+<tr class="odd">
+<td>setting</td>
+<td><code>KEY=VALUE</code></td>
+<td><code>grid.lines=false</code>; keys are dotted paths</td>
+</tr>
+<tr class="even">
+<td>list</td>
+<td>the option repeated: <code>-D A -D B</code></td>
+<td>a comma-separated list is accepted where the help says so, never
+required</td>
+</tr>
+<tr class="odd">
+<td>path</td>
+<td>as the platform writes it</td>
+<td><code>/</code> is accepted on Windows as well as <code>\</code></td>
+</tr>
+<tr class="even">
+<td>text</td>
+<td>as the shell quotes it</td>
+<td>see section 5</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong>R15.</strong> <strong>Text is UTF-8.</strong> On Windows the
+program reads its true command line, <code>GetCommandLineW()</code>, so
+every argument arrives whole whatever the console's code page, and is
+converted to UTF-8; paths are converted back where a file is opened. A
+command that is a module is given its arguments by the program, already
+UTF-8, and never reads the command line again.</li>
+<li><strong>R16.</strong> A value is never interpreted by locale:
+<code>1.5</code> is one and a half under every locale, as the argument
+parser reads it.</li>
+</ul>
+<h2 id="5-what-a-shell-does-to-an-argument">5. What a shell does to an
+argument</h2>
+<p>The grammar's own syntax is written only in characters that no shell
+gives a meaning to where the grammar puts them:</p>
+<pre><code>A-Z a-z 0-9   -   _   .   /   :   +   ,   and   =   after the first character</code></pre>
+<p>Everything else is the user's to quote, and an argument that holds
+them -- an expression, a macro's body, a grammar given inline - is
+quoted, or read from a file or from standard input instead. Every
+command that takes such text has a way to read it from a file or
+<code>-</code>.</p>
+<table>
+<thead>
+<tr class="header">
+<th>character</th>
+<th>sh, bash</th>
+<th>zsh</th>
+<th>fish</th>
+<th>cmd.exe</th>
+<th>PowerShell</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>space, tab</td>
+<td>separate</td>
+<td>separate</td>
+<td>separate</td>
+<td>separate</td>
+<td>separate</td>
+</tr>
+<tr class="even">
+<td><code>'</code> <code>"</code></td>
+<td>quote</td>
+<td>quote</td>
+<td>quote</td>
+<td><code>"</code> quotes</td>
+<td>quote</td>
+</tr>
+<tr class="odd">
+<td><code>\</code></td>
+<td>escapes</td>
+<td>escapes</td>
+<td>escapes</td>
+<td>literal</td>
+<td>literal</td>
+</tr>
+<tr class="even">
+<td><code>`</code></td>
+<td>command substitution</td>
+<td>command substitution</td>
+<td>literal</td>
+<td>literal</td>
+<td>escapes</td>
+</tr>
+<tr class="odd">
+<td><code>$</code></td>
+<td>expands</td>
+<td>expands</td>
+<td>expands</td>
+<td>literal</td>
+<td>expands</td>
+</tr>
+<tr class="even">
+<td><code>%</code></td>
+<td>literal</td>
+<td>literal</td>
+<td>literal</td>
+<td><code>%NAME%</code> expands</td>
+<td>literal</td>
+</tr>
+<tr class="odd">
+<td><code>!</code></td>
+<td>history, interactively</td>
+<td>history, interactively</td>
+<td>literal</td>
+<td>expands with delayed expansion</td>
+<td>literal</td>
+</tr>
+<tr class="even">
+<td><code>^</code></td>
+<td>literal</td>
+<td>glob with <code>EXTENDED_GLOB</code></td>
+<td>literal</td>
+<td>escapes</td>
+<td>literal</td>
+</tr>
+<tr class="odd">
+<td><code>*</code> <code>?</code> <code>[ ]</code></td>
+<td>glob</td>
+<td>glob, and an error when nothing matches</td>
+<td><code>*</code> globs; <code>?</code> too, unless
+<code>qmark-noglob</code></td>
+<td>literal</td>
+<td>literal</td>
+</tr>
+<tr class="even">
+<td><code>{ }</code></td>
+<td>brace expansion</td>
+<td>brace expansion</td>
+<td>brace expansion</td>
+<td>literal</td>
+<td>script block</td>
+</tr>
+<tr class="odd">
+<td><code>( )</code></td>
+<td>subshell</td>
+<td>subshell, glob qualifier</td>
+<td>command substitution</td>
+<td>grouping</td>
+<td>subexpression</td>
+</tr>
+<tr class="even">
+<td><code>&lt;</code> <code>&gt;</code> <code>|</code>
+<code>&amp;</code> <code>;</code></td>
+<td>redirect, pipe, background, separate</td>
+<td>the same</td>
+<td>the same</td>
+<td>the same</td>
+<td>the same (<code>&lt;</code> reserved)</td>
+</tr>
+<tr class="odd">
+<td><code>#</code> at a word's start</td>
+<td>comment</td>
+<td>comment</td>
+<td>comment</td>
+<td>literal</td>
+<td>comment</td>
+</tr>
+<tr class="even">
+<td><code>~</code> at a word's start</td>
+<td>home</td>
+<td>home</td>
+<td>home</td>
+<td>literal</td>
+<td>home, in a path</td>
+</tr>
+<tr class="odd">
+<td><code>=</code> at a word's start</td>
+<td>literal</td>
+<td><code>=cmd</code> expands to a path</td>
+<td>literal</td>
+<td>separates, in a batch file</td>
+<td>literal</td>
+</tr>
+<tr class="even">
+<td><code>@</code> at a word's start</td>
+<td>literal</td>
+<td>literal</td>
+<td>literal</td>
+<td>literal</td>
+<td>splatting</td>
+</tr>
+<tr class="odd">
+<td><code>,</code></td>
+<td>literal</td>
+<td>literal</td>
+<td>literal</td>
+<td>separates, in a batch file</td>
+<td>makes an array: the parts become separate arguments</td>
+</tr>
+<tr class="even">
+<td><code>--%</code></td>
+<td>literal</td>
+<td>literal</td>
+<td>literal</td>
+<td>literal</td>
+<td>stops parsing</td>
+</tr>
+</tbody>
+</table>
+<p>Two consequences shape the rest:</p>
+<ul>
+<li><strong>Lists are repeated options</strong> (R8), because PowerShell
+splits <code>a,b</code>.</li>
+<li><strong><code>--</code> reaches the program</strong> from every
+shell named here, PowerShell included, as
+<code>git checkout -- file</code> shows daily. A PowerShell
+<em>script</em> (<code>.ps1</code>) standing in for a program consumes
+it: the programs are executables, and their installers put no script in
+front of them.</li>
+</ul>
+<h2 id="6-what-every-program-has">6. What every program has</h2>
+<p>The kit installs these; a program's own options never reuse their
+names.</p>
+<table>
+<thead>
+<tr class="header">
+<th>option</th>
+<th>does</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>-h</code>, <code>--help</code></td>
+<td>the help of the program or of the command it follows, to standard
+output; exit 0</td>
+</tr>
+<tr class="even">
+<td><code>--version</code></td>
+<td><code>PROGRAM VERSION</code> on the first line, as GNU programs
+print it; with <code>--verbose</code>, the build too; exit 0</td>
+</tr>
+<tr class="odd">
+<td><code>-q</code>, <code>--quiet</code></td>
+<td>only errors on standard error</td>
+</tr>
+<tr class="even">
+<td><code>-v</code>, <code>--verbose</code></td>
+<td>more on standard error; given twice, more again</td>
+</tr>
+<tr class="odd">
+<td><code>--color[=WHEN]</code>, <code>--colour[=WHEN]</code></td>
+<td><code>auto</code> (the default), <code>always</code> or
+<code>never</code></td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr class="header">
+<th>command</th>
+<th>does</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>help [COMMAND]</code></td>
+<td>the same as <code>[COMMAND] --help</code>. <em>(added 11-23)</em>
+With <code>--format=json</code>, the program's description instead, from
+the command down, as tools that build its pages read it
+(HELP_JSON.html)</td>
+</tr>
+<tr class="even">
+<td><code>completion SHELL</code></td>
+<td>a completion script for <code>bash</code>, <code>zsh</code>,
+<code>fish</code> or <code>powershell</code>, to standard output</td>
+</tr>
+<tr class="odd">
+<td><code>gui [ARGUMENT]...</code></td>
+<td>the program's window, where it has one (section 7)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Settings</strong> <em>(added 11-13)</em>. Every program keeps
+the settings of <code>docs/djinterp/c/option/knob_and_option.html</code>:
+the kit's own, as <code>cli.plugin_strict_version</code>, and a
+program's. A run reads them from the user's settings file
+(<code>$XDG_CONFIG_HOME/djinterp/settings</code>, else
+<code>~/.config/djinterp/settings</code>;
+<code>%APPDATA%\djinterp\settings</code> on Windows), from the
+environment (<code>DJINTERP_CLI_PLUGIN_STRICT_VERSION</code>, then the
+program's own name, <code>BITWISEDOM_CLI_PLUGIN_STRICT_VERSION</code>,
+which wins), and from its command line:</p>
+<table>
+<thead>
+<tr class="header">
+<th>setting</th>
+<th>does</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>--NAME=VALUE</code></td>
+<td>sets the setting NAME for this run; NAME is a full name, which
+always holds a <code>.</code></td>
+</tr>
+<tr class="even">
+<td><code>--NAME</code>, <code>--no-NAME</code></td>
+<td>sets a bool setting true, or false</td>
+</tr>
+<tr class="odd">
+<td><code>--set NAME=VALUE</code></td>
+<td>sets any setting, one on the root, <code>plugin_path</code>, among
+them</td>
+</tr>
+</tbody>
+</table>
+<p>The command line stands above the environment, and the environment
+above the file. A statement of the file that fails is said by its line,
+as a warning, and the file is read on; a setting the command line names
+badly is a usage error, the nearest name suggested (R26).</p>
+<p><strong>The kit's own settings</strong> <em>(added 11-27)</em>, each
+defaulting to its knob in <code>cfg_cli.h</code>:</p>
+<table>
+<thead>
+<tr class="header">
+<th>setting</th>
+<th>does</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>cli.plugin_search</code></td>
+<td>the directories a command's module is looked for in, after the run's
+and <code>plugin_path</code>'s</td>
+</tr>
+<tr class="even">
+<td><code>plugin_path</code></td>
+<td>the program's own directories, looked in first: on the root, so set
+with <code>--set</code>, and read from
+<code>PROGRAM_PLUGIN_PATH</code></td>
+</tr>
+<tr class="odd">
+<td><code>cli.plugin_strict_version</code></td>
+<td>whether a module of another version of the program is refused (the
+default) or loaded with a warning</td>
+</tr>
+<tr class="even">
+<td><code>cli.unknown_settings</code></td>
+<td>what is said of a line of the user's file that names no setting the
+program has: <code>none</code>; <code>typos</code> (the default), a near
+miss and a djin's setting that djin lacks, but nothing for a djin the
+program does not register, whose lines are another program's;
+<code>all</code>, a warning for each; <code>error</code>, an error for
+each, and the run ends with 2</td>
+</tr>
+<tr class="odd">
+<td><code>cli.shared_refusals</code></td>
+<td>what is said when the user's file or the environment under
+<code>DJINTERP_</code> sets a setting that refuses it:
+<code>none</code>, <code>verbose</code> (the default: a note at
+<code>-v</code>), <code>warn</code> or <code>error</code></td>
+</tr>
+<tr class="even">
+<td><code>cli.unknown_djin</code></td>
+<td>how a name for a djin the program does not register is told from one
+it should know: <code>reason</code> (the default), the registry's own
+reason, or <code>lookup</code>, the kit's lookup of the name's first
+part. They differ only for a first part the root takes as a scope, which
+<code>reason</code> counts as the program's and <code>lookup</code> as
+another program's. The run's final setting decides for every line of the
+file</td>
+</tr>
+<tr class="odd">
+<td><code>cli.settings_sections</code></td>
+<td>whether the user's file is read in sections, below (the default);
+from the environment alone, since the file cannot say how it is read,
+and the command line is read after it</td>
+</tr>
+<tr class="even">
+<td><code>cli.privileged_refuse</code></td>
+<td>whether a run with privileges its caller lacks refuses the caller
+the plugin settings (the default); in such a run the program's
+alone</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Sections of the user's file</strong> <em>(added 11-27)</em>.
+Every program reads the one file, so a line can be kept for one program:
+<code>[PROGRAM]</code> begins the lines only the program of that name
+reads, and <code>[*]</code> every program's again. The lines before the
+first header are every program's, so a file with no header reads as
+before.</p>
+<pre><code>cli.unknown_settings = all        # every program
+[vparse]
+cli.unknown_settings = none       # vparse alone
+[*]
+cli.plugin_strict_version = false # every program again</code></pre>
+<ul>
+<li>A header is found where a statement could begin, after blanks,
+<code>;</code> and comments, never inside a statement. Its name is
+letters, digits, <code>_</code>, <code>-</code> and <code>.</code>,
+matched whatever its letters' case; blanks and a comment may follow
+it.</li>
+<li>A line that begins with <code>[</code> but is no such header is said
+by its line, as a warning,
+<code>'[bad header' is not a section's header: [PROGRAM] or [*]</code>,
+and the lines after it are no program's until the next header: a typo
+never spreads one program's lines to every other.</li>
+<li>The file is read in its order, each program reading its own lines
+and every program's, so the last line that sets a name for a program
+decides for it.</li>
+<li>With <code>cli.settings_sections</code> false, from the environment,
+the file is one part, and each header is said as a statement the file
+cannot take.</li>
+<li><code>djinterp set --section=PROGRAM</code> writes in a program's
+lines, and keeps the headers whatever the run reads (djinterp's design,
+6.4).</li>
+</ul>
+<p><strong>Privileged runs</strong> <em>(added 11-27)</em>. A run with
+privileges its caller lacks, a set-user-ID or set-group-ID program or
+one given capabilities, refuses its caller the plugin settings,
+<code>plugin_path</code> and <code>cli.plugin_search</code>: they refuse
+the user's file, the environment and the command line, as at
+<code>D_CFG_CLI_PLUGIN_VARIABLE</code> 0, unless the program or the
+build trusts the caller. A run that trusts it says so, as a warning
+naming whose word it is. On Windows no run is privileged.</p>
+<p><strong>Help</strong> is wrapped to the terminal's width when
+standard output is a terminal, and to 80 columns otherwise, so that what
+a script captures does not depend on the window it ran in.</p>
+<p><strong>Colour.</strong> <code>auto</code> colours a stream only when
+it is a terminal, the terminal is not <code>TERM=dumb</code>, and
+<code>NO_COLOR</code> is unset or empty (no-color.org); on Windows, only
+where the console takes ANSI sequences, which the program asks for.
+<code>--color=always</code> colours in every case, <code>NO_COLOR</code>
+notwithstanding.</p>
+<h2 id="7-the-window">7. The window</h2>
+<p>A program with a window has it as a <strong>plugin</strong>: a module
+loaded only by <code>PROGRAM gui</code>, so the program itself carries
+none of it - no window system, no GPU, no fonts - and a system with no
+display can install the program alone.</p>
+<ul>
+<li><code>PROGRAM gui [ARGUMENT]...</code> loads the module and gives it
+every argument after <code>gui</code>. The module reads them with the
+same parser and the same grammar, so <code>PROGRAM gui --help</code> is
+the window's own help, and an option the window shares with a command -
+a sheet to open, a grammar to run -- is spelled as the command spells
+it.</li>
+<li>The module is <code>PROGRAM-gui</code> with the platform's suffix
+for a loadable module - <code>bitwisedom-gui.dll</code>,
+<code>bitwisedom-gui.so</code> - and is looked for in order: any
+directories the program is given to look in first, at run time; the
+directories in <code>PROGRAM_PLUGIN_PATH</code> (the program's name
+upper-cased, <code>-</code> as <code>_</code>), separated as
+<code>PATH</code> is, unless the build says not to read it
+(<code>D_CFG_CLI_PLUGIN_VARIABLE</code>); and the build's own list,
+<code>D_CFG_CLI_PLUGIN_SEARCH</code>, which is by default the program's
+own directory, then <code>../lib/PROGRAM/</code> from it, where a POSIX
+installation puts it <em>(changed 11-04: cli-taken 14)</em>. A program
+file that carries a tag after the program's name -
+<code>bitwisedom-linux64</code>, <code>bitwisedom-win64.exe</code>, as a
+build's <code>bin/</code> directory names them so that every platform's
+builds can share it - has its module carry the same tag,
+<code>bitwisedom-gui-linux64.so</code>, and that name is looked for
+first in each directory.</li>
+<li>A module belongs to one program at one version. One made for another
+program, or for another version of the kit's plugin interface, is always
+refused, by name, and the program exits 2. One made for another version
+of the program is refused too, with both versions, unless the build
+(<code>D_CFG_CLI_PLUGIN_STRICT_VERSION</code>) or the program at run
+time says to load it with a warning that names both <em>(changed 11-04:
+cli-taken 15)</em>.</li>
+<li>The window exits as a command does: 0 when it closed normally.</li>
+</ul>
+<h2 id="8-output-diagnostics-and-exit-status">8. Output, diagnostics and
+exit status</h2>
+<p><strong>Streams.</strong></p>
+<ul>
+<li><strong>R17.</strong> <strong>Standard output holds the result and
+nothing else</strong>: the header, the listing, the JSON. Everything
+said <em>about</em> the work -- errors, warnings, notes, progress - goes
+to standard error.</li>
+<li><strong>R18.</strong> Text is UTF-8, its lines ended by LF on every
+system. On a Windows console it is written through the console's own
+wide interface, so it reads correctly whatever the code page;
+redirected, it is UTF-8 bytes.</li>
+<li><strong>R19.</strong> A command whose result has structure offers
+<strong><code>--format=json</code></strong> beside its text. The JSON is
+documented with the command, and only grows: a key once written keeps
+its meaning.</li>
+<li><strong>R20.</strong> A file the program writes is <strong>written
+whole or not at all</strong>: into a temporary file beside it, then
+renamed over it. <code>-o -</code> writes standard output.</li>
+<li><strong>R21.</strong> A program never prompts, and never reads the
+terminal unless a command reads standard input and none was redirected -
+then it reads the terminal, as <code>cat</code> does.</li>
+</ul>
+<p><strong>Diagnostics</strong> take the GNU shape:</p>
+<pre><code>PROGRAM: error: MESSAGE
+PROGRAM: warning: MESSAGE
+FILE:LINE:COLUMN: error: MESSAGE
+FILE:LINE: warning: MESSAGE</code></pre>
+<p><code>PROGRAM</code> is the program's own name, not the path it was
+run by. A message starts in lower case and has no full stop at its end.
+Where it is about a place in a file, the place comes first, as compilers
+write it, which every editor and IDE turns into a link. With colour, the
+severity is coloured as GCC colours it.</p>
+<p>A usage error is one line and a pointer:</p>
+<pre><code>bitwisedom: error: gen: SHEET is required
+Try &#39;bitwisedom gen --help&#39; for more information.</code></pre>
+<p><strong>Exit status.</strong> Three values, as grep, diff and cmp
+give them:</p>
+<table>
+<thead>
+<tr class="header">
+<th>status</th>
+<th>means</th>
+<th>for example</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>0</td>
+<td><strong>done</strong>: it did what was asked, and the answer, if one
+was asked, is yes</td>
+<td>a header written; an input that matched</td>
+</tr>
+<tr class="even">
+<td>1</td>
+<td><strong>done, no</strong>: it did what was asked, and the answer is
+no</td>
+<td>a sheet with errors (the header still written, without them); an
+input the grammar refuses</td>
+</tr>
+<tr class="odd">
+<td>2</td>
+<td><strong>trouble</strong>: it could not do what was asked</td>
+<td>an unknown option; a missing operand; a file that cannot be read or
+written; a sheet or a grammar that is not one; a plugin that is
+missing</td>
+</tr>
+</tbody>
+</table>
+<p>Help and version are 0 - when they were written: an output that
+refuses them, as a full disk does, is trouble, and said, as
+<code>cannot write standard output: REASON</code>. So is running out of
+memory, whatever was asked: the program says <code>out of memory</code>,
+and never what the want of memory made look true - a command that is not
+there, a module not installed. A program killed by a signal leaves the
+status the shell gives it, 128 and the signal's number; one that catches
+<code>SIGINT</code> to remove a temporary file raises it again
+afterwards, so the shell still sees the interrupt. A command documents
+what it answers; a command that answers nothing never exits 1.</p>
+<h2 id="9-the-grammar">9. The grammar</h2>
+<p>In ABNF (RFC 5234), with RFC 7405's <code>%s</code> for a
+case-sensitive string. The command line is its arguments, each ended by
+NUL: <code>argv</code> as <code>execve</code> passes it,
+<code>/proc/PID/cmdline</code> as Linux shows it, <code>xargs -0</code>
+as it reads; on Windows, <code>GetCommandLineW()</code> split by the C
+runtime's rules (the argument parser's
+<code>d_arg_parser_parse_wide</code>), each in UTF-8.</p>
+<pre class="abnf"><code>; ------------------------------------------------------------ the line
+command-line   = program END *( argument END )
+program        = *OCTET-NN                ; argv[0]; its file name, less
+                                          ; any .exe, is PROGRAM
+END            = %x00
+OCTET-NN       = %x01-FF
+
+; ------------------------------------------------------ one argument
+; an argument is the first of these it matches
+argument       = end-of-options
+               / long-option
+               / std-stream
+               / short-options
+               / response-file            ; where the program reads them
+               / windows-help             ; on Windows alone
+               / word
+
+end-of-options = %s&quot;--&quot;
+long-option    = %s&quot;--&quot; long-name [ &quot;=&quot; value ]
+long-name      = LOWER *( [ &quot;-&quot; ] ( LOWER / DIGIT ) )
+std-stream     = &quot;-&quot;
+short-options  = &quot;-&quot; LETTER *OCTET-NN     ; read by R22
+response-file  = &quot;@&quot; 1*OCTET-NN
+windows-help   = %s&quot;/?&quot;
+word           = *OCTET-NN                ; anything else: a command, an
+                                          ; operand, an option&#39;s value
+value          = *OCTET-NN
+
+LOWER          = %x61-7A                  ; a-z
+LETTER         = %x41-5A / %x61-7A        ; A-Z a-z
+DIGIT          = %x30-39
+
+; ------------------------------------------- the words of the grammar
+command-name   = LOWER *( [ &quot;-&quot; ] ( LOWER / DIGIT ) )
+enum-word      = LOWER *( LOWER / DIGIT / &quot;_&quot; )
+boolean        = &quot;true&quot; / &quot;false&quot; / &quot;yes&quot; / &quot;no&quot; / &quot;on&quot; / &quot;off&quot;
+               / &quot;1&quot; / &quot;0&quot;                ; ABNF strings: any case
+integer        = [ &quot;-&quot; ] ( decimal / hex / octal / binary )
+decimal        = DIGIT *( [ &quot;_&quot; ] DIGIT )
+hex            = &quot;0x&quot; HEXDIG *( [ &quot;_&quot; ] HEXDIG )
+octal          = &quot;0o&quot; %x30-37 *( [ &quot;_&quot; ] %x30-37 )
+binary         = &quot;0b&quot; BIT *( [ &quot;_&quot; ] BIT )
+range          = integer [ &quot;..&quot; integer ]
+setting        = key &quot;=&quot; value
+key            = enum-word *( &quot;.&quot; enum-word )
+named-operand  = prefix &quot;:&quot; 1*OCTET-NN    ; R13
+prefix         = 2*LOWER
+when           = &quot;auto&quot; / &quot;always&quot; / &quot;never&quot;</code></pre>
+<p>The arguments then form a sequence, read left to right against the
+definitions of the command reached so far - its options, and its
+parents' global ones:</p>
+<ul>
+<li><p><strong>R22.</strong> <code>-</code> and a letter starts
+<strong>short options</strong>, read a letter at a time: a flag's letter
+is followed by the next letter or by nothing; the letter of an option
+that takes a value is followed by its value - the rest of the argument,
+or, when nothing is left, the next argument whole.</p></li>
+<li><p><strong>R23.</strong> A long option that takes a value and has no
+<code>=VALUE</code> takes the next argument whole as its value, whatever
+it looks like: <code>--offset -3</code>, <code>--out --</code> (a file
+named <code>--</code>).</p></li>
+<li><p><strong>R24.</strong> A word that is not an option's value is the
+<strong>next command</strong> while the command reached so far has
+subcommands and none has been given, and otherwise the <strong>next
+operand</strong>. A word that is neither -- no such command, no room for
+another operand - is a usage error, and the nearest command is
+suggested.</p></li>
+<li><p><strong>R25.</strong> After <code>--</code>, every argument is an
+operand (R3); <code>@FILE</code> and <code>/?</code> are read as
+themselves there.</p></li>
+<li><p><strong>R26.</strong> <em>(added 11-13)</em> A
+<strong>setting</strong> (section 6) is taken from the command line
+wherever an option could stand: before the command, after it, among its
+operands. An argument that is an option's value is never one (R22, R23),
+so in <code>--level --x.y</code> the word <code>--x.y</code> is
+<code>--level</code>'s value; nor is one after <code>--</code>. No
+option of a program's has a <code>.</code> in its name (R5), so none is
+ever taken for a setting.</p>
+<p><em>(revised 11-23)</em> The argument parser offers each to the kit
+where it reads an option - the long option it does not know, before it
+tries an abbreviation - so the parser's own rules decide:</p>
+<ul>
+<li><strong>A setting in a response file</strong> (<code>@FILE</code>)
+is taken, as if typed.</li>
+<li><strong>An abbreviated option's value</strong>
+(<code>--out --x.y</code>, <code>--out</code> short for
+<code>--output</code>) and <strong>a multi-letter short
+option's</strong> (<code>-ab --x.y</code>, where <code>-ab</code> takes
+one) are the option's, as R22 and R23 say.</li>
+<li><strong>A setting after a plugin command's name</strong>
+(<code>gui --x.y=1</code>) is the module's, with every argument after
+the command's name (section 7).</li>
+</ul></li>
+</ul>
+<p>The standard options of section 6, in the same notation:</p>
+<pre class="abnf"><code>standard-option = help-option / version-option / quiet-option
+                / verbose-option / colour-option
+help-option     = %s&quot;-h&quot; / %s&quot;--help&quot;
+version-option  = %s&quot;--version&quot;
+quiet-option    = %s&quot;-q&quot; / %s&quot;--quiet&quot;
+verbose-option  = %s&quot;-v&quot; / %s&quot;--verbose&quot;
+colour-option   = ( %s&quot;--color&quot; / %s&quot;--colour&quot; ) [ &quot;=&quot; when ]
+standard-command = %s&quot;help&quot; [ END format-option ] [ END command-name ]
+                 / %s&quot;completion&quot; END shell
+                 / %s&quot;gui&quot; *( END argument )
+shell           = %s&quot;bash&quot; / %s&quot;zsh&quot; / %s&quot;fish&quot; / %s&quot;powershell&quot;
+format-option   = %s&quot;--format&quot; ( &quot;=&quot; / END ) ( %s&quot;text&quot; / %s&quot;json&quot; )</code></pre>
+<h2 id="10-bitwisedom">10. bitwisedom</h2>
+<pre><code>bitwisedom [global-option]... COMMAND ...</code></pre>
+<p>A <strong>SHEET</strong> operand is any of the three shapes of JSON
+(<code>docs/bitwisedom/ json.html</code>): a sheet file, a bitfield or an
+export; <code>-</code> for standard input; or <code>example:NAME</code>
+for a built-in example (R13). A <strong>ROW</strong> is a symbol's macro
+name (<code>UART_CR_EN</code>), its own name where only one row has it
+(<code>EN</code>), or a group's name - the rule a sheet's expressions
+name rows by.</p>
+<h3 id="reading-a-sheet">Reading a sheet</h3>
+<table>
+<thead>
+<tr class="header">
+<th>command</th>
+<th>does</th>
+<th>answers</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>gen SHEET</code></td>
+<td>writes the header: C or C++, macros or constants, at a language
+level</td>
+<td>1 when the sheet has errors (the header is written without
+them)</td>
+</tr>
+<tr class="even">
+<td><code>check SHEET...</code></td>
+<td>lists every issue of every sheet; writes nothing else</td>
+<td>1 when a sheet has errors</td>
+</tr>
+<tr class="odd">
+<td><code>show SHEET</code></td>
+<td>every row as it resolves: macro name, bits, value, the integer C
+knows it by</td>
+<td>-</td>
+</tr>
+<tr class="even">
+<td><code>decode SHEET VALUE...</code></td>
+<td>the symbols a value holds: each bit set, each field's value and the
+name it has</td>
+<td>1 when a value sets bits no symbol names</td>
+</tr>
+<tr class="odd">
+<td><code>eval SHEET EXPRESSION...</code></td>
+<td>evaluates C expressions over the sheet's symbols, every way</td>
+<td>1 when an expression does not evaluate</td>
+</tr>
+<tr class="even">
+<td><code>convert SHEET</code></td>
+<td>writes the sheet in another shape: <code>--to sheet</code>,
+<code>bitfield</code> or <code>export</code></td>
+<td>-</td>
+</tr>
+<tr class="odd">
+<td><code>examples</code></td>
+<td>lists the built-in examples, by shelf</td>
+<td>-</td>
+</tr>
+</tbody>
+</table>
+<p><code>gen</code>'s options are <code>bitwisedom-gen</code>'s,
+unchanged:</p>
+<table>
+<thead>
+<tr class="header">
+<th>option</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>-o, --out=FILE</code></td>
+<td>the header's file; standard output by default</td>
+</tr>
+<tr class="even">
+<td><code>--self-test=FILE</code></td>
+<td>a C or C++ file that compiles only if every macro has the sheet's
+value</td>
+</tr>
+<tr class="odd">
+<td><code>--bitfield=FILE</code>, <code>--export=FILE</code></td>
+<td>the sheet as a bitfield, or everything about it, as well</td>
+</tr>
+<tr class="even">
+<td><code>--lang=c|cpp</code>, <code>--form=macros|constants</code>,
+<code>--style=djinterp|plain</code></td>
+<td></td>
+</tr>
+<tr class="odd">
+<td><code>--level=LEVEL</code></td>
+<td><code>c99</code> <code>c11</code> <code>c17</code> <code>c23</code>
+<code>cpp98</code> <code>cpp11</code> <code>cpp14</code>
+<code>cpp17</code> <code>cpp20</code> <code>cpp23</code></td>
+</tr>
+<tr class="even">
+<td><code>--word=8|16|32|64</code></td>
+<td>a wide sheet's array words</td>
+</tr>
+<tr class="odd">
+<td><code>--date=YYYY.MM.DD</code></td>
+<td>the banner's date; today's by default, so a reproducible build gives
+it</td>
+</tr>
+</tbody>
+</table>
+<h3 id="making-and-changing-a-sheet">Making and changing a sheet</h3>
+<table>
+<thead>
+<tr class="header">
+<th>command</th>
+<th>does</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>new [--width=N] [--title=T] [--prefix=P] [--suffix=S]</code></td>
+<td>a new sheet, as File &gt; New makes one</td>
+</tr>
+<tr class="even">
+<td><code>import FILE...</code></td>
+<td>a sheet from C: each <code>#define</code>, read as the preprocessor
+reads it, a row</td>
+</tr>
+<tr class="odd">
+<td><code>add SHEET NAME DEFINITION</code></td>
+<td>a row, defined as a bitfield's row is</td>
+</tr>
+<tr class="even">
+<td><code>change SHEET ROW [DEFINITION]</code></td>
+<td>a row: its definition, the parts of the one it has, or anything else
+the inspector shows</td>
+</tr>
+<tr class="odd">
+<td><code>duplicate SHEET ROW...</code></td>
+<td>rows, each copied just after itself, named as it is with
+<code>_COPY</code> after</td>
+</tr>
+<tr class="even">
+<td><code>remove SHEET ROW...</code></td>
+<td>rows, and everything in them</td>
+</tr>
+<tr class="odd">
+<td><code>rename SHEET ROW NAME</code></td>
+<td>a row; every expression that names it follows</td>
+</tr>
+<tr class="even">
+<td><code>move SHEET ROW WHERE</code></td>
+<td><code>--up</code>, <code>--down</code>, <code>--before=ROW</code>,
+<code>--after=ROW</code> or <code>--into=GROUP</code></td>
+</tr>
+<tr class="odd">
+<td><code>sort SHEET [KEY]</code></td>
+<td>each group's rows in the order KEY sorts them, made the order the
+header follows; by default, the order the window shows</td>
+</tr>
+<tr class="even">
+<td><code>set SHEET KEY=VALUE...</code></td>
+<td>settings: a KEY is a name the window's Options show
+(<code>gen.level</code>) or, for anything else a sheet file holds, its
+path in the file (<code>rows.0.name</code>,
+<code>generator.upper_hex</code>)</td>
+</tr>
+<tr class="odd">
+<td><code>get SHEET [KEY]...</code></td>
+<td>settings, every one without a KEY; a path's value as the file holds
+it</td>
+</tr>
+<tr class="even">
+<td><code>op SHEET OPERATION [OPERAND]</code></td>
+<td>previews an operation - a shift, a rotation, a byte swap, arithmetic
+- over rows; <code>--apply</code> applies it</td>
+</tr>
+</tbody>
+</table>
+<p><code>set</code> and <code>get</code> take <code>--keys=names</code>,
+<code>--keys=paths</code> or <code>--keys=both</code>: the names alone,
+the paths alone, or a name where a setting has it and a path otherwise -
+the default, which the build chooses with
+<code>D_CFG_BITWISEDOM_KEYS</code>. A path's value is written as the
+member it replaces is: a text as it is, a flag as <code>true</code> or
+<code>false</code>, a number, an array or an object as JSON; a value the
+sheet would not keep is refused <em>(changed 11-04: cli-taken
+16)</em>.</p>
+<p>A command that changes a sheet <strong>writes it back where it was
+read</strong>, whole or not at all (R20), in the shape it was read in;
+<code>-o FILE</code> writes it elsewhere and leaves the original as it
+was; a sheet read from standard input is written to standard output;
+<code>-n, --dry-run</code> writes nothing and says what would change.
+Every issue the change brings is said, at the sheet. <strong>A change
+that would give the sheet an error it does not have</strong> -- an
+expression naming a row that is gone, a value whose range is no longer
+one - <strong>is refused</strong>, nothing written, and the command
+exits 2; <code>-f, --force</code> writes it anyway. The window makes any
+change and shows its issues, since it can undo one; a command line
+cannot. A warning - bits two rows share, a number its field cannot hold
+- never stops a change. <code>op --apply</code> writes the sheet, which
+is its result; the table it previews goes to standard error then, with
+<code>-v</code> or <code>-n</code>.</p>
+<p><code>add</code>'s DEFINITION is a bitfield row's keys as options,
+one definition each, refused as the bitfield refuses a row with two or
+none; <code>change</code> takes one, to replace the row's, or none:</p>
+<table>
+<thead>
+<tr class="header">
+<th>definition</th>
+<th>options</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>bit</td>
+<td><code>--bit=N</code></td>
+</tr>
+<tr class="even">
+<td>range</td>
+<td><code>--bits=RANGE</code>, or <code>--lsb=N [--width=N]</code></td>
+</tr>
+<tr class="odd">
+<td>value in a range</td>
+<td><code>--field=ROW --number=N [--encoding=E] [--bias=N]</code></td>
+</tr>
+<tr class="even">
+<td>literal</td>
+<td><code>--value=N</code></td>
+</tr>
+<tr class="odd">
+<td>expression</td>
+<td><code>--expr=TEXT</code></td>
+</tr>
+<tr class="even">
+<td>macro</td>
+<td><code>--body=TEXT [--params=TEXT] [--callable]</code></td>
+</tr>
+<tr class="odd">
+<td>group</td>
+<td><code>--group</code></td>
+</tr>
+</tbody>
+</table>
+<p>and any of <code>--note=TEXT</code>, <code>--short=TEXT</code>,
+<code>--prefix=TEXT</code>, <code>--suffix=TEXT</code>,
+<code>--colour=COLOUR</code> (<code>#RRGGBB</code>,
+<code>#RRGGBBAA</code>, <code>auto</code> or <code>none</code>),
+<code>--emit</code> or <code>--no-emit</code>,
+<code>--radix=WORD</code>, <code>--int-suffix=WORD</code>,
+<code>--digits=N</code>, and for a group or a range
+<code>--isolate</code>, <code>--name-children</code> and
+<code>--exclusive</code>, each with its <code>--no-</code> form;
+<code>add</code> takes <code>--in=GROUP</code> too. <code>change</code>
+given a part alone - <code>--width</code>, <code>--number</code>,
+<code>--encoding</code>, <code>--bias</code>, <code>--params</code>,
+<code>--callable</code> - changes that part of the definition the row
+has, and keeps the rest of it; whatever it is not given, it keeps. An
+expression or a macro's body, which the shells would take apart, may be
+read from a file instead, or from <code>-</code>:
+<code>--expr-file=FILE</code>, <code>--body-file=FILE</code>.</p>
+<h3 id="the-window">The window</h3>
+<p><code>bitwisedom gui [SHEET]...</code> opens the window on the sheets
+named, or where it was left. A SHEET is read as the commands read one -
+<code>example:NAME</code>, or a file the window opens, a header to
+import among them - except <code>-</code>, since a window cannot read
+standard input. Every SHEET is handed to the window, which says in its
+status bar what it cannot open; each it cannot open is also said on
+standard error as the window starts, in the commands' words, and the run
+is 2 when the window closes. <code>--sheets=refuse</code> refuses such a
+SHEET before any window opens instead; the build chooses the default,
+<code>D_CFG_BITWISEDOM_GUI_SHEETS</code> <em>(changed 11-04: cli-taken
+25)</em>. Its own options are in <code>bitwisedom gui --help</code>.</p>
+<h3 id="compatibility">Compatibility</h3>
+<p><code>bitwisedom-gen ARGUMENTS</code> is
+<code>bitwisedom gen ARGUMENTS</code> for the arguments
+<code>bitwisedom-gen</code> took, and its exit status is the same;
+<code>--example NAME</code> is <code>example:NAME</code>,
+<code>--list-examples</code> is <code>bitwisedom examples</code>, and
+<code>--save-example NAME FILE</code> is
+<code>bitwisedom convert example:NAME -o FILE</code>. It is kept so that
+build scripts written for it run unchanged.</p>
+<h2 id="11-vparse">11. vparse</h2>
+<pre><code>vparse [global-option]... COMMAND ...</code></pre>
+<p>A <strong>GRAMMAR</strong> is a file in vparse's notation, EBNF
+(<code>--ebnf</code>) or Ford's PEG notation (<code>--peg</code>), or
+<code>-</code>. An <strong>INPUT</strong> is a file, <code>-</code>, or
+the text of <code>--text=TEXT</code>.</p>
+<table>
+<thead>
+<tr class="header">
+<th>command</th>
+<th>does</th>
+<th>answers</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>run GRAMMAR [INPUT]</code></td>
+<td>reads the grammar, builds its parser and runs it over the input;
+prints the result, and any part asked for with
+<code>--show=PART</code></td>
+<td>1 when the input does not match</td>
+</tr>
+<tr class="even">
+<td><code>check GRAMMAR</code></td>
+<td>reads and builds the grammar; says which family it runs on, which
+table, and what the analysis found</td>
+<td>1 when it cannot be built</td>
+</tr>
+<tr class="odd">
+<td><code>show GRAMMAR [INPUT] PART</code></td>
+<td>one part of a run: <code>summary</code>, <code>grammar</code>,
+<code>reading</code>, <code>rules</code>, <code>plan</code>,
+<code>program</code>, <code>matches</code>, <code>heat</code> or
+<code>trace</code>, as the workbench's tabs show them</td>
+<td>-</td>
+</tr>
+<tr class="even">
+<td><code>diff RUN RUN</code></td>
+<td>two saved runs, part by part, as the workbench compares them</td>
+<td>1 when they differ</td>
+</tr>
+<tr class="odd">
+<td><code>runs [DIR]</code></td>
+<td>the saved runs under DIR</td>
+<td>-</td>
+</tr>
+<tr class="even">
+<td><code>gui [ARGUMENT]...</code></td>
+<td>the workbench</td>
+<td>-</td>
+</tr>
+</tbody>
+</table>
+<p>The options that choose the parser are the workbench's, spelled the
+same in <code>run</code>, <code>check</code>, <code>show</code> and
+<code>gui</code>: <code>--family=auto|peg|lr|earley</code>,
+<code>--table=auto|lalr|lr|slr</code>, <code>--lookahead=N</code>
+(<code>-k N</code>), <code>--memoize</code>, <code>--tokens=RULE</code>,
+<code>--skip=RULE</code>, <code>--steps=N</code>,
+<code>--no-trace</code>. A run saved with <code>--save=DIR</code> is the
+folder the workbench saves, and opens there.</p>
+</body>
+</html>

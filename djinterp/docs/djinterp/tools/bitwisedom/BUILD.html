@@ -1,0 +1,1878 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Building bitwis(e)dom</title>
+  <style>
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+    /* CSS for syntax highlighting */
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+</head>
+<body>
+<h2 id="building-from-the-djinterp-tree">Building from the djinterp
+tree</h2>
+<p>bitwis(e)dom is two builds, since its window is made with uxoxo,
+which the djinterp tree does not hold (2026.10.23):</p>
+<ul>
+<li><strong>the command line</strong> - the model,
+<code>bitwisedom</code>, <code>bitwisedom-gen</code> and their tests -
+from <code>build/cmake/djinterp/tools/bitwisedom</code>, which needs
+djinterp alone;</li>
+<li><strong>the window</strong> - <code>bitwisedom-gui</code>, the
+module <code>bitwisedom gui</code> loads, and the smoke test that drives
+it - from <code>build/ui/bitwisedom</code>, which builds the command
+line's build within it, then uxoxo, then the module beside the program.
+The window's sources lie beside djinterp's, not in them:
+<code>inc/ui/bitwisedom</code>, <code>src/ui/bitwisedom</code>,
+<code>tests/ui/bitwisedom</code>.</li>
+</ul>
+<p>Run the CMake presets from the build's directory (not the repository
+root); for everything:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode cmd"><code class="sourceCode dosbat"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> build\ui\bitwisedom</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>cmake -<span class="at">-preset</span> msvc</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>cmake -<span class="at">-build</span> -<span class="at">-preset</span> msvc<span class="at">-release</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>ctest -<span class="at">-preset</span> msvc<span class="at">-release</span></span></code></pre></div>
+<p>Build intermediates remain in <code>out/msvc/</code> under that
+directory. Release binaries go to
+<code>&lt;djinterp&gt;/bin/tools/bitwisedom/</code>, and Debug binaries
+to <code>&lt;djinterp&gt;/bin/tools/bitwisedom/debug/</code>, each named
+with a platform tag: <code>bitwisedom-win64.exe</code>, and beside it
+the window's module, <code>bitwisedom-gui-win64.dll</code>, where
+<code>bitwisedom gui</code> looks for it. <code>DJINTERP_ROOT</code>
+defaults to the containing djinterp checkout; <code>UXOXO_ROOT</code>,
+which only the window's build reads, to the environment's
+<code>UXOXO_ROOT</code>, then to the sibling checkout -
+<code>uxoxo</code>, or <code>uxoxo/uxoxo-project</code>, beside
+djinterp's checkout - and never to a directory inside djinterp's tree
+(the roots, below).</p>
+<h1 id="building-bitwisedom">Building bitwis(e)dom</h1>
+<p>Two CMake projects in vparse's shape. The command line's takes
+djinterp from its root by absolute path and builds the model, the
+generator, the command line and their tests; the window's includes it,
+takes uxoxo from its own root, and builds the window's module and the
+smoke test.</p>
+<p>It is written for the consolidated djinterp of 2026.10.07, with the
+owner's edits since, and the uxoxo of 2026.10.14 with <strong>Dear
+ImGui's docking branch</strong> in its <code>inc/imgui</code> - the
+uxoxo overlay of 2026.10.18, which replaces that directory and nothing
+else. The window's sheets and tool windows dock, float and tab as Visual
+Studio's do, and those are the docking branch's: ImGui 1.92.8 WIP, its
+<code>docking</code> branch at <code>dee5bf3e</code>. Before 2026.10.18
+it was written for the uxoxo of 2026.10.11 --
+<code>uxoxo_2026_10_11b.zip</code>, whose blueprints share their
+drawing, so a tree of a thousand rows is realized in linear time.</p>
+<hr />
+<h2 id="before-the-first-build">Before the first build</h2>
+<ol type="1">
+<li><strong>uxoxo's Dear ImGui is the docking branch</strong>
+(2026.10.18): its <code>inc/imgui/imgui.h</code> defines
+<code>IMGUI_HAS_DOCK</code>, or configure refuses it by name. The uxoxo
+overlay of 2026.10.18 puts it there; nothing else of uxoxo changes, and
+uxoxo's own elements build on it as they did. <strong>uxoxo is otherwise
+the updated one, of 2026.10.11 or later.</strong> (The window's build
+alone reads uxoxo.) bitwis(e)dom's window uses uxoxo's number, combo,
+colour, tree, menu, section, table and splitter elements, element keys
+and targets, and uxoxo's own build at
+<code>build/cmake/CMakeLists.txt</code> - since 2026.10.09, its popup
+element (the context menus), a tree node's rename in place and its
+right-click and double-click actions, and a text field that reports only
+when its edit is done - and, since 2026.10.11, its window element (the
+bottom panel floating, or opened over the grid), the buttons at a tab
+bar's end, line splitters and flush columns. The uxoxo of 2026.10.09
+lacks the window, and configure refuses it by name
+(<code>element_window.hpp is missing</code>), as it does the uxoxo of
+2026.10.07, which lacks the popup as well, and the uxoxo uploaded before
+2026.10.04, which lacks everything.</li>
+<li><strong>djinterp is the consolidated tree of 2026.10.07.</strong>
+bitwis(e)dom reads its headers - the environment layer, the root's kit,
+and <code>re_std</code>'s integers and bit functions - and, since
+2026.10.09, compiles nine C sources of its parse layer: the C and C++
+lexer, its literal decoder and the diagnostic sink they report into,
+with which it reads macro bodies, imported headers and environments. A
+djinterp without them is refused by name, with the files it is missing.
+Nothing else of djinterp is compiled, so the leftovers an unzip leaves
+in djinterp's tree do not concern it (vparse's <code>BUILD.html</code> has
+the two scripts that retire them).</li>
+<li><strong>Off Windows, GLFW 3.3 or later</strong> for the window
+(<code>libglfw3-dev</code>, <code>brew install glfw</code>,
+<code>vcpkg install glfw3</code>). On Windows the window is Win32 +
+Direct3D 11 and needs nothing beyond the Windows SDK. Without GLFW, or
+without uxoxo, build the command line alone, from
+<code>build/cmake/djinterp/tools/bitwisedom</code>: it needs neither,
+and <code>bitwisedom gui</code> then says the window is not installed,
+where it looked for it.</li>
+</ol>
+<hr />
+<h2 id="quick-start">Quick start</h2>
+<p>On Windows, from a Developer Command Prompt (so <code>cl</code> is on
+<code>PATH</code>), in <code>build\ui\bitwisedom</code>:</p>
+<pre><code>cmake --preset msvc
+cmake --build --preset msvc-debug
+ctest --preset msvc-debug
+..\..\..\bin\tools\bitwisedom\debug\bitwisedom-win64.exe gui</code></pre>
+<p><code>vs2022</code> makes a solution for the IDE instead;
+<code>clang-cl</code> and <code>strict</code> (clang-cl, warnings as
+errors) are there too. The command line's build, in
+<code>build\cmake\djinterp\tools\bitwisedom</code>, has the same
+presets, and its programs are five directories down from the root rather
+than three.</p>
+<p>Elsewhere, in <code>build/ui/bitwisedom</code> - naming uxoxo's root
+only where it is not the sibling checkout beside djinterp's:</p>
+<pre><code>cmake --preset clang -DUXOXO_ROOT=/path/to/uxoxo
+cmake --build --preset clang-debug
+ctest --preset clang-debug
+../../../bin/tools/bitwisedom/debug/bitwisedom-linux64 gui</code></pre>
+<p><code>gcc</code> is the same with GCC; <code>clang-strict</code> is
+the loudest configuration; <code>mingw-cross</code> builds a Windows
+<code>bitwisedom.exe</code>, and from the window's build its
+<code>bitwisedom-gui.dll</code>, on Linux (see below).</p>
+<hr />
+<h2 id="the-roots">The roots</h2>
+<table>
+<thead>
+<tr class="header">
+<th>variable</th>
+<th>default</th>
+<th>must contain</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>DJINTERP_ROOT</code></td>
+<td>the djinterp checkout the build is in</td>
+<td><code>inc/djinterp/djinterp.hpp</code></td>
+</tr>
+<tr class="even">
+<td><code>UXOXO_ROOT</code></td>
+<td>the window's build only: the environment's <code>UXOXO_ROOT</code>,
+else the sibling checkout beside djinterp's - <code>uxoxo</code>, else
+<code>uxoxo/uxoxo-project</code>, then both a level up - never inside
+djinterp's tree</td>
+<td><code>inc/uxoxo/element.hpp</code>,
+<code>build/cmake/CMakeLists.txt</code></td>
+</tr>
+<tr class="odd">
+<td><code>BITWISEDOM_ROOT</code></td>
+<td>djinterp's root</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p>The djinterp root is found from the build's own directory. uxoxo is
+looked for beside djinterp's checkout - <code>uxoxo</code>, then
+<code>uxoxo/uxoxo-project</code> - and then the same a level up, where a
+directory of projects keeps each project's checkouts in a folder of its
+own: a djinterp checked out at
+<code>D:/sam/code/projects/frameworks/djinterp/release</code> finds
+uxoxo at
+<code>D:/sam/code/projects/frameworks/uxoxo/uxoxo-project</code>, the
+path that was the default before; one not found names the places it
+looked. Each root is checked at configure time
+(<code>build/ui/bitwisedom/cmake/UiRoots.cmake</code> for the window's),
+and a wrong one is one message naming the variable to set.</p>
+<hr />
+<h2 id="language-levels">Language levels</h2>
+<p>bitwis(e)dom's floor is <strong>C++17</strong>, the floor of the
+uxoxo and djinterp headers it stands on (djinterp's free monad and
+option record). <code>BITWISEDOM_CXX_STANDARD</code> picks 17, 20 or 23
+for the build, default 20, and passes it to uxoxo as
+<code>UXOXO_CXX_STANDARD</code>. Below the floor every bitwis(e)dom
+header is empty rather than an error, as djinterp's are below
+theirs.</p>
+<p>The model's suite is built at every level from the floor the compiler
+can select, whatever the build's own level is.</p>
+<hr />
+<h2 id="flags">Flags</h2>
+<p>bitwis(e)dom's own sources - the model, the generator, the window,
+the tests -- are held to the style guide's whole baseline:
+<code>-Wall -Wextra -Wshadow -Wcast-qual -Wconversion</code> under
+<code>-pedantic-errors</code> and <code>-Werror=undef</code>, and under
+Clang <code>-Wreserved-identifier</code> and
+<code>-Wdocumentation</code> as well (under <code>cl</code>,
+<code>/W4</code>). <code>BITWISEDOM_WARNINGS_AS_ERRORS=ON</code> makes
+them errors.</p>
+<p>The dependencies' headers - djinterp's, uxoxo's, Dear ImGui's, GLFW's
+- are system headers to bitwis(e)dom's targets, so their warnings are
+not counted against it. uxoxo builds itself with only its level and
+<code>/utf-8</code>. djinterp's lexer is compiled as C99, djinterp's
+floor, with no extensions and no warnings asked for - under
+<code>cl</code>, with <code>/utf-8</code> and the conforming
+preprocessor.</p>
+<p>djinterp's lexer headers have no <code>extern "C"</code> guards of
+their own, so bitwis(e)dom includes them inside one
+(<code>src/clex.cpp</code>), and they are read nowhere else. That is a
+gap in djinterp worth closing there: a C++ unit that includes them bare
+links against names it cannot find.</p>
+<p>Under a <code>cl</code>-style driver: <code>/utf-8</code> (the trees
+are UTF-8 without a byte-order mark), <code>/Zc:__cplusplus</code>,
+<code>/Zc:preprocessor</code>, <code>/permissive-</code>,
+<code>/EHsc</code>, <code>/bigobj</code> (the interface's units hold
+enough lambdas to run a Debug object past <code>cl</code>'s section
+limit), and <code>_CRT_SECURE_NO_WARNINGS</code> for
+<code>std::localtime</code>.</p>
+<hr />
+<h2 id="targets">Targets</h2>
+<table>
+<thead>
+<tr class="header">
+<th>target</th>
+<th>is</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>bitwisedom::core</code></td>
+<td>the model: sheets, resolution, expressions, operations, the C/C++
+generator, the define environment (expansion and typed evaluation of C),
+the importer of C and C++, renames, the file format, undo - no GUI</td>
+</tr>
+<tr class="even">
+<td><code>djinterp::lex</code></td>
+<td>djinterp's C and C++ lexer, compiled as C99 for the core</td>
+</tr>
+<tr class="odd">
+<td><code>djinterp::cli</code></td>
+<td>djinterp's command-line kit and the argument parser under it,
+compiled as C99</td>
+</tr>
+<tr class="even">
+<td><code>bitwisedom::cli</code></td>
+<td>the command line's commands, on the kit</td>
+</tr>
+<tr class="odd">
+<td><code>bitwisedom</code></td>
+<td>the command line (<code>docs/djinterp/tools/cli/GRAMMAR.html</code>,
+section 10)</td>
+</tr>
+<tr class="even">
+<td><code>bitwisedom-gen</code></td>
+<td>the generator's command line, as build scripts have always called
+it</td>
+</tr>
+<tr class="odd">
+<td><code>bitwisedom-gui</code></td>
+<td>the window's build only: the module <code>bitwisedom gui</code>
+loads - the window on Win32 + Direct3D 11 on Windows, GLFW + OpenGL 3
+elsewhere - named as the program looks for it,
+<code>bitwisedom-gui-&lt;tag&gt;</code>, beside it</td>
+</tr>
+</tbody>
+</table>
+<p><code>BITWISEDOM_HOST</code> (<code>auto</code>, <code>win32</code>,
+<code>glfw</code>) chooses the window's host; <code>auto</code> is
+<code>win32</code> on Windows. GLFW on Windows works too, where uxoxo's
+build finds it. The module is a shared object linking the model, the
+kit, uxoxo and Dear ImGui, so the window's build compiles everything
+position-independent; of its own, it exports its entry point alone, so
+its copy of the model never binds to the program's.</p>
+<p><code>bitwisedom gui [SHEET]...</code> opens the window on the sheets
+named -- <code>example:NAME</code>, or any file the window opens, a
+header to import among them -- or where it was left. Its operands are
+read by the commands' rules, so a name that is no example, or a file
+that cannot be read, is refused before any window opens, in the
+commands' words. <code>--size=WxH</code> and <code>--scale=S</code> set
+the window's size and the display's scale; <code>--do</code>,
+<code>--screenshot</code>, <code>--frames</code> (the GLFW host) and
+<code>--warp</code> (the Win32 host) are for building and testing,
+listed under their own heading in <code>bitwisedom gui --help</code>. On
+Windows, a console made for the run alone - a shortcut's - is let go
+when the window opens.</p>
+<p>The two fonts - Roboto Medium for the interface, Cousine for values
+and code, both Apache 2.0 - are compiled in, from the copies uxoxo's
+ImGui carries, as byte arrays: ImGui's base85 form is one string
+literal, past <code>cl</code>'s 64 KB limit (C2026).</p>
+<hr />
+<h2 id="tests">Tests</h2>
+<table>
+<thead>
+<tr class="header">
+<th>test</th>
+<th>checks</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>model_c++17</code>, <code>model_c++20</code>,
+<code>model_c++23</code></td>
+<td>the model's suite: 36 sections, from bit masks to undo, every group
+opened and closed at once, values wider than an integer and the headers
+that hold them in arrays, the colour schemes, the JSON a bitfield is
+read from and every example written as one and as an export and read
+back, and the C environment, the importer and renames - the code
+attached on 2026.10.09 read, evaluated against GCC's own answers,
+exported in the style guide's layout and read back the same - and File
+&gt; New's document, square cells, and what the symbols column lists
+rows by and how it writes their values, kept in the file; and the order
+a sheet's rows are shown in - the sheet's own, or each group's sorted by
+a key, either way, the header in the sheet's order still - and what each
+cell shows, as the display rules over its rows and bits say, kept in the
+file, and a rule whose rows are all deleted gone with them; since
+2026.10.19, the rows' share of the cells' width, the probe and usage
+rows - one of each, another added, moved, pinned, removed and the last
+hidden, anchors to rows gone let go of, kept in the file - and a
+definition file's lines the preprocessor cannot read, named by their
+lines</td>
+</tr>
+<tr class="even">
+<td><code>header_&lt;example&gt;_&lt;level&gt;_&lt;form&gt;</code></td>
+<td>each of the twenty-one examples' headers, written by
+<code>bitwisedom-gen</code> with a self-test, compiled at that level
+with <code>-Wall -Wextra -pedantic-errors -Werror</code>; the self-test
+does not compile unless every macro has the sheet's value and every
+<code>_GET</code>/<code>_SET</code> agrees with the named values. A
+sheet wider than an integer - <code>pci_config_header</code>,
+<code>x86_cpuid</code>, and <code>tests/sheets/wide_mix</code>, a
+bitfield in JSON made to be hard: fields across every word size's
+boundaries, values in every encoding, a range no integer carries - has
+its self-test linked and run as well, which checks its arrays and the
+macros that read and write them; and again, as
+<code>header_&lt;sheet&gt;_w&lt;bits&gt;_...</code>, with arrays of 8-,
+16- and 64-bit words at C11 and C++17</td>
+</tr>
+<tr class="odd">
+<td><code>bitfield_&lt;file&gt;</code></td>
+<td>each large example's file in
+<code>res/djinterp/tools/bitwisedom/examples/large</code>, and
+<code>wide_mix</code>, read by <code>bitwisedom-gen</code> and written
+back as a bitfield: the same bytes, line ends aside - nothing of it lost
+on the way in, and the script that made it laying it out as the writer
+does</td>
+</tr>
+<tr class="even">
+<td><code>platform_&lt;example&gt;</code></td>
+<td>the examples of the platform the build targets - Windows, macOS,
+Linux or FreeBSD - each generated and compiled beside the system's own
+headers (<code>tests/platform/&lt;example&gt;.c</code>), every value the
+system also defines compared at compile time; on Windows,
+<code>win32_hresults</code> too, its 1,376 codes and 41 facilities
+against <code>winerror.h</code>; on Linux,
+<code>pci_config_header</code>, against <code>linux/pci_regs.h</code>;
+and where GCC or Clang targets x86, <code>x86_cpuid</code>, each flag's
+mask against <code>&lt;cpuid.h&gt;</code> under every name GCC's and
+Clang's give it</td>
+</tr>
+<tr class="odd">
+<td><code>cli_&lt;transcript&gt;</code></td>
+<td>the command line's transcripts
+(<code>tests/djinterp/tools/bitwisedom/cli/</code>), each command run as
+a user would type it, its output and exit status compared line by
+line</td>
+</tr>
+<tr class="even">
+<td><code>gui_help</code>, <code>gui_unknown_example</code></td>
+<td>the window's build: <code>bitwisedom gui --help</code>, and a SHEET
+it refuses - the module found beside the program, loaded and run, with
+no window opened</td>
+</tr>
+<tr class="odd">
+<td><code>ui_smoke</code></td>
+<td>the window's build: the window through ImGui's null backend: every
+tab of every example, each arriving unchanged with its columns fitted to
+its names and values, every row in the inspector, every setting changed
+and undone, an operation applied and undone, a file saved and opened,
+and 600 frames of a mouse that wanders, clicks and drags; then, with the
+mouse and keyboard where the grid says it drew things, the context
+menus, renames in the grid, the tree, the inspector and a segment's
+heading, the columns' edges and the ruler's boundaries dragged and
+double-clicked, and code pasted, copied, imported and dropped; the grid
+filling its panel, the bottom panel shown every way, the theme and
+colour scheme, what a resting mouse shows, a sheet wider than 64 bits,
+the 1,424 rows of the HRESULT example with every group opened, rows
+selected across it and one renamed, its groups opened and closed all at
+once - by the events the buttons and menus post, by both shortcuts and
+from a group's own menu - and the JSON shapes written beside the sheet
+and read back, dropped and pasted; a new sheet and its add row's "Add
+new...", children named in the tree's "Add child..." fields, square
+cells, the menu bar's Help at its right end and its two pages, the
+buttons over the symbols column - pressed, undone, fitted to, rested on,
+dragged from, narrowed and hidden - the values written every way a press
+on value takes, lined up, the list a right-click on a button opens, and
+a macro with no bits written over its cells, and text that reads on
+every colour in every theme and scheme; and since 2026.10.18 the window
+around the sheets: the tool windows opened, closed by their x and
+docked, several sheets at once, workspaces added, switched, renamed and
+closed and a sheet moved between them, the sheets arranged tabbed, in
+columns, rows and a grid, each window zoomed, the session kept and
+opened again as it was - in a second ImGui, as the next run - the
+Options, every page, their search and the settings files exported,
+applied, forgotten and deleted; the grid's symbols column as the tree;
+the add control as a button and its menu and as a split button, driven
+by the mouse, and the colour new rows take; the rows sorted from the
+heading's menu and the sort made the sheet's own; and digits, names and
+colours shown in parts of the grid only, by rows, bits and a block, and
+the Display window; and since 2026.10.19 cells sized by hand and
+proportional rows, the probe and usage rows dragged by the mouse among
+the rows and into a group - whose usage row then counts the group's -
+pinned from their menu, added and removed, the Add child field fitted
+and filling, alone or with its +, the + opening the Add node window as a
+tab or a window and a range made and added there, the status bar and the
+console a click on its message opens, a definition file edited, and the
+sheet's tab over its bits, renamed by a double-click; and since
+2026.10.20 the tabs across the whole width by default, over the bits at
+their left and their right, and over the symbols column, a tab's menu
+opened by a right-click, a tab pinned before its row and without its x,
+the tabs to a tab's right closed, then every other but the pinned, then
+those to a tab's left, the tab unpinned, and a pinned tab pinned still
+in the next run; and later on 2026.10.20 the grid's keyboard, as
+Excel's: the arrows, Ctrl and Shift with them along a row's set bits and
+down a bit's rows, Home, Ctrl+Home and Ctrl+End past the frozen columns,
+End mode, Enter and Tab round a range and back to where a run of Tabs
+began, Ctrl+., Shift+Space, Ctrl+Space, Ctrl+A, Shift+Backspace, Extend
+mode, F2 renaming in place and Space flipping the probe's bit, Page
+Down, Ctrl+End and Ctrl+Home scrolling the 1,424 rows of HRESULTs with
+the cursor, and Ctrl+Page Up and Down from sheet to sheet - 46 sections,
+every frame checked for ImGui assertions, for ImGui's own errors, for
+clashing widget IDs, and for vertices a GPU may draw as stray
+pixels</td>
+</tr>
+</tbody>
+</table>
+<p>With GCC or Clang there are 379 header tests - twenty-one examples
+and <code>wide_mix</code> at C99, C11, C17, C23, and C++98 to C++23 as
+macros and as constants, and the three wide sheets' 27 with other words
+- three bitfields read and written back, and two to five platform
+checks: 391 tests in all on x86 Linux, 389 on x86 FreeBSD and an Intel
+Mac, 388 on an Apple-silicon one. Where <code>long</code> has 32 bits -
+Windows, and every 32-bit target - C++98, which has no
+<code>long long</code>, cannot hold the 64-bit constants of two examples
+and of <code>wide_mix</code>, and those six tests are left out:
+MinGW-w64 runs 384. Under <code>cl</code>, which cannot select C99, C23,
+C++98 or C++11, there are 247 header tests and no CPUID check, and 257
+in all.</p>
+<p>Those counts are of the single build before 2026.10.23, the smoke
+test among them. Since then the command line's build has the nine
+transcripts, <code>cli_*</code>, and not the smoke test, which is the
+window's build's with <code>gui_help</code> and
+<code>gui_unknown_example</code>: on x86 Linux, 399 tests in the command
+line's build and 402 in the window's; MinGW-w64's window build, 395
+under Wine - all run. Elsewhere the same arithmetic gives the command
+line's build eight more than the counts above, and the window's build
+three more again; those were counted, not run.</p>
+<p>The platform checks are compiled without <code>-Werror</code> or
+<code>/WX</code>, since the system's headers are not this project's to
+keep clean, and at <code>-std=gnu11</code> (or <code>/std:c11</code>) so
+that the BSD and Linux headers show what they hide from strict C. A
+check fails on a value that disagrees; the example's own header is held
+to every warning by the header tests.</p>
+<p><code>ui_smoke</code> compiles its own ImGui with every ID clash
+recorded (<code>IMGUI_DEBUG_HIGHLIGHT_ALL_ID_CONFLICTS</code>); without
+that, ImGui notices a clash only under the mouse. ImGui 1.92.8 in that
+mode flags its own <code>InputTextMultiline</code> every frame - the
+widget submits its ID as an item and again when its child window ends -
+so a clash whose ID is a child window's is passed over. A real one is
+still caught.</p>
+<hr />
+<h2 id="after-unzipping-an-overlay">After unzipping an overlay</h2>
+<p>An overlay unzipped over the trees keeps the times its archive holds,
+and those can be older than the objects of the last build. A build that
+went by the times alone would take the old objects for the new sources,
+and the tests would run the code of the overlay before:
+<code>model_c++17</code>, <code>_20</code>, <code>_23</code> and
+<code>ui_smoke</code> then fail, since each overlay that adds sections
+raises the count they must print (<code>passed: 36</code>,
+<code>passed: 44</code>) while the old programs print the old one.</p>
+<p>So <strong>configure after unzipping</strong> -
+<code>cmake --preset msvc</code>, as the quick start does - and then
+build. Each configure keeps a hash of every source it watches in the
+build tree - bitwisedom's and the kit's in
+<code>bitwisedom_sources.sha1</code>, and in the window's build the
+window's and uxoxo's with its Dear ImGui in
+<code>bitwisedom_ui_sources.sha1</code> - and touches each whose content
+changed since the last configure, so the build compiles it again
+(<code>cmake/Freshness.cmake</code>); it says how many it marked. A
+build tree configured before it kept any hashes has every source marked
+once, and compiles them all. Only the times of changed files are
+changed. Where a file cannot be touched, configure names it: build with
+<code>--clean-first</code>
+(<code>cmake --build --preset msvc-debug --clean-first</code>), which a
+build tree in any doubt can do as well.</p>
+<hr />
+<h2 id="if-the-window-draws-stray-pixels">If the window draws stray
+pixels</h2>
+<p><code>bitwisedom-win64.exe gui --warp</code> draws with WARP,
+Microsoft's software rasterizer, instead of the GPU, and says so in its
+title. Stray pixels on the GPU that WARP does not draw are the GPU
+driver's; pixels WARP draws too are the drawing's. <code>ui_smoke</code>
+checks every frame for what a GPU may draw as stray pixels - a vertex
+that is not a number, one far past any window, or one outside the font
+atlas - and the grid's lines are cut to what the window shows: a line
+across a sheet of 65,536 bits once ran a million pixels past it.</p>
+<hr />
+<h2 id="how-uxoxo-is-found">How uxoxo is found</h2>
+<p>Only the window's build reads uxoxo.
+<code>build/ui/bitwisedom/cmake/UiRoots.cmake</code> finds it (the
+roots, above), and <code>cmake/Uxoxo.cmake</code> beside it checks it
+and adds <code>${UXOXO_ROOT}/build/cmake</code> as a subproject, after
+the command line's build. uxoxo's build takes djinterp from the
+<code>djinterp::headers</code> target the command line's
+<code>cmake/Djinterp.cmake</code> defines, and gives back
+<code>uxoxo::uxoxo</code>, <code>uxoxo::imgui</code>, and whichever
+backends it can build: <code>uxoxo::imgui_win32_dx11</code> on Windows,
+and <code>uxoxo::imgui_glfw_opengl3</code> where it finds GLFW. uxoxo's
+own tests stay off unless
+<code>BITWISEDOM_BUILD_UXOXO_TESTS=ON</code>.</p>
+<p>uxoxo's Dear ImGui must be the docking branch
+(<code>IMGUI_HAS_DOCK</code>), or configure stops. Its
+<code>imgui.cpp</code> and <code>imgui_internal.h</code> carry a patch
+of uxoxo's, marked <code>[uxoxo]</code> and announced by
+<code>IMGUI_DOCK_TAB_BAR_INSET</code>:</p>
+<ul>
+<li><strong><code>1</code></strong>, uxoxo's own since 2026.10.25 and
+the one 0.9 takes (ruling cli e):
+<code>ImGuiDockNode::TabBarInsetLeft</code>, a dock node's tab bar begun
+inset. The Options can set a sheet's tabs over one of its columns; they
+begin at the column's left and run on to the right edge. Configure says
+so, the tab menu offers no more, and the Options say so.</li>
+<li><strong><code>2</code></strong>, the overlay of 2026.10.20:
+<code>TabBarInsetRight</code> and <code>TabBarAlignRight</code> as well,
+the bar ended inset and kept to its right. The tabs then end where the
+column does, at its left or its right.</li>
+<li><strong>Neither</strong>: configure warns, and the tabs run across
+the whole width from the left, as Dear ImGui's own do and as they do by
+default.</li>
+</ul>
+<hr />
+<h2 id="cross-compiling-for-windows">Cross-compiling for Windows</h2>
+<p><code>cmake/toolchains/mingw-w64-x86_64.cmake</code>, in the command
+line's build, builds a self-contained Windows
+<code>bitwisedom.exe</code> and <code>bitwisedom-gen.exe</code> on Linux
+with MinGW-w64 (the posix thread model), and from the window's build,
+whose <code>mingw-cross</code> preset takes the same file, a
+self-contained <code>bitwisedom-gui.dll</code> beside them - MinGW's
+runtime linked into each, so no DLL of it need ship:</p>
+<pre><code>cmake --preset mingw-cross
+cmake --build --preset mingw-cross-release</code></pre>
+<p>The toolchain keeps CMake's package searches and pkg-config inside
+the MinGW sysroot; without that, the build machine's GLFW is found and
+offered for a Windows target.</p>
+<hr />
+<h2 id="what-is-here">What is here</h2>
+<pre><code>build/cmake/djinterp/tools/bitwisedom/
+    CMakeLists.txt        the command line&#39;s build
+    CMakePresets.json     the presets above
+    cmake/                ProjectRoots, OutputLayout, Freshness,
+                          CompilerSetup, Djinterp, EmbedExamples
+                          (res/djinterp/tools/bitwisedom/examples/large,
+                          built in), toolchains/mingw-w64-x86_64
+build/ui/bitwisedom/
+    CMakeLists.txt        the window&#39;s build, which includes the above
+    CMakePresets.json     the same presets
+    cmake/                UiRoots, Uxoxo
+inc/djinterp/tools/bitwisedom/
+                          the model&#39;s headers, and the command line&#39;s
+src/djinterp/tools/bitwisedom/
+                          the model&#39;s sources; cli/, the commands;
+                          tools/, the two programs&#39; mains, the scripts
+                          that made the large examples and their platform
+                          checks (winerror_to_bitfield.py,
+                          x86_cpuid_bitfield.py), and bitfield_json.py,
+                          the writer&#39;s layout for them
+inc/ui/bitwisedom/        the window&#39;s headers; host.hpp, what a host is
+                          asked
+src/ui/bitwisedom/        the window: the reducer (app), the interface as
+                          uxoxo templates (view), the shell of workspaces
+                          and tool windows (shell), the grid, flow and
+                          code views, the controls uxoxo has no element
+                          for -- the add control, the tree&#39;s &quot;Add
+                          child...&quot; fields, the menu bar&#39;s right end, the
+                          dock space and its windows (controls) -- the
+                          settings registries and settings files, the
+                          themes, the two hosts, the module&#39;s run
+                          function (plugin), and the compiled-in fonts
+tests/djinterp/tools/bitwisedom/
+                          the suites, the header, bitfield and platform
+                          checks (platform/), the sheet the wide header
+                          tests try the generator with (sheets/), and the
+                          command line&#39;s transcripts (cli/)
+tests/ui/bitwisedom/      the smoke test
+res/djinterp/tools/bitwisedom/examples/
+                          the example sheets, and large/, the two large
+                          examples as bitfields
+docs/bitwisedom/          this file, LAYOUT.html, json.html, the JSON shapes
+                          key by key, bitfield.schema.json, and
+                          screenshots/, the README&#39;s pictures</code></pre>
+<hr />
+<h2 id="what-was-verified-and-what-was-not">What was verified, and what
+was not</h2>
+<p>On 2026.10.23, after the window was moved out of the djinterp tree -
+its sources to <code>inc/ui</code>, <code>src/ui</code> and
+<code>tests/ui</code>, its hosts made the run function of the module
+<code>bitwisedom gui</code> loads, its build made
+<code>build/ui/bitwisedom</code> - and with the command line of
+2026.10.22: against the djinterp of that day and, the uxoxo overlays of
+2026.10.18 and 2026.10.20 not being to hand, a stand-in - the uxoxo of
+2026.10.14 with Dear ImGui 1.92.8's docking branch, from imgui-bundle
+1.92.801, in its <code>inc/imgui</code>. The stand-in has no tab bar
+patch, and configure warned of it.</p>
+<table>
+<thead>
+<tr class="header">
+<th></th>
+<th>result</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>GCC 13.3, Linux, Debug, the window's build</td>
+<td>every target built, no warning; 402 of 402 tests, the smoke test's
+46 sections among them, with no ID clash, ImGui error or stray
+vertex</td>
+</tr>
+<tr class="even">
+<td>GCC 13.3, Linux, Debug, the command line's build alone</td>
+<td>399 of 399 tests</td>
+</tr>
+<tr class="odd">
+<td><code>bitwisedom -v gui example:uart_cr --screenshot FILE</code> on
+a virtual display (Xvfb, Mesa)</td>
+<td>the module found beside the program and run; the window drawn,
+<code>wrote FILE (1280x800)</code></td>
+</tr>
+<tr class="even">
+<td><code>bitwisedom gui example:uart_cr --do app.quit</code>, the same
+display</td>
+<td>the window opened, kept its settings and session, and closed; 0</td>
+</tr>
+<tr class="odd">
+<td><code>bitwisedom gui</code> with no display</td>
+<td><code>bitwisedom: error: cannot open the window: GLFW error 65544: X11: The DISPLAY environment variable is missing</code>;
+2</td>
+</tr>
+<tr class="even">
+<td>MinGW-w64 GCC 13, cross, Debug, warnings as errors, the window's
+build</td>
+<td>every target built, the Win32 host among them, no warning; 395 of
+395 tests under Wine 9 - the smoke test's 46 sections, the module found
+and run by <code>bitwisedom-win64.exe</code>, and the command line's
+nine transcripts among them; the module imports system DLLs alone and
+exports <code>d_cli_plugin_entry</code> alone</td>
+</tr>
+<tr class="odd">
+<td><code>bitwisedom-win64.exe -v gui example:uart_cr --size 1280x800</code>,
+under Wine on the virtual display</td>
+<td>the Win32 host's window, on Wine's Direct3D 11, drawn as on Linux -
+photographed from outside - and its settings and session kept in
+<code>%APPDATA%\bitwisedom</code>; with <code>--do app.quit</code>,
+closed, 0</td>
+</tr>
+</tbody>
+</table>
+<p>Not run: the window against uxoxo's own overlays; the window on
+Windows itself or on macOS; <code>cl</code> and clang-cl.</p>
+<p>Later still on 2026.10.20, a build under MSVC reported one section of
+the smoke test failed - "code in and out", at the code a new sheet is
+made from - and the rest passed. The section copies a row as code and,
+at once, puts other code on the clipboard to make a sheet from; and on
+Windows ImGui's clipboard is the system's, whose every copy a program
+watching it -- the clipboard history, a remote desktop, a password
+manager - opens it to read, so a copy straight after another can fail
+without a word, and the section read the row's code instead. The smoke
+test now keeps a clipboard of its own, in memory, in every ImGui it
+makes, as ImGui itself does off Windows; it no longer touches the user's
+clipboard either.</p>
+<table>
+<thead>
+<tr class="header">
+<th></th>
+<th>result</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>GCC 13.3, Linux, Debug, C++20, warnings as errors</td>
+<td>every target built; 391 of 391 tests, the smoke test's 46 sections
+among them</td>
+</tr>
+<tr class="even">
+<td><code>ui_smoke.cpp</code> for Windows, MinGW-w64 GCC 13,
+<code>-Wall -Wextra</code></td>
+<td>compiled clean (<code>-fsyntax-only</code>); not run, with no Wine
+here</td>
+</tr>
+<tr class="odd">
+<td>fresh trees: the djinterp and uxoxo of the overlay before, built;
+then this overlay unzipped over them, configured and built, GCC 13.3,
+Debug</td>
+<td>configure marked the one source that changed; 391 of 391 tests</td>
+</tr>
+</tbody>
+</table>
+<p>Later on 2026.10.20, after the grid was given a cursor and Excel's
+keys -- the arrows with Shift and Ctrl, Home, End and End mode, Page Up
+and Page Down with Alt and Ctrl, Enter and Tab round a range,
+Shift+Space, Ctrl+Space, Ctrl+A, Shift+Backspace, Ctrl+Backspace,
+Ctrl+., F8, F2 and Space - against the same djinterp and uxoxo:</p>
+<table>
+<thead>
+<tr class="header">
+<th></th>
+<th>result</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>GCC 13.3, Linux, Debug, C++20, warnings as errors</td>
+<td>every target built; 391 of 391 tests, the model's 36 sections and
+the smoke test's 46 among them</td>
+</tr>
+<tr class="even">
+<td>GCC 13.3, Debug, AddressSanitizer</td>
+<td>every target built; 391 of 391 tests, with no error</td>
+</tr>
+<tr class="odd">
+<td>Clang 18.1, Release, warnings as errors</td>
+<td>every target built, no warning; 391 of 391 tests</td>
+</tr>
+<tr class="even">
+<td>GCC 13.3, Debug, libstdc++'s checked containers and iterators
+(<code>_GLIBCXX_DEBUG</code>)</td>
+<td>the model's suite at every level, 36 of 36 sections; the smoke test,
+46 of 46, no ImGui error, ID clash or stray vertex</td>
+</tr>
+<tr class="odd">
+<td>fresh trees: the djinterp and uxoxo of this morning's overlays,
+built; then this overlay unzipped over them, configured and built, GCC
+13.3, Debug</td>
+<td>configure marked the 8 sources that changed; the build compiled them
+and what includes them; 391 of 391 tests</td>
+</tr>
+<tr class="even">
+<td>the window's sources against a Dear ImGui without the tab bar patch,
+and against its first form, GCC 13.3, warnings as errors</td>
+<td>every unit compiled clean (<code>-fsyntax-only</code>)</td>
+</tr>
+<tr class="odd">
+<td>MinGW-w64 GCC 13, cross, Release, warnings as errors</td>
+<td>every target built: <code>bitwisedom-win64.exe</code> and
+<code>bitwisedom-gen-win64.exe</code>; not run, with no Wine here</td>
+</tr>
+</tbody>
+</table>
+<p>The smoke test presses the keys as a user would, through ImGui's own
+keyboard, and reads where the cursor went, what was selected and where
+the grid scrolled. The window was run on a virtual display and driven by
+real key presses - a click, the arrows, Shift held across them, End
+mode, Enter - and photographed, the README's picture of a range with the
+cursor inside it among those taken.</p>
+<p>On 2026.10.20, after a tab's menu was given <strong>Close all other
+tabs</strong>, <strong>Close all tabs to the left</strong> and
+<strong>to the right</strong>, and <strong>Pin tab</strong>, and where
+the sheets' tabs run was made an option - along the whole top from the
+left, as before, by default; or over the bits, the symbols column or the
+value column, at its left or its right - with the second form of uxoxo's
+tab bar patch; and after a fault was mended that arranging a workspace's
+sheets could meet, reading a dock node a merge had freed a moment before
+(AddressSanitizer found it: Dear ImGui's record of a dock space's middle
+outlives a merge until the next frame, and a split in the same frame
+read it):</p>
+<table>
+<thead>
+<tr class="header">
+<th></th>
+<th>result</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>GCC 13.3, Linux, Debug, C++20, warnings as errors</td>
+<td>every target built; 391 of 391 tests, the model's 36 sections and
+the smoke test's 45 among them</td>
+</tr>
+<tr class="even">
+<td>GCC 13.3, Debug, AddressSanitizer</td>
+<td>every target built; 391 of 391 tests, with no error</td>
+</tr>
+<tr class="odd">
+<td>Clang 18.1, Release, warnings as errors</td>
+<td>every target built, no warning; 391 of 391 tests</td>
+</tr>
+<tr class="even">
+<td>GCC 13.3, Debug, libstdc++'s checked containers and iterators
+(<code>_GLIBCXX_DEBUG</code>)</td>
+<td>the model's suite at every level, 36 of 36 sections; the smoke test,
+45 of 45, no ImGui error, ID clash or stray vertex</td>
+</tr>
+<tr class="odd">
+<td>fresh trees: the djinterp and uxoxo of 2026.10.19's last overlays,
+built; then this overlay and the patch's second form unzipped over them,
+configured and built, GCC 13.3, Debug</td>
+<td>configure marked the 12 sources that changed, Dear ImGui's two among
+them, and gave no warning; the build compiled them and what includes
+them; 391 of 391 tests</td>
+</tr>
+<tr class="even">
+<td>the window's sources against a Dear ImGui without the tab bar patch,
+and against its first form, GCC 13.3, warnings as errors</td>
+<td>every unit compiled clean (<code>-fsyntax-only</code>): there the
+tabs run along the whole top, from the left</td>
+</tr>
+<tr class="odd">
+<td>MinGW-w64 GCC 13, cross, Release, warnings as errors</td>
+<td>every target built: <code>bitwisedom-win64.exe</code> and
+<code>bitwisedom-gen-win64.exe</code>; not run, with no Wine here</td>
+</tr>
+</tbody>
+</table>
+<p>The smoke test drives the tabs as a user would: the tab rows set over
+the bits, kept to the right, and over the symbols column, by the
+settings the Options and the menu post; a tab right-clicked by the mouse
+where the window drew it, its menu opened on it and its row's tabs known
+in order; a tab pinned, before its row and without its x; the tabs to a
+tab's right closed, then every other but the pinned, then those to
+another's left; the tab unpinned; and a pinned tab pinned still in the
+next run. The window was photographed on a virtual display with its tab
+menu opened by a right-click, and the README's picture of it added.</p>
+<p>Later still on 2026.10.19, after the cells were sized by hand and the
+rows made four fifths of a cell's width, the probe and usage rows moved
+among the rows, the Add child field given its + and the Add node window,
+the status bar and its console, a definition file made editable, the
+sheet's tabs set over its bits and renamed in place, and the inspector
+made one form; against the djinterp of 2026.10.18 and uxoxo's Dear ImGui
+of the docking branch with its tab bar patch:</p>
+<table>
+<thead>
+<tr class="header">
+<th></th>
+<th>result</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>GCC 13.3, Linux, Debug, C++20, warnings as errors</td>
+<td>every target built; 391 of 391 tests, the model's 36 sections and
+the smoke test's 44 among them</td>
+</tr>
+<tr class="even">
+<td>Clang 18.1, Release, warnings as errors</td>
+<td>every target built, no warning; 391 of 391 tests</td>
+</tr>
+<tr class="odd">
+<td>GCC 13.3, Debug, libstdc++'s checked containers and iterators
+(<code>_GLIBCXX_DEBUG</code>)</td>
+<td>the model's suite at every level, 36 of 36 sections; the smoke test,
+44 of 44, no ImGui error, ID clash or stray vertex</td>
+</tr>
+<tr class="even">
+<td>fresh trees: the djinterp of 2026.10.18 with the overlay of
+2026.10.19 that cut the grid's lines, and a fresh uxoxo with the docking
+overlay, built; then this overlay and the ImGui patch unzipped over
+them, configured and built, GCC 13.3, Debug</td>
+<td>configure marked the 20 sources that changed, Dear ImGui's two among
+them; the build compiled them and what includes them; 391 of 391
+tests</td>
+</tr>
+<tr class="odd">
+<td>the window's sources against a Dear ImGui without the tab bar patch,
+GCC 13.3, warnings as errors</td>
+<td>every unit compiled clean (<code>-fsyntax-only</code>): without the
+patch the tabs run across the whole width</td>
+</tr>
+<tr class="even">
+<td>MinGW-w64 GCC 13, cross, Release, warnings as errors</td>
+<td>every target built: <code>bitwisedom-win64.exe</code>, with its
+Win32 host, the Open dialog's Explorer picker and the patched docking
+branch, and <code>bitwisedom-gen-win64.exe</code>; not run, with no Wine
+here</td>
+</tr>
+</tbody>
+</table>
+<p>The smoke test drives the new parts as a user would: the probe and
+usage rows dragged by the mouse onto a group's name and a symbol's, the
++ under a group's rows clicked, the status bar's message clicked, and a
+sheet's tab double-clicked and a name typed over it. The window was
+photographed on a virtual display: the rows a fifth shorter than the
+cells are wide, cells sized by hand, the lines stopping at the rows and
+running on, the probe pinned at the top and a usage row counting a
+group's bits, the Add node window as a tab and as a window, the console,
+a definition file underlined as a view and as an editor, and the tabs
+over the bits; the README's first picture was taken again, and two
+added.</p>
+<p>On 2026.10.19, a build under MSVC reported four of its 257 tests
+failed: the model's suite at its three levels, and <code>ui_smoke</code>
+- the four whose counts the overlay of 2026.10.18 raised - and every
+other passed. That is the old programs, run against the new counts: the
+overlay's files kept their archive's times, older than the objects of
+the build before, and the build compiled none of them. The same was done
+here on fresh trees -- the overlay of the afternoon of 2026.10.18 built
+and tested, then the overlay of the evening unzipped over it, configured
+and built - and the same four failed, the build having compiled nothing
+it changed. Configure now marks every source whose content changed since
+the last configure to compile again (<a
+href="#after-unzipping-an-overlay">After unzipping an overlay</a>), and
+with it the same trees built and passed every test:</p>
+<table>
+<thead>
+<tr class="header">
+<th></th>
+<th>result</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>the overlay of 2026.10.18's afternoon, built, then the evening's
+unzipped over it, configured and built, GCC 13.3, Debug</td>
+<td>the build compiled only the one file the overlay added; 387 of 391
+tests - <code>model_c++17</code>, <code>_20</code>, <code>_23</code> and
+<code>ui_smoke</code> failed, printing <code>passed: 33</code> and
+<code>passed: 30</code>, the counts of the overlay before</td>
+</tr>
+<tr class="even">
+<td>then this overlay unzipped over that, configured and built</td>
+<td>configure marked all 168 sources; the build compiled every one, Dear
+ImGui's too; 391 of 391 tests</td>
+</tr>
+<tr class="odd">
+<td>GCC 13.3, Linux, Debug, an old-dated change to one source: built,
+configured, built</td>
+<td>the first build compiled nothing; configure marked the one source;
+the second build compiled it</td>
+</tr>
+</tbody>
+</table>
+<p>Later that day the window was reported drawing stray white pixels on
+Windows. On Linux, through OpenGL on a virtual display, at scales of 1,
+1.25 and 1.5 and zoomed, no frame differed from the next and none had a
+stray pixel. Every frame of the smoke test was then searched for what a
+GPU may draw as stray pixels, and frames of a sheet of 65,536 bits had
+them: its grid lines ran 1.3 million pixels past the window. The lines
+are now cut to what the window shows, the smoke test checks every frame
+for such vertices, and was seen to fail with the lines uncut; and the
+Windows host takes <code>--warp</code>, to tell a GPU driver's stray
+pixels from the drawing's. GCC Debug and Clang Release: 391 of 391
+tests; MinGW-w64: every target built.</p>
+<p>In the evening of 2026.10.18, after the window took Visual Studio's
+shape -- each sheet in a window of its own, tool windows that dock,
+float, tab and close, workspaces and the Window menu's arrangements, a
+zoom for each window, the session kept, the Options and settings files -
+and after the symbols tree became the grid's symbols column, one add
+control took the add buttons' place, new rows took the colour the user
+chooses, and the rows were sorted and the display rules added; against
+the djinterp of that day and the uxoxo of 2026.10.14 with Dear ImGui's
+docking branch:</p>
+<table>
+<thead>
+<tr class="header">
+<th></th>
+<th>result</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>GCC 13.3, Linux, Debug, C++20, warnings as errors</td>
+<td>every target built; 391 of 391 tests, the model's 34 sections and
+the smoke test's 39 among them</td>
+</tr>
+<tr class="even">
+<td>Clang 18.1, Release, warnings as errors</td>
+<td>every target built, no warning under <code>-Wdocumentation</code>
+and <code>-Wreserved-identifier</code>; 391 of 391 tests</td>
+</tr>
+<tr class="odd">
+<td>GCC 13.3, Debug, libstdc++'s checked containers and iterators
+(<code>_GLIBCXX_DEBUG</code>), as MSVC's debug library checks them</td>
+<td>the model's suite at every level, 34 of 34 sections; the smoke test,
+39 of 39</td>
+</tr>
+<tr class="even">
+<td>GCC 13.3, the window's sources at C++17, warnings as errors</td>
+<td>every unit of the window compiled clean
+(<code>-fsyntax-only</code>)</td>
+</tr>
+<tr class="odd">
+<td>the overlay unpacked over a fresh djinterp, and the ImGui overlay
+over a fresh uxoxo of 2026.10.14, GCC 13.3, Debug, warnings as
+errors</td>
+<td>every target built; 391 of 391 tests</td>
+</tr>
+<tr class="even">
+<td>MinGW-w64 GCC 13, cross, Release, warnings as errors</td>
+<td>every target built: <code>bitwisedom-win64.exe</code>, its Win32
+host and Direct3D 11 backend on the docking branch, and
+<code>bitwisedom-gen-win64.exe</code>; not run, with no Wine here</td>
+</tr>
+</tbody>
+</table>
+<p>The smoke test drives the new window as a user would: the add
+control's button, its split face and arrow, and its menu's colours by
+the mouse, at the places the control says it drew them; the heading's
+menu, a row's and a band's by right-clicks; a block selected; and a
+session written by one window and opened by another, in an ImGui of its
+own. Its sections on the sort and the display rules were seen to fail
+with what they check taken away - the rows shown in the sheet's order
+whatever the sort, and the grid's digits drawn as its own setting says
+whatever the rules over a row say. Rows added with no colour showed
+nothing where their bits were set, with the digits off, as a row with no
+fill always had: their set bits are now drawn plain, in the theme's
+text, faintly - but a range's, which its name across its cells already
+says. The window was photographed on a virtual display: two sheets in
+columns, a sheet sorted with its display rules and the Display window,
+rows added with no colour in both themes, the heading's menu and a
+row's; the README's first picture was taken again, and two new ones
+added. The rest of its pictures show the window before it docked.
+<code>cl</code> and a real Windows machine were not tried.</p>
+<p>Later on 2026.10.18, after the buttons over the symbols column -
+symbol name, name, value - were added, then a press on value again
+writing the values every way, lined up, a right-click listing every way,
+and a row with no bits given its cells and its definition over them,
+with the same djinterp and uxoxo:</p>
+<table>
+<thead>
+<tr class="header">
+<th></th>
+<th>result</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>GCC 13.3, Linux, Debug, C++20, warnings as errors</td>
+<td>every target built; 391 of 391 tests, the model's 33 sections and
+the smoke test's 30 among them</td>
+</tr>
+<tr class="even">
+<td>Clang 18.1, Release, warnings as errors</td>
+<td>every target built, no warning under <code>-Wdocumentation</code>
+and <code>-Wreserved-identifier</code>; 391 of 391 tests</td>
+</tr>
+<tr class="odd">
+<td>GCC 13.3, the window's sources at C++17, warnings as errors</td>
+<td>the grid, the view, the settings and the app compiled clean
+(<code>-fsyntax-only</code>)</td>
+</tr>
+<tr class="even">
+<td>the overlay unpacked over a fresh djinterp, GCC 13.3, Debug</td>
+<td>every target built; 391 of 391 tests</td>
+</tr>
+</tbody>
+</table>
+<p>Clang alone found the buttons' tooltip text, two literals joined in
+an array, suspicious (<code>-Wstring-concatenation</code>); it is
+parenthesized. The two new smoke sections were seen to fail with what
+they check taken away - a column fitted to its names whatever it lists,
+a press on a button that also drags the heading, a heading that leaves
+no line for the label below the buttons, values that follow the tree in
+every form, a wide sheet that does not pass over decimal and binary.
+Presses on the value button one after another are one step of undo, as
+every run of one setting's changes is. The window was photographed on a
+virtual display listing <code>uart_cr</code> by each of the three, by
+value in every form at one width, in both themes, with the value column
+shown and first, with no bands and no ruler, at three widths of the
+column, with the list a right-click opens, and with
+<code>IS_ENABLED</code>, a macro that takes an argument, selected.
+MinGW-w64, <code>cl</code> and a real Windows machine were not tried,
+and the README's pictures were not taken again.</p>
+<p>On 2026.10.18, after File &gt; New's root lost its fill and gained a
+bit, the add buttons' "Add new...", the tree's "Add child..." fields,
+the menu bar's indent, Help and View &gt; Theme, square cells, and text
+that reads on every fill, against the djinterp of that day and the uxoxo
+of 2026.10.14:</p>
+<table>
+<thead>
+<tr class="header">
+<th></th>
+<th>result</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>GCC 13.3, Linux, Debug, C++20, warnings as errors</td>
+<td>every target built; 391 of 391 tests, the model's 32 sections and
+the smoke test's 28 among them</td>
+</tr>
+<tr class="even">
+<td>Clang 18.1, Release, warnings as errors</td>
+<td>every target built, no warning under <code>-Wdocumentation</code>
+and <code>-Wreserved-identifier</code>; 391 of 391 tests</td>
+</tr>
+<tr class="odd">
+<td>GCC 13.3, the window's sources at C++17, warnings as errors</td>
+<td>every unit the change touched compiled clean
+(<code>-fsyntax-only</code>)</td>
+</tr>
+</tbody>
+</table>
+<p>The tree that came with the request did not build with warnings as
+errors: a local <code>last</code> in the grid's rectangle drag shadowed
+the band click's, and the toolbar the menu bar replaced was no longer
+called; and Clang found an <code>int</code> given to
+<code>format_dec</code> in the main editor's tab names. Each is mended.
+Each new smoke section was seen to fail with what it checks taken away -
+a field that does not take the keyboard back, an add row that answers
+its "+" alone. The window was run on a virtual display and the new
+sheet, every fill and colour in both themes with and without cell boxes,
+the Macros tab, the View and Help menus and Help's two pages were looked
+at; names were typed into an "Add child..." field one after another.
+MinGW-w64, <code>cl</code> and a real Windows machine were not tried
+this time, and the README's pictures were not taken again.</p>
+<p>The record of later still on 2026.10.11 follows.</p>
+<p>Later still on 2026.10.11, after Expand all and Collapse all were
+added, with the same djinterp and uxoxo:</p>
+<table>
+<thead>
+<tr class="header">
+<th></th>
+<th>result</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>GCC 13.3, Linux, Debug, C++20, warnings as errors</td>
+<td>every target built; 391 of 391 tests, the model's 30 sections and
+the smoke test's 23 among them</td>
+</tr>
+<tr class="even">
+<td>Clang 18.1, Release</td>
+<td>every target built; 391 of 391 tests</td>
+</tr>
+<tr class="odd">
+<td>GCC 13.3, the window and the model at C++17, Release</td>
+<td>every target built; 391 of 391 tests</td>
+</tr>
+<tr class="even">
+<td>MinGW-w64 GCC 13, cross, warnings as errors</td>
+<td>every target built; 384 of 384 run under Wine 9.0 - one,
+<code>header_x86_cpuid_cpp11_macros</code>, after a second run: in the
+first, Wine's client lost its server
+(<code>recvmsg: Connection reset by peer</code>) before
+<code>bitwisedom-gen</code> started</td>
+</tr>
+<tr class="odd">
+<td>the whole build configured for <code>cl</code> 19.51 through
+vparse's <code>tools/cl_standin/</code></td>
+<td>every unit compiled, no warning; both executables linked; 257 of 257
+tests run under Wine</td>
+</tr>
+</tbody>
+</table>
+<p>The smoke test's new section takes under three seconds of its forty
+in a debug build. The record of earlier on 2026.10.11 follows.</p>
+<p>Late on 2026.10.11, after the two large examples, the writer's new
+layout and the work for a thousand rows were added, with the same
+djinterp and the uxoxo of <code>uxoxo_2026_10_11b.zip</code>:</p>
+<table>
+<thead>
+<tr class="header">
+<th></th>
+<th>result</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>GCC 13.3, Linux, Debug, C++20, warnings as errors</td>
+<td>every target built; 391 of 391 tests, <code>x86_cpuid</code> checked
+against GCC's <code>&lt;cpuid.h&gt;</code> among them</td>
+</tr>
+<tr class="even">
+<td>Clang 18.1, Release</td>
+<td>every target built; 391 of 391 tests, <code>x86_cpuid</code> against
+Clang's <code>&lt;cpuid.h&gt;</code></td>
+</tr>
+<tr class="odd">
+<td>GCC 13.3, the window and the model at C++17, Release</td>
+<td>every target built; 391 of 391 tests</td>
+</tr>
+<tr class="even">
+<td>MinGW-w64 GCC 13, cross, warnings as errors</td>
+<td>every target built; 384 of 384 run under Wine 9.0,
+<code>win32_hresults</code> against MinGW-w64's <code>winerror.h</code>
+and <code>x86_cpuid</code> against its <code>&lt;cpuid.h&gt;</code>
+among them</td>
+</tr>
+<tr class="odd">
+<td>the whole build configured for <code>cl</code> 19.51 through
+vparse's <code>tools/cl_standin/</code></td>
+<td>every unit compiled, no warning; both executables linked; 257 of 257
+tests run under Wine, <code>platform_win32_hresults</code> compiled
+<code>cl</code>-style with the real identity</td>
+</tr>
+<tr class="even">
+<td>uxoxo's own smoke test, after its blueprints were shared</td>
+<td><code>passed: 20   failed: 0</code> with GCC 13.3 at C++20 and Clang
+18.1 at C++17</td>
+</tr>
+</tbody>
+</table>
+<p><strong>The HRESULTs</strong> are MinGW-w64's
+<code>winerror.h</code>, read by
+<code>scripts/bitwisedom/winerror_to_bitfield.py</code>. Its 1,376 codes were
+compared with the Windows SDK's as the <code>windows-sys</code> crate
+0.59 carries them - generated from the SDK's own metadata: the 1,339 it
+has agree, every one, and so do its facilities; the 37 it lacks - DXGI's
+errors, four of DirectWrite's and <code>TBS_E_DEACTIVATED</code> - are
+as Microsoft documents them. The SDK's <code>winerror.h</code> itself
+has not been compiled against here: on Windows,
+<code>platform_win32_hresults</code> does that, with <code>cl</code>. A
+facility the SDK names and MinGW-w64 does not - NAP, TPM_SERVICES, FWP,
+and the DirectX and imaging ones - is named as the SDK names it, its
+value compared where the header defines it.</p>
+<p><strong>The CPUID flags</strong> are the SDM's and the APM's, from
+the table in <code>scripts/bitwisedom/x86_cpuid_bitfield.py</code>. Each was compared
+with Linux's <code>arch/x86/include/asm/cpufeatures.h</code> (the 195 of
+them it has in these ten registers), the kernel's
+<code>tools/arch/x86/kcpuid/cpuid.csv</code> (204, and MAWAU's five
+bits) and KVM's tables (leaf 7.1's EDX): every one agrees.
+<code>USER_MSR</code>, leaf 7.1 EDX bit 15, is the SDM's alone. GCC 13's
+and Clang 18's <code>&lt;cpuid.h&gt;</code> agree with each other on
+every mask but <code>bit_PKU</code>, which Clang's has at bit 2, UMIP's,
+where the SDM, Linux and GCC have bit 3; the check passes it over under
+Clang. The example's header was compiled and its self-test run at every
+level, and with arrays of 8-, 16- and 64-bit words.</p>
+<p><strong>The writer's layout</strong>: every example's sheet file was
+written again, and each reads back as the same JSON, value for value.
+Each large example's file is the bitfield
+<code>bitwisedom-gen --bitfield</code> writes back of it, byte for byte,
+as is <code>wide_mix</code> rewritten; all three are valid against
+<code>docs/djinterp/tools/bitwisedom/bitfield.schema.json</code>
+(<code>jsonschema</code> 4.26).</p>
+<p><strong>A thousand rows.</strong> The window was timed headless,
+through ImGui's null backend, on the HRESULT example - 1,424 rows - a
+click that selects a row being the frame after it, in which the window's
+elements are built again:</p>
+<table>
+<thead>
+<tr class="header">
+<th></th>
+<th>a click, release</th>
+<th>a frame, release</th>
+<th>a click, debug</th>
+<th>a frame, debug</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>before, every group open</td>
+<td>95 ms</td>
+<td>2.4 ms</td>
+<td>569 ms</td>
+<td>15 ms</td>
+</tr>
+<tr class="even">
+<td>uxoxo's blueprints shared</td>
+<td>30 ms</td>
+<td>2.4 ms</td>
+<td>225 ms</td>
+<td>14 ms</td>
+</tr>
+<tr class="odd">
+<td>and the tree as it is now, every group open</td>
+<td>23 ms</td>
+<td>2.5 ms</td>
+<td>209 ms</td>
+<td>13 ms</td>
+</tr>
+<tr class="even">
+<td>as it arrives, its facilities closed</td>
+<td>2.8 ms</td>
+<td>0.5 ms</td>
+<td>28 ms</td>
+<td>3.1 ms</td>
+</tr>
+<tr class="odd">
+<td><code>uart_cr</code>, for scale</td>
+<td>1.9 ms</td>
+<td>0.3 ms</td>
+<td>14 ms</td>
+<td>2.1 ms</td>
+</tr>
+</tbody>
+</table>
+<p>Opening the example takes 28 ms (release) and 142 ms (debug); opening
+its groups one by one, 22 ms and 154 ms each. Before the grid found its
+rows by an index, each frame walked the tree for each row -- with 1,424
+rows, its largest cost. Debug is GCC's <code>-O0</code>; MSVC's debug
+library checks its iterators, and will be slower. <code>ui_smoke</code>
+takes 26 seconds in a debug build with its new section, from 43 with the
+large examples and none of this.</p>
+<p>The record of the evening of 2026.10.11 follows.</p>
+<p>In the evening of 2026.10.11, after the JSON shapes - the bitfield
+and the export - were added, with the same djinterp and uxoxo:</p>
+<table>
+<thead>
+<tr class="header">
+<th></th>
+<th>result</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>GCC 13.3, Linux, Debug, C++20, warnings as errors</td>
+<td>every target built; 346 of 346 tests</td>
+</tr>
+<tr class="even">
+<td>Clang 18.1, Release</td>
+<td>every target built; 346 of 346 tests</td>
+</tr>
+<tr class="odd">
+<td>GCC 13.3, the window and the model at C++17, Release</td>
+<td>every target built; 346 of 346 tests</td>
+</tr>
+<tr class="even">
+<td>MinGW-w64 GCC 13, cross, warnings as errors</td>
+<td>every target built; 338 of 338 run under Wine 9.0</td>
+</tr>
+<tr class="odd">
+<td>the whole build configured for <code>cl</code> 19.51 through
+vparse's <code>tools/cl_standin/</code></td>
+<td>every unit compiled, no warning; both executables linked; 224 of 224
+tests run under Wine</td>
+</tr>
+</tbody>
+</table>
+<p>Every example was written by <code>bitwisedom-gen</code> as a
+bitfield and as an export, at C99 and C++17, as macros and as constants,
+and each was read back and generated again: the bitfield wrote the same
+header, byte for byte, and the export read back as the same sheet - 76
+headers each way. The model's tests do the same for every example, at
+C99. The wide header tests read <code>wide_mix</code> from a bitfield
+now, so the generator reads one at every level and word size, and each
+of those 50 self-tests ran.</p>
+<p>Every bitfield written - the nineteen examples' and
+<code>wide_mix</code> - was checked against
+<code>docs/djinterp/tools/bitwisedom/bitfield.schema.json</code> with Python's
+<code>jsonschema</code> 4.26, and the schema was seen to refuse a
+misspelt key and a row with two definitions. The examples in
+<code>docs/djinterp/tools/bitwisedom/json.html</code> and the README were read by
+<code>bitwisedom-gen</code>, and the messages they quote are the
+program's.</p>
+<p>The record of the afternoon of 2026.10.11 follows.</p>
+<p>Later on 2026.10.11, after sheets wider than 64 bits were added, with
+the same djinterp and uxoxo:</p>
+<table>
+<thead>
+<tr class="header">
+<th></th>
+<th>result</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>GCC 13.3, Linux, Debug, C++20, warnings as errors</td>
+<td>every target built; 346 of 346 tests, <code>pci_config_header</code>
+checked against <code>linux/pci_regs.h</code> among them</td>
+</tr>
+<tr class="even">
+<td>Clang 18.1, Release</td>
+<td>every target built; 346 of 346 tests</td>
+</tr>
+<tr class="odd">
+<td>GCC 13.3, the window and the model at C++17, Release</td>
+<td>every target built; 346 of 346 tests</td>
+</tr>
+<tr class="even">
+<td>MinGW-w64 GCC 13, cross, warnings as errors</td>
+<td>every target built; 338 of 338 run under Wine 9.0, the wide sheets'
+self-tests run as Windows programs</td>
+</tr>
+<tr class="odd">
+<td>the whole build configured for <code>cl</code> 19.51 through
+vparse's <code>tools/cl_standin/</code></td>
+<td>every unit compiled, no warning; both executables linked; 224 of 224
+tests run under Wine, the 38 wide self-tests linked
+<code>cl</code>-style and run</td>
+</tr>
+</tbody>
+</table>
+<p>A wide sheet's self-test checks, for <code>pci_config_header</code>
+at C99, 294 things as it compiles and 434 as it runs; for
+<code>wide_mix</code>, 71 and 118. Before they were trusted they were
+tried against headers with faults put in by hand -- a word of an
+initializer, the array macros' modulus, a field's <code>_SET</code>
+shift and its <code>_GET</code> mask, a value, a bit's place - and each
+fault failed them, as they compiled or as they ran. The
+<code>_GET</code> mask's at first did not: the one pattern a field was
+written with left its top bit clear, so a mask a bit short read it back
+the same. A field is now written with a pattern and its complement. A
+self-test whose run failed also said "the self-test compiled", which is
+how CTest knew a header test had passed; it now says only that the run
+failed.</p>
+<p>The generator's narrow output was compared with that of the generator
+before this change: 576 headers - the eighteen narrow examples at four C
+and four C++ levels, as macros and as constants, in both styles - byte
+for byte the same, but for one line of <code>win32_hresult</code> that
+ran to 81 columns. A body too long for its line is now broken inside
+nested parentheses as well as at its outermost operators, which keeps
+that line within 80.</p>
+<p>A sheet of 65,536 bits - which <code>ui_smoke</code> makes when it
+sets every setting to its highest - took that section 573 seconds in a
+debug build: the grid fitted each value's 16,384 hex digits to its
+column a character at a time. It now halves to the fit and names a wide
+sheet's values by their runs; the section takes 10. And the operations'
+preview coloured red every bit two symbols claimed, in whatever groups;
+it now colours the collisions it counts, two claims in an exclusive
+group, as the usage row does - which the PCI example, whose registers
+lie under their own flags, made plain.</p>
+<p>The record of the morning of 2026.10.11 follows.</p>
+<p>On 2026.10.11, after the window's layout was redone - the panels
+flush and divided by hairlines, a grid that fills its panel, the bottom
+panel's five ways of being shown, the Theme menu with its five colour
+schemes, and what a resting mouse shows - against djinterp of 2026.10.07
+and uxoxo of 2026.10.11:</p>
+<table>
+<thead>
+<tr class="header">
+<th></th>
+<th>result</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>GCC 13.3, Linux, Release, C++20, warnings as errors</td>
+<td>every target built; 295 of 295 tests</td>
+</tr>
+<tr class="even">
+<td>Clang 18.1, the same</td>
+<td>every target built; 295 of 295 tests</td>
+</tr>
+<tr class="odd">
+<td>GCC 13.3, the window and the model at C++17, warnings as errors</td>
+<td>every target built; 295 of 295 tests</td>
+</tr>
+<tr class="even">
+<td>MinGW-w64 GCC 13, cross, warnings as errors</td>
+<td>every target built; 290 of 290 run under Wine 9.0</td>
+</tr>
+<tr class="odd">
+<td>the whole build configured for <code>cl</code> 19.51 through
+vparse's <code>tools/cl_standin/</code></td>
+<td>every unit compiled, no warning; both executables linked; 186 of 186
+tests run under Wine</td>
+</tr>
+</tbody>
+</table>
+<p><code>ui_smoke</code> has four more sections, 19 in all. One opens
+<code>win32_hresult</code> and checks that its cells widen to the grid
+panel's edge; that with the room given to the name column instead, that
+column widens to the edge; that with the room given to nothing, the grid
+ends where its columns do; and that the choice undoes. One takes the
+bottom panel through its ways of being shown: minimized, and docked
+again at a tab pressed on its strip; opened over the grid by the mouse
+resting on its strip, kept open while the mouse is on the page, and
+closed once the mouse is away from both; floating in its own window, and
+hidden by that window's close button; brought back as it was by Ctrl+J,
+and by a page asked for. One changes the theme and the scheme and checks
+that the window and the grid change and the sheet does not, that both go
+to the settings file, and that a palette the sheet chooses stays in
+either theme until it is given back. One rests the mouse on a name, a
+band and the ruler, and finds a tooltip under each. The model's tests
+check that a sheet's colours are automatic until it sets one, that rows
+take their colours from the scheme's palette, that a colour the sheet
+sets stays in every theme and scheme and is the only colour its file
+names, and that a file saved with every colour, as before, reads with
+its defaults automatic and its own choices kept.</p>
+<p>The README's pictures were taken again from this build, on a virtual
+display, the File menu's by synthetic mouse input.</p>
+<p>The record of 2026.10.10 follows.</p>
+<p>On 2026.10.10, after fifteen examples were added, with the same
+djinterp and uxoxo:</p>
+<table>
+<thead>
+<tr class="header">
+<th></th>
+<th>result</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>GCC 13.3, Linux, Release, C++20, warnings as errors</td>
+<td>every target built; 295 of 295 tests, the three Linux platform
+checks among them</td>
+</tr>
+<tr class="even">
+<td>Clang 18.1, the same</td>
+<td>every target built; 295 of 295 tests</td>
+</tr>
+<tr class="odd">
+<td>GCC 13.3, the window and the model at C++17, warnings as errors</td>
+<td>every target built; 295 of 295 tests</td>
+</tr>
+<tr class="even">
+<td>MinGW-w64 GCC 13, cross, warnings as errors</td>
+<td>every target built; 290 of 290 run under Wine 9.0, the two Windows
+platform checks among them, compiled against MinGW-w64's
+<code>windows.h</code></td>
+</tr>
+<tr class="odd">
+<td>the whole build configured for <code>cl</code> 19.51 through
+vparse's <code>tools/cl_standin/</code></td>
+<td>every unit compiled, no warning; both executables linked; 186 of 186
+tests run under Wine - the Windows platform checks compiled
+<code>cl</code>-style, with the real identity, as every unit that
+includes <code>&lt;windows.h&gt;</code> is there</td>
+</tr>
+</tbody>
+</table>
+<p>The macOS and FreeBSD checks could not be run on a Mac or a FreeBSD
+machine. They were compiled against stand-ins for the system headers
+made from XNU's own <code>mach-o/loader.h</code> and
+<code>mach/machine.h</code>, and from FreeBSD's <code>sys/stat.h</code>
+and the <code>sys/event.h</code> of FreeBSD 14 and of 15 - the first
+without the jail filters, so the checks' guards were taken both ways.
+Then every literal in the nine generated headers was changed, one at a
+time: each change to a value the system also defines failed its check,
+so the checks compare what they claim to. (What no system header defines
+- a field's <code>_SHIFT</code> and <code>_WIDTH</code>, HRESULT's
+reserved bits - the header tests hold to the sheet.)</p>
+<p>Two things changed in the course of it. The self-test wrote a 64-bit
+value as <code>0x...ULL</code> at C++98, which has no
+<code>long long</code>, and failed under <code>-pedantic-errors</code>;
+it now writes it as the header does, as an <code>unsigned long</code>.
+And a sheet taken from the examples, or imported, has its name and value
+columns fitted to what they hold - a 64-bit example's values no longer
+arrive cut off - without being marked changed.</p>
+<p>The record of 2026.10.09 follows.</p>
+<p>On 2026.10.09, after the context menus, the renames, the resizable
+columns and the reading of C, against the consolidated djinterp of
+2026.10.07 and the uxoxo of 2026.10.09:</p>
+<table>
+<thead>
+<tr class="header">
+<th></th>
+<th>result</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>GCC 13.3, Linux, Release, C++20, warnings as errors</td>
+<td>every target built; 52 of 52 tests</td>
+</tr>
+<tr class="even">
+<td>Clang 18.1, the same</td>
+<td>every target built; 52 of 52 tests</td>
+</tr>
+<tr class="odd">
+<td>GCC 13.3, the window and the model at C++17, warnings as errors</td>
+<td>every target built; 52 of 52 tests</td>
+</tr>
+<tr class="even">
+<td>MinGW-w64 GCC 13, cross, warnings as errors</td>
+<td>every target built, the tests too; 52 of 52 run under Wine 9.0,
+<code>ui_smoke</code>'s clipboard and dropped file included</td>
+</tr>
+<tr class="odd">
+<td>the whole build configured for <code>cl</code> 19.51 through
+vparse's <code>tools/cl_standin/</code>,
+<code>Ninja Multi-Config</code>, Release, as on 2026.10.07</td>
+<td>CMake reports MSVC 19.51.36260.0 and takes <code>cl</code>'s
+branches; every unit compiled, djinterp's nine lexer sources among them
+as C under <code>cl</code>'s identity with the conforming preprocessor;
+<code>bitwisedom.exe</code> and <code>bitwisedom-gen.exe</code> linked;
+34 of 34 tests run under Wine</td>
+</tr>
+</tbody>
+</table>
+<p>The stand-in was configured with CMake's searches for GLFW and
+pkg-config turned off
+(<code>-DCMAKE_DISABLE_FIND_PACKAGE_glfw3=ON -DCMAKE_DISABLE_FIND_PACKAGE_PkgConfig=ON</code>):
+its toolchain does not keep package searches inside a Windows sysroot,
+as <code>mingw-cross</code>'s does, and uxoxo otherwise offers the build
+machine's GLFW to a Windows target. The window's link, which it could
+not make on 2026.10.07, it now makes against MinGW-w64's import
+libraries; that <code>bitwisedom.exe</code> was not run.</p>
+<p><code>ui_smoke</code> checks every frame for Dear ImGui's own errors
+as well as for clashing IDs. That check found one, in uxoxo: a tree node
+renamed in place put ImGui's cursor back with nothing drawn after it,
+which ImGui 1.92 calls an error when the node is the last item of its
+window - an assertion in a debug build. uxoxo of 2026.10.09 draws the
+field without moving the cursor back; the run has no error in any
+frame.</p>
+<p>The window was run on a virtual display and photographed: the context
+menu, a rename typed over a name in the grid, and the attached code
+imported (<code>screenshots/import-define-environment.png</code>). Its
+settings file was written, read back on the next run with the panels'
+sizes it held, and a table weight ImGui had saved as <code>nan</code>
+before its first layout was left out on reading and writing both.</p>
+<p>The record of 2026.10.07 follows.</p>
+<p>On 2026.10.07, against the consolidated djinterp and uxoxo, laid out
+as on the owner's machine (each the owner's tree with its archive
+unzipped over it):</p>
+<table>
+<thead>
+<tr class="header">
+<th></th>
+<th>result</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>GCC 13.3 and Clang 18.1, Linux, Release, warnings as errors</td>
+<td>every target built; 52 of 52 tests</td>
+</tr>
+<tr class="even">
+<td>the <code>mingw-cross</code> preset, warnings as errors</td>
+<td><code>bitwisedom.exe</code> and <code>bitwisedom-gen.exe</code>
+built</td>
+</tr>
+<tr class="odd">
+<td><strong>the whole build as CMake configures it for <code>cl</code>
+19.51</strong>, through vparse's <code>tools/cl_standin/</code>,
+<code>Ninja Multi-Config</code> as the <code>msvc</code> preset has it,
+Release</td>
+<td>CMake reports MSVC 19.51.36260.0 and takes <code>cl</code>'s
+branches; every unit compiled, no warning; 34 of 34 tests - the thirty
+generated headers' self-tests compiled <code>cl</code>-style,
+<code>/W4 /WX</code> - run under Wine</td>
+</tr>
+</tbody>
+</table>
+<p>In the stand-in, <code>app/</code>'s units, which include
+<code>&lt;windows.h&gt;</code>, kept the real identity, as Dear ImGui's
+do: the MinGW-w64 headers will not read it as <code>cl</code>'s. It
+cannot link <code>bitwisedom.exe</code> either, since it has no Windows
+SDK import libraries; the MinGW-w64 build links the same window. So
+<code>cl</code> itself, the window's link under it, and a real Windows
+machine remain unverified.</p>
+<p>That run is why two things changed on 2026.10.07: under
+<code>cl</code>, uxoxo's library and the UI smoke test, which read
+djinterp's headers, now take <code>/Zc:preprocessor</code> as every
+other unit here does - before, they were left to <code>cl</code>'s
+traditional preprocessor; and the header tests run
+<code>bitwisedom-gen</code> through
+<code>CMAKE_CROSSCOMPILING_EMULATOR</code> where a cross build has one,
+which changes nothing in a native build.</p>
+<p>The rest of this section is the record of 2026.10.05.</p>
+<p>On Linux (Ubuntu 24.04), every target built and all 52 tests
+passed:</p>
+<ul>
+<li>with GCC 13.3 and with Clang 18.1, at C++20, the model's suite also
+at C++17 and C++23;</li>
+<li>with Clang and <code>BITWISEDOM_WARNINGS_AS_ERRORS=ON</code>: no
+warning from any of bitwis(e)dom's own sources under the whole
+baseline;</li>
+<li>through the <code>clang-strict</code> preset (Ninja Multi-Config),
+configure to tests.</li>
+</ul>
+<p>The window was run on a virtual display (Xvfb, Mesa's software
+renderer) and photographed: the screenshots in <code>docs/</code> are
+those runs.</p>
+<p>The Windows build was cross-compiled with MinGW-w64 GCC 13 with
+warnings as errors, and both executables were run under Wine 9.0:
+<code>bitwisedom-gen.exe</code> wrote headers byte-identical to the
+Linux build's - all three examples, in both styles - and
+<code>bitwisedom.exe</code> drew the same window through Wine's Direct3D
+11.</p>
+<p><strong>Not verified:</strong> <code>cl</code> and
+<code>clang-cl</code>, and so the <code>msvc</code>,
+<code>vs2022</code>, <code>clang-cl</code> and <code>strict</code>
+presets; a real Windows machine and a real GPU; macOS.</p>
+</body>
+</html>

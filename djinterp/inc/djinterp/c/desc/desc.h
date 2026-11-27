@@ -6,7 +6,7 @@
 * fact is on, how important it is, and what kind of truth it is - into a
 * sink, and the sink's machine turns them into text, JSON, markdown or
 * key=value lines. One source then serves a log line, --help and a debugger's
-* view (docs/djinterp/desc/desc_design.md).
+* view (docs/djinterp/c/desc/desc_design.html).
 *
 *   This header is the core every describer and every machine shares: the
 * fact, the machine, the sink and the two describer forms. It allocates

@@ -3,7 +3,7 @@
 *
 * Unit test suite for passthrough.hpp - the DPassthroughMarker opt-in base,
 * the is_passthrough trait, and the C++20 Passthrough concept.
-*   Two faces, selected by DTEST_SPEC_MODE (see djinterp_testing.md S3):
+*   Two faces, selected by DTEST_SPEC_MODE (see djinterp_testing.html S3):
 *
 *     - normal mode (the section TUs): pulls in the header under test and
 *       exposes the fixtures + the D_PT_CHECK macro.

@@ -2,7 +2,7 @@
 * djinterp [c][log]                                                        log.h
 *
 *   The log: a record is an event, a message code and desc facts, written by
-* a writer (docs/djinterp/log/log_design.md).
+* a writer (docs/djinterp/c/log/log_design.html).
 *     D_LOG(net, connect_timeout, D_LOG_FACT_TEXT("host", host),
 *                                 D_LOG_FACT_INT("timeout_ms", ms));
 * writes, in text,

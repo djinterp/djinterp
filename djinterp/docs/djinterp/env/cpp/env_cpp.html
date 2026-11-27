@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>C++ Modules — envcpp98.h, envcppfeatures.h</title>
+  <style>
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+</head>
+<body>
+<h1 id="c-modules--env_cpp98h-env_cpp_featuresh">C++ Modules —
+<code>env_cpp98.h</code>, <code>env_cpp_features.h</code></h1>
+<p>Two complementary headers describe C++ capabilities.
+<code>env_cpp98.h</code> covers the pre-feature-test-macro era (the
+C++98 standard library headers); <code>env_cpp_features.h</code> covers
+everything from C++11 onward using the <code>__cpp_*</code> /
+<code>__cpp_lib_*</code> feature-test macros. Both require
+<code>env.h</code> first, and every macro is pre-definable to override
+detection.</p>
+<hr />
+<h2
+id="env_cpp98h--c98-standard-library-headers"><code>env_cpp98.h</code> —
+C++98 standard-library headers</h2>
+<p>C++98 predates feature-test macros, so these flags assume
+availability under any conforming C++ implementation and mainly exist to
+(a) document the dependency and (b) provide override hooks for
+non-conforming/embedded toolchains. Naming:
+<code>D_ENV_CPP98_HAS_&lt;HEADER&gt;</code> — <code>1</code> if
+available, <code>0</code> otherwise. A few have real detection logic
+(locale, RTTI, exceptions).</p>
+<h3 id="a-containers">A. Containers</h3>
+<p><code>D_ENV_CPP98_HAS_VECTOR</code>, <code>_LIST</code>,
+<code>_DEQUE</code>, <code>_QUEUE</code>, <code>_STACK</code>,
+<code>_MAP</code>, <code>_SET</code>, <code>_BITSET</code>.</p>
+<h3 id="b-algorithms-and-iterators">B. Algorithms and iterators</h3>
+<p><code>D_ENV_CPP98_HAS_ALGORITHM</code>, <code>_ITERATOR</code>,
+<code>_FUNCTIONAL</code>, <code>_NUMERIC</code>.</p>
+<h3 id="c-strings-and-localization">C. Strings and localization</h3>
+<p><code>D_ENV_CPP98_HAS_STRING</code>, <code>_LOCALE</code> (the latter
+is <code>0</code> on <code>__AVR__</code>/<code>__ANDROID__</code>).</p>
+<h3 id="d-io-streams">D. I/O streams</h3>
+<p><code>D_ENV_CPP98_HAS_IOSTREAM</code>, <code>_ISTREAM</code>,
+<code>_OSTREAM</code>, <code>_FSTREAM</code>, <code>_SSTREAM</code>,
+<code>_IOMANIP</code>, <code>_IOS</code>, <code>_IOSFWD</code>,
+<code>_STREAMBUF</code>.</p>
+<h3 id="e-utilities">E. Utilities</h3>
+<p><code>D_ENV_CPP98_HAS_UTILITY</code>, <code>_MEMORY</code>,
+<code>_NEW</code>, <code>_LIMITS</code>, and the conditionally detected
+<code>_TYPEINFO</code> (RTTI), <code>_EXCEPTION</code>,
+<code>_STDEXCEPT</code> (exceptions). The latter three resolve to
+<code>0</code> when RTTI/exceptions are disabled by compiler flags.</p>
+<h3 id="f-numerics">F. Numerics</h3>
+<p><code>D_ENV_CPP98_HAS_COMPLEX</code>, <code>_VALARRAY</code>.</p>
+<h3 id="aggregate-checks">Aggregate checks</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Symbol</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>D_ENV_CPP98_HAS_ALL_CONTAINERS</code></td>
+<td>All container headers present</td>
+</tr>
+<tr class="even">
+<td><code>D_ENV_CPP98_HAS_ALL_ALGORITHMS</code></td>
+<td>All algorithm/iterator headers present</td>
+</tr>
+<tr class="odd">
+<td><code>D_ENV_CPP98_HAS_ALL_IOSTREAMS</code></td>
+<td>All I/O stream headers present</td>
+</tr>
+<tr class="even">
+<td><code>D_ENV_CPP98_HAS_ALL_UTILITIES</code></td>
+<td>All utility headers present</td>
+</tr>
+<tr class="odd">
+<td><code>D_ENV_CPP98_HAS_ALL_NUMERICS</code></td>
+<td>All numeric headers present</td>
+</tr>
+<tr class="even">
+<td><code>D_ENV_CPP98_HAS_FULL_STL</code></td>
+<td>The complete C++98 STL is present</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>Embedded note: bare-metal/embedded C++ toolchains commonly omit
+<code>&lt;locale&gt;</code>,
+<code>&lt;exception&gt;</code>/<code>&lt;stdexcept&gt;</code>
+(exceptions off), <code>&lt;typeinfo&gt;</code> (RTTI off), and the I/O
+streams. Override the relevant macro to <code>0</code> to model
+that.</p>
+</blockquote>
+<hr />
+<h2
+id="env_cpp_featuresh--c11c26-feature-detection"><code>env_cpp_features.h</code>
+— C++11–C++26 feature detection</h2>
+<p>Wraps the standard feature-test macros in a uniform interface.
+<strong>Two families:</strong></p>
+<ul>
+<li><code>D_ENV_CPP_FEATURE_LANG_*</code> — language features
+(<code>__cpp_*</code>)</li>
+<li><code>D_ENV_CPP_FEATURE_STL_*</code> — standard-library features
+(<code>__cpp_lib_*</code>)</li>
+</ul>
+<p><strong>Each feature gets five macros:</strong></p>
+<table>
+<thead>
+<tr class="header">
+<th>Suffix</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><em>(none)</em></td>
+<td><code>1</code> if enabled, <code>0</code> if not</td>
+</tr>
+<tr class="even">
+<td><code>_NAME</code></td>
+<td>The underlying <code>__cpp*</code> macro name, as a string</td>
+</tr>
+<tr class="odd">
+<td><code>_DESC</code></td>
+<td>Human-readable description</td>
+</tr>
+<tr class="even">
+<td><code>_VAL</code></td>
+<td>The feature-test macro value (or <code>0L</code> if undefined)</td>
+</tr>
+<tr class="odd">
+<td><code>_VERS</code></td>
+<td>C++ version string, e.g. <code>"(C++17)"</code></td>
+</tr>
+</tbody>
+</table>
+<p>So, for example, <code>if constexpr</code> exposes
+<code>D_ENV_CPP_FEATURE_LANG_IF_CONSTEXPR</code>,
+<code>…_IF_CONSTEXPR_NAME</code> (<code>"__cpp_if_constexpr"</code>),
+<code>…_DESC</code>, <code>…_VAL</code>, and <code>…_VERS</code>.</p>
+<h3 id="language-features-by-standard">Language features by
+standard</h3>
+<ul>
+<li><strong>C++11:</strong> <code>ALIAS_TEMPLATES</code>,
+<code>ATTRIBUTES</code>, <code>CONSTEXPR</code>, <code>DECLTYPE</code>,
+<code>DELEGATING_CONSTRUCTORS</code>,
+<code>INHERITING_CONSTRUCTORS</code>, <code>INITIALIZER_LISTS</code>,
+<code>LAMBDAS</code>, <code>NSDMI</code>, <code>RANGE_BASED_FOR</code>,
+<code>RAW_STRINGS</code>, <code>REF_QUALIFIERS</code>,
+<code>RVALUE_REFERENCES</code>, <code>STATIC_ASSERT</code>,
+<code>THREADSAFE_STATIC_INIT</code>, <code>UNICODE_CHARACTERS</code>,
+<code>UNICODE_LITERALS</code>, <code>USER_DEFINED_LITERALS</code>,
+<code>VARIADIC_TEMPLATES</code>.</li>
+<li><strong>C++14:</strong> <code>AGGREGATE_NSDMI</code>,
+<code>BINARY_LITERALS</code>, <code>DECLTYPE_AUTO</code>,
+<code>ENUMERATOR_ATTRIBUTES</code>, <code>GENERIC_LAMBDAS</code>,
+<code>INIT_CAPTURES</code>, <code>NAMESPACE_ATTRIBUTES</code>,
+<code>NONTYPE_TEMPLATE_ARGS</code>, <code>RETURN_TYPE_DEDUCTION</code>,
+<code>SIZED_DEALLOCATION</code>, <code>VARIABLE_TEMPLATES</code>.</li>
+<li><strong>C++17:</strong> <code>AGGREGATE_BASES</code>,
+<code>ALIGNED_NEW</code>, <code>CAPTURE_STAR_THIS</code>,
+<code>CONSTEXPR_IN_DECLTYPE</code>, <code>DEDUCTION_GUIDES</code>,
+<code>FOLD_EXPRESSIONS</code>, <code>GUARANTEED_COPY_ELISION</code>,
+<code>HEX_FLOAT</code>, <code>IF_CONSTEXPR</code>,
+<code>INLINE_VARIABLES</code>, <code>NOEXCEPT_FUNCTION_TYPE</code>,
+<code>NONTYPE_TEMPLATE_PARAMETER_AUTO</code>,
+<code>STRUCTURED_BINDINGS</code>, <code>TEMPLATE_TEMPLATE_ARGS</code>,
+<code>VARIADIC_USING</code>.</li>
+<li><strong>C++20:</strong> <code>AGGREGATE_PAREN_INIT</code>,
+<code>CHAR8_T</code>, <code>CONCEPTS</code> (plus
+<code>_CONCEPTS_TS</code> and <code>_CONCEPTS_CPP20</code>
+value-discriminated sub-flags), <code>CONDITIONAL_EXPLICIT</code>,
+<code>CONSTEVAL</code>, <code>CONSTEXPR_DYNAMIC_ALLOC</code>,
+<code>CONSTINIT</code>, <code>DESIGNATED_INITIALIZERS</code>,
+<code>IMPL_COROUTINE</code>, <code>IMPL_DESTROYING_DELETE</code>,
+<code>IMPL_THREE_WAY_COMPARISON</code>, <code>MODULES</code>,
+<code>USING_ENUM</code>.</li>
+<li><strong>C++23:</strong> <code>AUTO_CAST</code>,
+<code>EXPLICIT_THIS_PARAMETER</code>, <code>IF_CONSTEVAL</code>,
+<code>IMPLICIT_MOVE</code>, <code>MULTIDIMENSIONAL_SUBSCRIPT</code>,
+<code>NAMED_CHARACTER_ESCAPES</code>, <code>SIZE_T_SUFFIX</code>,
+<code>STATIC_CALL_OPERATOR</code>.</li>
+<li><strong>C++26:</strong> <code>CONSTEXPR_EXCEPTIONS</code>,
+<code>CONTRACTS</code>, <code>DELETED_FUNCTION</code>,
+<code>PACK_INDEXING</code>, <code>PLACEHOLDER_VARIABLES</code>,
+<code>PP_EMBED</code>, <code>TEMPLATE_PARAMETERS</code>,
+<code>TRIVIAL_RELOCATABILITY</code>, <code>TRIVIAL_UNION</code>,
+<code>VARIADIC_FRIEND</code>.</li>
+</ul>
+<h3 id="standard-library-features-by-standard">Standard-library features
+by standard</h3>
+<ul>
+<li><strong>C++14:</strong> <code>CHRONO_UDLS</code>,
+<code>COMPLEX_UDLS</code>.</li>
+<li><strong>C++17:</strong> <code>ADDRESSOF_CONSTEXPR</code>,
+<code>ANY</code>, <code>APPLY</code>, <code>ARRAY_CONSTEXPR</code>,
+<code>AS_CONST</code>, <code>BOOL_CONSTANT</code>,
+<code>BOYER_MOORE_SEARCHER</code>, <code>BYTE</code>,
+<code>CLAMP</code>, <code>FILESYSTEM</code>, <code>OPTIONAL</code>,
+<code>VARIANT</code>.</li>
+<li><strong>C++20:</strong> <code>ASSUME_ALIGNED</code>,
+<code>ATOMIC_FLAG_TEST</code>, <code>ATOMIC_FLOAT</code>,
+<code>ATOMIC_REF</code>, <code>ATOMIC_WAIT</code>, <code>BARRIER</code>,
+<code>BIND_FRONT</code>, <code>BIT_CAST</code>, <code>BITOPS</code>,
+<code>BOUNDED_ARRAY_TRAITS</code>, <code>CHAR8_T</code>,
+<code>CONCEPTS</code>, <code>CONSTEXPR_ALGORITHMS</code>,
+<code>CONSTEXPR_COMPLEX</code>, <code>CONSTEXPR_DYNAMIC_ALLOC</code>,
+<code>CONSTEXPR_STRING</code>, <code>CONSTEXPR_VECTOR</code>,
+<code>COROUTINE</code>, <code>ENDIAN</code>, <code>FORMAT</code>,
+<code>JTHREAD</code>, <code>LATCH</code>, <code>MATH_CONSTANTS</code>,
+<code>RANGES</code>, <code>SEMAPHORE</code>,
+<code>SOURCE_LOCATION</code>, <code>SPAN</code>,
+<code>THREE_WAY_COMPARISON</code>, <code>TO_ARRAY</code>.</li>
+<li><strong>C++23:</strong>
+<code>ADAPTOR_ITERATOR_PAIR_CONSTRUCTOR</code>,
+<code>ASSOCIATIVE_HETEROGENEOUS_ERASURE</code>, <code>BIND_BACK</code>,
+<code>BYTESWAP</code>, <code>CONSTEXPR_BITSET</code>,
+<code>CONSTEXPR_CHARCONV</code>, <code>CONSTEXPR_CMATH</code>,
+<code>EXPECTED</code>, <code>FLAT_MAP</code>, <code>FLAT_SET</code>,
+<code>GENERATOR</code>, <code>MDSPAN</code>,
+<code>MOVE_ONLY_FUNCTION</code>, <code>PRINT</code>,
+<code>RANGES_TO_CONTAINER</code>, <code>SPANSTREAM</code>,
+<code>STACKTRACE</code>, <code>STDATOMIC_H</code>,
+<code>STRING_CONTAINS</code>, <code>STRING_RESIZE_AND_OVERWRITE</code>,
+<code>UNREACHABLE</code>.</li>
+<li><strong>C++26:</strong> <code>ALGORITHM_DEFAULT_VALUE_TYPE</code>,
+<code>ASSOCIATIVE_HETEROGENEOUS_INSERTION</code>,
+<code>ATOMIC_MIN_MAX</code>, <code>CONSTEXPR_ATOMIC</code>,
+<code>CONSTEXPR_DEQUE</code>, <code>CONTRACTS</code>,
+<code>COPYABLE_FUNCTION</code>, <code>DEBUGGING</code>,
+<code>FORMAT_PATH</code>, <code>FUNCTION_REF</code>,
+<code>HAZARD_POINTER</code>, <code>HIVE</code>,
+<code>INPLACE_VECTOR</code>, <code>LINALG</code>,
+<code>POLYMORPHIC</code>, <code>RCU</code>,
+<code>SATURATION_ARITHMETIC</code>, <code>SENDERS</code>,
+<code>SIMD</code>, <code>TEXT_ENCODING</code>.</li>
+</ul>
+<p>(Each name above is the suffix after
+<code>D_ENV_CPP_FEATURE_LANG_</code> or
+<code>D_ENV_CPP_FEATURE_STL_</code>.)</p>
+<h3 id="aggregate-feature-checks">Aggregate feature checks</h3>
+<p>For each standard <code>XX</code> ∈ {11, 14, 17, 20, 23, 26}:</p>
+<table>
+<thead>
+<tr class="header">
+<th>Symbol</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>D_ENV_CPP_FEATURE_HAS_ALL_LANG_CPPxx</code></td>
+<td><code>1</code> if <strong>all</strong> language features of C++xx
+are present</td>
+</tr>
+<tr class="even">
+<td><code>D_ENV_CPP_FEATURE_HAS_ALL_STL_CPPxx</code></td>
+<td><code>1</code> if <strong>all</strong> library features of C++xx are
+present</td>
+</tr>
+<tr class="odd">
+<td><code>D_ENV_CPP_FEATURE_HAS_ALL_CPPxx</code></td>
+<td><code>1</code> if both of the above are present</td>
+</tr>
+</tbody>
+</table>
+<p>(C++11 has only the <code>_LANG_</code> and combined
+<code>_CPP11</code> aggregates, since no <code>__cpp_lib_*</code>
+features are tracked for C++11 here.)</p>
+</body>
+</html>

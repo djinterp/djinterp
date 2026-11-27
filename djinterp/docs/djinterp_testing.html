@@ -1,0 +1,2207 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>djinterp Testing (DTest) — Authoring Guide</title>
+  <style>
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+    /* CSS for syntax highlighting */
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+</head>
+<body>
+<h1 id="djinterp-testing-dtest--authoring-guide">djinterp Testing
+(DTest) — Authoring Guide</h1>
+<p>This is the single reference for how test suites in djinterp are
+written, built, run, and delivered. It covers the goal we are aiming
+for, the anatomy of a suite (its four files and where each lives), the
+two-faced suite header, the section translation units, the thin runner,
+the <code>CMakeLists.txt</code> wiring, the form a finished suite is
+handed over in, the reporting pipeline that turns a suite into console
+output and a PDF, and a reference to the framework modules and how to
+use them.</p>
+<p>DTest has two faces, one per language, and both are frozen as of
+<strong>2026-11-06</strong> (Section 13). Sections 1 to 11 describe the
+<strong>C++ face</strong>, whose authoring surface is
+<code>test_defaults.hpp</code> and which needs C++17. Section 12
+describes the <strong>C face</strong>,
+<code>c/modules/test/test_suite.h</code>, which is plain C99, compiles
+at every C and C++ level, and is what a suite uses below C++17. Section
+14 is the migration guide from the older forms, with the converter
+(<code>scripts/dtest/dtest_convert.py</code>).</p>
+<hr />
+<h2 id="1-the-goal--what-we-want-a-test-suite-to-be">1. The goal — what
+we want a test suite to be</h2>
+<p>A DTest suite is a <strong>declarative description of what is being
+tested, kept as data</strong>, paired with <strong>test bodies that
+assert against the real code</strong>. Three principles drive the
+design:</p>
+<ol type="1">
+<li><p><strong>The suite is a spec, and the spec lives in the
+header.</strong> Every suite header exposes a single
+<code>module_spec</code> provider — a nested
+<code>module → block → test</code> tree in which <em>every node carries
+a name and a descriptor</em>. That spec is the one authoritative
+description of the suite. It is rich enough to render a detailed,
+well-written report on its own.</p></li>
+<li><p><strong>Runners are thin and do nothing but choose
+options.</strong> A runner is a <code>main()</code> that builds a
+<code>test_option_set</code>, hands the spec to <code>run_module</code>,
+and returns its exit code. It contains no per-test logic, no report
+formatting, and no templating. Swapping a suite to a different output
+format is a one-line options change in the runner.</p></li>
+<li><p><strong>All templating lives in one place —
+<code>test_defaults.hpp</code>.</strong> How a report is projected onto
+the console, a PDF, or the parseable <code>|...|</code> table is decided
+by <code>run_module</code> / <code>drive_report</code> inside
+<code>test_defaults.hpp</code>. Change the format there and every suite
+inherits it. Runners never re-implement any of it.</p></li>
+</ol>
+<p>The mechanism that makes (1) and (2) coexist in one header is
+<code>DTEST_SPEC_MODE</code> (Section 3). The pipeline that realizes (3)
+is described in Section 8.</p>
+<hr />
+<h2 id="2-anatomy-of-a-suite--four-artifacts-four-locations">2. Anatomy
+of a suite — four artifacts, four locations</h2>
+<p>Take a component <code>something</code> whose header is
+<code>inc/djinterp/foo/bar/something.hpp</code>. The slug
+<strong><code>djinterp/foo/bar</code></strong> is the key that repeats
+verbatim under every root. A suite for it is exactly four kinds of
+file:</p>
+<table>
+<thead>
+<tr class="header">
+<th>Artifact</th>
+<th>Path</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Header under test</strong></td>
+<td><code>inc/djinterp/foo/bar/something.hpp</code></td>
+<td>the code being tested (not part of the suite)</td>
+</tr>
+<tr class="even">
+<td><strong>Suite header</strong></td>
+<td><code>tests/djinterp/foo/bar/something_tests.hpp</code></td>
+<td>declarations + fixtures + <strong>the spec provider</strong></td>
+</tr>
+<tr class="odd">
+<td><strong>Section TUs</strong></td>
+<td><code>tests/djinterp/foo/bar/something_tests_&lt;section&gt;.cpp</code></td>
+<td>the test bodies, one file per section</td>
+</tr>
+<tr class="even">
+<td><strong>Runner</strong></td>
+<td><code>build/cmake/config/testing/djinterp/foo/bar/something_tests_runner.cpp</code></td>
+<td><code>main()</code> — options + <code>run_module</code></td>
+</tr>
+<tr class="odd">
+<td><strong>CMakeLists</strong></td>
+<td><code>build/cmake/config/testing/djinterp/foo/bar/CMakeLists.txt</code></td>
+<td>wires the exe</td>
+</tr>
+</tbody>
+</table>
+<p>Two things that trip people up:</p>
+<ul>
+<li><strong>The runner lives in the config tree, not in
+<code>tests/</code>.</strong> <code>tests/</code> holds only the suite
+header and the section TUs. The <code>main()</code> sits next to its
+<code>CMakeLists.txt</code>.</li>
+<li><strong>The config path is prefixed with
+<code>testing/</code>.</strong> <code>inc/</code>, <code>src/</code>,
+and <code>tests/</code> are not; the config tree is
+<code>config/testing/djinterp/...</code>. That <code>testing/</code>
+segment is what lands the built exe under
+<code>bin/&lt;arch&gt;-&lt;Config&gt;/testing/djinterp/...</code>.</li>
+</ul>
+<p>Linking the runner (<code>main()</code>) with the section TUs (which
+<em>define</em> the <code>tests_*</code> bodies) produces the test
+executable. The suite header is included by both, in its two different
+faces.</p>
+<hr />
+<h2 id="3-the-suite-header--the-two-faces-of-dtest_spec_mode">3. The
+suite header — the two faces of <code>DTEST_SPEC_MODE</code></h2>
+<p>The suite header is included by two different kinds of consumer, and
+it presents a different face to each, selected by whether the includer
+has <code>#define DTEST_SPEC_MODE</code> before the
+<code>#include</code>:</p>
+<ul>
+<li><strong>Normal mode</strong> (the section TUs — no macro): the
+header pulls in the <em>header under test</em> and exposes the
+<strong>fixtures</strong> and the <strong>check macro</strong> the
+bodies need. The section TUs then define the <code>tests_*</code>
+bodies.</li>
+<li><strong>Spec mode</strong> (the runner — macro defined): the header
+pulls in <code>djinterp/cpp/modules/test/test_defaults.hpp</code>
+instead (for <code>module_spec</code> and <code>run_module</code>) and
+exposes the <strong><code>&lt;shortname&gt;_spec()</code>
+provider</strong>. No fixtures are compiled.</li>
+</ul>
+<p>The <code>bool tests_*();</code> <strong>declarations are visible in
+both modes</strong> — the section TUs define them, and the spec provider
+references them by address.</p>
+<h3 id="31-the-three-part-structure">3.1 The three-part structure</h3>
+<p>Every migrated header follows the same three-part shape. Here is the
+skeleton (comments show the invariants):</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#ifndef DJINTERP_TESTS_SOMETHING_TESTS_</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="pp">#define DJINTERP_TESTS_SOMETHING_TESTS_ </span><span class="dv">1</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co">// std</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;cstdio&gt;</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="co">// ... whatever std headers the fixtures need ...</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="co">// -- (part 1) mode-gated includes ------------------------------------------</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="co">// djinterp core is ALWAYS first and unconditional (NS_*, D_* qualifiers,</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="co">// language gates), so both faces have it.</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;djinterp/cpp/djinterp.hpp&gt;</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="pp">#ifndef DTEST_SPEC_MODE</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&quot;something.hpp&quot;</span><span class="pp">                       </span><span class="co">// the header under test (normal)</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="pp">#endif</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="pp">#ifdef DTEST_SPEC_MODE</span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&quot;djinterp/cpp/modules/test/test_defaults.hpp&quot;</span><span class="pp">     </span><span class="co">// module_spec + run_module (spec)</span></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a><span class="pp">#endif</span></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>NS_DJINTERP</span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>NS_TESTING</span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a><span class="co">// dt names the entities under test (djinterp::test).  Declared UNCONDITIONALLY,</span></span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a><span class="co">// because the spec provider (spec mode) needs dt::module_spec too.</span></span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a><span class="kw">namespace</span> dt <span class="op">=</span> <span class="op">::</span>djinterp<span class="op">::</span>test<span class="op">;</span></span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a><span class="co">// A self-contained check macro: evaluate once, print the failing expression and</span></span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a><span class="co">// its location, return false.  Unique two letters per suite (D_ST_ here) so</span></span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a><span class="co">// co-compiled suites never collide.  Left OUTSIDE the fixture guard because it</span></span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a><span class="co">// depends on nothing from the header under test.</span></span>
+<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a><span class="pp">#define D_ST_CHECK</span><span class="op">(...)</span><span class="pp">                                                       </span><span class="op">\</span></span>
+<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a><span class="pp">    </span><span class="co">/* do/while + printf, or a routed helper function; returns the condition */</span></span>
+<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a><span class="pp">#ifndef DTEST_SPEC_MODE  </span><span class="co">// (part 1 cont.) fixtures — normal mode only</span></span>
+<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a><span class="co">// ... fixtures that mention the header-under-test&#39;s types live HERE, because in</span></span>
+<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a><span class="co">// spec mode those types are not included ...</span></span>
+<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a><span class="pp">#endif  </span><span class="co">// !DTEST_SPEC_MODE  (fixtures)</span></span>
+<span id="cb1-39"><a href="#cb1-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-40"><a href="#cb1-40" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-41"><a href="#cb1-41" aria-hidden="true" tabindex="-1"></a><span class="co">// -- (part 2) declarations — visible in BOTH modes -------------------------</span></span>
+<span id="cb1-42"><a href="#cb1-42" aria-hidden="true" tabindex="-1"></a><span class="co">// One flat list, grouped by section with a banner per section.  The section</span></span>
+<span id="cb1-43"><a href="#cb1-43" aria-hidden="true" tabindex="-1"></a><span class="co">// banner names the .cpp that defines the group.</span></span>
+<span id="cb1-44"><a href="#cb1-44" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-45"><a href="#cb1-45" aria-hidden="true" tabindex="-1"></a><span class="co">// I.  &lt;SECTION NAME&gt;   (something_tests_&lt;section&gt;.cpp)</span></span>
+<span id="cb1-46"><a href="#cb1-46" aria-hidden="true" tabindex="-1"></a><span class="dt">bool</span> tests_something_alpha<span class="op">();</span></span>
+<span id="cb1-47"><a href="#cb1-47" aria-hidden="true" tabindex="-1"></a><span class="dt">bool</span> tests_something_beta<span class="op">();</span></span>
+<span id="cb1-48"><a href="#cb1-48" aria-hidden="true" tabindex="-1"></a><span class="co">// ...</span></span>
+<span id="cb1-49"><a href="#cb1-49" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-50"><a href="#cb1-50" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-51"><a href="#cb1-51" aria-hidden="true" tabindex="-1"></a><span class="co">// -- (part 3) the spec provider — spec mode only ---------------------------</span></span>
+<span id="cb1-52"><a href="#cb1-52" aria-hidden="true" tabindex="-1"></a><span class="pp">#ifdef DTEST_SPEC_MODE</span></span>
+<span id="cb1-53"><a href="#cb1-53" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> dt<span class="op">::</span>module_spec</span>
+<span id="cb1-54"><a href="#cb1-54" aria-hidden="true" tabindex="-1"></a>something_spec<span class="op">()</span></span>
+<span id="cb1-55"><a href="#cb1-55" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb1-56"><a href="#cb1-56" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> dt<span class="op">::</span>module_spec<span class="op">{</span></span>
+<span id="cb1-57"><a href="#cb1-57" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;something&quot;</span><span class="op">,</span></span>
+<span id="cb1-58"><a href="#cb1-58" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;&lt;one-paragraph module descriptor: what this module is and does&gt;&quot;</span><span class="op">,</span></span>
+<span id="cb1-59"><a href="#cb1-59" aria-hidden="true" tabindex="-1"></a>        <span class="op">{</span></span>
+<span id="cb1-60"><a href="#cb1-60" aria-hidden="true" tabindex="-1"></a>            dt<span class="op">::</span>block_spec<span class="op">{</span></span>
+<span id="cb1-61"><a href="#cb1-61" aria-hidden="true" tabindex="-1"></a>                <span class="st">&quot;&lt;block-name&gt;&quot;</span><span class="op">,</span></span>
+<span id="cb1-62"><a href="#cb1-62" aria-hidden="true" tabindex="-1"></a>                <span class="st">&quot;&lt;what this group of tests covers&gt;&quot;</span><span class="op">,</span></span>
+<span id="cb1-63"><a href="#cb1-63" aria-hidden="true" tabindex="-1"></a>                <span class="op">{</span></span>
+<span id="cb1-64"><a href="#cb1-64" aria-hidden="true" tabindex="-1"></a>                    <span class="op">{</span> <span class="st">&quot;tests_something_alpha&quot;</span><span class="op">,</span></span>
+<span id="cb1-65"><a href="#cb1-65" aria-hidden="true" tabindex="-1"></a>                      <span class="st">&quot;&lt;what tests_something_alpha actually asserts&gt;&quot;</span><span class="op">,</span></span>
+<span id="cb1-66"><a href="#cb1-66" aria-hidden="true" tabindex="-1"></a>                      <span class="op">&amp;</span>tests_something_alpha <span class="op">},</span></span>
+<span id="cb1-67"><a href="#cb1-67" aria-hidden="true" tabindex="-1"></a>                    <span class="op">{</span> <span class="st">&quot;tests_something_beta&quot;</span><span class="op">,</span></span>
+<span id="cb1-68"><a href="#cb1-68" aria-hidden="true" tabindex="-1"></a>                      <span class="st">&quot;&lt;what tests_something_beta actually asserts&gt;&quot;</span><span class="op">,</span></span>
+<span id="cb1-69"><a href="#cb1-69" aria-hidden="true" tabindex="-1"></a>                      <span class="op">&amp;</span>tests_something_beta <span class="op">},</span></span>
+<span id="cb1-70"><a href="#cb1-70" aria-hidden="true" tabindex="-1"></a>                <span class="op">}</span></span>
+<span id="cb1-71"><a href="#cb1-71" aria-hidden="true" tabindex="-1"></a>            <span class="op">},</span></span>
+<span id="cb1-72"><a href="#cb1-72" aria-hidden="true" tabindex="-1"></a>            <span class="co">// ... one block_spec per section ...</span></span>
+<span id="cb1-73"><a href="#cb1-73" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span></span>
+<span id="cb1-74"><a href="#cb1-74" aria-hidden="true" tabindex="-1"></a>    <span class="op">};</span></span>
+<span id="cb1-75"><a href="#cb1-75" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb1-76"><a href="#cb1-76" aria-hidden="true" tabindex="-1"></a><span class="pp">#endif  </span><span class="co">// DTEST_SPEC_MODE</span></span>
+<span id="cb1-77"><a href="#cb1-77" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-78"><a href="#cb1-78" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-79"><a href="#cb1-79" aria-hidden="true" tabindex="-1"></a>NS_END  <span class="co">// testing</span></span>
+<span id="cb1-80"><a href="#cb1-80" aria-hidden="true" tabindex="-1"></a>NS_END  <span class="co">// djinterp</span></span>
+<span id="cb1-81"><a href="#cb1-81" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-82"><a href="#cb1-82" aria-hidden="true" tabindex="-1"></a><span class="pp">#endif  </span><span class="co">// DJINTERP_TESTS_SOMETHING_TESTS_</span></span></code></pre></div>
+<p>The three edits that turn a legacy header into this shape:</p>
+<ol type="1">
+<li><strong>Mode-gate the include</strong>, put
+<code>djinterp/cpp/djinterp.hpp</code> first and unconditional, add
+<code>namespace dt = ::djinterp::test;</code> unconditionally, and open
+<code>#ifndef DTEST_SPEC_MODE</code> before the fixtures.</li>
+<li><strong>Close
+<code>#endif  // !DTEST_SPEC_MODE  (fixtures)</code></strong>
+immediately before the first <code>bool tests_*();</code>
+declaration.</li>
+<li><strong>Insert the
+<code>#ifdef DTEST_SPEC_MODE ... provider ... #endif</code></strong>
+block immediately before the closing
+<code>NS_END  // testing</code>.</li>
+</ol>
+<h3 id="32-where-the-fixture-guard-opens">3.2 Where the fixture guard
+opens</h3>
+<p>The guard opens <strong>after</strong> anything that is
+self-contained and <strong>before</strong> anything that touches the
+header under test:</p>
+<ul>
+<li>The <strong>check macro</strong> and any pure helper functions it
+routes through (plain <code>printf</code> / <code>strcmp</code>, no
+framework types) stay <strong>unconditional</strong>, above the guard.
+The runner never uses them, but leaving them out of the guard is
+harmless and keeps them simple.</li>
+<li><strong>Fixtures that reference the header-under-test's
+types</strong> (probes, sample builders, type aliases like
+<code>using tt = test::test_timer&lt;...&gt;;</code>) must be
+<strong>inside</strong> the guard — in spec mode the header under test
+is not included, so those names do not exist.</li>
+</ul>
+<h3 id="33-the-check-macro-convention">3.3 The check macro
+convention</h3>
+<p>Each suite defines exactly one check macro with a <strong>unique
+two-letter suffix</strong> (<code>D_TK_</code>, <code>D_TP_</code>,
+<code>D_TO_</code>, <code>D_RT_</code>, <code>D_TR_</code>,
+<code>D_OC_</code>, <code>D_TT_</code>, <code>D_TE_</code>, …) so
+several suites can be compiled into one TU set without macro collisions.
+Two equivalent shapes are in use:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">// (a) pure macro — a self-contained do/while that returns false on failure</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="pp">#define D_ST_CHECK</span><span class="op">(</span>_cond<span class="op">)</span><span class="pp">                                                     </span><span class="op">\</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="pp">    </span><span class="cf">do</span><span class="pp"> </span><span class="op">{</span><span class="pp">                                                                      </span><span class="op">\</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="pp">        </span><span class="cf">if</span><span class="pp"> </span><span class="op">(!(</span>_cond<span class="op">))</span><span class="pp"> </span><span class="op">{</span><span class="pp">                                                       </span><span class="op">\</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="pp">            </span><span class="bu">std::</span>printf<span class="op">(</span><span class="st">&quot;    check failed: </span><span class="sc">%s\n</span><span class="st">    at: </span><span class="sc">%s</span><span class="st">:</span><span class="sc">%d\n</span><span class="st">&quot;</span><span class="op">,</span><span class="pp">              </span><span class="op">\</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="pp">                        </span><span class="op">#</span>_cond<span class="op">,</span><span class="pp"> </span><span class="ot">__FILE__</span><span class="op">,</span><span class="pp"> </span><span class="ot">__LINE__</span><span class="op">);</span><span class="pp">                          </span><span class="op">\</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="pp">            </span><span class="cf">return</span><span class="pp"> </span><span class="kw">false</span><span class="op">;</span><span class="pp">                                                     </span><span class="op">\</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="pp">        </span><span class="op">}</span><span class="pp">                                                                     </span><span class="op">\</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="pp">    </span><span class="op">}</span><span class="pp"> </span><span class="cf">while</span><span class="pp"> </span><span class="op">(</span><span class="dv">0</span><span class="op">)</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="co">// (b) routed through a helper — variadic so a top-level comma in a trait</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a><span class="co">//     expression passes through whole</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="dt">bool</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>something_check<span class="op">(</span><span class="dt">bool</span> _cond<span class="op">,</span> <span class="at">const</span> <span class="dt">char</span><span class="op">*</span> _expr<span class="op">,</span> <span class="at">const</span> <span class="dt">char</span><span class="op">*</span> _file<span class="op">,</span> <span class="dt">int</span> _line<span class="op">)</span></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="op">(!</span>_cond<span class="op">)</span> <span class="bu">std::</span>printf<span class="op">(</span><span class="st">&quot;    [FAIL] </span><span class="sc">%s</span><span class="st">:</span><span class="sc">%d</span><span class="st">: </span><span class="sc">%s\n</span><span class="st">&quot;</span><span class="op">,</span> _file<span class="op">,</span> _line<span class="op">,</span> _expr<span class="op">);</span></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> _cond<span class="op">;</span></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a><span class="pp">#define D_ST_CHECK</span><span class="op">(...)</span><span class="pp">                                                       </span><span class="op">\</span></span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a><span class="pp">    </span><span class="op">::</span>djinterp<span class="op">::</span>testing<span class="op">::</span>something_check<span class="op">(</span><span class="pp">                                     </span><span class="op">\</span></span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a><span class="pp">        </span><span class="op">(</span><span class="ot">__VA_ARGS__</span><span class="op">),</span><span class="pp"> </span><span class="op">#</span><span class="ot">__VA_ARGS__</span><span class="op">,</span><span class="pp"> </span><span class="ot">__FILE__</span><span class="op">,</span><span class="pp"> </span><span class="ot">__LINE__</span><span class="op">)</span></span></code></pre></div>
+<p>Use the variadic <code>...</code> form whenever a checked expression
+can contain a top-level comma (e.g.
+<code>std::is_same&lt;A, B&gt;::value</code>).</p>
+<h3 id="34-the-spec-data-model">3.4 The spec data model</h3>
+<p>The provider builds a <code>module_spec</code> out of three aggregate
+types (defined in <code>test_defaults.hpp</code>):</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> test_spec   <span class="op">{</span> <span class="at">const</span> <span class="dt">char</span><span class="op">*</span> name<span class="op">;</span> <span class="at">const</span> <span class="dt">char</span><span class="op">*</span> descriptor<span class="op">;</span> test_fn_ptr fn<span class="op">;</span> <span class="op">};</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> block_spec  <span class="op">{</span> <span class="at">const</span> <span class="dt">char</span><span class="op">*</span> name<span class="op">;</span> <span class="at">const</span> <span class="dt">char</span><span class="op">*</span> descriptor<span class="op">;</span> <span class="bu">std::</span>vector<span class="op">&lt;</span>test_spec<span class="op">&gt;</span>  tests<span class="op">;</span>  <span class="op">};</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> module_spec <span class="op">{</span> <span class="at">const</span> <span class="dt">char</span><span class="op">*</span> name<span class="op">;</span> <span class="at">const</span> <span class="dt">char</span><span class="op">*</span> descriptor<span class="op">;</span> <span class="bu">std::</span>vector<span class="op">&lt;</span>block_spec<span class="op">&gt;</span> blocks<span class="op">;</span> <span class="op">};</span></span></code></pre></div>
+<ul>
+<li>A <strong>block</strong> corresponds one-to-one to a <strong>section
+TU</strong>. Its name is a short slug (<code>"construction"</code>,
+<code>"dispatch"</code>, <code>"verdict"</code>); its descriptor is a
+sentence describing the group.</li>
+<li>A <strong>test</strong> row is
+<code>{ "tests_name", "descriptor", &amp;tests_name }</code>. The
+<code>name</code> string should match the function; the descriptor is
+what the test <em>verifies</em>; the pointer is the address of the
+declaration above.</li>
+</ul>
+<p><strong>Naming the provider.</strong> The shortname is the component
+minus its <code>test_</code> prefix:
+<code>test_pack → pack_spec()</code>,
+<code>test_object → object_spec()</code>,
+<code>test_output → output_spec()</code>. (<code>test_kind</code> is the
+one exception that kept the full name <code>test_kind_spec()</code>,
+matching its original runner.)</p>
+<p><strong>Conditional blocks.</strong> If some declarations are gated
+behind a feature macro, the matching block or rows must be gated behind
+the <em>same</em> macro so the address-of references stay in step with
+the declarations on every build. For example <code>test_traits</code>'
+concept block is wrapped in
+<code>#if D_ENV_CPP_FEATURE_LANG_CONCEPTS ... #endif</code>, exactly as
+its concept-layer declarations are.</p>
+<h3 id="35-writing-good-descriptors">3.5 Writing good descriptors</h3>
+<p>Descriptors are the metadata that makes reports detailed and
+well-written, so they must be <strong>accurate to what the test actually
+checks</strong>, in this order of preference:</p>
+<ol type="1">
+<li><strong>Author <code>/* Verifies … */</code> blocks.</strong> Some
+bodies carry a comment block above each test stating what it verifies;
+lift that sentence directly (this is how <code>session</code>,
+<code>timer</code>, <code>counter</code>, <code>tree</code> were
+written).</li>
+<li><strong>The test's first assertion.</strong> Where there is no
+comment, read the first <code>D_xx_CHECK(...)</code> in the body and
+describe what it asserts (this is how <code>pack</code>,
+<code>object</code>, <code>defaults</code>, <code>event</code>,
+<code>traits</code>, and the <code>output/</code> cluster were
+written).</li>
+<li><strong>The function name.</strong> Names in this codebase are
+highly descriptive and are a reliable last resort, but confirm against
+the body where you can.</li>
+</ol>
+<p>Keep each descriptor to one clause; it becomes a single table
+cell.</p>
+<h3
+id="36-the-special-case--a-header-that-is-its-own-authoring-surface">3.6
+The special case — a header that is its own authoring surface</h3>
+<p><code>test_defaults.hpp</code> is both a header under test
+<em>and</em> the surface that supplies <code>module_spec</code> /
+<code>run_module</code>. Its suite
+(<code>test_defaults_tests.hpp</code>) therefore does
+<strong>not</strong> swap the include between modes —
+<code>test_defaults.hpp</code> is included in both. Only the check
+helpers are gated. Every other suite swaps normally.</p>
+<hr />
+<h2 id="4-the-section-translation-units">4. The section translation
+units</h2>
+<p>The bodies live in
+<code>tests/djinterp/foo/bar/something_tests_&lt;section&gt;.cpp</code>,
+one file per section (matching the header's blocks). A section TU:</p>
+<ul>
+<li>Includes the suite header in <strong>normal mode</strong> (it does
+<strong>not</strong> <code>#define DTEST_SPEC_MODE</code>), which gives
+it the header under test, the fixtures, and the check macro.</li>
+<li>Opens <code>NS_DJINTERP NS_TESTING</code> and
+<strong>defines</strong> the <code>tests_*</code> functions declared in
+the header, flat in <code>djinterp::testing</code>.</li>
+<li>Each <code>tests_*</code> returns <code>bool</code> —
+<code>true</code> for pass. It runs its assertions through the suite's
+<code>D_xx_CHECK</code> macro (which early-returns <code>false</code> on
+the first failure) and returns <code>true</code> at the end.</li>
+</ul>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co">// tests/djinterp/foo/bar/something_tests_construction.cpp</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&quot;something_tests.hpp&quot;</span><span class="pp">     </span><span class="co">// normal mode: fixtures + macro + header under test</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>NS_DJINTERP</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>NS_TESTING</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="dt">bool</span> tests_something_alpha<span class="op">()</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>    something s<span class="op">;</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>    D_ST_CHECK<span class="op">(</span>s<span class="op">.</span>ready<span class="op">());</span></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>    D_ST_CHECK<span class="op">(</span>s<span class="op">.</span>count<span class="op">()</span> <span class="op">==</span> <span class="dv">0</span><span class="bu">u</span><span class="op">);</span></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="kw">true</span><span class="op">;</span></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a><span class="co">// ... the rest of this section&#39;s bodies ...</span></span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>NS_END</span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>NS_END</span></code></pre></div>
+<p>The header's spec provider and the section TUs stay in step by
+construction: the provider references every declaration by address, and
+each declaration is defined in exactly one section TU.</p>
+<hr />
+<h2 id="5-the-runner">5. The runner</h2>
+<p>The runner is a thin <code>main()</code> in the config tree. It
+defines <code>DTEST_SPEC_MODE</code> (selecting the header's provider
+face), includes the suite header, configures a
+<code>test_option_set</code>, and hands the spec to
+<code>run_module</code>:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co">// build/cmake/config/testing/djinterp/foo/bar/something_tests_runner.cpp</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="pp">#define DTEST_SPEC_MODE            </span><span class="co">// suite exposes its spec provider, not fixtures</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="co">// std</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;string&gt;</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="co">// djinterp</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&quot;something_tests.hpp&quot;</span><span class="pp">     </span><span class="co">// relative to the tests dir via INCLUDES</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>main<span class="op">()</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>    <span class="kw">namespace</span> dt <span class="op">=</span> <span class="op">::</span>djinterp<span class="op">::</span>test<span class="op">;</span></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>    <span class="kw">namespace</span> tt <span class="op">=</span> <span class="op">::</span>djinterp<span class="op">::</span>testing<span class="op">;</span></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>    dt<span class="op">::</span>test_option_set opts <span class="op">=</span> dt<span class="op">::</span>default_test_options<span class="op">();</span></span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>    opts<span class="op">.</span>set<span class="op">&lt;</span>dt<span class="op">::</span>test_option<span class="op">::</span>document<span class="op">&gt;(</span>dt<span class="op">::</span><span class="dt">test_doc_type</span><span class="op">::</span>pdf<span class="op">);</span></span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>    opts<span class="op">.</span>set<span class="op">&lt;</span>dt<span class="op">::</span>test_option<span class="op">::</span>output_file<span class="op">&gt;(</span><span class="bu">std::</span>string<span class="op">(</span><span class="st">&quot;something_tests.pdf&quot;</span><span class="op">));</span></span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> dt<span class="op">::</span>run_module<span class="op">(</span></span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>        tt<span class="op">::</span>something_spec<span class="op">(),</span></span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;something.hpp unit tests&quot;</span><span class="op">,</span>                 <span class="co">// title</span></span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;&lt;one-line subtitle for the report&gt;&quot;</span><span class="op">,</span>       <span class="co">// subtitle</span></span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a>        opts<span class="op">);</span></span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>Notes:</p>
+<ul>
+<li><strong><code>dt</code> = <code>::djinterp::test</code>,
+<code>tt</code> = <code>::djinterp::testing</code>.</strong> The spec
+provider is in <code>djinterp::testing</code>; the option types and
+<code>run_module</code> are in <code>djinterp::test</code>.</li>
+<li><strong>The runner defines <code>DTEST_SPEC_MODE</code>
+itself</strong> (in the <code>.cpp</code>), not through CMake. CMake
+needs no <code>DEFINES</code> for this.</li>
+<li><strong>Options only.</strong> The runner never formats a report or
+names anything the pipeline can name for it; all of that is inside
+<code>run_module</code>.</li>
+<li>The header include path (<code>"something_tests.hpp"</code> bare)
+resolves through the <code>INCLUDES</code> the CMakeLists adds (Section
+6). For suites under an extra directory level (e.g.
+<code>.../test/output/</code>), the relative <code>../</code> count in
+the runner's include changes accordingly, but the shape is
+identical.</li>
+</ul>
+<p><code>run_module</code> returns <code>0</code> when the module passes
+clean and non-zero otherwise, so <code>return run_module(...)</code> is
+the whole of <code>main</code>.</p>
+<hr />
+<h2 id="6-the-cmakeliststxt">6. The <code>CMakeLists.txt</code></h2>
+<p>The config tree mirrors <code>inc/</code> / <code>src/</code> /
+<code>tests/</code>, and the root config publishes cache variables you
+must always use instead of hand-rolled paths:
+<code>DJINTERP_INC_ROOT</code> (<code>inc/</code>),
+<code>DJINTERP_TESTS_ROOT</code> (<code>tests/</code>),
+<code>DJINTERP_CONFIG_ROOT</code>, <code>DJINTERP_BIN_ROOT</code>.</p>
+<h3 id="61-the-leaf-recipe-header-only-module-no-src">6.1 The leaf
+recipe (header-only module, no <code>src/</code>)</h3>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode cmake"><code class="sourceCode cmake"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="kw">set</span>(<span class="va">_tests_dir</span> <span class="st">&quot;</span><span class="dv">${DJINTERP_TESTS_ROOT}</span><span class="st">/djinterp/foo/bar&quot;</span>)</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="kw">file</span>(<span class="ot">GLOB</span> <span class="va">_sources</span> <span class="ot">CONFIGURE_DEPENDS</span> <span class="st">&quot;</span><span class="dv">${</span><span class="va">_tests_dir</span><span class="dv">}</span><span class="st">/something_tests_*.cpp&quot;</span>)</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="kw">list</span>(<span class="ot">FILTER</span> <span class="va">_sources</span> <span class="ot">EXCLUDE</span> <span class="ot">REGEX</span> <span class="st">&quot;_main</span><span class="sc">\\</span><span class="st">.cpp$&quot;</span>)</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="fu">djinterp_add_test_executable</span>(something_tests</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>    SOURCES</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;</span><span class="dv">${CMAKE_CURRENT_SOURCE_DIR}</span><span class="st">/something_tests_runner.cpp&quot;</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>        <span class="dv">${</span><span class="va">_sources</span><span class="dv">}</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>    INCLUDES</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;</span><span class="dv">${DJINTERP_INC_ROOT}</span><span class="st">/djinterp/foo/bar&quot;</span>    <span class="co"># bare header-under-test include</span></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;</span><span class="dv">${</span><span class="va">_tests_dir</span><span class="dv">}</span><span class="st">&quot;</span>)                           <span class="co"># bare suite-header include</span></span></code></pre></div>
+<h3 id="62-why-exactly-those-two-includes">6.2 Why exactly those two
+<code>INCLUDES</code></h3>
+<p><code>djinterp_add_test_executable</code> adds <strong>only</strong>
+<code>inc/</code> to the target. The suite header's two faces need two
+more roots on top of that:</p>
+<table>
+<thead>
+<tr class="header">
+<th>Include, and where it appears</th>
+<th>Resolved by</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>#include "something_tests.hpp"</code> — bare,
+<strong>both</strong> faces</td>
+<td><code>tests/djinterp/foo/bar</code></td>
+</tr>
+<tr class="even">
+<td><code>#include "something.hpp"</code> — bare,
+<strong>normal</strong> face (section TUs)</td>
+<td><code>inc/djinterp/foo/bar</code></td>
+</tr>
+<tr class="odd">
+<td><code>#include "djinterp/cpp/djinterp.hpp"</code> and
+<code>"djinterp/cpp/modules/test/test_defaults.hpp"</code> —
+full-from-inc, <strong>spec</strong> face (the runner)</td>
+<td>the <code>inc/</code> root the helper already adds</td>
+</tr>
+</tbody>
+</table>
+<p>So the <strong>section TUs</strong> (normal mode) are the reason
+<code>inc/djinterp/foo/bar</code> is needed; the <strong>runner</strong>
+(spec mode) needs only the helper's <code>inc/</code> root. Both
+directories listed above cover both faces. The <code>_main.cpp</code>
+filter drops any stale <code>tests/…_main.cpp</code> so two
+<code>main()</code>s never collide at link.</p>
+<h3 id="63-sources-runner-explicit-sections-globbed">6.3 Sources: runner
+explicit, sections globbed</h3>
+<p>The <strong>runner</strong> is listed explicitly from <em>this</em>
+directory (<code>${CMAKE_CURRENT_SOURCE_DIR}/…_runner.cpp</code>)
+because it lives in the config tree; the <strong>section TUs</strong>
+are globbed from the <code>tests/</code> directory. Together they link
+into the exe. The exe lands at
+<code>bin/&lt;arch&gt;-&lt;Config&gt;/testing/djinterp/foo/bar/something_tests</code>
+— computed from where this CMakeLists sits; never set output directories
+by hand.</p>
+<h3 id="64-aggregation-and-clusters">6.4 Aggregation and clusters</h3>
+<ul>
+<li>To make a group target at some level, drop a one-line aggregate:
+<code>djinterp_add_test_subtree(&lt;globally_unique_name&gt;)</code>. It
+recurses into child dirs that have a <code>CMakeLists.txt</code> and
+depends on every test exe at or below it. Composition is automatic (a
+leaf is a member of every aggregate above it).</li>
+<li>A directory may be a leaf and an aggregate at once. If a directory
+already carries a CMakeLists for a sibling suite (e.g. several suites
+share <code>output/</code>), do <strong>not</strong> add a second file —
+<strong>merge</strong> the new
+<code>djinterp_add_test_executable(...)</code> call into the existing
+one (a multi-exe cluster). Recursion only enters directories that have a
+<code>CMakeLists.txt</code>, so the parent must have an aggregate for
+the build to descend.</li>
+<li>That merge rule is for suites <strong>already in the tree</strong>.
+A suite arriving as a delivery takes the leaf-directory form instead,
+because a zip cannot merge into a file it cannot see — see Section
+7.2.</li>
+</ul>
+<p>The helper links <code>djinterp_c_runtime</code>, defines
+<code>D_TESTING=1</code>, builds C++20/C17
+<code>/permissive- /Zc:preprocessor</code> under MSVC, and registers
+CTest (<code>ctest -R something_tests</code>).</p>
+<p>Each suite stays its own executable, and each module also has one
+target and one CTest label over all of its suites (ruled 2026.11.17):
+the module is the first folder under
+<code>testing/djinterp/&lt;language&gt;/</code>, with
+<code>modules/</code> and <code>core/</code> skipped and
+<code>util/</code> as <code>utility</code>; <code>env/</code> and
+<code>tools/</code> are modules of their own; a suite directly in a
+language folder is <code>root</code>. So, for every suite of the
+container module, in both languages:</p>
+<pre><code>cmake --build build --target djinterp_tests_container    # build them
+ctest --test-dir build -L container                      # run them</code></pre>
+<p>The label and the target come from the suite's path, so a new suite
+needs nothing more than its leaf.</p>
+<hr />
+<h2 id="7-delivering-a-suite--the-zip-and-its-tree">7. Delivering a
+suite — the zip and its tree</h2>
+<p>A finished suite is handed over as <strong>a single zip whose root is
+the repository root</strong>. Unzipping it at the top of a checkout puts
+every file exactly where Section 2 says it belongs — no path fixing, no
+per-file copying, no guessing at which half of the tree a given file was
+meant for. Nothing in the archive is nested under a project folder, a
+date stamp, or the component name.</p>
+<h3 id="71-the-tree">7.1 The tree</h3>
+<p>For a component <code>something</code> under the slug
+<code>djinterp/foo/bar</code>:</p>
+<pre><code>&lt;zip root&gt;
+----build
+--------cmake
+------------config
+----------------testing
+--------------------djinterp
+------------------------foo
+----------------------------bar
+--------------------------------something
+------------------------------------CMakeLists.txt
+------------------------------------something_tests_runner.cpp
+----tests
+--------djinterp
+------------foo
+----------------bar
+--------------------something_tests.hpp
+--------------------something_tests_&lt;section&gt;.cpp     (one per block)</code></pre>
+<p>Two rules the tree encodes:</p>
+<ul>
+<li><strong>The <code>tests/</code> side is flat under the
+slug.</strong> The suite header and every section TU sit directly in
+<code>tests/djinterp/foo/bar/</code>, beside any sibling suite's files.
+They are told apart by their <code>something_tests_</code> stem, which
+is exactly what the CMakeLists glob keys on — which is why the stem has
+to be the component name and nothing else.</li>
+<li><strong>The config side gets one leaf directory per
+component.</strong> The runner and its <code>CMakeLists.txt</code> live
+together in <code>.../bar/something/</code>, one level below the slug.
+Each component therefore ships a self-contained pair that can be dropped
+in, built, moved, or deleted without touching another suite's
+wiring.</li>
+</ul>
+<h3 id="72-why-a-leaf-directory-per-component-when-64-says-merge">7.2
+Why a leaf directory per component, when 6.4 says merge</h3>
+<p>Section 6.4 tells you to merge a new
+<code>djinterp_add_test_executable(...)</code> call into a CMakeLists
+that already exists rather than adding a second file. That is the right
+rule <strong>inside the tree</strong>, where you can see the file you
+are merging into. It is the wrong rule for a delivery, for a mechanical
+reason: a zip overwrites. An archive that shipped
+<code>.../bar/CMakeLists.txt</code> would silently replace whatever
+wiring already sat there, and neither side would find out until some
+unrelated suite stopped building.</p>
+<p>So a delivery never writes a file it does not own. Giving each
+component its own leaf directory makes ownership total — every path in
+the zip is new, and unzipping cannot destroy anything. Merging into a
+shared cluster afterwards is a local decision you can make with the
+existing file in front of you; collapsing the leaves back into one
+CMakeLists is a copy of three <code>djinterp_add_test_executable</code>
+calls and a delete.</p>
+<h3 id="73-what-the-zip-deliberately-leaves-out">7.3 What the zip
+deliberately leaves out</h3>
+<ul>
+<li><strong>Parent aggregates.</strong> No <code>CMakeLists.txt</code>
+at <code>.../foo/bar/</code> or <code>.../foo/</code>, for the overwrite
+reason above. Recursion only enters directories that have one (6.4), so
+<strong>if the parent has no CMakeLists, nothing below it is
+reached</strong> — add the one-line
+<code>djinterp_add_test_subtree(&lt;unique_name&gt;)</code> yourself. A
+delivery that omits an aggregate should say so out loud rather than
+leave it to be discovered by a suite that never runs.</li>
+<li><strong>The header under test.</strong> A suite ships test artifacts
+only. The module is the thing being tested, not part of the
+deliverable.</li>
+<li><strong>Build output</strong>, scratch mains, and anything under
+<code>bin/</code>.</li>
+</ul>
+<h3 id="74-broken-dependencies-are-reported-never-patched">7.4 Broken
+dependencies are reported, never patched</h3>
+<p>If the header under test does not compile as shipped — a stale macro
+name, a dangling include, a claim the code cannot honour — the suite is
+still delivered, and the fix is <strong>recorded in the suite header's
+preamble</strong> under a <code>BUILD PREREQUISITE</code> heading, with
+the exact substitution needed. The delivery does not edit the module
+under test and does not quietly work around it.</p>
+<p>The reason is that a test suite is evidence, and evidence that
+silently repaired its own subject proves nothing. A suite whose preamble
+names the two-token fix it needs is a suite you can trust; one that
+shipped green against a header the author had patched is a suite you
+cannot. The same applies to behaviour the tests found and did not like:
+pin it, name it in the descriptor, and say in the preamble that the
+assertion is expected to invert when the module is fixed.</p>
+<h3 id="75-cross-slug-includes">7.5 Cross-slug includes</h3>
+<p>Section 6.2 lists exactly two <code>INCLUDES</code> because the
+ordinary suite reaches exactly two places. A suite that includes a
+header from <strong>another</strong> slug needs that slug's
+<code>inc/</code> directory listed as well — most often a composition
+test, asserting that the module does or does not satisfy a protocol
+defined elsewhere in the tree:</p>
+<div class="sourceCode" id="cb9"><pre
+class="sourceCode cmake"><code class="sourceCode cmake"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">INCLUDES</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="fu">    &quot;${DJINTERP_INC_ROOT}/djinterp/foo/bar&quot;      # the header under test</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="fu">    &quot;${DJINTERP_INC_ROOT}/djinterp/other/slug&quot;   # a header it is checked on</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="fu">    &quot;${_tests_dir}&quot;</span>)</span></code></pre></div>
+<p>Worth a comment in the CMakeLists saying which test needs the extra
+root, since it is the first thing to delete if that test is ever
+dropped.</p>
+<h3 id="76-before-zipping">7.6 Before zipping</h3>
+<p>All mechanical, all cheap, and each one catches a class of failure
+that otherwise surfaces on someone else's machine:</p>
+<table>
+<thead>
+<tr class="header">
+<th>Check</th>
+<th>Catches</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Both faces compile
+(<code>-Wall -Wextra -Wpedantic -Werror</code>)</td>
+<td>a guard that only closes in one mode</td>
+</tr>
+<tr class="even">
+<td>Provider ↔︎ declarations ↔︎ definitions parity</td>
+<td>a test declared and never written, or written and never listed</td>
+</tr>
+<tr class="odd">
+<td>Block names match section filenames</td>
+<td>a block renamed on one side only</td>
+</tr>
+<tr class="even">
+<td>Balanced preprocessor guards per header</td>
+<td>the fixture guard left open</td>
+</tr>
+<tr class="odd">
+<td>Glob matches only its own component's sections</td>
+<td>a sibling suite's TUs pulled into the wrong exe</td>
+</tr>
+<tr class="even">
+<td>No tabs, no trailing whitespace, nothing over 79 columns</td>
+<td>style-gate failures after handoff</td>
+</tr>
+<tr class="odd">
+<td>Unzip into a scratch checkout</td>
+<td>any path in the archive that would overwrite</td>
+</tr>
+</tbody>
+</table>
+<p>The spec provider can be compiled and <strong>linked against the real
+section TUs</strong> even where the full framework is unavailable, by
+standing in a minimal <code>test_spec</code> / <code>block_spec</code> /
+<code>module_spec</code> triple. That is worth doing: linking is what
+proves every <code>&amp;tests_x</code> in the provider resolves to a
+definition, which is the parity check above in its strongest form.</p>
+<hr />
+<h2 id="8-the-reporting-pipeline--how-a-spec-becomes-output">8. The
+reporting pipeline — how a spec becomes output</h2>
+<p>Everything a runner triggers happens inside
+<code>test_defaults.hpp</code>. This is the one place to change
+formatting.</p>
+<h3 id="81-entry-points">8.1 Entry points</h3>
+<div class="sourceCode" id="cb10"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co">// options-driven (what the runners use)</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> run_module<span class="op">(</span><span class="at">const</span> module_spec<span class="op">&amp;,</span> <span class="at">const</span> <span class="dt">char</span><span class="op">*</span> title<span class="op">,</span> <span class="at">const</span> <span class="dt">char</span><span class="op">*</span> subtitle<span class="op">,</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>               <span class="at">const</span> test_option_set<span class="op">&amp;</span> opts<span class="op">);</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> run_suite <span class="op">(</span><span class="at">const</span> <span class="dt">char</span><span class="op">*</span> suite_name<span class="op">,</span> <span class="at">const</span> <span class="dt">char</span><span class="op">*</span> descriptor<span class="op">,</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>               <span class="at">const</span> <span class="bu">std::</span>vector<span class="op">&lt;</span>module_spec<span class="op">&gt;&amp;,</span> <span class="at">const</span> <span class="dt">char</span><span class="op">*</span> title<span class="op">,</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>               <span class="at">const</span> test_option_set<span class="op">&amp;</span> opts<span class="op">);</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a><span class="co">// convenience overloads (title/subtitle + a bare PDF path)</span></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> run_module<span class="op">(</span><span class="at">const</span> module_spec<span class="op">&amp;,</span> <span class="at">const</span> <span class="dt">char</span><span class="op">*</span> title<span class="op">,</span> <span class="at">const</span> <span class="dt">char</span><span class="op">*</span> subtitle<span class="op">,</span></span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>               <span class="at">const</span> <span class="dt">char</span><span class="op">*</span> pdf<span class="op">);</span></span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> run_suite <span class="op">(...,</span> <span class="at">const</span> <span class="dt">char</span><span class="op">*</span> pdf<span class="op">);</span></span></code></pre></div>
+<p>All four funnel through
+<strong><code>drive_report(report_builder&amp;, const module_spec&amp;)</code></strong>,
+which walks the spec, runs each test's predicate once, and records the
+outcome into a <code>report_builder</code> (open a unit, run each check,
+close the unit). The builder then renders to whatever the options
+requested (console always; a PDF when <code>document == pdf</code>) and
+<code>run_module</code> returns the exit code.</p>
+<h3 id="82-the-parseable--table">8.2 The parseable <code>|...|</code>
+table</h3>
+<p><code>test_defaults.hpp</code> also owns a Markdown-pipe view of the
+results, so a report can be re-parsed by tooling. It is the one place
+the <code>|...|</code> grammar is defined:</p>
+<div class="sourceCode" id="cb11"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="bu">std::</span>string render_spec_pipe_table  <span class="op">(</span><span class="at">const</span> module_spec<span class="op">&amp;);</span>   <span class="co">// RESULT | # | </span><span class="al">TEST</span><span class="co"> | DESCRIPTION</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="bu">std::</span>string render_report_pipe_table<span class="op">(</span><span class="at">const</span> test_report<span class="op">&amp;);</span>   <span class="co">// MODULE | UNIT | RESULT | CHECK</span></span></code></pre></div>
+<ul>
+<li><code>render_spec_pipe_table</code> runs each predicate to fill its
+<code>RESULT</code> cell and is what the entry points emit — once per
+module, under a greppable caption, via the shared
+<code>internal::emit_spec_pipe_table</code>.</li>
+<li><code>render_report_pipe_table</code> sources the same idea from an
+already-populated <code>test_report</code>, so it runs
+<strong>nothing</strong>; use it when you hold a finished report.</li>
+</ul>
+<p>Both are plain string assembly over
+<code>&lt;string&gt;</code>/<code>&lt;vector&gt;</code> (no dependency
+on the table subframework), and their output is exactly what
+<code>parse_table_text&lt;&gt;()</code> reads back. Change the columns
+or spacing here and every suite's table changes.</p>
+<h3 id="83-the-report-model-the-data-the-pipeline-builds">8.3 The report
+model (the data the pipeline builds)</h3>
+<p><code>test_report.hpp</code> defines the tree the builder fills and
+the verdict logic:</p>
+<pre><code>test_report      (title, subtitle, description, modules[])   → a run verdict
+  report_module  (name, units[])                             → a module verdict
+    report_unit  (name, checks[], verdict, elapsed_ns)       → a unit verdict
+      report_check (description, status)                     → a leaf</code></pre>
+<p>A <strong>verdict</strong> (<code>report_verdict</code>:
+<code>empty</code>, <code>passed</code>, <code>failed</code>,
+<code>pending</code>) folds up the tree with a fixed precedence
+(<code>failure &gt; pending &gt; passed</code>; all-<code>skipped</code>
+reads as <code>passed</code>; a zero total is <code>empty</code>).
+<code>report_pass_rate</code> / <code>report_ratio</code> format the
+summary line, and <code>expand_report_file_name</code> builds the output
+path from a pattern (<code>{module}</code>, <code>{title}</code>,
+<code>{index}</code>, <code>{ext}</code>, date) with
+filesystem-sanitised components.</p>
+<hr />
+<h2 id="9-options-reference-test_option_set">9. Options reference
+(<code>test_option_set</code>)</h2>
+<p>A runner starts from <code>default_test_options()</code> and sets
+what it needs. The keys seen in use:</p>
+<table>
+<thead>
+<tr class="header">
+<th>Key</th>
+<th>Member</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>test_option::document</code></td>
+<td><code>document</code></td>
+<td>output document type (<code>test_doc_type</code>: <code>text</code>,
+<code>markdown</code>, <code>html</code>, <code>xml</code>,
+<code>pdf</code>, ...)</td>
+</tr>
+<tr class="even">
+<td><code>test_option::output_file</code></td>
+<td><code>output_path</code></td>
+<td>output path (a <code>std::string</code>)</td>
+</tr>
+<tr class="odd">
+<td><code>test_option::show</code></td>
+<td><code>show</code></td>
+<td>what the console lists (<code>DTestShow</code>)</td>
+</tr>
+<tr class="even">
+<td><code>test_option::pack</code></td>
+<td><code>pack</code></td>
+<td>packaging mode (<code>DTestOutputPack</code>: none / compress /
+archive)</td>
+</tr>
+<tr class="odd">
+<td><code>test_option::compressor</code></td>
+<td><code>compressor</code></td>
+<td>codec for compress mode (<code>test_compressor</code>)</td>
+</tr>
+<tr class="even">
+<td><code>test_option::compress_opts</code></td>
+<td><code>compress_opts</code></td>
+<td>codec options (level, ...)</td>
+</tr>
+<tr class="odd">
+<td><code>test_option::archive_format</code></td>
+<td><code>archive_format</code></td>
+<td>container for archive mode (<code>test_archive_format</code>)</td>
+</tr>
+<tr class="even">
+<td><code>test_option::archive_opts</code></td>
+<td><code>archive_opts</code></td>
+<td>archive options</td>
+</tr>
+<tr class="odd">
+<td><code>test_option::split</code></td>
+<td><code>split</code></td>
+<td>one document for the run, or one per module
+(<code>DTestOutputSplit</code>)</td>
+</tr>
+</tbody>
+</table>
+<p><code>test_option_set</code> has <strong>one shape at every
+level</strong> the C++ face compiles at: a struct with a named member
+per aspect, and keyed access to the same members. Both spellings compile
+everywhere, so no fixture needs an <code>#if</code>:</p>
+<div class="sourceCode" id="cb13"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>dt<span class="op">::</span>test_option_set o <span class="op">=</span> dt<span class="op">::</span>default_test_options<span class="op">();</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>o<span class="op">.</span>set<span class="op">&lt;</span>dt<span class="op">::</span>test_option<span class="op">::</span>document<span class="op">&gt;(</span>dt<span class="op">::</span><span class="dt">test_doc_type</span><span class="op">::</span>pdf<span class="op">);</span>   <span class="co">// keyed</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>o<span class="op">.</span>output_path <span class="op">=</span> <span class="st">&quot;suite.pdf&quot;</span><span class="op">;</span>                                <span class="co">// named member</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a><span class="dt">bool</span> c <span class="op">=</span> o<span class="op">.</span>get<span class="op">&lt;</span>dt<span class="op">::</span>test_option<span class="op">::</span>color<span class="op">&gt;();</span>                   <span class="co">// keyed read</span></span></code></pre></div>
+<p>Until 2026-11-05 the set was an <code>option_set&lt;&gt;</code> at
+C++20 and a plain struct below, which the C++ guide rules out ("no level
+changes what a shared type is"); fixtures carried a face-neutral setter
+with an <code>#if</code> on <code>D_ENV_LANG_IS_CPP20_OR_HIGHER</code>.
+Those setters still compile and may simply call
+<code>set&lt;&gt;()</code>; new code writes <code>set&lt;&gt;()</code>
+or the member directly. The framework itself reads options through the
+free accessors (<code>document(o)</code>, <code>output_path(o)</code>,
+...).</p>
+<h3 id="91-packaging-the-report">9.1 Packaging the report</h3>
+<p>With <code>D_TEST_REPORT_ENABLE_ARCHIVE</code> defined,
+<code>report_builder</code> packages the documents it renders as
+<code>pack</code> says. Without it, every document is written loose.</p>
+<ul>
+<li><strong><code>none</code></strong>: each document is written as it
+is, under its own name.</li>
+<li><strong><code>compress</code></strong>: each document is compressed
+on its own with <code>compressor</code>, tuned by
+<code>compress_opts</code>. It is written where its loose file would
+have gone, with the codec's suffix appended: <code>suite.pdf</code>
+becomes <code>suite.pdf.gz</code>. Under <code>store</code> the name
+stays as it is.</li>
+<li><strong><code>archive</code></strong>: every document goes into one
+container in <code>archive_format</code>, each entry under its own name.
+An explicit <code>output_file</code> names the container; otherwise it
+is <code>report</code> plus the format's extension.</li>
+</ul>
+<p>A container's entries are stored or compressed as
+<code>archive_opts</code> says: <code>store_only</code> (1 stored, 0
+compressed), <code>level</code>, and the method in
+<code>zip.method</code> or <code>sevenzip.method</code>. A stored PDF
+can be searched inside the container without a codec. A compressed one
+is much smaller, since DTest's PDFs are not compressed within.</p>
+<p><strong>Who decides.</strong> The runtime option always wins. Where a
+runner leaves one alone, <code>default_test_options()</code> holds the
+build's knob, which falls back to the library's own knob, which falls
+back to the default below (the owner's ruling of 2026-11-09: complete
+configurability when the user decides, sensible defaults when not). A
+build that sets only the library's knobs packages DTest's reports the
+same way as everything else. One that sets DTest's packages the reports
+one way and everything else another.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Runtime option</th>
+<th>DTest knob (<code>cfg_test_options.h</code>)</th>
+<th>Library knob</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>pack</code></td>
+<td><code>D_CFG_TEST_OUTPUT_PACK</code></td>
+<td><code>D_CFG_OUTPUT_PACK</code></td>
+<td><code>none</code></td>
+</tr>
+<tr class="even">
+<td><code>compressor</code></td>
+<td><code>D_CFG_TEST_OUTPUT_CODEC</code></td>
+<td><code>D_CFG_OUTPUT_CODEC</code></td>
+<td><code>gzip</code></td>
+</tr>
+<tr class="odd">
+<td><code>archive_format</code></td>
+<td><code>D_CFG_TEST_OUTPUT_FORMAT</code></td>
+<td><code>D_CFG_OUTPUT_FORMAT</code></td>
+<td><code>zip</code></td>
+</tr>
+<tr class="even">
+<td><code>archive_opts.store_only</code></td>
+<td><code>D_CFG_TEST_OUTPUT_STORE_ONLY</code></td>
+<td><code>D_CFG_ARCHIVE_STORE_ONLY</code></td>
+<td>compressed</td>
+</tr>
+<tr class="odd">
+<td><code>archive_opts.level</code></td>
+<td><code>D_CFG_TEST_OUTPUT_LEVEL</code></td>
+<td><code>D_CFG_ARCHIVE_LEVEL</code></td>
+<td>the codec's default</td>
+</tr>
+<tr class="even">
+<td><code>archive_opts.zip.method</code></td>
+<td></td>
+<td><code>D_CFG_ARCHIVE_ZIP_METHOD</code></td>
+<td>deflate where the build has it, else stored</td>
+</tr>
+<tr class="odd">
+<td><code>archive_opts.sevenzip.method</code></td>
+<td></td>
+<td><code>D_CFG_ARCHIVE_SEVENZIP_METHOD</code></td>
+<td>LZMA2</td>
+</tr>
+</tbody>
+</table>
+<p>The library's knobs live in
+<code>config/cpp/util/output/cfg_output_packaging.h</code> and
+<code>config/c/util/archive/cfg_archive.h</code>. Each knob is a
+number:</p>
+<ul>
+<li>the codec is a <code>dj_codec_id</code> (0 store, 1 deflate, 2 zlib,
+3 gzip, 4 bzip2, 5 xz, 6 zstd, 7 lz4, 8 brotli);</li>
+<li>the container is a <code>dj_format_id</code> (0 zip, 1 tar, 2 gz, 3
+tar.gz, 4 7z, 5 rar). <code>test_archive_format</code> orders gz and
+tar.gz the other way round, and <code>cfg_test_options.h</code>
+converts;</li>
+<li>DTest's two entry knobs take -1, the default, to leave
+<code>archive_opts</code> unset.</li>
+</ul>
+<p>A value out of range stops the build with an <code>#error</code> that
+names the knob. For example,
+<code>-DD_CFG_TEST_OUTPUT_STORE_ONLY=1</code> stores DTest's reports in
+their containers and leaves everything else compressed.</p>
+<hr />
+<h2 id="10-framework-module-reference">10. Framework module
+reference</h2>
+<p>The modules below are the pieces a suite is built on. They live under
+<code>inc/djinterp/cpp/modules/test/</code> (the reporting/output group
+under <code>inc/djinterp/cpp/modules/test/output/</code>), with the
+event substrate under <code>inc/djinterp/cpp/event/</code>.</p>
+<h3 id="101-foundation">10.1 Foundation</h3>
+<ul>
+<li><p><strong><code>test_common.hpp</code></strong> — the base types
+every other module builds on: <code>test_type_id</code> (the kind id),
+<code>test_callable_id</code> (1-based, <code>k_no_callable = 0</code>
+sentinel), the <code>test_status</code> enum (<code>passed</code> /
+<code>failed</code> / <code>skipped</code> / <code>error</code> /
+<code>pending</code>), the <code>test_event</code> record, and the
+<code>D_TEST_CONSTEXPR</code> / <code>D_TEST_STATIC_CONSTEXPR</code>
+language-level macros.</p></li>
+<li><p><strong><code>test_kind.hpp</code></strong> — the ranked
+<strong>test-kind</strong> record at the centre of the six-kind taxonomy
+(<code>test_suite &gt; test_module &gt; test_block &gt; unit_test &gt; test_fn &gt; assert</code>).
+Provides <code>make_test_kind</code>, a flat kind-set wrapper with
+compile-time <code>contains</code> dispatch, and the resolved queries
+<code>find_kind</code>, <code>rank_of</code>, <code>is_leaf</code>,
+<code>name_of</code>, <code>can_be_child_of</code>.</p></li>
+<li><p><strong><code>test_object.hpp</code></strong> — the unified
+<strong>node</strong>: a <code>test_object&lt;&gt;</code> carrying a
+type id, an evaluated result, a <code>test_status</code>, and a
+<code>test_metadata</code> key/value store. Aliases
+<code>basic_test</code> (the default instantiation) and
+<code>tagged_test</code>, and the factories <code>make_test</code> /
+<code>make_interior</code>.</p></li>
+</ul>
+<h3 id="102-structure-and-run-context">10.2 Structure and run
+context</h3>
+<ul>
+<li><p><strong><code>test_tree.hpp</code></strong> — the default test
+<strong>container</strong>: a six-kind set paired with a node forest
+whose implied <em>conjunctive root</em> anchors every top-level root.
+<code>add_root</code> (unconstrained) and rank-checked
+<code>append_child</code> build the forest;
+<code>count_by_status</code>, <code>all_passed</code>, and
+<code>any_failed</code> roll it up. A
+<code>validate_rank == false</code> instantiation compiles the rank/leaf
+rules out.</p></li>
+<li><p><strong><code>test_session.hpp</code></strong> — the top-level
+<strong>run context</strong>: an owned tree, per-status counters, a
+timer, a lifecycle state machine
+(<code>run</code>/<code>pause</code>/<code>resume</code>/<code>finish</code>/<code>reset</code>
+with legal transitions and no-ops), the handler-driven walk
+(<code>run(handler)</code> / <code>run(handler, tree)</code>), and the
+verdict decision.</p></li>
+</ul>
+<h3 id="103-instruments">10.3 Instruments</h3>
+<ul>
+<li><p><strong><code>test_timer.hpp</code></strong> — a
+<code>util::timer</code> wrapped with an optional event-dispatch layer,
+over a caller-supplied clock. Owns child timers by value and can observe
+external ones non-owningly; fires <code>on_start</code> /
+<code>on_stop</code> / <code>on_expire</code> / <code>on_reset</code>
+when a dispatcher is attached, and is zero-overhead when none
+is.</p></li>
+<li><p><strong><code>test_counter.hpp</code></strong> — the same shape
+for a <code>util::counter</code>: bounded value with clamping,
+<code>increment</code> / <code>decrement</code> / <code>reset</code>,
+matching events (<code>on_increment</code> / <code>on_decrement</code> /
+<code>on_limit</code> / <code>on_reset</code>), owned and observed
+children.</p></li>
+</ul>
+<h3 id="104-events">10.4 Events</h3>
+<ul>
+<li><strong><code>test_event.hpp</code></strong> — the DTest event
+<strong>alphabet</strong>: twelve built-in tags (session / module / test
+lifecycle, terminal statuses, error, status-change, listener-threw),
+each with a compile-time payload contract and a <code>name()</code>, and
+the <code>D_TEST_EVENT</code> / <code>D_TEST_EVENT_MSG</code> /
+<code>D_TEST_EVENT_X</code> macros for declaring custom tags in any
+namespace.</li>
+<li><strong><code>djinterp/cpp/event/</code> — the substrate</strong>:
+<code>event_dispatcher</code> (bind / fire — the object tags plug into),
+plus <code>event_common</code>, <code>event_handler</code>,
+<code>event_registry</code>, and <code>event_table</code>. A listener
+bound to a tag is invoked with that tag's payload; a
+<code>consume</code> verdict halts propagation; distinct tags are
+independent channels.</li>
+</ul>
+<h3 id="105-options-authoring-and-running">10.5 Options, authoring, and
+running</h3>
+<ul>
+<li><strong><code>test_options.hpp</code></strong> — the option system:
+<code>test_option_set</code>, the <code>test_option</code> keys, and
+<code>default_test_options()</code> (Section 9).</li>
+<li><strong><code>test_defaults.hpp</code></strong> — the
+<strong>authoring surface</strong> and the pipeline. Supplies
+<code>module_spec</code> / <code>block_spec</code> /
+<code>test_spec</code>, the kind constants and
+<code>default_test_kinds</code>, the node factories,
+<code>build_enriched_tree</code> (lowers a spec into the six-kind tree),
+<code>drive_report</code>, the <code>run_module</code> /
+<code>run_suite</code> entry points, and the <code>|...|</code> table
+view (Section 8). <strong>This is the one file to edit to change how
+reports are produced.</strong></li>
+<li><strong><code>test_builder.hpp</code></strong> — the imperative
+<code>report_builder</code> that <code>drive_report</code> drives
+(<code>module</code>, <code>open_unit</code>, <code>check</code>,
+<code>close_unit</code>, <code>set_title</code>, <code>use_pdf</code>,
+<code>finish</code>). Suites do not use it directly; the pipeline
+does.</li>
+<li><strong><code>test_context.hpp</code></strong> — the run
+<strong>focus</strong>: a <code>test_context</code> cursor over the
+report/module/unit/check being described, with narrowing accessors. The
+report renderer borrows it to resolve scope-dependent tokens.</li>
+<li><strong><code>test_callable.hpp</code></strong>,
+<strong><code>test_container.hpp</code></strong>,
+<strong><code>test_handler.hpp</code></strong>,
+<strong><code>test_runner.hpp</code></strong> — the deferred-callable
+binding, the container abstractions, the listener/handler wiring, and
+the runner harness that the higher-level surface composes. (Each already
+ships a <code>*_spec()</code> suite in the DTEST_SPEC_MODE idiom.)</li>
+</ul>
+<h3 id="106-reporting-and-output">10.6 Reporting and output</h3>
+<ul>
+<li><strong><code>test_report.hpp</code></strong> — the report
+<strong>data model</strong> and verdict logic (Section 8.3).</li>
+<li><strong><code>output/test_report_document.hpp</code></strong>,
+<strong><code>output/test_report_content.hpp</code></strong>,
+<strong><code>output/test_report_pdf.hpp</code></strong>,
+<strong><code>output/test_layout.hpp</code></strong> and
+<strong><code>output/test_layout_suite.hpp</code></strong> — the
+report's document, its content, the PDF rendering and the page layout,
+which <code>report_builder</code> drives.</li>
+<li><strong><code>output/test_packaging.hpp</code></strong> — packaging
+a finished report: compression and archiving through
+<code>util/output/output_packaging.hpp</code>.</li>
+<li>The earlier output layer (<code>test_render.hpp</code>,
+<code>test_render_pdf.hpp</code>, <code>test_output.hpp</code>,
+<code>test_output_config.hpp</code>, <code>test_zip_store.hpp</code>)
+was retired by the owner on 2026-10 (<code>be9080d3</code>);
+<code>test_emit.hpp</code>, which was built on it, and the suites and
+leaves of all six were retired on 2026-11-05.</li>
+</ul>
+<h3 id="107-meta-testing-and-packaging">10.7 Meta-testing and
+packaging</h3>
+<ul>
+<li><strong><code>test_traits.hpp</code></strong> — the
+<strong>trait-testing toolkit</strong> the suites lean on for
+compile-time checks: probe declarators (type / expression / noexcept /
+constexpr), the readings (<code>is_nothrow_probe</code>, value-category,
+<code>is_valid</code>), the non-short-circuiting type-set quantifiers
+(<code>count_holds</code>, <code>holds_for_all/any/none</code>), the
+bool-trait shape check (<code>is_bool_trait</code>), the cv-ref
+agreement matrix, a fixture "zoo" of hostile types, build-time pins, and
+a C++20 concept layer.</li>
+<li><strong><code>test_pack.hpp</code></strong> — the bridge from a
+runtime packaging request (the <code>pack</code> /
+<code>compressor</code> / <code>archive_format</code> knobs) to the
+matching compile-time compress/archive facade call: the output-naming
+helpers, availability routers, the internal enum→tag dispatch, and
+<code>pack_report</code>.</li>
+</ul>
+<h3 id="108-concurrency">10.8 Concurrency</h3>
+<ul>
+<li><strong><code>inc/djinterp/cpp/modules/test/sync/</code></strong> —
+the concurrency subframework: <code>test_thread</code>,
+<code>test_race</code>, <code>test_deadlock</code>,
+<code>test_stress</code>, <code>test_invariant</code>,
+<code>test_threadsafe</code>, <code>test_concurrent</code>, and the
+<code>test_sync</code> façade over them. Each has a suite in
+<code>tests/djinterp/cpp/modules/test/sync/</code> and a leaf of its
+own, and <code>sync_tests</code> runs them together. The headers are
+C++11 and up, with parts that need C++17 or C++20; their suites, like
+every C++ suite, are C++17 and up. They are framework internals, not
+part of the frozen surface of Section 13.</li>
+</ul>
+<hr />
+<h2 id="11-authoring-checklist">11. Authoring checklist</h2>
+<p>To add or migrate a suite:</p>
+<ol type="1">
+<li><strong>Suite header</strong>
+(<code>tests/djinterp/foo/bar/something_tests.hpp</code>):
+<ul>
+<li><code>djinterp/cpp/djinterp.hpp</code> first and unconditional.</li>
+<li><code>#ifndef DTEST_SPEC_MODE</code> → the header under test;
+<code>#ifdef DTEST_SPEC_MODE</code> →
+<code>djinterp/cpp/modules/test/test_defaults.hpp</code>. (Exception: a
+header that is its own authoring surface is included in both.)</li>
+<li><code>namespace dt = ::djinterp::test;</code> unconditional.</li>
+<li><code>#ifndef DTEST_SPEC_MODE</code> around the fixtures; the
+self-contained check macro stays above it.</li>
+<li><code>bool tests_*();</code> declarations, grouped by section,
+visible in both modes.</li>
+<li><code>#ifdef DTEST_SPEC_MODE</code> →
+<code>inline dt::module_spec &lt;shortname&gt;_spec()</code> with one
+<code>block_spec</code> per section and a body-accurate descriptor on
+every node; gate any conditional block on the same macro as its
+declarations.</li>
+</ul></li>
+<li><strong>Section TUs</strong>
+(<code>…_tests_&lt;section&gt;.cpp</code>): normal-mode include, define
+the <code>tests_*</code> bodies flat in <code>djinterp::testing</code>,
+one file per block.</li>
+<li><strong>Runner</strong>
+(<code>config/testing/djinterp/foo/bar/something_tests_runner.cpp</code>):
+<code>#define DTEST_SPEC_MODE</code>, include the suite header, build
+<code>opts</code>, call
+<code>run_module(tt::&lt;shortname&gt;_spec(), title, subtitle, opts)</code>.</li>
+<li><strong>CMakeLists</strong> (same config dir): the leaf recipe —
+glob the section TUs, list the runner,
+<code>INCLUDES = inc/djinterp/foo/bar + tests/djinterp/foo/bar</code>.
+If the directory already has a CMakeLists, merge the call into it —
+unless this is a delivery, in which case it gets its own leaf directory
+(Section 7.2).</li>
+<li><strong>Delivery</strong> (Section 7): a single zip rooted at the
+repository root; the runner and its CMakeLists in their own leaf
+directory <code>config/testing/djinterp/foo/bar/something/</code>; no
+parent aggregates, no header under test; any
+<code>BUILD PREREQUISITE</code> recorded in the suite header's preamble
+rather than patched into the module.</li>
+</ol>
+<p>Invariants worth checking before you call it done (all
+mechanical):</p>
+<ul>
+<li><strong>Provider ↔︎ declarations parity</strong> — every
+<code>&amp;tests_x</code> in the provider has a matching
+<code>bool tests_x();</code> declaration, and vice versa.</li>
+<li><strong>Balanced braces/parens</strong> in the header.</li>
+<li><strong>Balanced preprocessor guards</strong>, including any nested
+feature <code>#if</code>s.</li>
+<li><strong>Runner is options-only</strong> — no
+<code>report_builder</code>, no per-test calls, no formatting.</li>
+<li><strong>Block names match section filenames</strong>, so the report
+and the tree agree.</li>
+<li><strong>The glob matches only its own component's sections</strong>
+— check it against a directory that holds sibling suites.</li>
+<li><strong>Nothing in the zip overwrites</strong> — unzip into a
+scratch checkout first.</li>
+</ul>
+<hr />
+<h2 id="12-the-c-face--writing-a-c-suite">12. The C face — writing a C
+suite</h2>
+<p><code>inc/djinterp/c/modules/test/test_suite.h</code> (with
+<code>src/.../test_suite.c</code>) is DTest's C face: a suite is a tree
+of <strong>modules, blocks and tests</strong>, a test is a run of
+<strong>checks</strong>, and the report is the same as the C++ face's in
+the part tooling reads — a line per test, a closing summary, and per
+module the <code>|...|</code> results table with C++'s caption and
+columns (8.2). It is C99, includes nothing of the C++ framework, and
+compiles as C at C99 to C23 and as C++ at every level from strict C++98.
+Use it for every C suite, and for a C++ suite that must run below C++17,
+where <code>test_defaults.hpp</code> is empty.</p>
+<p>At C++98 and C++03, GCC and Clang take variadic macros as an
+extension, so the framework defines them there (<code>D_TEST_NOTE</code>
+here, and <code>D_ALLOC_SIZE</code> and <code>D_NONNULL</code> in
+<code>env/c/env_vendor_attributes.h</code>). The extension is only a
+warning, but <code>-pedantic-errors</code> makes it an error, and no
+macro tells the headers that flag is set. A C++98 or C++03 build under
+<code>-pedantic-errors</code> therefore adds
+<code>-Wno-variadic-macros</code>.</p>
+<p>It is not thread-safe: a suite is built and run by one thread, and
+one suite runs at a time in a process (a test that starts threads joins
+them first).</p>
+<h3 id="121-the-four-files">12.1 The four files</h3>
+<p>As in Section 2, keyed by the slug; C names, <code>d_tests_</code>
+functions:</p>
+<table>
+<thead>
+<tr class="header">
+<th>Artifact</th>
+<th>Path</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Suite header</td>
+<td><code>tests/djinterp/c/foo/bar_tests.h</code></td>
+</tr>
+<tr class="even">
+<td>Section TUs</td>
+<td><code>tests/djinterp/c/foo/bar_tests_&lt;section&gt;.c</code></td>
+</tr>
+<tr class="odd">
+<td>Runner</td>
+<td><code>build/cmake/config/testing/djinterp/c/foo/bar/bar_tests_runner.c</code></td>
+</tr>
+<tr class="even">
+<td>CMakeLists</td>
+<td><code>build/cmake/config/testing/djinterp/c/foo/bar/CMakeLists.txt</code></td>
+</tr>
+</tbody>
+</table>
+<p>The working examples are DTest's own suite
+(<code>tests/djinterp/c/modules/test/ test_suite_tests*</code>) and the
+root's
+(<code>tests/djinterp/c/{djinterp,dstring, dtime,string_fn,dio}_tests*</code>),
+each with its leaf.</p>
+<h3 id="122-the-spec-form-the-default">12.2 The spec form (the
+default)</h3>
+<p>The suite header has the two faces of Section 3, selected by the same
+<code>DTEST_SPEC_MODE</code>. Both faces declare the tests; the normal
+face also includes the header under test; the spec face defines the
+tables and the provider:</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&quot;../../../inc/djinterp/c/modules/test/test_suite.h&quot;</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="pp">#ifndef DTEST_SPEC_MODE</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>    <span class="pp">#include </span><span class="im">&quot;../../../inc/djinterp/c/foo/bar.h&quot;</span><span class="pp">   </span><span class="co">// the header under test</span></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a><span class="pp">#endif</span></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a><span class="dt">bool</span> d_tests_bar_parses<span class="op">(</span><span class="dt">void</span><span class="op">);</span></span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a><span class="dt">bool</span> d_tests_bar_rejects_null<span class="op">(</span><span class="dt">void</span><span class="op">);</span></span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a><span class="pp">#ifdef DTEST_SPEC_MODE</span></span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a><span class="dt">static</span> <span class="dt">const</span> <span class="kw">struct</span> dj_test_case_spec d_tests_bar_parse_rows<span class="op">[]</span> <span class="op">=</span></span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>    D_TEST_CASE<span class="op">(</span>d_tests_bar_parses<span class="op">,</span> <span class="st">&quot;a well-formed input parses&quot;</span><span class="op">),</span></span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>    D_TEST_CASE<span class="op">(</span>d_tests_bar_rejects_null<span class="op">,</span> <span class="st">&quot;NULL is EINVAL&quot;</span><span class="op">)</span></span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span>
+<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a><span class="dt">static</span> <span class="dt">const</span> <span class="kw">struct</span> dj_test_block_spec d_tests_bar_blocks<span class="op">[]</span> <span class="op">=</span></span>
+<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a>    <span class="op">{</span> <span class="st">&quot;parse&quot;</span><span class="op">,</span> <span class="st">&quot;parsing&quot;</span><span class="op">,</span> d_tests_bar_parse_rows<span class="op">,</span></span>
+<span id="cb14-18"><a href="#cb14-18" aria-hidden="true" tabindex="-1"></a>      <span class="kw">sizeof</span><span class="op">(</span>d_tests_bar_parse_rows<span class="op">)</span> <span class="op">/</span> <span class="kw">sizeof</span><span class="op">(</span>d_tests_bar_parse_rows<span class="op">[</span><span class="dv">0</span><span class="op">])</span> <span class="op">}</span></span>
+<span id="cb14-19"><a href="#cb14-19" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span>
+<span id="cb14-20"><a href="#cb14-20" aria-hidden="true" tabindex="-1"></a><span class="dt">static</span> <span class="dt">const</span> <span class="kw">struct</span> dj_test_module_spec d_tests_bar_module <span class="op">=</span></span>
+<span id="cb14-21"><a href="#cb14-21" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb14-22"><a href="#cb14-22" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;bar&quot;</span><span class="op">,</span> <span class="st">&quot;bar.h: what it is&quot;</span><span class="op">,</span> d_tests_bar_blocks<span class="op">,</span></span>
+<span id="cb14-23"><a href="#cb14-23" aria-hidden="true" tabindex="-1"></a>    <span class="kw">sizeof</span><span class="op">(</span>d_tests_bar_blocks<span class="op">)</span> <span class="op">/</span> <span class="kw">sizeof</span><span class="op">(</span>d_tests_bar_blocks<span class="op">[</span><span class="dv">0</span><span class="op">])</span></span>
+<span id="cb14-24"><a href="#cb14-24" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span>
+<span id="cb14-25"><a href="#cb14-25" aria-hidden="true" tabindex="-1"></a>D_STATIC_INLINE <span class="dt">const</span> <span class="kw">struct</span> dj_test_module_spec<span class="op">*</span> d_tests_bar_spec<span class="op">(</span><span class="dt">void</span><span class="op">)</span></span>
+<span id="cb14-26"><a href="#cb14-26" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb14-27"><a href="#cb14-27" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="op">&amp;</span>d_tests_bar_module<span class="op">;</span></span>
+<span id="cb14-28"><a href="#cb14-28" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb14-29"><a href="#cb14-29" aria-hidden="true" tabindex="-1"></a><span class="pp">#endif</span></span></code></pre></div>
+<p><code>D_TEST_CASE(fn, "descriptor")</code> writes the row
+<code>{ "fn", "descriptor", &amp;fn }</code>, so a row's name cannot
+drift from its function's. C++'s <code>test_spec</code> has the same
+three fields in the same order, so the macro writes its rows too; a C++
+table reaches it by including <code>test_suite.h</code>. (Added
+2026-11-16; rows written out by hand stay valid.)</p>
+<p>A test is a <code>bool (void)</code> that checks with two macros, and
+returns <code>true</code> at its end:</p>
+<ul>
+<li><code>D_TEST_REQUIRE(expr)</code> records the check, with its text,
+file and line, and returns <code>false</code> from the test when it
+fails;</li>
+<li><code>D_TEST_EXPECT(expr)</code> records the check the same way and
+goes on. Its value is the check's result, and a failed one fails the
+test when it ends, whatever it returns (added 2026-11-16).</li>
+</ul>
+<p>Both take their expression as written: they are variadic (from
+2026-11-16), so a comma inside template arguments,
+<code>D_TEST_REQUIRE(std::is_same&lt;A, B&gt;::value)</code>, or inside
+a C compound literal's braces, needs no extra parentheses. A comma
+outside them is the comma operator, not a message, so
+<code>D_TEST_REQUIRE(x == 1, "why")</code> tests only
+<code>"why"</code>; under <code>-Wall</code>, GCC warns
+(<code>-Wunused-value</code>) and Clang too
+(<code>-Wunused-comparison</code>), and a message belongs in
+<code>D_TEST_NOTE</code>. At ISO C++98, which has no variadic macros,
+both take one argument.</p>
+<p><code>D_TEST_SKIP("why")</code> skips a test, and
+<code>D_TEST_NOTE("got %d", n)</code> attaches a note (12.5). A test
+that makes no check counts its return as its one check, which is exactly
+a C++ spec test's <code>bool</code>, so <strong>a C++ suite's test
+functions can be listed in a C spec table</strong> and run at every C++
+level.</p>
+<p><strong>Under C++'s <code>run_module</code></strong>, until it
+records these checks (scheduled for 2026-11-20), no C suite is running:
+a failed <code>D_TEST_REQUIRE</code> writes
+<code>file:line: check failed (no suite): expr</code> to stderr and
+returns <code>false</code> from the test, which is what fails it; a
+failed <code>D_TEST_EXPECT</code> only writes the line, so a test run
+there keeps the results,
+<code>ok = D_TEST_EXPECT(x) &amp;&amp; ok;</code>, and returns
+<code>ok</code>.</p>
+<p>The runner chooses options and nothing else:</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#define DTEST_SPEC_MODE</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&quot;bar_tests.h&quot;</span></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> main<span class="op">(</span><span class="dt">int</span> _argc<span class="op">,</span> <span class="dt">char</span><span class="op">*</span> _argv<span class="op">[])</span></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">const</span> <span class="kw">struct</span> dj_test_module_spec<span class="op">*</span> modules<span class="op">[</span><span class="dv">1</span><span class="op">];</span></span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>    modules<span class="op">[</span><span class="dv">0</span><span class="op">]</span> <span class="op">=</span> d_tests_bar_spec<span class="op">();</span></span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> d_test_run_modules<span class="op">(</span>_argc<span class="op">,</span> _argv<span class="op">,</span> <span class="st">&quot;bar.h unit tests&quot;</span><span class="op">,</span> modules<span class="op">,</span> <span class="dv">1</span><span class="op">);</span></span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p><code>d_test_run_modules</code> reads <code>--failures</code>,
+<code>--tests</code> (the default), <code>--checks</code>,
+<code>--no-table</code>, <code>--filter=TEXT</code> (a module/block/test
+path) and <code>--help</code>, runs every selected test once, prints the
+report and returns the exit code: <strong>0</strong> every test passed
+or was skipped, <strong>1</strong> a test failed or made no check (or no
+test ran at all), <strong>2</strong> the suite could not record a node
+or check, or the command line was refused.</p>
+<h3 id="123-the-imperative-form">12.3 The imperative form</h3>
+<p>For a suite that builds its cases in loops, or must evaluate in an
+order the runner controls (the filesys suite stands up a scratch
+directory first), a section is a
+<code>void d_tests_&lt;module&gt;_&lt;section&gt;(struct dj_test_suite*)</code>
+that opens nodes and checks against the test opened last:</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>d_test_suite_module<span class="op">(</span>s<span class="op">,</span> <span class="st">&quot;file_open&quot;</span><span class="op">);</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>d_test_suite_block<span class="op">(</span>s<span class="op">,</span> <span class="st">&quot;d_file_open_stream&quot;</span><span class="op">);</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>d_test_suite_test<span class="op">(</span>s<span class="op">,</span> <span class="st">&quot;NULL path -&gt; NULL, EINVAL&quot;</span><span class="op">);</span></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>D_TEST_CHECK<span class="op">(</span>s<span class="op">,</span> d_file_open_stream<span class="op">(</span>NULL<span class="op">,</span> <span class="st">&quot;r&quot;</span><span class="op">)</span> <span class="op">==</span> NULL<span class="op">);</span></span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>D_TEST_CHECK_MSG<span class="op">(</span>s<span class="op">,</span> <span class="st">&quot;errno&quot;</span><span class="op">,</span> errno <span class="op">==</span> EINVAL<span class="op">,</span> <span class="st">&quot;errno should be EINVAL&quot;</span><span class="op">);</span></span></code></pre></div>
+<p><code>D_TEST_CHECK</code> returns the check's result, so a section
+can stop on it.</p>
+<p><strong>Open a test before checking.</strong> A check made while no
+test is open opens one of its own, named after the check, and every
+check after it lands in that test until the next open. That keeps the
+check counted, but a failure is then reported under the first check's
+name. The first time it happens in a suite, a note on that test names
+the check and says to call <code>d_test_suite_test</code> first (from
+2026-11-16).</p>
+<p><code>d_test_suite_describe</code> gives the node opened last a
+descriptor; <code>d_test_suite_note</code> attaches a note to it (12.5);
+<code>d_test_suite_skip</code> skips the open test. The runner creates
+the suite, applies the parsed options
+(<code>d_test_suite_options_init</code>, <code>_parse</code>,
+<code>d_test_suite_ set_options</code>), calls the sections, and returns
+<code>d_test_suite_run</code>. A spec and imperative sections can share
+one suite (<code>d_test_suite_add_module</code>).</p>
+<h3 id="124-the-cmake-leaf">12.4 The CMake leaf</h3>
+<div class="sourceCode" id="cb17"><pre
+class="sourceCode cmake"><code class="sourceCode cmake"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="kw">set</span>(<span class="va">_tests_dir</span> <span class="st">&quot;</span><span class="dv">${DJINTERP_TESTS_ROOT}</span><span class="st">/djinterp/c/foo&quot;</span>)</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="kw">file</span>(<span class="ot">GLOB</span> <span class="va">_sections</span> <span class="ot">CONFIGURE_DEPENDS</span> <span class="st">&quot;</span><span class="dv">${</span><span class="va">_tests_dir</span><span class="dv">}</span><span class="st">/bar_tests*.c&quot;</span>)</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a><span class="fu">djinterp_add_test_executable</span>(c_bar_tests</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>    SOURCES</span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;</span><span class="dv">${CMAKE_CURRENT_SOURCE_DIR}</span><span class="st">/bar_tests_runner.c&quot;</span></span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>        <span class="dv">${</span><span class="va">_sections</span><span class="dv">}</span></span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;</span><span class="dv">${DJINTERP_SRC_ROOT}</span><span class="st">/djinterp/c/foo/bar.c&quot;</span></span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;</span><span class="dv">${DJINTERP_SRC_ROOT}</span><span class="st">/djinterp/c/modules/test/test_suite.c&quot;</span></span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a>    INCLUDES</span>
+<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;</span><span class="dv">${</span><span class="va">_tests_dir</span><span class="dv">}</span><span class="st">&quot;</span>)</span></code></pre></div>
+<p>The glob takes <code>bar_tests.c</code> as well as
+<code>bar_tests_*.c</code>: a suite converted from the standalone form
+keeps its aggregator there (14.2). Until <code>djinterp_c_runtime</code>
+carries <code>test_suite.c</code> (requested of lane A on 2026-11-06),
+each leaf lists it. Prefix C targets with <code>c_</code>: target names
+are global, and the C++ suite of the same header takes the bare
+name.</p>
+<h3 id="125-notes-not-prints">12.5 Notes, not prints</h3>
+<p>A suite does not print. What a check cannot carry — the value a
+failed check got, the build a module ran on — goes in a note, which the
+report prints beneath its node, through the suite's stream:</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="op">(!</span>D_TEST_CHECK<span class="op">(</span>s<span class="op">,</span> count <span class="op">==</span> <span class="dv">3</span><span class="op">))</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>    d_test_suite_note<span class="op">(</span>s<span class="op">,</span> <span class="st">&quot;got </span><span class="sc">%d</span><span class="st">&quot;</span><span class="op">,</span> count<span class="op">);</span></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p><code>d_test_suite_note(suite, format, ...)</code> (or
+<code>_vnote</code> with a <code>va_list</code>) attaches a
+printf-formatted note to the node opened last: a test, or a module or
+block when no test is open. In a spec test,
+<code>D_TEST_NOTE(format, ...)</code> attaches one to the test; at ISO
+C++98, which has no variadic macros, the macro is absent and a test
+calls <code>d_test_suite_note_current(format, ...)</code>. A note's text
+may run to several lines. The formats are checked as printf's are
+(<code>D_FORMAT_PRINTF</code>).</p>
+<p>The report prints every note at <code>--checks</code>. Otherwise it
+prints a test's notes when the test fails, and a module's or block's
+when a test beneath it fails, so a passing run stays as short as it was.
+A note is kept whatever the options, since the verdict that decides it
+comes later: note beside a check, not in a loop of thousands.</p>
+<p>A module's build profile is the case for a heading's note: env's
+suite notes on its module the report <code>env_printer.h</code> collects
+for the unit, <code>d_env_report_here()</code>, as
+<code>section.name=value</code> lines, the printer's keyvalue form
+(<code>tests/djinterp/c/env_tests_profile.c</code>), so a failure in any
+env test comes with the build it failed on, and two builds' profiles
+compare line by line. A program prints the same with
+<code>d_env_print_file(stdout, "style=keyvalue; show_title=0; sections=all")</code>.</p>
+<h3 id="126-comparing-text-added-2026-11-16">12.6 Comparing text (added
+2026-11-16)</h3>
+<p>A text check compares what a test produced with what it should be,
+and when they differ, its note says where. Each side is a
+<code>struct dj_test_text</code>:</p>
+<table>
+<thead>
+<tr class="header">
+<th>Maker</th>
+<th>The text</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>d_test_text_buffer(p, n)</code></td>
+<td><code>n</code> bytes from <code>p</code>, NULs included;
+<code>(NULL, 0)</code> is the empty text</td>
+</tr>
+<tr class="even">
+<td><code>d_test_text_cstr(s)</code></td>
+<td><code>s</code> to its NUL; <code>NULL</code> is no text</td>
+</tr>
+<tr class="odd">
+<td><code>d_test_text_file(path)</code></td>
+<td>the file, read whole, in binary, at the check</td>
+</tr>
+</tbody>
+</table>
+<p>Three macros and a function make the check, as for any other:</p>
+<table>
+<thead>
+<tr class="header">
+<th>Form</th>
+<th>Use</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>D_TEST_REQUIRE_TEXT(actual, expected)</code></td>
+<td>a spec test; returns <code>false</code> from it when they
+differ</td>
+</tr>
+<tr class="even">
+<td><code>D_TEST_EXPECT_TEXT(actual, expected)</code></td>
+<td>a spec test; goes on, and gives the result</td>
+</tr>
+<tr class="odd">
+<td><code>D_TEST_CHECK_TEXT(suite, name, actual, expected)</code></td>
+<td>the imperative form, with its file and line</td>
+</tr>
+<tr class="even">
+<td><code>d_test_suite_check_text(suite, name, actual, expected)</code></td>
+<td>the same, without a place</td>
+</tr>
+</tbody>
+</table>
+<p>The spec macros name the check by the first argument's source text. A
+<code>NULL</code> suite is the one a spec run is in; outside one, a
+failure and its note go to stderr, and the result is returned.</p>
+<div class="sourceCode" id="cb19"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>D_TEST_REQUIRE_TEXT<span class="op">(</span>d_test_text_buffer<span class="op">(</span>sink<span class="op">.</span>buffer<span class="op">,</span> sink<span class="op">.</span>written<span class="op">),</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>                    d_test_text_cstr<span class="op">(</span>expected<span class="op">));</span></span></code></pre></div>
+<p><strong>What counts.</strong> The texts are compared line by line. A
+CR just before an LF is ignored on both sides, since the tree's files
+check out with CRLF on Windows; every other byte counts, a CR elsewhere
+included. A side that ends with a newline when the other does not
+differs too. No text (a <code>NULL</code>), or a file that cannot be
+read, fails the check. A test about line endings themselves, that a
+writer emits CRLF, compares bytes instead.</p>
+<p><strong>What a failure notes.</strong> The first line that differs,
+the column of its first differing byte (from 1, in bytes), and both
+lines:</p>
+<pre><code>djin list: line 4 differs, at column 8
+  got:  &quot;frame   2  shell&quot;
+  want: &quot;frame  2  shell&quot;</code></pre>
+<ul>
+<li>Each line is quoted, so trailing spaces show. Inside the quotes a
+tab is <code>\t</code>, a CR <code>\r</code>, any other control byte
+<code>\xNN</code>, a quote <code>\"</code> and a backslash
+<code>\\</code>; the column counts the line's own bytes, not the
+escapes.</li>
+<li>When one line begins the other, the column is one past its end.</li>
+<li>A line over 120 bytes is shown as the 120 bytes around the column,
+both lines through the same window, with <code>...</code> outside the
+quotes at a cut end.</li>
+<li>When one side runs out of lines first:
+<code>got ends after line 3, want has 2 more lines</code>, or
+<code>got is empty, want has 1 line</code>, then the other's next
+line.</li>
+<li>A missing final newline is said last:
+<code>got:  ends without a final newline</code>, after any line that
+differs, or under <code>only the final newline differs</code>.</li>
+<li>A side that could not be had: <code>could not compare</code>, then,
+for that side, <code>no text (NULL)</code> or
+<code>cannot read "path": </code> and the system's reason.</li>
+</ul>
+<hr />
+<h2 id="13-dtests-frozen-api-2026-11-06">13. DTest's frozen API
+(2026-11-06)</h2>
+<p>From 2026-11-06 every lane writes its suites against what this
+section lists. A frozen name is not removed or changed in meaning before
+1.0.0; additions are allowed, and a change that would break a suite goes
+to the owner as a decision with its migration first.</p>
+<p><strong>C face</strong> (<code>c/modules/test/test_suite.h</code>),
+all of it: the types <code>dj_test_suite</code> (opaque),
+<code>dj_test_summary</code>, <code>dj_test_suite_options</code>,
+<code>fn_test_case</code>, <code>dj_test_case_spec</code>,
+<code>dj_test_block_spec</code>, <code>dj_test_module_spec</code>; the
+constants <code>D_TEST_SUITE_SHOW_FAILURES</code> / <code>_TESTS</code>
+/ <code>_CHECKS</code> and <code>D_TEST_SUITE_EXIT_PASSED</code> /
+<code>_FAILED</code> / <code>_ERROR</code>; the functions
+<code>d_test_suite_new</code>, <code>_free</code>,
+<code>_options_init</code>, <code>_options_parse</code>,
+<code>_set_options</code>, <code>_module</code>, <code>_block</code>,
+<code>_test</code>, <code>_describe</code>, <code>_note</code> and
+<code>_vnote</code> (added 2026-11-07), <code>_check</code>,
+<code>_check_msg</code>, <code>_skip</code>, <code>_add_module</code>,
+<code>_run</code>, <code>d_test_run_modules</code>; the macros
+<code>D_TEST_CHECK</code>, <code>D_TEST_CHECK_MSG</code>,
+<code>D_TEST_REQUIRE</code>, <code>D_TEST_SKIP</code>,
+<code>D_TEST_NOTE</code> (added 2026-11-07); the NULL-safe
+<code>d_test_suite_str_equal</code>; the command-line options of 12.2
+and the exit codes; and the report's results table. Added 2026-11-16:
+<code>D_TEST_EXPECT</code> and <code>D_TEST_CASE</code>, with
+<code>D_TEST_REQUIRE</code> and <code>D_TEST_EXPECT</code> variadic
+where the preprocessor allows (12.2); and the text check of 12.6,
+<code>dj_test_text</code>, <code>d_test_text_buffer</code>,
+<code>_cstr</code> and <code>_file</code>,
+<code>d_test_suite_check_text</code>, <code>D_TEST_CHECK_TEXT</code>,
+<code>D_TEST_REQUIRE_TEXT</code> and <code>D_TEST_EXPECT_TEXT</code>,
+with its notes' wording. (<code>d_test_suite_require</code>,
+<code>d_test_suite_skip_current</code>,
+<code>d_test_suite_note_current</code> and
+<code>d_test_suite_check_text_at</code> exist for the macros and are not
+for direct use, but for <code>d_test_suite_note_current</code> at ISO
+C++98, where <code>D_TEST_NOTE</code> is absent.)</p>
+<p><strong>C++ face</strong>
+(<code>cpp/modules/test/test_defaults.hpp</code>, C++17 and up): the
+suite layout of Sections 2 to 7 and its <code>DTEST_SPEC_MODE</code>
+idiom; <code>test_spec</code>, <code>block_spec</code>,
+<code>module_spec</code>; <code>run_module</code> and
+<code>run_suite</code> in both their overloads;
+<code>test_option_set</code> in its one shape, the
+<code>test_option</code> keys,
+<code>get&lt;&gt;</code>/<code>set&lt;&gt;</code>, the members of
+Section 9 and <code>default_test_options()</code>; the two
+<code>|...|</code> tables of 8.2; and the exit code
+<code>run_module</code> returns.</p>
+<p><strong>Shared</strong>: the status values of
+<code>c/modules/test/test_common.h</code> (<code>D_TEST_STATUS_*</code>,
+with C++'s <code>test_status</code> over the same values), and the
+counters of 13.1. The field-form tally that stood here until 2026-11-09
+(<code>dj_test_counter</code> with four <code>size_t</code> fields,
+<code>d_test_counter_reset</code> and <code>_add</code>, style #79) is
+replaced by the owner's ruling of that date; 13.1 says how to move.</p>
+<p><strong>Not frozen</strong>, and not to be written against: the C++
+framework's internals (<code>test_tree</code>, <code>test_kind</code>,
+<code>test_session</code>, the report model and the output headers),
+which may change under the surface above, including
+<code>test_session</code>'s status counts, which it now keeps in a tally
+(13.1).</p>
+<p><strong>Retired</strong> (the owner's ruling of 2026-11-06, register
+4.6): the standalone framework, <code>test_standalone.h</code> and
+<code>.c</code>, its defaults header and
+<code>d_assert_standalone</code>.</p>
+<p><strong>Retired</strong> (the owner's rulings 4 and 20 of 2026-11-14
+and 11-17, which reverse B5): the classic C tree, whose core never
+compiled in this tree. <code>default/test.h</code>,
+<code>test_block.h</code>, <code>test_module.h</code> and
+<code>assert.h</code>, with their sources; <code>test_handler</code>,
+<code>test_session</code>, <code>test_printer</code> and
+<code>test_tree</code>; the <code>dtest</code> umbrella;
+<code>test_stats</code>, <code>test_cli</code> and
+<code>test_arg</code>, which served only it; and
+<code>cfg_test_printer.h</code> with its three
+<code>D_CFG_TEST_ENABLE_*</code> knobs, which only the classic printer
+read. The C face is DTest's one C runner. What the classic tree offered
+that the C face lacked comes to it as additions before 12-11: lifecycle
+listeners, setup and teardown hooks, colour, timing, stopping early,
+repeating, a report to a string and an arrays-equal check. Nothing runs
+a <code>_tests_sa*</code> suite any more; one still in the tree is
+converted (14.2) before its module's tests count.</p>
+<h3
+id="131-the-counters-the-owners-rulings-of-2026-11-09-and-11-10">13.1
+The counters (the owner's rulings of 2026-11-09 and 11-10)</h3>
+<p>DTest's counters know nothing of what they count. A tally holds one
+test counter per key, and the caller chooses the keys. A test counter is
+the generic counter of <code>c/util/counter</code> or
+<code>cpp/util/counter</code> plus a step; a test timer is the generic
+timer of <code>c/util/timer</code> or <code>cpp/util/timer</code>.
+Neither knows about events: both are used by hand, and events reach them
+only through the tie-in modules below.</p>
+<p><strong>C</strong> (<code>c/modules/test/test_counter.h</code>,
+<code>test_timer.h</code>):</p>
+<ul>
+<li><code>struct dj_test_counter</code> is
+<code>{ counter, step }</code>: a <code>struct dj_counter</code> and
+what one occurrence moves it by. <code>d_test_counter_init</code> /
+<code>_init_with</code>, <code>_record</code> (one occurrence, one
+step), the five operations (<code>_increment</code>,
+<code>_decrement</code>, <code>_compare</code>, <code>_merge</code>,
+<code>_reset</code>), <code>_value</code>, <code>_step</code> and
+<code>_as_counter</code>.</li>
+<li><code>struct dj_test_tally</code> keeps up to
+<code>D_TEST_TALLY_CAPACITY</code> test counters by
+<code>dj_test_key</code>, a <code>uint64_t</code> the caller chooses:
+<code>d_test_tally_init</code>, <code>_track</code>, <code>_find</code>,
+<code>_record</code>, <code>_increment</code>, <code>_count</code>,
+<code>_overflow</code>, <code>_reset</code>, <code>_merge</code>,
+<code>_clear</code>. A zero-filled tally is usable.</li>
+<li><code>struct dj_test_timer</code> is <code>{ timer }</code> with the
+timer's operations and <code>d_test_timer_elapsed_ms</code>.</li>
+</ul>
+<p><strong>C++</strong> (<code>cpp/modules/test/test_counter.hpp</code>,
+C++17 and up; <code>test_timer.hpp</code>, C++11 and up):</p>
+<ul>
+<li><code>test_counter&lt;V&gt;</code> is a
+<code>djinterp::counter&lt;V&gt;</code> plus a step and
+<code>record()</code>; <code>test_tally&lt;V&gt;</code> keeps one per
+key type (any type; one with a static <code>name()</code> lends it to
+reports), with no capacity, and has
+<code>record&lt;Key&gt;()</code>.</li>
+<li><code>DTestTimer&lt;Clock, Duration&gt;</code> is a
+<code>djinterp::timer</code> plus <code>elapsed_ms()</code>.</li>
+</ul>
+<p><strong>Events, through the tie-ins (the owner's ruling of
+2026-11-10).</strong> Each counter and timer family has one event
+module, separate from everything else, that couples a handler to a
+counter or timer and hands the handler off. The caller binds it wherever
+handlers are bound; no counter, timer or DTest runner includes a
+tie-in.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Tie-in</th>
+<th>What it hands off</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>c/util/counter/counter_event.h</code></td>
+<td>a <code>dj_event_step</code> moving any counter
+(<code>struct dj_counter_ref</code>)</td>
+</tr>
+<tr class="even">
+<td><code>c/util/timer/timer_event.h</code></td>
+<td>a <code>dj_event_step</code> starting, stopping or moving any
+timer</td>
+</tr>
+<tr class="odd">
+<td><code>cpp/util/counter/counter_event.hpp</code></td>
+<td><code>counter_handler&lt;Counter&gt;</code>, for any counter
+type</td>
+</tr>
+<tr class="even">
+<td><code>cpp/util/timer/timer_event.hpp</code></td>
+<td><code>timer_handler&lt;Timer&gt;</code>, for any timer type</td>
+</tr>
+<tr class="odd">
+<td><code>c/modules/test/test_counter_event.h</code></td>
+<td>a step recording a tally key; a test counter's
+<code>counter_event.h</code> binding</td>
+</tr>
+<tr class="even">
+<td><code>c/modules/test/test_timer_event.h</code></td>
+<td>a start and a stop binding on a test timer</td>
+</tr>
+<tr class="odd">
+<td><code>cpp/modules/test/test_counter_event.hpp</code></td>
+<td><code>tally_handler&lt;Key, Tally&gt;</code>; a test counter's
+<code>counter_handler</code></td>
+</tr>
+<tr class="even">
+<td><code>cpp/modules/test/test_timer_event.hpp</code></td>
+<td>a start and a stop <code>timer_handler</code> on a test timer</td>
+</tr>
+</tbody>
+</table>
+<p>The C tie-ins work on every kind of counter or timer through one
+interface: <code>counter.h</code> and <code>timer.h</code> define a
+table of operations (<code>struct dj_counter_vtable</code>,
+<code>struct dj_timer_vtable</code>) and a reference that pairs one with
+a counter or timer (<code>struct dj_counter_ref</code>,
+<code>struct dj_timer_ref</code>); <code>d_counter_ref</code>,
+<code>d_counter_atomic_ref</code>, <code>d_counter_mutex_ref</code> and
+the timer three make them, and the <code>d_counter_ref_*</code> /
+<code>d_timer_ref_*</code> functions use them.</p>
+<div class="sourceCode" id="cb21"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> dj_test_tally_event failures<span class="op">;</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>d_test_tally_event_init<span class="op">(&amp;</span>failures<span class="op">,</span></span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>                        <span class="op">&amp;</span>tally<span class="op">,</span></span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>                        MY_TESTS_FAILED<span class="op">);</span></span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>d_event_dispatcher_bind<span class="op">(&amp;</span>dispatcher<span class="op">,</span></span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a>                        KEY_TEST_FAILED<span class="op">,</span></span>
+<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a>                        d_test_tally_event_step<span class="op">(&amp;</span>failures<span class="op">),</span></span>
+<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a>                        NULL<span class="op">,</span></span>
+<span id="cb21-10"><a href="#cb21-10" aria-hidden="true" tabindex="-1"></a>                        <span class="op">&amp;</span>id<span class="op">);</span></span></code></pre></div>
+<p><strong>Moving from the field form.</strong> Each old field becomes a
+key the suite defines, and each operation the tally's:</p>
+<table>
+<thead>
+<tr class="header">
+<th>Field form (before 2026-11-09)</th>
+<th>Now</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>struct dj_test_counter c = {0};</code></td>
+<td><code>struct dj_test_tally t = {0};</code> (or
+<code>d_test_tally_init</code>)</td>
+</tr>
+<tr class="even">
+<td><code>c.tests_total++</code></td>
+<td><code>d_test_tally_increment(&amp;t, MY_TESTS_RUN, 1)</code></td>
+</tr>
+<tr class="odd">
+<td><code>c.assertions_passed</code> (read)</td>
+<td><code>d_test_tally_count(&amp;t, MY_ASSERTIONS_PASSED)</code></td>
+</tr>
+<tr class="even">
+<td><code>d_test_counter_add(&amp;dest, &amp;src)</code></td>
+<td><code>d_test_tally_merge(&amp;dest, &amp;src)</code></td>
+</tr>
+<tr class="odd">
+<td><code>d_test_counter_reset(&amp;c)</code></td>
+<td><code>d_test_tally_reset(&amp;t)</code></td>
+</tr>
+</tbody>
+</table>
+<p><code>MY_TESTS_RUN</code> and the like are <code>dj_test_key</code>
+values the suite chooses; a suite that fires events binds
+<code>test_counter_event.h</code>'s handlers instead of counting by
+hand. <code>d_test_counter_reset</code> keeps its name, on one test
+counter. A C-face suite needs none of this, since its report already
+counts tests and checks; the old fields were the standalone tier's.</p>
+<p><strong>Settings, in three layers, each optional.</strong> A build
+that sets nothing gets unbounded counters that step by one and a tally
+of 16 that refuses a 17th key.</p>
+<ol type="1">
+<li><p><em>Knobs</em>
+(<code>config/c/modules/test/cfg_test_counter.h</code>):</p>
+<table>
+<thead>
+<tr class="header">
+<th>Knob</th>
+<th>Default</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>D_CFG_TEST_TALLY_CAPACITY</code></td>
+<td>16</td>
+<td>a C tally's storage, 1 to 4096</td>
+</tr>
+<tr class="even">
+<td><code>D_CFG_TEST_TALLY_WHEN_FULL</code></td>
+<td>0</td>
+<td>a full C tally refuses a key (0) or overflows (1)</td>
+</tr>
+<tr class="odd">
+<td><code>D_CFG_TEST_COUNTER_STEP</code></td>
+<td>1</td>
+<td>how far one occurrence moves a counter; not 0</td>
+</tr>
+<tr class="even">
+<td><code>D_CFG_TEST_COUNTER_FLOOR</code></td>
+<td>0</td>
+<td>hold counters at or above zero (1)</td>
+</tr>
+<tr class="odd">
+<td><code>D_CFG_TEST_COUNTER_MACHINE</code></td>
+<td>0</td>
+<td>compile the option_env schema of layer 3 (1)</td>
+</tr>
+</tbody>
+</table></li>
+<li><p><em>Run-time options</em>: C's
+<code>struct dj_test_counter_options { step, has_floor }</code> and
+<code>struct dj_test_tally_options { limit, when_full, counter }</code>,
+whose <code>_options_init</code> functions read the knobs, passed to
+<code>d_test_counter_init_with</code> and
+<code>d_test_tally_init</code>. A tally's <code>limit</code> may be
+lower than its capacity, never higher. C++'s
+<code>test_counter_options&lt;V&gt; { step, has_floor }</code> starts at
+the knobs and is taken by <code>test_counter</code>'s and
+<code>test_tally</code>'s constructors.</p></li>
+<li><p><em>The abstract machine</em>, opt-in with
+<code>D_CFG_TEST_COUNTER_MACHINE</code>:
+<code>d_test_counter_env_vars()</code> is a schema for
+<code>c/option/option_env.h</code> (<code>tally_limit</code>,
+<code>tally_when_full</code> = <code>refuse</code> |
+<code>overflow</code>, <code>counter_step</code>,
+<code>counter_floor</code>) whose defaults are the knobs, and
+<code>d_test_tally_options_from_env</code> reads a frame into tally
+options, so text, a script, the environment or the command line can set
+them.</p></li>
+</ol>
+<p>Under <code>D_TEST_TALLY_FULL_OVERFLOW</code>, a key a full tally
+cannot track is counted in the tally's overflow counter
+(<code>d_test_tally_overflow</code>), and merge, reset and clear carry
+it; totals stay whole, and the overflow says how much was not told
+apart. <code>test_session</code>'s own status counts step by one and are
+floored whatever the knobs say: they count tests.</p>
+<hr />
+<h2 id="14-migration-guide">14. Migration guide</h2>
+<p>Three older forms are in the tree. Each converts to the C face of
+Section 12; <code>scripts/dtest/dtest_convert.py --from FORM</code> does
+the mechanical part and marks what it cannot decide with
+<code>DTEST-CONVERT:</code> comments, which <code>--report</code> lists.
+A converted file is done when no mark is left and its suite passes.</p>
+<pre><code>cd &lt;repository root&gt;
+# a dry run first: it reports what it would change, and changes nothing
+python3 scripts/dtest/dtest_convert.py --from sa --report x_tests_sa*.[ch]
+python3 scripts/dtest/dtest_convert.py --from sa --in-place --final \
+    x_tests_sa*.[ch]</code></pre>
+<h3 id="141-the-dtest_-bridge---from-bridge">14.1 The
+<code>dtest_*</code> bridge (<code>--from bridge</code>)</h3>
+<p>The filesys suite was written against a C ABI named
+<code>dtest_*</code> that no tree held, with a stand-in of its own. The
+face is that ABI under the C guide's names, so the conversion is a
+rename: <code>dtest_suite</code> → <code>struct dj_test_suite</code>,
+<code>dtest_create</code> / <code>_destroy</code> →
+<code>d_test_suite_new</code> / <code>_free</code>,
+<code>dtest_module</code> / <code>_block</code> / <code>_test</code> →
+<code>d_test_suite_module</code> / <code>_block</code> /
+<code>_test</code>, <code>dtest_assert_expr</code> →
+<code>d_test_suite_check</code>, <code>dtest_run</code> →
+<code>d_test_suite_run</code>, <code>DTEST_SHOW_ALL</code> /
+<code>_FAILURES_ONLY</code> → <code>D_TEST_SUITE_SHOW_TESTS</code> /
+<code>_FAILURES</code>; the stand-in header's include becomes
+<code>test_suite.h</code>. <code>dtest_use_console</code> is marked: set
+<code>show</code> in the options instead. The filesys suite was
+converted this way on 2026-11-05 (286 tests); its stand-in and its C++
+runner are retired, and its runner is C.</p>
+<h3 id="142-the-standalone-suites---from-sa">14.2 The standalone suites
+(<code>--from sa</code>)</h3>
+<p>The standalone tier is retired (13), so a <code>*_tests_sa*</code>
+suite builds only once converted. They come in two styles, and the
+converter handles both:</p>
+<ul>
+<li><strong>Counter style</strong>:
+<code>bool f(struct dj_test_counter* _counter)</code> with
+<code>d_assert_standalone(cond, name, msg, _counter)</code>. The
+parameter becomes <code>struct dj_test_suite* _suite</code>, each
+assertion <code>D_TEST_CHECK_MSG(_suite, name, cond, msg)</code>, and
+the counter bookkeeping (<code>_counter-&gt;tests_total++</code>, a
+snapshot of <code>tests_passed</code>, a summary printer) goes.</li>
+<li><strong>Tree style</strong>:
+<code>struct dj_test_object* f(void)</code> building a group with
+<code>d_test_object_new_interior</code> and leaves with
+<code>D_ASSERT_TRUE</code> / <code>_FALSE</code> / <code>_NULL</code> /
+<code>_NOT_NULL</code> / <code>_EQUAL</code> / <code>_STR_EQUAL</code>.
+The function becomes <code>bool f(struct dj_test_suite* _suite)</code>,
+each leaf a <code>D_TEST_CHECK_MSG</code>, and a child group stored into
+its parent a call over the same suite. Each group's variable goes with
+its declaration, its <code>if (!group)</code> guard and its return,
+whatever it is named: a guard left behind would read a pointer nothing
+sets.</li>
+</ul>
+<p>In both, a function that checks opens a
+<code>d_test_suite_test</code> of its name, one that only calls others a
+<code>d_test_suite_block</code>; the tier's own progress lines
+(<code>--- Testing X ---</code>, <code>[PASS]</code> /
+<code>[FAIL]</code>, <code>[SECTION]</code>) go, since the report says
+the same, and the flag they printed becomes what the section returns. A
+local the conversion leaves unread goes with its assignments; one set
+from a call keeps the call as a <code>(void)</code> statement.
+Diagnostic prints (a detected value, say) stay.</p>
+<p><code>--final</code> then gives the suite its final names:
+<code>d_tests_sa_</code> becomes <code>d_tests_</code>, and
+<code>x_tests_sa*.{c,h}</code> become <code>x_tests*.{c,h}</code>, in
+the code, the includes, the guards and the banners. A file whose new
+name a C-face suite already has is left in place and reported. What is
+left by hand:</p>
+<ul>
+<li><strong>Merging into a C-face suite.</strong> Where the module has
+one, the converted header's body goes into its header (lane B put it in
+a third section, outside spec mode, with the entry points declared in
+the spec section, where the runner sees them), and a function name a
+register test already has takes a suffix (<code>_cases</code>).</li>
+<li><strong>The runner and the leaf.</strong> The runner of 12.3 creates
+the suite, adds the spec if there is one, and calls each entry point: a
+function no other one calls. A module without a spec opens its module in
+the runner (<code>d_test_suite_module</code>). The leaf is 12.4's.</li>
+<li><strong>What the old tier hid.</strong> It compiled without most
+warnings and ran no check of its own, so expect stale API names, a test
+that checks nothing (the face counts it as failed), and placeholders. A
+section that only prints TODO is not a test: drop it, with what only it
+fed.</li>
+</ul>
+<p>Lane B converted its fifteen suites this way on 2026-11-07;
+<code>docs/</code> has no per-file record, but each suite's runner lists
+its entry points.</p>
+<h3 id="143-the-programs-in-testsunintegrated---from-program">14.3 The
+programs in <code>tests/unintegrated</code>
+(<code>--from program</code>)</h3>
+<p>Each <code>t_*.c</code> there is a program that prints its failures
+and returns 0 when none failed. <code>--from program</code> renames its
+<code>main</code> and adds a spec test that requires the program's
+result to be 0, and prints the spec row to paste into the suite header.
+That integrates the program as one test without touching its checks;
+split it into tests of its own when its module's suite is written.</p>
+<h3 id="144-c-suites">14.4 C++ suites</h3>
+<p>A C++ suite in the spec idiom of Sections 2 to 7 needs no change. One
+that used the face-neutral option setters may drop the <code>#if</code>
+(Section 9). A C++ suite that must also run below C++17 lists its test
+functions in a C spec table (12.2) — they are <code>bool ()</code>
+already — and gets a second runner over
+<code>d_test_run_modules</code>.</p>
+<h3 id="145-the-dj_tests_section-tables---from-section">14.5 The
+<code>dj_tests_section</code> tables (<code>--from section</code>)</h3>
+<p>Lanes F and G wrote suites as tables of
+<code>struct dj_tests_section { name, run }</code>
+(<code>tests/.../modules/parse/tests_section.h</code>) walked by a
+runner of their own. <code>--from section</code> turns each table into
+the C face's spec form in place:</p>
+<ul>
+<li><code>struct dj_tests_section X[] = { { "name", fn }, ... }</code>
+becomes <code>struct dj_test_case_spec X[]</code> with
+<code>{ "name", "", fn }</code> rows. The functions are
+<code>bool (void)</code> in both, so they are not touched.</li>
+<li>The table keeps its name, its linkage and its <code>#if</code>s:
+rows built under a language level or a configuration move with their
+conditions.</li>
+<li>Beside each table goes a block spec, <code>X_block</code>, named
+after the table, and an <code>extern</code> for each in the header that
+declared the table.</li>
+<li><code>tests_section.h</code>'s include becomes
+<code>test_suite.h</code>'s.</li>
+<li>Each table gets one <code>DTEST-CONVERT:</code> mark asking for its
+rows' descriptors (3.5), since the tables have none, and each block one
+for its own.</li>
+<li>A runner over the old tables walks <code>.run</code> and
+<code>.name</code>. It is marked, not converted. The converter prints,
+on standard error, a runner over every non-static block it converted:
+one module of those blocks, run by <code>d_test_run_modules</code>.
+Merge it with the suite's own setup and fill in <code>MODULE</code> and
+<code>TITLE</code>.</li>
+</ul>
+<p>C++ tables (<code>cli_tests.cpp</code>, say) convert the same way and
+then compile against the C face as C++, which is the form for a C++
+suite below C++17 (14.4).</p>
+<pre><code>python3 scripts/dtest/dtest_convert.py --from section --report \
+    tests/djinterp/c/modules/parse/*.c
+python3 scripts/dtest/dtest_convert.py --from section --in-place \
+    tests/djinterp/c/modules/parse/*.[ch]</code></pre>
+</body>
+</html>

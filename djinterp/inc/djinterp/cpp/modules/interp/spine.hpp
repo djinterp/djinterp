@@ -8,9 +8,9 @@
 * term into an effect - threading a value through a `|` pipeline and
 * short-circuiting on the first failure.
 *   It was parse's functional_cli.hpp, and moved here, to the interpreter's
-* module (docs/djinterp/interp/DESIGN.md, decision 1). It runs the subset of
+* module (docs/djinterp/cpp/modules/interp/DESIGN.html, decision 1). It runs the subset of
 * djinterp.peg it always ran - commands joined by `|` - until its legs are
-* joined to expression core v2 (DESIGN.md, section 3); its namespace is the
+* joined to expression core v2 (DESIGN.html, section 3); its namespace is the
 * interpreter's, djinterp::interp.
 *
 *   THE SPINE, END TO END.

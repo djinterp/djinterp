@@ -4,7 +4,7 @@
 * What the command line's sources share: sheets read and written back, rows
 * and values as a command line names them, and output.
 *   A SHEET operand is a path, `-` for standard input, or `example:NAME` for
-* a built-in example (GRAMMAR.md, R13); read, it is any of the three JSON
+* a built-in example (GRAMMAR.html, R13); read, it is any of the three JSON
 * shapes exchange.hpp reads, and remembers which, so that a changed sheet is
 * written back in the shape it came in. A changed sheet goes back where it
 * came from, whole or not at all; `-o FILE` sends it elsewhere, standard
@@ -273,7 +273,7 @@ D_NODISCARD std::string shown_name(
 //------------------------------------------------------------------------------
 // 2.2.1
 // read_value / read_number
-//   functions: an integer as the grammar writes one (GRAMMAR.md, section 4)
+//   functions: an integer as the grammar writes one (GRAMMAR.html, section 4)
 // - decimal unless 0x, 0o or 0b says otherwise, a leading zero not octal,
 // `_` between digits, `-` before a negative one - of any width, a negative
 // one as its 64-bit two's complement; or held in 64 bits, signed. False,
@@ -349,7 +349,7 @@ D_NODISCARD bool given(
 // 3.1.1
 // emit / say
 //   output: text to the program's output, its results' stream; and to its
-// errors' stream, where what is said about the work goes (GRAMMAR.md, R17).
+// errors' stream, where what is said about the work goes (GRAMMAR.html, R17).
 void emit(
     kit::program&      _program,
     const std::string& _text

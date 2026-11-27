@@ -4,7 +4,7 @@
 * The version every part of bitwisedom is built at.
 *   One string, so that `bitwisedom --version` and the window's module agree:
 * the command line loads a module only of its own program and version
-* (GRAMMAR.md, section 7). The build passes the project's version as
+* (GRAMMAR.html, section 7). The build passes the project's version as
 * BITWISEDOM_VERSION; a build that does not gets the one below.
 *
 * HOW TO USE

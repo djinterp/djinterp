@@ -6,7 +6,7 @@
 * invocation's options, and the fold's value threaded through `|` and
 * stopped at the first failure - so that joining its legs to expression core
 * v2 changes only what the design says it changes (docs/djinterp/interp/
-* DESIGN.md, sections 3 and 4). The splitting of `-xvf` into three flags,
+* DESIGN.html, sections 3 and 4). The splitting of `-xvf` into three flags,
 * which decision 2 takes out, is held here as the spine does it today.
 *   A suite is a table of sections, each a function that checks one thing
 * and says which check failed, the runner a loop over the table that prints

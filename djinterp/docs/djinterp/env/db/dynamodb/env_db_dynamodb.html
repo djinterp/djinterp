@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>envdynamodb.h — Amazon DynamoDB</title>
+  <style>
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+</head>
+<body>
+<h1 id="env_dynamodbh--amazon-dynamodb"><code>env_dynamodb.h</code> —
+Amazon DynamoDB</h1>
+<p>Deep detection for Amazon DynamoDB. Includes
+<code>env_dynamodb_config.h</code>, then <code>env_db.h</code>, then
+<code>&lt;aws/core/VersionConfig.h&gt;</code> (the AWS SDK for C++ is a
+C++-only API; the DynamoDB client header path is
+<code>D_CFG_ENV_DYNAMODB_CPP_PATH</code>). Public prefix
+<strong><code>D_ENV_DYNAMODB_</code></strong>, with an abbreviated
+<code>D_ENV_DDB_</code> form for the feature/version gates.</p>
+<p>DynamoDB is a fully managed service with <strong>no installable
+server and no server version</strong>. Detection therefore centers on
+the AWS SDK (the client), the deployment target (cloud vs Local), and a
+manually declared capability profile.</p>
+<h2 id="configuration-env_dynamodb_configh">Configuration
+(<code>env_dynamodb_config.h</code>)</h2>
+<table>
+<thead>
+<tr class="header">
+<th>Macro</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>D_CFG_ENV_USING_DYNAMODB</code></td>
+<td><code>1</code> to include the AWS SDK and detect it</td>
+</tr>
+<tr class="even">
+<td><code>D_CFG_ENV_DYNAMODB_CPP_PATH</code></td>
+<td>SDK client header path (default
+<code>&lt;aws/dynamodb/DynamoDBClient.h&gt;</code>)</td>
+</tr>
+<tr class="odd">
+<td><code>D_CFG_ENV_DYNAMODB_CUSTOM</code></td>
+<td><code>1</code> to skip detection; supply
+<code>D_ENV_DYNAMODB_DETECTED_SDK_VERSION</code></td>
+</tr>
+<tr class="even">
+<td><code>D_CFG_ENV_DYNAMODB_TARGET</code></td>
+<td>Deployment target: <code>_CLOUD</code> (0, default) /
+<code>_LOCAL</code> (1)</td>
+</tr>
+</tbody>
+</table>
+<p>Target auto-selects to <code>_LOCAL</code> if
+<code>D_ENV_DYNAMODB_DETECTED_LOCAL</code> is defined, else
+<code>_CLOUD</code>. Service capabilities that depend on
+region/account/table settings are declared via
+<code>D_ENV_DYNAMODB_DETECTED_*</code> /
+<code>D_ENV_DYNAMODB_NO_*</code> opt-in macros rather than a version
+number.</p>
+<h2 id="key-output-symbols">Key output symbols</h2>
+<table>
+<thead>
+<tr class="header">
+<th>Symbol</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>D_ENV_DYNAMODB_SDK_VERSION_ID</code> / <code>_MAJOR</code> /
+<code>_MINOR</code> / <code>_PATCH</code> / <code>_STRING</code></td>
+<td>Detected AWS SDK version</td>
+</tr>
+<tr class="even">
+<td><code>D_ENV_DDB_SDK_VERSION_ID</code></td>
+<td>Abbreviated alias used by the gates</td>
+</tr>
+<tr class="odd">
+<td><code>D_ENV_DDB_IS_CLOUD</code> / <code>_IS_LOCAL</code></td>
+<td>Deployment-target flags</td>
+</tr>
+<tr class="even">
+<td><code>D_ENV_DDB_HAS_*</code></td>
+<td>Per-feature flags (e.g. <code>_HAS_BATCH_OPS</code>,
+<code>_HAS_CONDITIONAL_WRITES</code>, <code>_HAS_AUTO_SCALING</code>,
+<code>_HAS_ATOMIC_COUNTERS</code>, <code>_HAS_DAX</code>,
+<code>_HAS_CONTRIBUTOR_INSIGHTS</code>,
+<code>_HAS_ASYNC_API</code>)</td>
+</tr>
+<tr class="odd">
+<td><code>D_ENV_DB_HAS_DYNAMODB_CLIENT_CPP</code></td>
+<td>Client-present flag in the shared <code>env_db.h</code>
+namespace</td>
+</tr>
+</tbody>
+</table>
+<h2 id="sections">Sections</h2>
+<p>Config; version encoding; AWS SDK version detection; SDK version
+comparison; deployment target; capability-profile helpers; SDK client
+features; data model (partition/sort keys, item attributes, document
+model); indexing; capacity &amp; scaling; request &amp; query features
+(batch get/write, conditional writes, …); streams &amp; change data;
+replication, backup &amp; lifecycle (global tables, PITR); caching
+(DAX); security (encryption at rest, KMS CMKs); convenience/composite;
+and a consumer compatibility layer of <code>D_ENV_DYNAMODB_*</code>
+names.</p>
+</body>
+</html>

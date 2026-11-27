@@ -1,0 +1,1060 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>desc: describing anything, in prose and in facts</title>
+  <style>
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+    /* CSS for syntax highlighting */
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+</head>
+<body>
+<h1 id="desc-describing-anything-in-prose-and-in-facts">desc: describing
+anything, in prose and in facts</h1>
+<p>desc's design, for the agreement of Friday 11-13 (decision 29): the
+APIs of all three of desc's layers - the units, the facts and the macro
+layer - as they are in the tree, and the C++ face over them. It records
+the owner's rulings of 11-12, 11-17, 11-18 and 11-25, by desc's decision
+numbers: 20 (describer forms and machines), 28 (d) (one authored form),
+30 (a) (op arrays), 31 (c) (a declaring macro per family), 32 (b)
+(dmacro's tools), 33 (c) (where a describer is found), 34 (a) (the order
+of adoption), 68 (c) and 82 (a) (where other modules' describers live),
+74 (JSON that names its shape), and 86 (b) (a put through the stream).
+It builds on desc.txt (the owner's idea and the first C++ sketch) and on
+what the tree already has: the stream's value and templates
+(<code>c/text/ostream_template.h</code>), the environment printer and
+option_env with its registry.</p>
+<h2 id="what-desc-is">What desc is</h2>
+<p>A module that describes any object in words, at any length, for three
+uses from one source: a log line, <code>--help</code>, and a debugger's
+view. The library does the work: every mechanical fact is derived from
+what the type already knows, and only intent is written by hand.</p>
+<h2 id="two-engines-one-authored-form">Two engines, one authored
+form</h2>
+<p>desc has two engines, both built by default
+(<code>D_CFG_DESC_UNITS</code>, <code>D_CFG_DESC_FACTS</code>):</p>
+<ul>
+<li><strong>Units</strong> write prose for people: a type's table of
+fill-in-the-blank parts, chosen when the type is compiled and by a plan
+read from the object's values, then written once, front to back. This is
+the default for a description a person reads.</li>
+<li><strong>Facts</strong> are typed values for machines: key, label,
+value, layer, importance and truth, into a sink, and from the sink to a
+machine that makes text, JSON, a log record's attributes, or the kit's
+help.</li>
+</ul>
+<p>A type is authored once (decision 28 (d)). It gives desc:</p>
+<ul>
+<li>a <strong>field list</strong>: each value's key, label, layer,
+importance and truth;</li>
+<li>one <strong>reader</strong>, which reads a field by its index in
+that list;</li>
+<li>a <strong>plan</strong>, which reads the values that choose units
+and grammar;</li>
+<li><strong>units</strong>, which name the fields they say.</li>
+</ul>
+<p>Prose comes from the units, and facts from the field list, through
+the same reader, so the two cannot disagree; a field nobody asked for is
+never read. A hand-written fact describer is needed only for nested
+contents, such as a container's elements.</p>
+<table>
+<thead>
+<tr class="header">
+<th>File</th>
+<th>What it holds</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>inc/djinterp/c/desc/desc.h</code></td>
+<td>facts, machines, sinks, both describer forms</td>
+</tr>
+<tr class="even">
+<td><code>inc/djinterp/c/desc/desc_units.h</code></td>
+<td>rings, slots, op arrays, units, fields, the type</td>
+</tr>
+<tr class="odd">
+<td><code>inc/djinterp/c/desc/desc_options.h</code></td>
+<td>desc's djin, <code>desc</code></td>
+</tr>
+<tr class="even">
+<td><code>inc/djinterp/c/desc/desc_macro.h</code></td>
+<td>the macro layer</td>
+</tr>
+<tr class="odd">
+<td><code>inc/djinterp/cpp/desc/desc_units.hpp</code></td>
+<td>the C++ face</td>
+</tr>
+<tr class="even">
+<td><code>inc/djinterp/config/c/desc/cfg_desc.h</code></td>
+<td>the knobs</td>
+</tr>
+<tr class="odd">
+<td><code>src/djinterp/c/desc/desc_units.c</code></td>
+<td>the units engine, and the derived facts</td>
+</tr>
+<tr class="even">
+<td><code>src/djinterp/c/desc/desc_options.c</code></td>
+<td>the djin</td>
+</tr>
+</tbody>
+</table>
+<h2 id="a-types-description">A type's description</h2>
+<div class="sourceCode" id="cb1"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> dj_desc_type</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">const</span> <span class="dt">char</span><span class="op">*</span>                 name<span class="op">;</span>         <span class="co">// an identifier: its options&#39;</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>                                              <span class="co">// scope, desc.&lt;name&gt;.ring</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">const</span> <span class="dt">char</span><span class="op">*</span>                 noun<span class="op">;</span>         <span class="co">// its name in prose</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">const</span> <span class="kw">struct</span> dj_desc_unit<span class="op">*</span>  units<span class="op">;</span>        <span class="co">// null when none are built</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    <span class="dt">size_t</span>                      unit_count<span class="op">;</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    <span class="dt">const</span> <span class="kw">struct</span> dj_desc_field<span class="op">*</span> fields<span class="op">;</span>       <span class="co">// null when facts are not built</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    <span class="dt">size_t</span>                      field_count<span class="op">;</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    fn_desc_plan                plan<span class="op">;</span>         <span class="co">// may be null: no bits</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    fn_desc_read                read<span class="op">;</span>         <span class="co">// may be null: no fields</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    fn_desc_describer           contents<span class="op">;</span>     <span class="co">// nested contents; may be null</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span></code></pre></div>
+<p>It is a const object beside the type's own unit, named
+<code>d_desc_type_&lt;name&gt;</code>, so <code>D_DESC_OF(name)</code>
+finds it, and a program that never describes the type links none of it.
+<code>D_DESC_UNITS_TABLE(table)</code> and
+<code>D_DESC_FIELDS_TABLE(table)</code> give a table's pointer and
+count, or null and 0 where the knobs leave that engine out, so the
+tables may sit inside <code>#if D_CFG_DESC_UNITS</code> and
+<code>#if D_CFG_DESC_FACTS</code>.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">typedef</span> <span class="dt">uint32_t</span> <span class="op">(*</span>fn_desc_plan<span class="op">)(</span><span class="dt">const</span> <span class="dt">void</span><span class="op">*</span> _object<span class="op">,</span> <span class="dt">uint32_t</span> _ring<span class="op">);</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="kw">typedef</span> <span class="kw">struct</span> dj_ostream_value <span class="op">(*</span>fn_desc_read<span class="op">)(</span><span class="dt">const</span> <span class="dt">void</span><span class="op">*</span> _object<span class="op">,</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>                                                <span class="dt">uint32_t</span>    _field<span class="op">);</span></span></code></pre></div>
+<p>The value is the stream's <code>struct dj_ostream_value</code> (text,
+integers, reals, booleans, none), which units and facts share, so a
+value needs no conversion to be written by a template.</p>
+<h2 id="1-the-units-desc_unitsh">1. The units
+(<code>desc_units.h</code>)</h2>
+<h3 id="rings">Rings</h3>
+<p>A ring says how much is said, and each includes the ones inside
+it:</p>
+<table>
+<thead>
+<tr class="header">
+<th>Ring</th>
+<th>Says</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>D_DESC_RING_NAME</code></td>
+<td>the noun and what completes it, with no article</td>
+<td>shelf</td>
+</tr>
+<tr class="even">
+<td><code>D_DESC_RING_LINE</code></td>
+<td>its condition and what it has</td>
+<td>a shelf with 3 books</td>
+</tr>
+<tr class="odd">
+<td><code>D_DESC_RING_SENTENCE</code></td>
+<td>its policies, and a sentence more</td>
+<td>an ordered shelf of books, with 3 books. Its first book is
+Emma.</td>
+</tr>
+<tr class="even">
+<td><code>D_DESC_RING_DETAILED</code></td>
+<td>what takes a walk to know, and its limits</td>
+<td>an 8-slot ordered shelf of books, with 3 books. ... It holds at most
+8 books.</td>
+</tr>
+</tbody>
+</table>
+<p><code>D_DESC_RING_OPTION</code> asks for what <code>desc.ring</code>
+says; a ring past the last built is the last built; a unit whose ring is
+<code>D_DESC_RING_NEVER</code> is never shown.</p>
+<h3 id="layers">Layers</h3>
+<p>A unit is on one of desc.h's nine layers - identity, type, state,
+intent, policy, health, provenance, contents, cost - so units and facts
+are selected the same way. A reader hides the layers it does not want;
+the noun, which names the type, is always written.</p>
+<h3 id="slots-in-a-sentences-order">Slots, in a sentence's order</h3>
+<p>A unit goes in a slot, and the slots are in the order a person says
+the parts:</p>
+<table>
+<thead>
+<tr class="header">
+<th>Slot</th>
+<th>Holds</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>CONDITION</td>
+<td>how it is now</td>
+<td>empty, full</td>
+</tr>
+<tr class="even">
+<td>SIZE</td>
+<td>its size</td>
+<td>fixed-size, 8-slot</td>
+</tr>
+<tr class="odd">
+<td>QUALITY</td>
+<td>its qualities</td>
+<td>immutable, dusty</td>
+</tr>
+<tr class="even">
+<td>SHAPE</td>
+<td>its arrangement</td>
+<td>ordered</td>
+</tr>
+<tr class="odd">
+<td>ORIGIN</td>
+<td>its origin, its style</td>
+<td>Windows-style</td>
+</tr>
+<tr class="even">
+<td>NOUN</td>
+<td>what it is, always written</td>
+<td>shelf</td>
+</tr>
+<tr class="odd">
+<td>COMPLEMENT</td>
+<td>what completes the noun</td>
+<td>of books, mapping int to text</td>
+</tr>
+<tr class="even">
+<td>WITH</td>
+<td>what it has</td>
+<td>with 3 books and a label</td>
+</tr>
+<tr class="odd">
+<td>REMARK</td>
+<td>a sentence after</td>
+<td>Its first book is Emma.</td>
+</tr>
+</tbody>
+</table>
+<p>Adjectives of one kind are coordinate and take commas between them;
+adjectives of different kinds take none: "a full dusty, old shelf".
+Complements take commas; the units of WITH join with ", " and a last "
+and ", after ", with" when there are complements; each remark is a
+sentence.</p>
+<h3 id="op-arrays-and-units-decision-30-a">Op arrays and units (decision
+30 (a))</h3>
+<p>A unit's text is an array of ops the compiler lays out, so nothing is
+parsed or compiled at run time, and a field named by a misspelt constant
+does not compile. Units that say the same thing share one array.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="dt">static</span> <span class="dt">const</span> <span class="kw">struct</span> dj_desc_op OPS_BOOKS<span class="op">[]</span> <span class="op">=</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    <span class="op">{</span> D_DESC_F<span class="op">(</span>SHELF_BOOKS<span class="op">),</span> D_DESC_T<span class="op">(</span><span class="st">&quot; book&quot;</span><span class="op">),</span> D_DESC_PL<span class="op">,</span> D_DESC_END <span class="op">};</span></span></code></pre></div>
+<table>
+<thead>
+<tr class="header">
+<th>Op</th>
+<th>Writes</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>D_DESC_T(text)</code></td>
+<td>a literal</td>
+</tr>
+<tr class="even">
+<td><code>D_DESC_F(field)</code></td>
+<td>a field's value, read when the op is reached</td>
+</tr>
+<tr class="odd">
+<td><code>D_DESC_PL</code></td>
+<td>"s", unless the last number written was 1</td>
+</tr>
+<tr class="even">
+<td><code>D_DESC_WORDS(one, many)</code></td>
+<td>the first after a 1, else the second</td>
+</tr>
+<tr class="odd">
+<td><code>D_DESC_END</code></td>
+<td>ends the array</td>
+</tr>
+</tbody>
+</table>
+<p>A unit points at its array (24 bytes on x86-64):</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> dj_desc_unit</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">const</span> <span class="kw">struct</span> dj_desc_op<span class="op">*</span> ops<span class="op">;</span>      <span class="co">// shared; ends with D_DESC_END</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint32_t</span>                 on<span class="op">;</span>       <span class="co">// plan bits it needs</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint32_t</span>                 off<span class="op">;</span>      <span class="co">// plan bits it must not have</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint8_t</span>                  ring<span class="op">,</span> layer<span class="op">,</span> slot<span class="op">,</span> article<span class="op">;</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a><span class="pp">#if D_DESC_BUILT(LINE, STATE)</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>    D_DESC_UNIT<span class="op">(</span>D_DESC_RING_LINE<span class="op">,</span> D_DESC_LAYER_STATE<span class="op">,</span> D_DESC_SLOT_WITH<span class="op">,</span></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>                <span class="dv">0</span><span class="bu">u</span><span class="op">,</span> SHELF_EMPTY<span class="op">,</span> OPS_BOOKS<span class="op">),</span></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a><span class="pp">#endif</span></span></code></pre></div>
+<p>A unit shows when its ring is in force, its layer is wanted, and the
+plan has every bit of <code>on</code> and none of <code>off</code>.
+<code>D_DESC_BUILT(ring, layer)</code>, with the names unprefixed, tells
+<code>#if</code> whether the build has a ring and a layer, so a row the
+knobs leave out is not compiled and its text is not in the binary.
+(desc.h's layers are enum constants, which <code>#if</code> cannot read;
+the names map to numbers in <code>desc_units.h</code>, and a misspelt
+one is reported by <code>-Wundef</code>.)</p>
+<h3 id="write-once-front-to-back">Write once, front to back</h3>
+<p>A description is made in two steps, and nothing written is ever
+changed:</p>
+<ol type="1">
+<li><strong>Decide</strong>, from values only: the ring and layers in
+force, the plan's bits, how many units show in each slot, and which unit
+leads.</li>
+<li><strong>Write</strong> each slot's units in order, each after its
+separator, which the counts already decided. The article is chosen from
+the lead unit's first word or number ("an 8-slot", "an empty";
+<code>D_DESC_UNIT_ARTICLE</code> gives a unit its own: "a unique"), and
+that field is read once for both; a capital, asked for with
+<code>D_DESC_CAPITAL</code>, changes the first letter on its way
+out.</li>
+</ol>
+<h3 id="describing">Describing</h3>
+<div class="sourceCode" id="cb5"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> d_desc_say<span class="op">(</span><span class="dt">const</span> <span class="kw">struct</span> dj_desc_type<span class="op">*</span> type<span class="op">,</span> <span class="dt">const</span> <span class="dt">void</span><span class="op">*</span> object<span class="op">,</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>               <span class="dt">uint32_t</span> ring<span class="op">,</span> <span class="dt">uint32_t</span> layers<span class="op">,</span> <span class="dt">uint32_t</span> flags<span class="op">,</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>               fn_desc_put put<span class="op">,</span> <span class="dt">void</span><span class="op">*</span> context<span class="op">);</span></span></code></pre></div>
+<p>The text goes to desc.h's <code>fn_desc_put</code>, only ever
+appended to. It returns 0 when written, 1 when the put asked to stop
+(the put is not called again), and -1 for a null argument or a build
+without units. desc gives two puts: <code>d_desc_put_buffer</code>, into
+a caller's <code>struct dj_desc_buffer</code>, which keeps what fits and
+a NUL after it and stops when full; and <code>d_desc_put_ostream</code>
+(<code>desc_machines.h</code>), into djinterp's stream,
+<code>struct dj_ostream</code>, so a file, a buffer and a module's host
+take the same bytes. The <code>FILE*</code> put is gone (decision 86): a
+program with a <code>FILE*</code> wraps it with
+<code>d_ostream_init_file</code>.</p>
+<h2 id="2-the-facts-desch">2. The facts (<code>desc.h</code>)</h2>
+<h3 id="a-fact">A fact</h3>
+<div class="sourceCode" id="cb6"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> dj_desc_fact</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">const</span> <span class="dt">char</span><span class="op">*</span>             key<span class="op">;</span>         <span class="co">// &quot;element_count&quot;: a path part</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">const</span> <span class="dt">char</span><span class="op">*</span>             label<span class="op">;</span>       <span class="co">// &quot;elements&quot;: for prose; may be null</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>    <span class="kw">struct</span> dj_ostream_value value<span class="op">;</span>       <span class="co">// the stream&#39;s tagged value</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint32_t</span>                depth<span class="op">;</span>       <span class="co">// nesting, from the sink</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint16_t</span>                layer<span class="op">;</span>       <span class="co">// enum dj_desc_layer</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint8_t</span>                 importance<span class="op">;</span>  <span class="co">// 0 the headline .. 3 the detail</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint8_t</span>                 truth<span class="op">;</span>       <span class="co">// enum dj_desc_truth</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span></code></pre></div>
+<ul>
+<li><strong>Layers</strong>, which a reader selects: the nine above. A
+module adds keys, not layers.</li>
+<li><strong>Importance</strong> orders facts within a layer, so a
+one-line description is the facts of importance 0, and the detail is
+3.</li>
+<li><strong>Truth</strong> says what kind of fact it is:
+<em>guaranteed</em> (the standard requires it), <em>implementation</em>
+(this library's or compiler's choice), <em>build</em> (fixed by a knob),
+<em>run time</em> (an option, with its source), <em>observed</em> (the
+state now).</li>
+</ul>
+<h3 id="the-machine-decision-20">The machine (decision 20)</h3>
+<p>The work is a machine's: <code>struct dj_desc_machine</code> is a
+table of six operations, each of which may be null and is then
+skipped:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> dj_desc_machine</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>    fn_desc_begin begin<span class="op">;</span>  <span class="co">// a description starts</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>    fn_desc_fact  fact<span class="op">;</span>   <span class="co">// one fact the sink wanted</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>    fn_desc_enter enter<span class="op">;</span>  <span class="co">// a level opens: its key, label and depth</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>    fn_desc_leave leave<span class="op">;</span>  <span class="co">// the level closes</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>    fn_desc_text  text<span class="op">;</span>   <span class="co">// words from a text describer</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>    fn_desc_end   end<span class="op">;</span>    <span class="co">// the description is over, stopped or not</span></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span></code></pre></div>
+<p>Each operation that returns int returns 0 to go on and anything else
+to stop. desc's own machines - text, JSON, a collecting one, a log
+record's -- are built on this table, and a program writes any other. A
+table is usually a static const, shared by every sink that writes to
+that kind of machine.</p>
+<h3 id="descs-machines-desc_machinesh">desc's machines
+(<code>desc_machines.h</code>)</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Machine</th>
+<th>Writes</th>
+<th>Switches</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>text, <code>report</code> preset</td>
+<td>a line per fact, the label padded to a column, a level per indent:
+what <code>describe</code> and the env report show</td>
+<td>keys for labels, each fact's truth, its layer</td>
+</tr>
+<tr class="even">
+<td>text, <code>line</code> preset</td>
+<td><code>key=value</code> pairs on one line, a nested key dotted
+(<code>items.0=nail</code>), text quoted where it must be: what a log
+line carries</td>
+<td>a closing line break</td>
+</tr>
+<tr class="odd">
+<td>JSON</td>
+<td>an object a level (<code>"key": {</code>), compact or pretty</td>
+<td>integers as strings (OTLP's rule), non-finite reals as strings,
+members only (<code>BARE</code>, for a caller's own object)</td>
+</tr>
+<tr class="even">
+<td>collecting</td>
+<td>nothing: facts and levels kept in the caller's array, then given to
+any machine by <code>d_desc_replay</code>; past the array's room, facts
+are counted</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p>Every key and value is written by the stream's writer of values
+(<code>d_ostream_write_value</code>), so JSON, and a quoted text in a
+line, are escaped by the stream's one escaper. A text describer's words
+arrive in pieces, and are escaped a piece at a time, cut where a UTF-8
+character starts, into one string. A machine's state is the caller's,
+and nothing allocates.</p>
+<p>Keys within a level are unique, so every machine's output is well
+formed: a describer of a list keys its items by position
+(<code>"0"</code>, <code>"1"</code>).</p>
+<h3 id="the-sink">The sink</h3>
+<p>A describer emits into a <code>struct dj_desc_sink</code>, which the
+caller owns, usually on its stack. The sink holds the machine and its
+context, and what the reader wants: a mask of layers, the least
+important fact wanted, and a depth limit. The helpers are inline:</p>
+<ul>
+<li><code>d_desc_sink_init</code> sets a sink to want everything, eight
+levels deep; with no machine, it wants nothing;</li>
+<li><code>d_desc_wants</code> lets a describer skip the work of a fact
+nobody asked for;</li>
+<li><code>d_desc_emit</code> sends a fact when the sink wants it, at the
+sink's depth, and returns 1 once the sink has stopped. A fact the sink
+does not want is skipped, and emitting goes on;</li>
+<li><code>d_desc_text</code> gives a text describer's words to the
+machine's <code>text</code>, or, to a machine without one, as one fact:
+<code>text</code>, on the intent layer, at importance 0;</li>
+<li><code>d_desc_enter</code> opens a named level (a JSON machine writes
+<code>"key": {</code> there), and refuses when the sink does not want
+contents, has reached its limit or has stopped, so a describer that
+meets an object again ends; <code>d_desc_leave</code> closes it;</li>
+<li><code>d_desc_run</code> and <code>d_desc_run_text</code> describe an
+object in either form: begin, the describer, then end, which is always
+called, so a machine can close what begin opened.</li>
+</ul>
+<h3 id="derived-facts">Derived facts</h3>
+<div class="sourceCode" id="cb8"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> d_desc_facts<span class="op">(</span><span class="dt">const</span> <span class="kw">struct</span> dj_desc_type<span class="op">*</span> type<span class="op">,</span> <span class="dt">const</span> <span class="dt">void</span><span class="op">*</span> object<span class="op">,</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>                 <span class="kw">struct</span> dj_desc_sink<span class="op">*</span> sink<span class="op">);</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> d_desc_run_facts<span class="op">(</span><span class="kw">struct</span> dj_desc_sink<span class="op">*</span> sink<span class="op">,</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>                     <span class="dt">const</span> <span class="kw">struct</span> dj_desc_type<span class="op">*</span> type<span class="op">,</span> <span class="dt">const</span> <span class="dt">void</span><span class="op">*</span> object<span class="op">);</span></span></code></pre></div>
+<p><code>d_desc_facts</code> emits <code>type</code>, the type's noun,
+on the type layer; then each field the sink wants, in the list's order,
+read only then; then the type's nested contents, through its
+hand-written <code>contents</code> describer, which opens its own level.
+<code>d_desc_run_facts</code> adds the machine's begin and end.</p>
+<h3 id="describer-forms-decision-20">Describer forms (decision 20)</h3>
+<p>A type may give any of these, and every reader works with every
+one:</p>
+<ul>
+<li><strong>A field list and units</strong> (the default, decision 28
+(d)): facts and prose from one authored form.</li>
+<li><strong>A fact describer</strong>, <code>fn_desc_describer</code>:
+the only form that can describe nested contents, with
+<code>d_desc_enter</code> and <code>d_desc_leave</code>.</li>
+<li><strong>A text describer</strong>,
+<code>fn_desc_text_describer</code>, which writes words through a put;
+<code>d_desc_run_text</code> gives them to any machine.</li>
+</ul>
+<h2 id="3-the-macro-layer-desc_macroh">3. The macro layer
+(<code>desc_macro.h</code>)</h2>
+<p>The preprocessor makes a description, as a string literal, of what a
+type and the knobs fix; no code runs, so it is a constant: a const
+array, a <code>static_assert</code>'s message, a
+<code>#pragma message</code>, or a unit's text, so the run-time units
+and the macro layer share words.</p>
+<ul>
+<li><strong><code>#if</code> words</strong>, which need nothing but
+<code>#if</code> and <code>D_CONCAT</code>, and so build in every
+language, C++98 included. <code>D_DESC_MACRO_BUILD</code> is desc's own
+build in sentences: "Units are built to the detailed ring, in every
+layer; facts are derived. Articles are on, and options are read at run
+time." (<code>D_CFG_DESC_AT_BUILD 1</code> prints it while
+<code>desc_units.c</code> compiles.) A word that a knob alone decides
+belongs here (decision 32).</li>
+<li><strong>The kit</strong>, built where the language has variadic
+macros (C99, C++11), on dmacro.h's tools (decision 32 (b)):
+<code>D_CONCAT</code>, <code>D_IIF</code>, <code>D_CHECK</code> and
+<code>D_PROBE</code>. The sequence joins are desc's own.</li>
+</ul>
+<div class="sourceCode" id="cb9"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>D_DESC_MACRO_SENTENCE<span class="op">(</span>condition<span class="op">,</span> size<span class="op">,</span> quality<span class="op">,</span> shape<span class="op">,</span> origin<span class="op">,</span> noun<span class="op">,</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>                      complements<span class="op">,</span> remarks<span class="op">)</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>D_DESC_MACRO_SENTENCE<span class="op">((</span>a<span class="op">,</span> <span class="st">&quot;full&quot;</span><span class="op">),</span> <span class="op">(</span>a<span class="op">,</span> <span class="st">&quot;fixed-size&quot;</span><span class="op">),</span> <span class="op">,</span> <span class="op">(</span>an<span class="op">,</span> <span class="st">&quot;ordered&quot;</span><span class="op">),</span> <span class="op">,</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>                      <span class="op">(</span>a<span class="op">,</span> <span class="st">&quot;tree&quot;</span><span class="op">),</span> <span class="op">(</span><span class="st">&quot;of 8 keys&quot;</span><span class="op">),</span> <span class="op">(</span><span class="st">&quot;It is balanced.&quot;</span><span class="op">))</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>  <span class="op">-&gt;</span> <span class="st">&quot;a full fixed-size ordered tree of 8 keys. It is balanced.&quot;</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>D_DESC_MACRO_NAME<span class="op">((</span>a<span class="op">,</span> <span class="st">&quot;radix tree&quot;</span><span class="op">),</span> <span class="op">(</span><span class="st">&quot;mapping int to text&quot;</span><span class="op">))</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>  <span class="op">-&gt;</span> <span class="st">&quot;radix tree mapping int to text&quot;</span></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>D_DESC_MACRO_PLURAL<span class="op">(</span>n<span class="op">)</span>      <span class="st">&quot;&quot;</span> <span class="cf">for</span> <span class="dv">1</span><span class="op">,</span> <span class="st">&quot;s&quot;</span> <span class="cf">else</span><span class="op">;</span> n a plain number</span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>D_DESC_MACRO_IS_ZERO<span class="op">(</span>n<span class="op">),</span> D_DESC_MACRO_IS_ONE<span class="op">(</span>n<span class="op">)</span>    <span class="dv">1</span> or <span class="dv">0</span></span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>D_DESC_MACRO_WHEN<span class="op">(</span>bit<span class="op">,</span> words<span class="op">)</span>                      words when bit is <span class="dv">1</span></span></code></pre></div>
+<p>An adjective part holds one or more words,
+<code>(a, "dusty")(an, "old")</code>; the determiner, "a" or "an", is
+the first word's own, and is left out with
+<code>D_CFG_DESC_ARTICLES 0</code>.</p>
+<p><strong>A declaring macro per container family (decision 31
+(c)).</strong> A container family declares its type and its description
+from one argument list, so nothing is written twice:
+<code>D_BRT_DECLARE(route_table, uint64_t, route, 0, (immutable)(ordered))</code>.
+The containers' module writes these on the kit in week 3, for families
+declared per element type, with the two-macro form - the type's own
+macro and its <code>D_DESC_MACRO_</code> twin - underneath, for a user
+who wants no typedef. A concrete type, as db's rows or net's ring, gets
+a describer alone.</p>
+<h2 id="the-c-face-desc_unitshpp">The C++ face
+(<code>desc_units.hpp</code>)</h2>
+<p>From C++98. A type <code>T</code> gives its description as
+<code>units&lt;T&gt;</code>, a specialization whose <code>type()</code>
+returns its <code>struct dj_desc_type</code>, and its name in prose as
+<code>type_name&lt;T&gt;</code> (<code>D_DESC_TYPE_NAME</code>), which a
+container's units use to name its parameters: "a fixed-size bag of int".
+Describing a type that gives neither fails to compile.</p>
+<ul>
+<li><code>pick&lt;Keep, Literal&gt;</code> keeps a literal only for a
+type that keeps it, so a literal a type rules out is never referenced
+and is not in the binary; <code>D_DESC_RING_IF(keep, ring)</code> puts
+the unit that would say it in no ring.</li>
+<li><code>say(object, put, context, ring, layers, flags)</code>,
+<code>describe(object, ...)</code> into a <code>std::string</code>, and
+<code>facts(object, sink)</code>.</li>
+</ul>
+<h2 id="knobs-cfg_desch">Knobs (<code>cfg_desc.h</code>)</h2>
+<table>
+<thead>
+<tr class="header">
+<th>Knob</th>
+<th>Default</th>
+<th>Builds</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>D_CFG_DESC_ENABLED</code></td>
+<td>1</td>
+<td>desc at all</td>
+</tr>
+<tr class="even">
+<td><code>D_CFG_DESC_UNITS</code></td>
+<td>1</td>
+<td>the units engine, and a type's units</td>
+</tr>
+<tr class="odd">
+<td><code>D_CFG_DESC_FACTS</code></td>
+<td>1</td>
+<td>the derived facts, and a type's field list</td>
+</tr>
+<tr class="even">
+<td><code>D_CFG_DESC_RING_MAX</code></td>
+<td>3</td>
+<td>the outermost ring built</td>
+</tr>
+<tr class="odd">
+<td><code>D_CFG_DESC_RING</code></td>
+<td>1</td>
+<td>the ring when nobody says; <code>desc.ring</code>'s default</td>
+</tr>
+<tr class="even">
+<td><code>D_CFG_DESC_LAYERS_BUILT</code></td>
+<td>0x1FF</td>
+<td>the layers whose units are built</td>
+</tr>
+<tr class="odd">
+<td><code>D_CFG_DESC_LAYERS</code></td>
+<td>0x1FF</td>
+<td>the layers shown when nobody says</td>
+</tr>
+<tr class="even">
+<td><code>D_CFG_DESC_ARTICLES</code></td>
+<td>1</td>
+<td>"a" and "an", and the code that chooses them</td>
+</tr>
+<tr class="odd">
+<td><code>D_CFG_DESC_OPTIONS</code></td>
+<td>1</td>
+<td>desc's djin</td>
+</tr>
+<tr class="even">
+<td><code>D_CFG_DESC_SCOPES</code></td>
+<td>64</td>
+<td>the types that may have options of their own</td>
+</tr>
+<tr class="odd">
+<td><code>D_CFG_DESC_BINDINGS</code></td>
+<td>64</td>
+<td>the djin's bindings</td>
+</tr>
+<tr class="even">
+<td><code>D_CFG_DESC_MACRO</code></td>
+<td>1</td>
+<td>the macro layer</td>
+</tr>
+<tr class="odd">
+<td><code>D_CFG_DESC_AT_BUILD</code></td>
+<td>0</td>
+<td>desc's build sentence, printed while compiling</td>
+</tr>
+</tbody>
+</table>
+<p>| <code>D_CFG_DESC_TEXT</code> | 1 | desc's support for text
+describers: the machines' text operations, and
+<code>desc.form=text</code> | | <code>D_CFG_DESC_MACHINES</code> | 0x7 |
+the machines built: 0x1 text, 0x2 JSON, 0x4 collecting | |
+<code>D_CFG_DESC_STYLE</code> | 0 (1 without units) | how
+<code>describe</code> writes: 0 prose from the units, 1 facts | |
+<code>D_CFG_DESC_FORM</code> | 0 | the describer run when there are
+both: 0 facts, 1 text | | <code>D_CFG_DESC_FORMAT</code> | 0 | the
+machine facts are written by: 0 text, 1 JSON | |
+<code>D_CFG_DESC_TEXT_PRESET</code> | 0 | the text machine's preset: 0
+report, 1 line |</p>
+<p>A choice a knob leaves out is refused by name in its option
+(<code>POLICY_REJECTED</code>), as option_env refuses a value ruled but
+not built. With the name registry in week 3 comes
+<code>D_CFG_DESC_REGISTRY</code> (decision 33).</p>
+<h2 id="options-descs-djin-desc_optionsh">Options: desc's djin
+(<code>desc_options.h</code>)</h2>
+<p>desc is a djin, <code>desc</code>, so a settings file,
+<code>DJINTERP_DESC_RING</code> and <code>--desc.ring</code> all work
+through the registry, each variable's default its knob:</p>
+<table>
+<thead>
+<tr class="header">
+<th>Variable</th>
+<th>Kind</th>
+<th>Values</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>ring</code></td>
+<td>choice</td>
+<td>name, line, sentence, detailed</td>
+</tr>
+<tr class="even">
+<td><code>layers</code></td>
+<td>flags</td>
+<td>identity, type, state, intent, policy, health, provenance, contents,
+cost, all, none; joined by '|', and '+' or '-' to edit the value in
+force</td>
+</tr>
+<tr class="odd">
+<td><code>style</code></td>
+<td>choice</td>
+<td>units, facts</td>
+</tr>
+<tr class="even">
+<td><code>form</code></td>
+<td>choice</td>
+<td>facts, text</td>
+</tr>
+<tr class="odd">
+<td><code>format</code></td>
+<td>choice</td>
+<td>text, json</td>
+</tr>
+<tr class="even">
+<td><code>text</code></td>
+<td>choice</td>
+<td>report, line</td>
+</tr>
+<tr class="odd">
+<td><code>&lt;type&gt;.&lt;variable&gt;</code></td>
+<td>as above</td>
+<td>any of them, for one type</td>
+</tr>
+</tbody>
+</table>
+<p>A type declared to desc with <code>d_desc_declare</code> is a scope
+of the djin, so <code>desc.shelf.ring=detailed</code>, from a file or
+the command line, sets its ring alone; declare a type before reading the
+settings that name it. (The environment's import reads unscoped
+variables only, as option_env's import does for every djin.)
+<code>d_desc_register(NULL)</code> registers the djin in the program's
+registry. Without the djin (<code>D_CFG_DESC_OPTIONS 0</code>, or below
+the option core's 64-bit floor) the knobs decide alone.</p>
+<p><code>d_desc_write(os, type, object, style)</code> describes an
+object as these say: in prose at <code>desc.ring</code>, or as facts
+through <code>desc.format</code>'s machine; a style with nothing to say
+for a type gives way to the other.
+<code>d_desc_write_with(os, scope, facts, text, object)</code> runs the
+describer <code>desc.form</code> chooses, or the other when one is null:
+what a djin's <code>describe</code> slot is written with.</p>
+<p>desc's prose writes its numbers through the stream's writer of
+values, as the machines do, so a number is in the C form under every
+locale ("0.5", never "0,5"), and prose and JSON never differ in their
+digits.</p>
+<h2 id="where-a-describer-is-found-decision-33-c">Where a describer is
+found (decision 33 (c))</h2>
+<p>At compile time by default: <code>D_DESC_OF(name)</code> in C,
+<code>units&lt;T&gt;</code> in C++. No start-up cost, and a missing
+description fails to compile. A program that wants describing by name -
+a debugger, the kit's interpreter - opts into a name registry in week 3:
+<code>D_CFG_DESC_REGISTRY</code> 0 none, 1 the types a program registers
+(the default), 2 every described type.</p>
+<h2 id="cost">Cost</h2>
+<ul>
+<li>A program that never describes anything pays nothing: a type's
+tables live beside it, the engine is two units, and
+<code>D_CFG_DESC_ENABLED 0</code> removes desc from a build.</li>
+<li>A ring, a layer or articles left out by the knobs leaves out their
+code and their text.</li>
+<li>No allocation, but the C++ face's <code>describe</code>, which
+returns a <code>std::string</code>: text goes to a caller's put, and
+facts to a caller's sink.</li>
+</ul>
+<h2 id="three-uses-from-one-source">Three uses from one source</h2>
+<ul>
+<li><strong>Logging</strong>: a log record carries desc facts, written
+as a line for people and as JSON for machines
+(<code>docs/djinterp/c/log/log_design.html</code>).</li>
+<li><strong>Help</strong>: <code>--help</code> is built from schema rows
+and descriptions, so it cannot disagree with the code.</li>
+<li><strong>Debugging</strong>: desc can be called from a debugger now;
+later the same descriptions can generate natvis files and gdb
+pretty-printers.</li>
+</ul>
+<h2 id="order-of-adoption-decision-34-a">Order of adoption (decision 34
+(a))</h2>
+<p>Week 3's describers follow the roadmap's order: memory, filesys,
+option, test, db, net.</p>
+<h2 id="other-modules-describers-decisions-68-c-and-82-a">Other modules'
+describers (decisions 68 (c) and 82 (a))</h2>
+<p>The describers of memory's, filesys's, DTest's, db's, net's and the
+containers' types are desc's own, written with desc rather than by each
+module (decision 68 (c)). They live in a library of desc's own,
+<code>djinterp_c_desc_of</code>, above the modules it describes: a unit
+and a header per module (<code>desc/of/mem_desc.c</code> and
+<code>.h</code>, with <code>units&lt;T&gt;</code> in a
+<code>.hpp</code>), each built only where its module is (decision 82
+(a)). desc's core stays below every module, and a program that describes
+none of these types links none of them. <code>D_CFG_DESC_OF</code> (1)
+builds the library, and <code>D_CFG_DESC_OF_&lt;MODULE&gt;</code> (1
+wherever its module is built) leaves one module's describers out. No
+run-time option says whether a describer exists: a run chooses how a
+description is written, by <code>desc.form</code> and
+<code>desc.format</code>.</p>
+<p>desc's suite checks each describer against its type: the type's size,
+and the offset of each field the describer reads, recorded beside the
+describer. A change to a described type that its describer has not
+followed fails desc's tests in the window it lands, naming the type and
+the field, while the type's own module still builds; a module that
+changes a described type says so, so that the describer's change lands
+with it.</p>
+<p>The record is a struct of the type's fields in the type's order,
+under the same knobs (<code>dj_mem_desc_arena_record</code> beside
+<code>dj_arena</code>), and a layout row sets the record's size, offsets
+and widths beside the type's (<code>desc/of/desc_of.h</code>). The rows
+are a header inline, so a program compiles them with its own knobs, and
+the library gives the same rows as it was built:
+<code>d_desc_of_mem_agrees</code> is 0 where the two lay a type out
+differently. That happens: a test build's <code>D_TESTING</code> turns
+on <code>D_CFG_MEM_STATS</code>, which adds an arena's and a pool's
+tally and a source's name, so a library built without it reads a test
+program's arena wrong. desc's leaf compiles the describers' unit itself
+for that reason, with memory's common and source units as memory's own
+leaf does, and its suite checks that the two agree.</p>
+<p>Memory's describers (Wednesday 11-25): the arena, the pool, a memory
+source, a memory block, and an allocation tally
+(<code>struct dj_mem_stats</code>), each a
+<code>struct dj_desc_type</code> (<code>D_DESC_OF(dj_arena)</code>),
+with units for prose and a field list for facts, and
+<code>units&lt;T&gt;</code> in <code>cpp/desc/of/mem_desc.hpp</code>.
+None of memory's types holds a lock or a field another thread writes, so
+every public field is described. A describer reads fields and calls none
+of memory's functions, so the library needs memory's headers, not its
+units. An arena over a caller's buffer does not say where its source
+would have sent it, since its one region is the caller's.</p>
+<p>filesys's and DTest's describers (Friday 11-27), in the same library
+and the same form, each with its records, layout rows and agreement
+check (<code>d_desc_of_filesys_agrees</code>,
+<code>d_desc_of_test_agrees</code>). filesys's: a file's status and a
+directory entry at each width filesys builds (<code>dj_stat64_t</code>
+and <code>dj_stat32_t</code>, <code>dj_dirent64_t</code> and
+<code>dj_dirent32_t</code>; <code>D_DESC_OF(dj_stat_t)</code> names the
+default width's, as <code>dj_stat_t</code> does), and a filesys notice.
+A status's kind is its noun ("a regular file with 1234 bytes", "a
+directory"), and its permissions are three triplets; a change or
+creation time of 0, which filesys reports for want of one, is none.
+DTest's: a run's summary and options, and a module's, a block's and a
+test's spec; a module spec's contents are its blocks, a level each keyed
+by its name, and a block's are its tests' names. A suite is opaque and
+is not described. With fifteen types described,
+<code>D_CFG_DESC_SCOPES</code> is 64 by default, where it was 16.</p>
+<h2 id="when-each-part-lands">When each part lands</h2>
+<ul>
+<li><strong>Friday 11-13</strong>: desc.h's core with its machines; the
+units engine and its derived facts; desc's djin; the macro layer; the
+C++ face; their suites (<code>c_desc_tests</code>: 17 tests, 121 checks;
+the C++ face's harness,
+<code>tests/unintegrated/cpp/desc/t_desc_units.cpp</code>, from
+C++98).</li>
+<li><strong>Wednesday 11-18</strong>: desc's text, JSON and collecting
+machines, with the log's code; the <code>style</code>,
+<code>form</code>, <code>format</code>, <code>text</code>,
+<code>json_integers</code> and <code>json_nonfinite</code> options and
+their knobs; <code>d_desc_write</code>, <code>d_desc_write_with</code>
+and <code>d_desc_write_shaped</code>; a JSON shape member; a frame's
+settings as facts (<code>option_env_desc.h</code>).</li>
+<li><strong>Wednesday 11-25</strong>: <code>djinterp_c_desc_of</code>,
+with memory's describers, their layout check, and their C++ units
+(decision 82); desc's suite gains their section
+(<code>c_desc_tests</code>: 31 tests, 275 checks), and a C++ harness,
+<code>tests/unintegrated/cpp/desc/t_mem_desc.cpp</code>, runs from
+C++98.</li>
+<li><strong>Friday 11-27</strong>: filesys's and DTest's describers, in
+<code>djinterp_c_desc_of</code>, with their C++ units; desc's suite
+gains their sections (<code>c_desc_tests</code>: 42 tests, 386 checks),
+and a C++ harness,
+<code>tests/unintegrated/cpp/desc/t_desc_of.cpp</code>, runs from
+C++98.</li>
+<li><strong>Still to come</strong>: the name registry (decision 33); the
+next describers in decision 34's order (db, net), in
+<code>djinterp_c_desc_of</code>; the declaring macros per family, with
+the containers' module (decision 31).</li>
+</ul>
+<h2 id="settled">Settled</h2>
+<ol type="1">
+<li>The fact record's members: as <code>desc.h</code> has them, a byte
+each for importance and truth, since sharing one would not make the
+record smaller (64 bytes either way on x86-64). A djin's
+<code>describe</code> slot takes the sink, and the djin ABI is 2
+(option_env's decision 55).</li>
+<li>The layers: desc.h's nine, and no others; a module adds keys.</li>
+<li>Where a describer is found: decision 33 (c), above.</li>
+<li>Which modules get describers first: decision 34 (a), above.</li>
+<li>Where other modules' describers live, and how they keep up with
+their types: decisions 68 (c) and 82 (a), above.</li>
+<li>JSON that names its shape: the JSON machine writes
+<code>"format": "&lt;shape&gt;"</code> first, a shape a caller names, as
+<code>djinterp.describe/1.0</code> and <code>djinterp.help/1.0</code>
+(decision 74). A shape's version is MAJOR.MINOR: MAJOR moves at any
+change that is not an addition, MINOR at an addition.
+<code>desc.json_integers</code> and <code>desc.json_nonfinite</code>
+work as the log's do (the log's decisions 48 and 49).</li>
+</ol>
+</body>
+</html>

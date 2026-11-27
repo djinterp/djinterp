@@ -2,14 +2,14 @@
 * djinterp [cpp][interp]                                            evaluate.hpp
 *
 * The command language run: a script's term folded into what it comes to
-* (docs/djinterp/interp/DESIGN.md, sections 3.3 and 5). The interpreter's
-* skeleton, its second step: sequences, pipelines, `and`, `or`, `not`, the
+* (docs/djinterp/cpp/modules/interp/DESIGN.html, sections 3.3 and 5). The
+* interpreter's skeleton, its second step: sequences, pipelines, `and`, `or`, `not`, the
 * comparisons and literals.
 *   A value is a tagged value (decision 4). Until the tagged value's header
 * lands, on 12-04, `value` here is its stand-in, with the same tags:
 * nothing, a truth value, an integer, a real, text, bytes, a list and a
 * record. A command's status goes beside its value, in an `outcome`: 0 done
-* and yes, 1 done and no, 2 trouble (GRAMMAR.md, section 8).
+* and yes, 1 done and no, 2 trouble (GRAMMAR.html, section 8).
 *   What each construct of this step comes to:
 *
 *     a ; b    a, then b, whatever a came to; b's value and status
@@ -50,7 +50,7 @@
 * OPTIONS
 * -------
 *   None yet: the commands are the caller's table. The registry's djins
-* resolve them in a later step (DESIGN.md, section 6).
+* resolve them in a later step (DESIGN.html, section 6).
 *
 * CONFIGURATION
 * -------------
@@ -58,7 +58,7 @@
 *
 *
 * path:      /inc/djinterp/cpp/modules/interp/evaluate.hpp
-* link(s):   /docs/djinterp/interp/DESIGN.md
+* link(s):   /docs/djinterp/cpp/modules/interp/DESIGN.html
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.22
 *                                                            revised: 2026.11.25
 *******************************************************************************/
@@ -189,7 +189,7 @@ struct outcome
 
 // 2.2
 // status constants
-//   constant: a status, as GRAMMAR.md's section 8 gives it.
+//   constant: a status, as GRAMMAR.html's section 8 gives it.
 static const int status_yes     = 0;
 static const int status_no      = 1;
 static const int status_trouble = 2;

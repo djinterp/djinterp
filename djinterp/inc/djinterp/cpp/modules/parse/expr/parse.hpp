@@ -61,7 +61,7 @@
 *
 *
 * path:      /inc/djinterp/cpp/modules/parse/expr/parse.hpp
-* link(s):   /docs/djinterp/parse/expression_core_v2.md
+* link(s):   /docs/djinterp/c/modules/parse/expr/expression_core_v2.html
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.12
 *                                                            revised: 2026.11.27
 *******************************************************************************/

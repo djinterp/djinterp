@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Visualization framework — roadmap</title>
+  <style>
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+</head>
+<body>
+<h1 id="visualization-framework--roadmap">Visualization framework —
+roadmap</h1>
+<blockquote>
+<p><strong>Where this file is (2026-11-09).</strong> This is
+<code>djinterp::ui</code>'s roadmap as it stood before the restructure
+of 2026-11-03, which deleted it from <code>inc/djinterp/ui/</code>
+(afb60e61); it is restored from that commit's parent beside the
+framework's README (ruling rs c), kept as written. The framework is now
+<code>inc/djinterp/tools/ui/</code>.</p>
+</blockquote>
+<p>A UI-framework-agnostic core for multidimensional, multi-resolution
+visualizations, with three frontends on top: an interactive ImGui
+binding, a file exporter (PNG / SVG / GIF), and a DSL. First real
+consumer: the best-path optimizer over the djinterp virtual
+computer.</p>
+<p>The shape of the system (from the design conversation): a
+framework-agnostic core (template + state + geometry + scene IR) feeds a
+swappable <strong>lens</strong> stage, which emits one shared render
+scene that any frontend draws. Project / slice / flatten / heatmap /
+parametric are not separate visualizations — they are one pipeline with
+one stage that swaps.</p>
+<p>Lives under <code>djinterp::ui</code>. Status legend:
+<code>[ ]</code> todo, <code>[~]</code> in progress, <code>[x]</code>
+done.</p>
+<hr />
+<h2 id="open-decisions-gates">Open decisions (gates)</h2>
+<p>These don't block the agnostic core, but they gate later phases —
+resolve before the phase that needs them.</p>
+<ul class="task-list">
+<li><label><input type="checkbox" /><strong>Rendering backend</strong>
+(gates Phase 4 + 5). ImGui draw-list (software projection, no
+dependency) vs. GPU-to-texture (OpenGL/Vulkan/etc.) vs. headless
+software/GL. Note: SVG/GIF export pushes toward a software/vector path
+that can run without a window.</label></li>
+<li><label><input type="checkbox" /><strong>Optimizer data
+contract</strong> (shapes Phase 1a). What the optimizer can emit per
+frame — axis definitions + time-indexed current-best path at minimum;
+per-cell scalar(s) ideally.</label></li>
+<li><label><input type="checkbox" /><strong>C++ baseline for
+<code>djinterp::ui</code>.</strong> Concepts usage suggests C++20;
+decide whether to match the library's dual-standard fallback pattern or
+require C++20.</label></li>
+<li><label><input type="checkbox" /><strong>Confirm the lens
+set.</strong> <code>parametric</code> is newly added; confirm whether
+<code>slice</code> stays (it is the most native to the axis-aligned grid
+and keeps the octree exact).</label></li>
+</ul>
+<hr />
+<h2 id="guiding-principles">Guiding principles</h2>
+<ul>
+<li>The agnostic core knows nothing about ImGui, OpenGL, or files.
+Frontends are thin.</li>
+<li>The declarative <strong>configuration model</strong> is the single
+source of truth. ImGui, the exporter, and the DSL all drive the
+<em>same</em> config + state.</li>
+<li>Everything visual is configurable (see Configuration model
+below).</li>
+<li>Follow djinterp house style: undecorated <code>CamelCase</code>
+template params (a leading underscore before a capital is reserved to
+the implementation), <code>D_</code>/<code>NS_</code> macros, the
+trait-triple convention, version gating.</li>
+</ul>
+<hr />
+<h2 id="phases">Phases</h2>
+<h3 id="phase-0--foundations">Phase 0 — Foundations</h3>
+<ul class="task-list">
+<li><label><input type="checkbox" />Resolve the open decisions above (or
+enough to unblock Phase 1).</label></li>
+<li><label><input type="checkbox" />Namespace + file layout under
+<code>djinterp::ui</code>; build wiring.</label></li>
+<li><label><input type="checkbox" />Pin the C++ baseline and feature
+gates.</label></li>
+</ul>
+<h3
+id="phase-1--agnostic-core-no-ui-no-rendering--first-buildable-deliverable">Phase
+1 — Agnostic core (no UI, no rendering) — <em>first buildable
+deliverable</em></h3>
+<p>Backend-independent. This is the piece that unblocks everything and
+needs no decision.</p>
+<ul class="task-list">
+<li><label><input type="checkbox" /><strong>1a. State / value
+model</strong> <em>(your item 3)</em> — axes (continuous +
+discrete/ordinal), cells, time-indexed path(s), per-cell scalar metrics.
+Time is a first-class axis.</label></li>
+<li><label><input type="checkbox" /><strong>1b. Configuration
+model</strong> — the declarative schema of a visualization (full knob
+list under Configuration model below). The spine of the whole
+framework.</label></li>
+<li><label><input type="checkbox" /><strong>1c. Scene IR</strong> —
+positioned cells + styled path + scalar field, in render space. The lens
+→ renderer contract.</label></li>
+<li><label><input type="checkbox" /><strong>1d. Top-level template
+type</strong> <em>(your item 1)</em> — bundles config + state + lens;
+renderable by any frontend. The agnostic "graph/chart/infographic"
+handle.</label></li>
+</ul>
+<h3 id="phase-2--3d--geometry-core-agnostic--your-item-2">Phase 2 — 3D
+&amp; geometry core (agnostic) — <em>your item 2</em></h3>
+<ul class="task-list">
+<li><label><input type="checkbox" />Coordinate systems: cartesian
+(first), then polar &amp; spherical <em>(stretch — LOD subdivision in
+curved coordinates is non-trivial)</em>.</label></li>
+<li><label><input type="checkbox" />Shape primitives: cube, tetrahedron,
+octahedron.</label></li>
+<li><label><input type="checkbox" />LOD hierarchy: branching factor
+(shapes per level), focus+context fan-out (levels shown per level),
+discrete zoom snapping.</label></li>
+<li><label><input type="checkbox" />Camera: orbit rotate / zoom /
+pan.</label></li>
+<li><label><input type="checkbox" />Projection math (3D → 2D) — feeds
+the software renderer and export.</label></li>
+</ul>
+<h3 id="phase-3--lens-layer">Phase 3 — Lens layer</h3>
+<ul class="task-list">
+<li><label><input type="checkbox" />Lens interface (runtime-polymorphic,
+since mode is user-selectable; lenses may be templated
+internally).</label></li>
+<li><label><input type="checkbox" /><code>slice</code> — pick 3 of n
+axes, fix the rest; cells are the real axis-aligned grid clipped to the
+slab; path = its intersection. Keeps the octree exact.</label></li>
+<li><label><input type="checkbox" /><code>projection</code> — reduce n →
+3 (PCA / UMAP / linear, or project just the trajectory); hierarchy
+rebuilt over the embedding; path projects whole.</label></li>
+<li><label><input type="checkbox" /><code>flatten</code> —
+Morton/Hilbert-pack several axes per render axis; curve recursion = zoom
+levels; path follows the curve.</label></li>
+<li><label><input type="checkbox" /><code>heatmap</code> — degenerate
+2-D case of the cell renderer; cells colored by a metric, camera locked
+top-down, path overlaid.</label></li>
+<li><label><input type="checkbox" /><code>parametric</code> — bind an
+axis to a parameter of a parametric function; sweep the parameter and
+render the resulting locus.</label></li>
+</ul>
+<h3 id="phase-4--interactive-frontend-imgui-reference-binding">Phase 4 —
+Interactive frontend (ImGui reference binding)</h3>
+<p>Needs the backend decision.</p>
+<ul class="task-list">
+<li><label><input type="checkbox" />Renderer: depth-sorted
+semi-transparent shapes; gridlines (thickness / type / opacity / color /
+fade distance); path lines (color / thickness / type); axis labels,
+lines, and scales; discrete-axis rendering.</label></li>
+<li><label><input type="checkbox" />Camera controls + discrete
+zoom.</label></li>
+<li><label><input type="checkbox" />Hover / picking on cells at each
+level <em>(your "mousing over cubes" item)</em>.</label></li>
+<li><label><input type="checkbox" />Control panel: lens selector,
+per-lens params, fixed-axis sliders, time slider with multiple speeds,
+full config editing, legend / colorbar.</label></li>
+<li><label><input type="checkbox" />First real consumer: wire the
+optimizer's output end-to-end.</label></li>
+</ul>
+<h3 id="phase-5--export-pipeline--your-item-5">Phase 5 — Export pipeline
+— <em>your item 5</em></h3>
+<p>Needs a headless render path.</p>
+<ul class="task-list">
+<li><label><input type="checkbox" />Headless render path (software
+renderer or headless GL) — required for files.</label></li>
+<li><label><input type="checkbox" />Exporters: PNG (raster), SVG
+(vector), animated GIF (time-scrubbed frames).</label></li>
+<li><label><input type="checkbox" />Python script / bindings driving the
+core from a spec + state.</label></li>
+<li><label><input type="checkbox" />Decide the export route: C++ emits
+SVG directly vs. Python orchestrates frames vs. pybind11 over the core
+lib.</label></li>
+</ul>
+<h3 id="phase-6--dsl--your-item-6">Phase 6 — DSL — <em>your item
+6</em></h3>
+<p>Needs a stable configuration model.</p>
+<ul class="task-list">
+<li><label><input type="checkbox" />Grammar mapping 1:1 to the
+configuration model (coords, shapes, gridlines, axes, lenses, line
+styling, time/animation).</label></li>
+<li><label><input type="checkbox" />Two surfaces: an embedded C++
+fluent/compile-time builder (<code>fixed_string</code> + the functional
+subframework) and a textual DSL parsed at runtime (pairs with export and
+external tooling).</label></li>
+<li><label><input type="checkbox" />Round-trip: DSL → config → render,
+and serialize config back to DSL.</label></li>
+</ul>
+<hr />
+<h2
+id="configuration-model-the-everything-configurable-schema">Configuration
+model (the "everything configurable" schema)</h2>
+<p>The Phase 1b spine. Every knob the frontends expose maps to one of
+these.</p>
+<ul>
+<li><strong>Space &amp; layout</strong> — coordinate system (cartesian /
+polar / spherical); shape primitive (cube / tetrahedron / octahedron);
+spacing between shapes; shapes per level (branching factor); levels
+shown per level (focus+context depth — how many cells render at full
+detail around the focus before falling back to coarse/transparent
+context).</li>
+<li><strong>Appearance — shapes</strong> — fill color; opacity;
+per-shape and per-level overrides.</li>
+<li><strong>Appearance — gridlines</strong> — thickness; type (solid /
+dashed / …); opacity; color; fade distance (distance-based opacity
+falloff).</li>
+<li><strong>Appearance — path / line</strong> — color; thickness; type;
+per-node and per-segment coloring (explicit color or scalar →
+colormap).</li>
+<li><strong>Axes</strong> — labels; axis lines; scales / ticks; discrete
+(ordinal/categorical) axis support.</li>
+<li><strong>Lens / mapping</strong> — mode = slice | projection |
+flatten | heatmap | parametric; per-mode params (which axes, which
+reduction, which curve, which metric, parametric bindings).</li>
+<li><strong>Interaction</strong> — hover / pick targets per level;
+selection highlight styling.</li>
+<li><strong>Time</strong> — enabled; playback speeds; frame
+mapping.</li>
+</ul>
+<hr />
+<h2 id="cross-cutting">Cross-cutting</h2>
+<ul class="task-list">
+<li><label><input type="checkbox" />Testing (<code>djinterp</code>
+test/testing conventions), per layer.</label></li>
+<li><label><input type="checkbox" />Examples — the optimizer run as the
+canonical demo.</label></li>
+<li><label><input type="checkbox" />Docs — agent reference in the style
+of the existing <code>functional.md</code>.</label></li>
+<li><label><input type="checkbox" />Performance budget — cap on
+simultaneously visible cells; ties directly to the focus+context fan-out
+knob.</label></li>
+</ul>
+<hr />
+<h2 id="suggested-first-step">Suggested first step</h2>
+<p>Build Phase 1 (1a–1d). It is backend-independent, unblocks
+everything, and needs none of the open decisions. Then Phase 2 geometry.
+Then, rather than going wide, cut one vertical slice end-to-end —
+cartesian + cube + <code>slice</code> lens + ImGui — to validate the
+contracts before adding breadth (other coordinate systems, shapes,
+lenses, and the export/DSL frontends).</p>
+</body>
+</html>

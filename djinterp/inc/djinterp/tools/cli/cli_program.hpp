@@ -136,7 +136,7 @@ using namespace ::djinterp::parse::cli;
 //------------------------------------------------------------------------------
 // 1.1.1
 // exit_status
-//   enum: the grammar's exit statuses (GRAMMAR.md, section 8): done, done
+//   enum: the grammar's exit statuses (GRAMMAR.html, section 8): done, done
 // and the answer is no, and trouble.
 struct exit_status
 {

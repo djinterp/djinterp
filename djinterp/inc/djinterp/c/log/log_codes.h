@@ -29,7 +29,7 @@
 * OPTIONS
 * -------
 *   log.<module>.level and the log's other options by module, for each
-* table registered (log_design.md).
+* table registered (log_design.html).
 *
 * CONFIGURATION
 * -------------

@@ -28,7 +28,7 @@
 #
 #     d_cli_add_plugin(<target> SOURCES <source>...)
 #
-# which makes a module a program loads for one of its commands (GRAMMAR.md,
+# which makes a module a program loads for one of its commands (GRAMMAR.html,
 # section 7): a MODULE library with no `lib` prefix, linking djinterp::cli,
 # whose only exported symbol is its entry point, d_cli_plugin_entry --
 # hidden visibility, the static libraries' symbols kept in (GNU ld and lld's
@@ -42,7 +42,7 @@
 #                    [WORKING_DIRECTORY <directory>])
 #
 # which makes a test of a run: it passes when the program ends with the
-# status given (GRAMMAR.md, section 8) and, with MATCHES, says something the
+# status given (GRAMMAR.html, section 8) and, with MATCHES, says something the
 # expression matches, on its output or its errors - both held at once,
 # where a PASS_REGULAR_EXPRESSION of ctest's passes whatever the status.
 # DjinterpCliTest.cmake, beside this file, runs the program for it.

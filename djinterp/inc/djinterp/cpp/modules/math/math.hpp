@@ -20,7 +20,7 @@
 * complex.hpp, and math::quaternion<T>, quaternion.hpp; vectors, matrices and
 * their algebra: linalg::vector, linalg::matrix and linalg::dynamic_matrix,
 * linear_algebra/linalg.hpp; and the C core under them all, c/modules/math/
-* (README.md, section 1).
+* (README.html, section 1).
 *
 * DIRECTORY MAP:
 *   math_common.hpp - subsystem foundation: NS_MATH and the env include

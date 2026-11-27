@@ -1,0 +1,2585 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>djinterp::math</title>
+  <style>
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+    /* CSS for syntax highlighting */
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+</head>
+<body>
+<h1 id="djinterpmath">djinterp::math</h1>
+<p>The math subframework: scalar kernels, intervals, linear algebra,
+coordinate systems, geometry, and (in progress) expressions, functions
+and calculus. Everything is header-only. The numeric work is written
+once in C, under <code>inc/djinterp/c/modules/math/</code>; the C++
+headers under <code>inc/djinterp/cpp/modules/math/</code> are faces over
+it that add what each language level allows.</p>
+<p>This file says what is here and how to build and check it.
+<code>roadmap.html</code>, beside it, says what comes next and in what
+order; <code>decisions.html</code> holds every decision the lane has
+taken, S1 on, each with its alternative and a review of it, its
+advantages and drawbacks and the path recommended, the outstanding ones
+first, by group and urgency; and <code>comparison.html</code> compares the
+framework as proposed with similar libraries, feature by feature.</p>
+<hr />
+<h2 id="quick-start">Quick start</h2>
+<p>Include the header of each part you use, as below, from C++11;
+<code>math.hpp</code> includes every header of the module, at every
+level, each part from the level it begins at: the compile-time core, the
+forms on it, the calculus headers and <code>reify</code> from C++11
+(chunks 53, 56, 58 and 59), empty below it.</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&quot;djinterp/cpp/modules/math/expr/expr.hpp&quot;</span><span class="pp">              </span><span class="co">// the language</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&quot;djinterp/cpp/modules/math/complex.hpp&quot;</span><span class="pp">                </span><span class="co">// complex&lt;T&gt;</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&quot;djinterp/cpp/modules/math/quaternion.hpp&quot;</span><span class="pp">             </span><span class="co">// quaternion&lt;T&gt;</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&quot;djinterp/cpp/modules/math/linear_algebra/linalg.hpp&quot;</span><span class="pp">  </span><span class="co">// linalg</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="kw">namespace</span> m  <span class="op">=</span> djinterp<span class="op">::</span>math<span class="op">;</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="kw">namespace</span> la <span class="op">=</span> djinterp<span class="op">::</span>math<span class="op">::</span>linalg<span class="op">;</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="co">// a formula as text: parsed once, then evaluated, exactly or in a type</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="at">const</span> m<span class="op">::</span>expr  f <span class="op">=</span> m<span class="op">::</span>parse<span class="op">(</span><span class="st">&quot;x ^ 2 - 2 * x * y + y ^ 2&quot;</span><span class="op">);</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="at">const</span> <span class="dt">double</span>   d <span class="op">=</span> f<span class="op">.</span>eval<span class="op">&lt;</span><span class="dt">double</span><span class="op">&gt;(</span>m<span class="op">::</span>at<span class="op">(</span><span class="st">&quot;x&quot;</span><span class="op">,</span> <span class="fl">0.5</span><span class="op">).</span>at<span class="op">(</span><span class="st">&quot;y&quot;</span><span class="op">,</span> <span class="fl">2.0</span><span class="op">)).</span>value<span class="op">();</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="at">const</span> m<span class="op">::</span>value h <span class="op">=</span> m<span class="op">::</span>parse<span class="op">(</span><span class="st">&quot;1/3 + 1/6&quot;</span><span class="op">).</span>eval<span class="op">().</span>value<span class="op">();</span>   <span class="co">// exactly 1/2</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="at">const</span> m<span class="op">::</span>value r <span class="op">=</span> m<span class="op">::</span>parse<span class="op">(</span><span class="st">&quot;sqrt(-4)&quot;</span><span class="op">).</span>eval<span class="op">().</span>value<span class="op">();</span>    <span class="co">// exactly 2im</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="co">// compiled once for a type, then run many times, the same bits as eval</span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="at">const</span> m<span class="op">::</span>expr_program<span class="op">&lt;</span><span class="dt">double</span><span class="op">&gt;</span> p <span class="op">=</span> f<span class="op">.</span>compile<span class="op">&lt;</span><span class="dt">double</span><span class="op">&gt;().</span>value<span class="op">();</span>  <span class="co">// x, y</span></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a><span class="at">const</span> <span class="dt">double</span>                  xy<span class="op">[</span><span class="dv">2</span><span class="op">]</span> <span class="op">=</span> <span class="op">{</span> <span class="fl">0.5</span><span class="op">,</span> <span class="fl">2.0</span> <span class="op">};</span></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a><span class="at">const</span> <span class="dt">double</span>                  q <span class="op">=</span> p<span class="op">.</span>run<span class="op">(</span>xy<span class="op">);</span>                    <span class="co">// 2.25</span></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a><span class="co">// one number of any kind, exact where it can be</span></span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a><span class="at">const</span> m<span class="op">::</span>value tenth <span class="op">=</span> m<span class="op">::</span>value<span class="op">(</span><span class="dv">1</span><span class="op">)</span> <span class="op">/</span> m<span class="op">::</span>value<span class="op">(</span><span class="dv">10</span><span class="op">);</span></span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a><span class="at">const</span> m<span class="op">::</span>value sum   <span class="op">=</span> tenth <span class="op">+</span> tenth <span class="op">+</span> tenth<span class="op">;</span>                 <span class="co">// exactly 3/10</span></span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a><span class="co">// the C core&#39;s faces: complex numbers, quaternions, linear algebra</span></span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a><span class="at">const</span> m<span class="op">::</span>complex<span class="op">&lt;</span><span class="dt">double</span><span class="op">&gt;</span>    z<span class="op">(</span><span class="fl">3.0</span><span class="op">,</span> <span class="fl">4.0</span><span class="op">);</span>                      <span class="co">// abs(z) is 5</span></span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a><span class="at">const</span> m<span class="op">::</span>quaternion<span class="op">&lt;</span><span class="dt">double</span><span class="op">&gt;</span> turn <span class="op">=</span>                            <span class="co">// a quarter</span></span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>    m<span class="op">::</span>from_axis_angle<span class="op">(</span>la<span class="op">::</span>vector<span class="op">&lt;</span><span class="dt">double</span><span class="op">,</span> <span class="dv">3</span><span class="op">&gt;(</span><span class="fl">0.0</span><span class="op">,</span> <span class="fl">0.0</span><span class="op">,</span> <span class="fl">1.0</span><span class="op">),</span>  <span class="co">// turn about</span></span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>                       <span class="fl">1.5707963267948966</span><span class="op">);</span>                   <span class="co">// z</span></span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a><span class="at">const</span> la<span class="op">::</span>vector<span class="op">&lt;</span><span class="dt">double</span><span class="op">,</span> <span class="dv">3</span><span class="op">&gt;</span> v <span class="op">=</span>                               <span class="co">// about</span></span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a>    m<span class="op">::</span>rotate<span class="op">(</span>turn<span class="op">,</span> la<span class="op">::</span>vector<span class="op">&lt;</span><span class="dt">double</span><span class="op">,</span> <span class="dv">3</span><span class="op">&gt;(</span><span class="fl">1.0</span><span class="op">,</span> <span class="fl">0.0</span><span class="op">,</span> <span class="fl">0.0</span><span class="op">));</span>    <span class="co">// (0, 1, 0)</span></span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a><span class="at">const</span> <span class="dt">double</span>                <span class="va">a_</span><span class="op">[</span><span class="dv">4</span><span class="op">]</span> <span class="op">=</span> <span class="op">{</span> <span class="fl">2.0</span><span class="op">,</span> <span class="fl">1.0</span><span class="op">,</span></span>
+<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a>                                      <span class="fl">1.0</span><span class="op">,</span> <span class="fl">3.0</span> <span class="op">};</span></span>
+<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a><span class="at">const</span> <span class="dt">double</span>                <span class="va">b_</span><span class="op">[</span><span class="dv">2</span><span class="op">]</span> <span class="op">=</span> <span class="op">{</span> <span class="fl">3.0</span><span class="op">,</span> <span class="fl">5.0</span> <span class="op">};</span></span>
+<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a><span class="at">const</span> la<span class="op">::</span>vector<span class="op">&lt;</span><span class="dt">double</span><span class="op">,</span> <span class="dv">2</span><span class="op">&gt;</span> s <span class="op">=</span>                               <span class="co">// (0.8, 1.4)</span></span>
+<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a>    la<span class="op">::</span>solve<span class="op">(</span>la<span class="op">::</span>matrix<span class="op">&lt;</span><span class="dt">double</span><span class="op">,</span> <span class="dv">2</span><span class="op">,</span> <span class="dv">2</span><span class="op">&gt;(</span><span class="va">a_</span><span class="op">),</span> la<span class="op">::</span>vector<span class="op">&lt;</span><span class="dt">double</span><span class="op">,</span> <span class="dv">2</span><span class="op">&gt;(</span><span class="va">b_</span><span class="op">));</span></span></code></pre></div>
+<p>Each value in a comment is what the program
+<code>quickstart_c48.cpp</code> of chunk 48's record prints, built with
+g++ and clang++ from C++11 to C++20. A step of the language that can
+fail returns <code>expr_result&lt;T&gt;</code>, its answer or an
+<code>expr_error</code>; <code>value()</code> takes the answer, and an
+error passes through every step chained after it.</p>
+<p><strong>Where to start.</strong></p>
+<table>
+<thead>
+<tr class="header">
+<th>To</th>
+<th>Use</th>
+<th>Header</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>parse, evaluate, compile, simplify a formula given as text</td>
+<td><code>math::expr</code>, <code>math::parse</code></td>
+<td><code>expr/expr.hpp</code>; <code>expr/expr_common.hpp</code>'s
+banner maps the language's headers</td>
+</tr>
+<tr class="even">
+<td>hold one number of any kind, exact where it can be</td>
+<td><code>math::value</code></td>
+<td><code>value.hpp</code></td>
+</tr>
+<tr class="odd">
+<td>compute with complex numbers or quaternions</td>
+<td><code>math::complex&lt;T&gt;</code>,
+<code>math::quaternion&lt;T&gt;</code>
+(<code>linalg::quaternion&lt;T&gt;</code> is it)</td>
+<td><code>complex.hpp</code>, <code>quaternion.hpp</code></td>
+</tr>
+<tr class="even">
+<td>compute with vectors and matrices</td>
+<td><code>linalg::vector</code>, <code>linalg::matrix</code>,
+<code>linalg::dynamic_matrix</code>, <code>solve</code>,
+<code>eigen_symmetric</code>, <code>eigen_general</code>,
+<code>svd</code></td>
+<td><code>linear_algebra/linalg.hpp</code></td>
+</tr>
+<tr class="odd">
+<td>print, simplify or evaluate by name a compile-time expression, or
+its derivative</td>
+<td><code>math::reify(e)</code>, then <code>expr_render</code>,
+<code>expr_simplify</code>, <code>math::expr</code></td>
+<td><code>expr/reify.hpp</code></td>
+</tr>
+<tr class="even">
+<td>compute an expression of vectors or matrices in one pass, the eager
+bits</td>
+<td><code>linalg::lazy(a)</code>, then <code>eval</code> or
+<code>assign</code></td>
+<td><code>linear_algebra/lazy.hpp</code> (C++11)</td>
+</tr>
+<tr class="odd">
+<td>write C, or reach the kernels under every face</td>
+<td><code>d_math_*</code>, <code>dj_math_value</code>,
+<code>cplx.h</code>, <code>quat.h</code>, <code>mat.h</code>, ...</td>
+<td><code>inc/djinterp/c/modules/math/</code> (section 3)</td>
+</tr>
+<tr class="even">
+<td>take all of it</td>
+<td>everything above, in <code>djinterp::math</code></td>
+<td><code>math.hpp</code> (every level)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="1-status-20261123">1. Status (2026.11.23)</h2>
+<table>
+<thead>
+<tr class="header">
+<th>Part</th>
+<th>Headers</th>
+<th>Compiles from</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>C core (<code>c/modules/math/</code>)</td>
+<td>28</td>
+<td>C99; ISO strict C++98 as C++</td>
+<td><code>_c</code> forms, the rational kernels, the value layer,
+decimal reading, literals and wide integers are constant expressions
+from C++14; the value layer takes boxed kinds through a table each one
+fills in (chunk 22), asks a kind whether each of its values is exact,
+and counts every box's holders atomically (chunk 40); signed integers of
+256 bits (chunk 23), a boxed kind of the value since chunk 24; complex
+numbers, <code>cplx.h</code>, with C99's 22 functions, 18 of them in
+both forms, and <code>log1p</code>, <code>expm1</code>,
+<code>asinh</code>, <code>acosh</code> and <code>atanh</code> (chunk
+37); a general matrix's eigenvalues and eigenvectors by LAPACK's path,
+complex matrices in <code>cmat.h</code>, the norms scaled and the
+solution of [A | B] (chunk 38); <code>exp2</code>, <code>log2</code>,
+<code>log10</code>, <code>log1p</code> and <code>expm1</code> of a
+complex number, each one long double kernel in pairs, both forms rounded
+once from it, <code>exp2</code>'s angle reduced exactly for every y
+(chunk 42); whole powers z^n carried in long double pairs and rounded
+once, each part within its bound, both forms (chunk 45); quaternions,
+<code>quat.h</code>, accurate by default: the product, inverse and
+quotients by Dot2 in pairs, the rotation q v q^-1 of any q not 0 and its
+matrices, the scaled norm and normalization, Shepperd's method, two
+vectors' quaternion, nlerp, a shorter-arc slerp accurate near 0, and
+exp, log, sqrt and real powers as the complex functions in q's plane,
+each part rounded once; the former formulas the <code>_fast</code> forms
+(chunk 44); two inline numbers' arithmetic sent to their kind's at once,
+before the checks that cannot hold for them, the same results, a sum or
+product of two doubles three times sooner (chunk 47, S396);
+<code>dot</code>, <code>cross</code>, <code>sum</code>, the matrix
+products and the trace compensated by default, each a sum rounded once
+from Dot2's or Sum2's pair, and <code>solve</code> refined with extra
+precision as LAPACK's <code>dgerfsx</code> refines, each with a
+<code>_fast</code> form as written (chunk 49, S404 to S406);
+<code>project</code> and <code>reject</code> scaled at the range's ends,
+and complex matrices' products compensated, each part rounded once from
+Dot2's pair, and their <code>solve</code> refined, each with a
+<code>_fast</code> form as written (chunk 50, S409, S410); the double
+<code>exp_c</code> correctly rounded in double arithmetic alone, by
+three phases with proven bounds, at 9.9 ns a call; <code>dd.h</code>, a
+public pair of doubles with proven bounds; every exact product immune to
+a compiler that fuses; the double family refused where double is
+evaluated wider; and <code>self_test.h</code> (chunk 51, S414 to S419);
+the double <code>log_c</code> correctly rounded so too, at 18.2 ns a
+call, its bounds proven in each of three cases, and in the self-test
+(chunk 52, S424 to S426)</td>
+</tr>
+<tr class="even">
+<td>interval</td>
+<td>5</td>
+<td>ISO strict C++98</td>
+<td></td>
+</tr>
+<tr class="odd">
+<td>linear algebra</td>
+<td>13</td>
+<td>ISO strict C++98; <code>lazy.hpp</code> C++11, empty below</td>
+<td>general eigenvalues by balancing, the Hessenberg form and Francis's
+double-shift QR, eigenvectors from the Schur form (chunk 38, after chunk
+13's), every eigenvalue and eigenvector as
+<code>math::complex&lt;T&gt;</code> (chunk 39); vectors and matrices of
+any number type through <code>number_traits</code>, of
+<code>math::value</code> exactly (chunk 26); <code>solve</code> for any
+number type but an integer one, products in their order, so quaternion
+matrices too (chunk 38); of <code>math::complex&lt;T&gt;</code>, their
+determinant, inverse and solution <code>cmat.h</code>'s bit for bit,
+tolerances of the real type (chunk 39); <code>vdot</code>, the
+conjugating inner product, the norms of the moduli,
+<code>frobenius_norm</code> and <code>is_unitary</code> of them, and the
+generic norms of the moduli, so of values holding complex numbers too
+(chunk 43); <code>dynamic_matrix</code> of every element type the
+fixed-size matrix takes, complex numbers and values among them (chunk
+46); of <code>float</code>, <code>double</code> and
+<code>long double</code>, <code>dot</code>, <code>cross</code>,
+<code>sum</code>, products, the trace and <code>solve</code> the C
+core's compensated and refined kernels, <code>dot_fast</code> ...
+<code>solve_fast</code> the formulas as written (chunk 49); of
+<code>math::complex&lt;T&gt;</code> too, <code>cmat.h</code>'s bit for
+bit (chunk 50, S411); the opt-in lazy type,
+<code>lazy(a) * k + lazy(b)</code> computed each element once by
+<code>eval</code> or <code>assign</code>, the eager bits, a product's
+element fenced where the build fuses (chunk 60, step 34, S463 to
+S467)</td>
+</tr>
+<tr class="even">
+<td>coordinate</td>
+<td>5</td>
+<td>ISO strict C++98</td>
+<td>points are <code>linalg::vector</code>s</td>
+</tr>
+<tr class="odd">
+<td>geometry</td>
+<td>14</td>
+<td>ISO strict C++98</td>
+<td>collections are <code>re_std::array</code>s</td>
+</tr>
+<tr class="even">
+<td><code>constants.hpp</code>, <code>quaternion.hpp</code>,
+<code>math_common.hpp</code></td>
+<td>3</td>
+<td>ISO strict C++98</td>
+<td>named constants are constant expressions from C++11; the one
+quaternion, <code>math::quaternion&lt;T&gt;</code>, which
+<code>linalg::quaternion&lt;T&gt;</code> names (chunk 48, S398), takes
+every function of <code>quat.h</code>, the accurate forms by default,
+constant expressions from C++14, and the <code>_fast</code> forms for a
+renderer (chunk 44)</td>
+</tr>
+<tr class="odd">
+<td><code>expression.hpp</code></td>
+<td>1</td>
+<td>C++11, empty below</td>
+<td>the compile-time core (chunk 53, step 29, S430): the nodes, + - * /,
+<code>squared</code>, <code>abs</code> and <code>dot</code> constant
+expressions from C++11; <code>exp</code>, <code>sin</code>,
+<code>cos</code>, <code>tan</code> and <code>sqrt</code> the C core's
+<code>_c</code> kernels, one answer at every level, constant expressions
+from C++14; the placeholders <code>x</code> to <code>phi</code> in
+<code>math::variables</code> (S403)</td>
+</tr>
+<tr class="even">
+<td><code>values.hpp</code>, <code>function/function.hpp</code>,
+<code>functional.hpp</code></td>
+<td>3</td>
+<td>C++11, empty below</td>
+<td>on the compile-time core (chunk 56, step 30, S441 to S445):
+relations, logic, implicit functions and level sets constant expressions
+from C++11, piecewise, vector-valued and parametric forms and
+<code>math_function</code>'s calls from a <code>std::array</code>, a
+<code>std::tuple</code> or a system's point from C++14, where
+<code>std::get</code> and a point's constructors are constant
+expressions; <code>math_function</code> takes a coordinate system's
+point, a <code>linalg::vector</code> (S443); <code>sample</code> from
+C++11, <code>sample_over</code> from C++14, at an interval's members
+(S444); the bridge's adapters with the functional subframework
+itself</td>
+</tr>
+<tr class="odd">
+<td>calculus (6), <code>math.hpp</code></td>
+<td>7</td>
+<td>C++11, empty below; <code>math.hpp</code> at every level</td>
+<td>the calculus from C++11 (chunk 58, steps 31 and 33, S450 to S454):
+derivatives, the gradient, the 5-point rule, Taylor evaluation, the
+arithmetic sequence and sums and the scalar helpers that are one return
+constant expressions from C++11, the quadrature rules, sums, sequences'
+loops, <code>binomial</code>, <code>horner</code> and the
+transcendentals from C++14, every form's bits as before but
+<code>log</code>'s and <code>atan</code>'s, now the C core's kernels,
+the logarithm correctly rounded, one answer at every level (N3, S453); a
+rule for a new node
+<code>derivative(wrt&lt;I&gt;, const node&amp;)</code> (S452);
+<code>math.hpp</code> includes every header of the module,
+<code>expr/</code> and <code>linear_algebra/</code> among them (chunk
+48, S399), clean under <code>-Wshadow</code> since chunk 53 (S403), and
+compiles at every rung</td>
+</tr>
+<tr class="even">
+<td><code>numeric_compare.hpp</code></td>
+<td>1</td>
+<td>ISO strict C++98</td>
+<td>numbers written as text compared exactly (chunk 21, M3)</td>
+</tr>
+<tr class="odd">
+<td><code>value.hpp</code></td>
+<td>1</td>
+<td>ISO strict C++98</td>
+<td>the generic value's face (chunk 25): <code>math::value</code> holds
+any kind, a box as an <code>int</code> holds its number;
+<code>inline_value</code>'s operations are constant expressions from
+C++14, <code>math::value</code>'s from C++20; a complex value's modulus
+squared, exact where it is (chunk 43)</td>
+</tr>
+<tr class="even">
+<td><code>number_traits.hpp</code></td>
+<td>1</td>
+<td>ISO strict C++98</td>
+<td>the static side (chunk 26): what generic code needs of a number
+type, the type two numbers combine to, and from C++20 the concept
+<code>number</code>; the field's and the order's traits, the magnitude,
+the epsilon and a relative tolerance (chunk 38);
+<code>number_modulus_squared</code>, |x|^2, which a type of numbers not
+all real overloads (chunk 43)</td>
+</tr>
+<tr class="odd">
+<td><code>complex.hpp</code></td>
+<td>1</td>
+<td>ISO strict C++98</td>
+<td>complex numbers (chunk 39): <code>math::complex&lt;T&gt;</code>, of
+<code>float</code>, <code>double</code> and <code>long double</code>,
+the face of <code>cplx.h</code>'s struct, its operators and C99's
+functions the C core's, by their own names the plain forms at run time
+and the <code>_c</code> forms in a constant expression from C++20, by
+the names ending <code>_c</code> the <code>_c</code> forms at every
+level, constant expressions from C++14 (chunk 46, S336); made from a
+<code>std::complex&lt;T&gt;</code> implicitly, giving one by
+<code>to_std()</code>; a field with no order to
+<code>number_traits</code>, its magnitude |re| + |im|;
+<code>exp2</code>, <code>log2</code>, <code>log10</code>,
+<code>log1p</code> and <code>expm1</code> (chunk 42)</td>
+</tr>
+<tr class="even">
+<td><code>expr/</code></td>
+<td>27</td>
+<td>C++11, empty below</td>
+<td>the run-time expression language (chunks 28 to 36 and 39 to 48):
+every header of Phases 2 to 4 in place, its types whole; numbers,
+<code>+ - * / mod ^</code>, the factorial, calls of the C core's
+functions, the constants <code>pi</code>, <code>e</code>,
+<code>true</code> and <code>false</code>, the relations, logic and
+piecewise parse, print and evaluate, in each floating-point type and
+exactly as a value; substitution and simplification; the handle,
+<code>math::expr</code>, chains them; vector and matrix literals,
+<code>[1, 2; 3, 4]</code>, blocks <code>[A, b]</code> and the empty
+matrix <code>[]</code>, parse, print and evaluate to matrix values,
+exact or dense, with their sums, products, transposes, powers and
+indexing, <code>A[i, j]</code>, and linear algebra's functions,
+<code>det</code>, <code>inv</code>, <code>trace</code>,
+<code>norm</code>, <code>eig</code>, <code>dot</code>,
+<code>cross</code> and <code>solve</code>; complex numbers,
+<code>3 + 4im</code>, a kind of the value exact where their parts are,
+with <code>complex</code>, <code>real</code>, <code>imag</code>,
+<code>conj</code>, <code>arg</code>, the modulus, <code>z'</code>,
+<code>=</code> and <code>!=</code>, and exact powers to a whole exponent
+(chunk 40); each function's principal complex value, exact where it is a
+Gaussian rational, a real function's outside its real domain unless the
+context asks real results, <code>log1p</code>, <code>expm1</code>,
+<code>asinh</code>, <code>acosh</code>, <code>atanh</code>,
+<code>sign</code>, <code>min</code> and <code>max</code>, and the folds
+in <code>math::complex&lt;T&gt;</code> (chunk 41); <code>exp2</code>,
+<code>log2</code>, <code>log10</code>, <code>log1p</code> and
+<code>expm1</code> of a complex value, <code>cplx.h</code>'s, and of a
+real one outside its real domain (chunk 42); matrices of complex
+numbers, dense or exact, their arithmetic, <code>A'</code> conjugating,
+<code>transpose</code>, the parts of a matrix and
+<code>complex(A, B)</code>, linear algebra's functions of them,
+<code>dot</code> conjugating, and every eigenvalue, complex where it is,
+exact where it is a Gaussian rational (chunk 43); quaternions,
+<code>1 + 2jm - km</code>, a kind of the value exact where their parts
+are, <code>jm</code> and <code>km</code> their units, with
+<code>quat</code>, <code>parts</code>, <code>real</code>,
+<code>conj</code>, the norm, <code>inv</code>, <code>sign</code>,
+<code>exp</code>, <code>log</code>, <code>sqrt</code>, powers to a real
+exponent and <code>rotate</code>, products in their order,
+<code>p / q</code> = <code>p inv(q)</code>, and simplification keeping a
+quaternion's factors in their order (chunk 45); matrices of quaternions,
+dense or exact, their arithmetic the kind's own in each product's order,
+<code>A'</code> conjugating, linear algebra's functions of them and of a
+quaternion, <code>det</code> a domain error, Zhang's standard
+eigenvalues, and <code>rotmat</code>, <code>rotquat</code> and
+<code>slerp</code>; every evaluator given the fold's context, and a
+value's complex functions the <code>_c</code> forms, the face's by their
+own names its plain forms at run time (chunk 46); a term compiled once
+for a type, <code>expr_compile&lt;T&gt;</code>, its runs the typed
+fold's answers bit for bit, 26 to 55 times sooner (chunk 47); each
+header named for what it holds, none of a name another math header has,
+<code>matrix.hpp</code> and <code>function.hpp</code> split in five
+(chunk 48, S400, S401); the matrix kind in four parts (chunk 55, S437);
+<code>reify.hpp</code>, a compile-time expression made a term of the
+language, <code>math::reify(e)</code>, its variables x, y, z and t or
+the names given, its integral constants exact, so that a reified
+derivative simplifies (chunk 59, step 32, S456 to S461); the rest
+stubs</td>
+</tr>
+</tbody>
+</table>
+<p>From chunk 45b the lane works in the restructured tree: the C core in
+<code>inc/djinterp/c/modules/math/</code>, its configuration in
+<code>inc/djinterp/config/c/modules/math/</code>, the faces in
+<code>inc/djinterp/cpp/modules/math/</code> and the expression core in
+<code>inc/djinterp/cpp/modules/parse/expression/</code>, the tests
+likewise under <code>tests/djinterp/c/modules/math/</code> and
+<code>tests/djinterp/cpp/modules/math/</code>; and every C type is named
+with <code>dj_</code>, the restructure's prefix
+(<code>struct dj_cplx_d</code>, <code>dj_math_umax</code>), its
+functions keeping <code>d_</code>.</p>
+<p>"Compiles from" means the C++ ladder
+(<code>scripts/ci/ladder.py</code>) passes the header with g++ and
+clang++, plain and testing, at every rung from that one to C++26. Every
+header not on the ladder's known list
+(<code>scripts/ci/ladder_known.txt</code>) passes all of them.</p>
+<p>Tests: 29 C harnesses (<code>tests/djinterp/c/modules/math/</code>)
+and 46 face tests (<code>tests/djinterp/cpp/modules/math/</code>), one
+of them for <code>parse/expression/</code>, one for the lazy type (chunk
+60), five for the compile-time core (chunks 53, 56 and 58), one for the
+bridge from it to the language, <code>reify</code> (chunk 59), and eight
+for <code>expr/</code>: four its complex numbers', two its quaternions'
+and one its compiled terms' (section 3). In the full matrix (section 5)
+every harness and face test passes in every configuration.</p>
+<hr />
+<h2 id="2-architecture">2. Architecture</h2>
+<p><strong>A C core with C++ faces.</strong> Every algorithm lives once
+in the C layer, and C programs call it directly. The C++ headers forward
+to it instead of restating it. Element types the C core does not cover
+(anything other than <code>float</code>, <code>double</code> and
+<code>long double</code>) take a generic C++ path. These are the owner's
+rulings of 2026.10.04.</p>
+<p><strong>Kernels.</strong> A kernel is a function defined in a header,
+marked with one of five qualifiers from
+<code>c/modules/math/math_common.h</code>:</p>
+<ul>
+<li><code>D_MATH_FN</code>: pure arithmetic. A
+<code>static inline</code> function in C, and an <code>inline</code> one
+in C++ that is <code>constexpr</code> from C++14.</li>
+<li><code>D_MATH_FN_RT</code>: calls the C library or writes to a
+buffer, so it is never <code>constexpr</code>.</li>
+<li><code>D_MATH_FN_ENTRY</code>: a function a table points to, as a
+boxed kind's entries are. A header inline the compiler is never told it
+must inline, as it is told the other two's outside testing builds, so a
+call through the table builds at every optimization level, gcc's
+<code>-Og</code> included (chunk 26).</li>
+<li><code>D_MATH_FN_KERNEL</code>: a large kernel of pure arithmetic
+that many functions share, as <code>cplx.h</code>'s long double kernels
+serve its three families: <code>constexpr</code> from C++14, as
+<code>D_MATH_FN</code> is, but never forced inline, so that a
+translation unit compiles it once however many callers it has (chunk
+37).</li>
+<li><code>D_MATH_FN_KERNEL_RT</code>: such a kernel that calls the C
+library, so never <code>constexpr</code>: the eigenvalue paths' plain
+forms (chunk 38).</li>
+</ul>
+<p><strong>Two forms of each function.</strong></p>
+<ul>
+<li>The <code>_c</code> form (<code>d_math_d_sqrt_c</code>) is pure
+arithmetic and a constant expression from C++14. It is correctly rounded
+for sqrt, cbrt, hypot, fmod, remainder and the rounding functions, and
+within an ulp of the C library for the transcendental functions.</li>
+<li>The plain form (<code>d_math_d_sqrt</code>) calls the C library and
+is fast at run time.</li>
+</ul>
+<p>A face picks one form per language level, using
+<code>std::is_constant_evaluated</code> from C++20. For the correctly
+rounded functions the two forms are bit-identical. Domain errors give
+the C library's answers in both forms: NaN, or minus infinity for
+<code>log(0)</code>. In C++ each header ends with one overloaded name
+for all three families (<code>d_math_sqrt_c(x)</code>).</p>
+<p><strong>One operation per statement.</strong> Kernel bodies compute
+one operation per statement. This keeps x87 excess precision and FMA
+contraction from changing results, so every build in the matrix computes
+the same bits. Clang on the 32-bit x87 is the known exception, and stays
+out of the matrix (S37). It is not enough where gcc fuses across
+statements, as it does in its GNU modes wherever the target has a fused
+multiply-add: there each exact product takes its low part by an explicit
+one, the bits Dekker's product gives elsewhere, and every generated
+header tells clang not to fuse (S414); the plain formulas, the
+<code>_fast</code> forms among them, follow the build (S415). The double
+family's correctly rounded functions refuse to compile where double is
+evaluated wider than double, as on a 32-bit x87 (S418).</p>
+<p><strong>Generated code.</strong> Twenty of the core headers are
+generated by <code>scripts/gen_c_math_float.py</code>, each from one
+template written out for each family (<code>f</code>, <code>d</code>,
+<code>ld</code>). Edit the generator, never its output.
+<code>--check</code> fails if the headers are out of step.
+<code>math_common.h</code>, <code>interval.h</code>,
+<code>rational.h</code>, <code>value.h</code>, <code>decimal.h</code>,
+<code>literal.h</code>, <code>wide.h</code> and
+<code>value_wide.h</code> are written by hand. The generator is a
+package, <code>scripts/gen_c_math/</code>, of modules of at most about
+4,000 lines, one for a header's text or two, and the script runs them
+(S439). It writes the eight largest headers in parts of at most about
+4,000 lines - <code>decomp.h</code> in ten, <code>cmat.h</code> in
+seven, <code>exponential.h</code> in six (S502), <code>cplx.h</code> and
+<code>quat.h</code> in five, <code>vec.h</code>, <code>coord.h</code>
+and <code>mat.h</code> in four - each part a header that stands alone,
+named for its header and what it holds (<code>decomp_f.h</code>,
+<code>decomp_f_eigen_c.h</code>, ..., <code>decomp_cpp.h</code>), and
+the header of the name includes them in order, so that an includer sees
+the same code in the same order (S436). It aligns each parameter list's
+names (S435).</p>
+<p><strong>Exact rationals.</strong> <code>rational.h</code> holds
+rationals over the widest integer, <code>dj_math_imax</code>, in one
+reduced form. Each kernel either stores the exact result or stores
+nothing and says why: overflow, a pole or an invalid operation. Overflow
+means that the reduced result does not fit, never that an intermediate
+did not: intermediates are held in two words. A rational converts to the
+nearest <code>float</code>, <code>double</code> or
+<code>long double</code>, ties to even, whatever the rounding mode.</p>
+<p><strong>The generic value.</strong> <code>value.h</code>'s
+<code>struct dj_math_value</code> holds one value of any kind: none, an
+error, a boolean, an integer, a rational, a <code>float</code>, a
+<code>double</code> or a <code>long double</code>. Its operations follow
+a tower:</p>
+<ul>
+<li>Exact numbers stay exact. A rational whose denominator comes to 1 is
+an integer. An exact result too wide for <code>dj_math_imax</code>
+becomes the nearest <code>long double</code>, flagged inexact, until
+bignum exists.</li>
+<li>An exact number meeting a floating-point one is converted to the
+latter's type, correctly rounded. Two floating-point kinds meet in the
+wider.</li>
+<li>Errors are values that pass through operations. A boolean or none in
+arithmetic is a domain error.</li>
+<li>Comparison is exact across kinds.</li>
+</ul>
+<p><strong>Boxed kinds.</strong> A kind of number that does not fit in
+the value, such as a wide integer or a big float, is boxed. It fills in
+a table, <code>struct dj_math_boxed_kind</code>, which is how it
+registers:</p>
+<ul>
+<li>its name, and its rank: its place in the tower, on one scale with
+the inline numbers (integer 100, rational 200, float 300, double 400,
+long double 500), and its own;</li>
+<li>whether it is a number, and whether an exact one;</li>
+<li>its operations: retain and release, arithmetic, comparison,
+conversion to the inline numbers, and text.</li>
+</ul>
+<p>A boxed value holds a pointer to its kind's table and one to its
+storage, so <code>value.h</code> needs no list of kinds and keeps no
+state. In an operation, the operand higher in the tower handles it. A
+boxed kind does so through its table. An inline number converts the
+boxed operand to its own kind; to compare, it uses the nearest
+<code>long double</code> and the rounding's direction, so comparison
+stays exact. A result is the caller's to release with
+<code>d_math_value_release</code>, and an operand is only lent. A new
+kind changes neither <code>value.h</code> nor the inline kinds' code,
+and the inline kinds are still constant expressions.</p>
+<p>This is roadmap Phase 1's C core; its C++ face is
+<code>math::value</code> (below).</p>
+<p><strong>Wide integers.</strong> <code>wide.h</code> holds signed
+integers of 256 bits: a magnitude in limbs of half a word (32 bits, or
+16 where the build has no 64-bit integer) and a sign, so the range is
+symmetric and 0 has one form. As in <code>rational.h</code>, each kernel
+stores the exact result or stores nothing and says why: overflow,
+division by zero, 0/0, a rational that is no integer, or text that is no
+integer. Division truncates, as C's does. The kernels are add, subtract,
+multiply, divide with remainder (Knuth's algorithm D), gcd, comparison,
+conversion to and from <code>dj_math_imax</code>,
+<code>dj_math_umax</code> and rationals, text both ways, and the nearest
+<code>float</code>, <code>double</code> or <code>long double</code>,
+ties to even, with the rounding's direction; a float past the largest is
+an infinity. Nothing allocates, and every kernel but the text writer is
+a constant expression from C++14. Under the type are limb kernels that
+take any length, which its boxed kind (below) and bignum's later kinds
+build on. This is roadmap item P1.</p>
+<p><strong>The wide integer as a value.</strong>
+<code>value_wide.h</code> registers <code>wide.h</code>'s integer with
+<code>value.h</code> as a boxed kind, the first real one, and
+<code>value.h</code> did not change. Its rank is 210, between the
+rational's and the float's. <code>d_math_value_from_wide</code> makes a
+value of it, and <code>d_math_value_to_wide</code> reads an integer
+back. With a wide integer, an inline integer or a rational, its
+arithmetic is exact:</p>
+<ul>
+<li>an integer stays a wide integer, however small, so that arithmetic
+begun with one stays exact past <code>dj_math_imax</code>;</li>
+<li>a result that is no integer is an inline rational, where it fits the
+family;</li>
+<li>a result past both, an integer of more than 256 bits or a ratio past
+<code>dj_math_imax</code>, is the nearest <code>long double</code>,
+flagged inexact (G2), rounded once from the exact ratio, whose terms run
+to 512 bits, by <code>wide.h</code>'s division.</li>
+</ul>
+<p>A float, double or long double meets it as <code>value.h</code> has
+an inline number meet any boxed kind: converted to the nearest value of
+its type, so a comparison stays exact too. Each value is a box of its
+own, allocated through two knobs in
+<code>config/c/modules/math/cfg_value_wide.h</code> (<code>malloc</code>
+and <code>free</code> unless set otherwise); where no storage is given,
+the result is a memory error.</p>
+<p><strong>The value in C++.</strong> <code>math/value.hpp</code> is the
+value's face. <code>math::value</code> holds one value of any kind, a
+boxed kind's included, and holds its box as an <code>int</code> holds
+its number: a copy is one holder more, and a value destroyed or
+overwritten one fewer. From C++11 a value moves, and a move never fails.
+<code>math::inline_value</code> holds the inline kinds alone, never a
+box, so it is a literal type, and its operations are constant
+expressions from C++14; from C++20, where a destructor may be constexpr,
+<code>math::value</code>'s are too, for the inline kinds. Both are made
+implicitly from the arithmetic types, a <code>bool</code> and an error
+code, and refuse a pointer: an unsigned integer past
+<code>dj_math_imax</code> is G2's long double, through
+<code>value.h</code>'s <code>d_math_value_from_uint</code>. Their
+operators, <code>abs</code> and the six comparisons are found by
+argument-dependent lookup only, and an operation makes its result in
+place from <code>value.h</code>'s, so it costs what
+<code>value.h</code>'s call does. Each comparison asks
+<code>value.h</code>'s exact order, so a NaN, an error and unlike kinds
+are unordered, and from C++20 <code>&lt;=&gt;</code> is a partial
+ordering. <code>to(out)</code> converts a value where it has one of
+<code>out</code>'s type. From C++20 the concept <code>number</code>
+names the types generic code computes with: the arithmetic types but
+<code>bool</code>, and the two values.</p>
+<p><strong>Numbers in generic code.</strong>
+<code>math/number_traits.hpp</code> is the static side of the value.
+<code>number_traits&lt;T&gt;</code> says what a template needs of a
+number type: whether its arithmetic is exact, whether it holds integers
+alone, whether its quotients are a field's and its products commute, its
+zero and one; whether <code>&lt;</code> orders it, and <code>|x|</code>;
+the magnitude generic code pivots by, <code>|x|</code> for an ordered
+type and a nonnegative number of an ordered type for one without an
+order (a complex number, a quaternion); its square root, exact for an
+integer type, rounded down; its conversions to and from
+<code>double</code>; its epsilon, the precision a value carries, 0 for
+an exact one; and its tolerance, four epsilons relative to the larger
+magnitude, 0 where both values are exact (chunk 38, S303). The C++
+face's comparisons given no tolerance take it, relative to their
+operands' scale; given one, they take it as an absolute one, as before
+(S304). The standard integer and floating-point types have their own;
+<code>math::value</code> and <code>inline_value</code> theirs, whose
+root is exact for the square of a rational of the family, so the norm of
+(3, 4) is 5; and any other type, a bignum among them, joins by
+specializing it. A type with none is taken as the linear-algebra
+subframework always took one: made from an <code>int</code>, and through
+<code>double</code>; an integral type with none, a character type or
+<code>bool</code>, is exact and an integer, as the language has it.
+<code>common_number&lt;A, B&gt;</code> is the type of
+<code>a + b</code>, from C++98: the usual arithmetic conversions for the
+arithmetic types, and for the values the classes' own. Linear algebra's
+generic path, for any element type but <code>float</code>,
+<code>double</code> and <code>long double</code>, now reads its zero,
+one, roots and tolerances from the traits, and a vector or matrix made
+by default is zero in any number type, so vectors and matrices of
+<code>math::value</code> compute exactly: the Hilbert matrix's
+determinant and inverse come out as rationals, its product with its
+inverse the identity. The generic kernels keep each product in its order
+and pivot by magnitude, so that <code>solve</code> and
+<code>inverse</code> of a quaternion matrix are right, and
+<code>solve(A, b)</code> and <code>solve(A, B)</code> take every number
+type but an integer one, by elimination of [A | B]: for
+<code>float</code>, <code>double</code> and <code>long double</code> the
+C core's <code>d_mat_solve</code>, LU's solution refined with extra
+precision (chunk 38, S302, S305; chunk 49, S406), for
+<code>math::complex&lt;T&gt;</code> <code>cmat.h</code>'s
+<code>d_cmat_solve</code>, refined the same way (chunk 50, S411), and
+<code>solve_fast</code> the elimination alone, LU's bits.</p>
+<p><strong>The run-time expression language.</strong>
+<code>math/expr/</code> is roadmap Phases 2 to 4's language, from C++11:
+math text read into a term, which is evaluated, written back as text,
+rewritten and differentiated. It stands on
+<code>parse/expression/</code> (gate G4). Its term,
+<code>expr_term</code>, is that module's
+<code>expression&lt;expr_op, expr_atom&gt;</code>: an operator applied
+to its operands, or an atom, which is a number (a
+<code>math::value</code>, with the literal it was written as, so that
+each type rounds the literal once), a variable or a named constant. A
+function is an operator of the term, so every fold and rewrite takes a
+call as it takes a sum. The six layers:</p>
+<ol type="1">
+<li>tokens (<code>token.hpp</code>);</li>
+<li>the operator table and the parser layer (<code>operator.hpp</code>,
+<code>parse.hpp</code>);</li>
+<li>the term (<code>term.hpp</code>);</li>
+<li>the folds, to numbers and values (<code>evaluate.hpp</code>, with
+the function and constant tables of <code>function_table.hpp</code>, the
+arithmetic of <code>arithmetic.hpp</code> and the relations and logic of
+<code>logic.hpp</code>), to a program run many times
+(<code>program.hpp</code>), and to text (<code>render.hpp</code>);</li>
+<li>the rewrites (<code>substitute.hpp</code>,
+<code>simplify.hpp</code>, and Phase 4's
+<code>derivative.hpp</code>);</li>
+<li>the handle, <code>math::expr</code> (<code>expr.hpp</code>, which
+includes every header but <code>reify.hpp</code>).</li>
+</ol>
+<p>Phase 3's kinds, <code>complex_kind.hpp</code>,
+<code>quaternion_kind.hpp</code> and <code>matrix_kind.hpp</code>, with
+<code>matrix_function.hpp</code> and <code>rotation.hpp</code>, and
+Phase 4's <code>numeric.hpp</code>, <code>summation.hpp</code> and
+<code>antiderivative.hpp</code> stand beside them, and
+<code>reify.hpp</code>, which makes a compile-time expression a term
+(step 32), <code>math.hpp</code> including it so that the language needs
+no compile-time core; <code>expr_common.hpp</code>'s banner maps them
+all. Chunk 48 renamed the four whose names another math header had
+(<code>complex.hpp</code>, <code>quaternion.hpp</code>,
+<code>matrix.hpp</code>, <code>series.hpp</code>) and split the two
+largest, <code>function.hpp</code> into the tables, the arithmetic and
+the logic and <code>matrix.hpp</code> into the kind and its functions
+(S400, S401); the steps below name each header as it is now. A step that
+can fail returns <code>expr_result&lt;T&gt;</code>, which is
+<code>result&lt;T, expr_error&gt;</code>; the handle holds a term or an
+error, and passes an error through every member chained after it. Step
+13 (chunk 28) made every header: its types are whole, and each entry is
+a stub, which answers <code>expr_status::not_yet</code> with a message
+naming the step that fills it, or, where it cannot fail, the placeholder
+its contract names. Each step from 14 on fills one or two headers.</p>
+<p>Step 14 (chunk 29) filled the arithmetic. The tokenizer reads numbers
+by <code>decimal.h</code>'s grammar, names, symbols and round brackets.
+The operator table holds <code>+ - * / mod ^</code> and the unary
+<code>-</code> and <code>+</code> at gate G5's levels: <code>^</code> to
+the right, <code>2 ^ 3 ^ 2</code> being <code>2 ^ 9</code>, and the
+unary minus below it, <code>-x ^ 2</code> being <code>-(x ^ 2)</code>.
+The parser layer gives each token its role, a minus unary or binary by
+where it stands, with G5's implied multiplication (<code>2x</code>) an
+option, off by default, and hands the tokens to
+<code>parse/expression</code>'s climber; every error is at its place in
+the text. <code>expr_evaluate&lt;T&gt;</code> gives a term's value in
+<code>float</code>, <code>double</code> or <code>long double</code>,
+each literal rounded once from its text (G3), <code>^</code> the C
+core's pow and <code>mod</code> the floored remainder, with the
+divisor's sign. <code>expr_evaluate</code> with a context gives a
+<code>math::value</code>, exact where it can be: <code>1/3 + 1/6</code>
+is exactly 1/2, <code>4 ^ 0.5</code> exactly 2. <code>expr_render</code>
+writes a term as text that <code>expr_parse</code> reads back as the
+same term, every literal kept.</p>
+<p>Step 15 (chunk 30) filled the functions.
+<code>function_table.hpp</code>'s standard table holds the C core's 25
+functions, <code>sqrt</code> to <code>trunc</code>, with
+<code>abs</code> and <code>factorial</code>, and its constant table
+<code>pi</code> and <code>e</code>, from the literals of
+<code>constants::of&lt;T&gt;</code>. A name before an open bracket is a
+call, <code>atan2(y, x)</code>, read by the parser layer as one operand,
+its arguments split at the commas; a name the constant table has is a
+constant; <code>n!</code> is the factorial, postfix and tighter than
+<code>^</code>; with G5's bars on, <code>|x|</code> is
+<code>abs(x)</code>. A fold looks each call's function up when it meets
+it: in a type, the C core's plain form; as a value, exact wherever the
+function's value is rational, as <code>sqrt(4/9)</code> is 2/3,
+<code>log10(1000)</code> 3, <code>sin(0)</code> 0 and <code>20!</code>
+an integer, and otherwise the C core's function in the tower's kind, a
+long double for exact arguments. The renderer writes a call as its
+function's name and its arguments, <code>sin(x) ^ 2</code>.</p>
+<p>Step 16 (chunk 31) filled the relations and logic. The operator table
+holds <code>= != &lt; &lt;= &gt; &gt;=</code> and <code>and</code>,
+<code>or</code> and <code>not</code>, logic below the relations, so that
+<code>x &gt; 0 and x &lt; 1</code> is
+<code>(x &gt; 0) and (x &lt; 1)</code> and <code>not x = y</code> is
+<code>not (x = y)</code>. A chain of relations is the conjunction of its
+links: <code>a &lt; b &lt;= c</code> is
+<code>a &lt; b and b &lt;= c</code>, and a bracketed relation is one
+operand, no link. As a value a relation is a boolean, by
+<code>value.h</code>'s exact order, so that <code>0.1 + 0.2 = 0.3</code>
+holds, and logic is Kleene's: <code>false and x</code> is false whatever
+<code>x</code> is, an error among what it may be. In a type the booleans
+are 1 and 0, a relation is C's comparison, and logic reads a NaN as
+unknown. <code>piecewise(when(x &lt; 0, -x), otherwise(x))</code>, in
+<code>function/function.hpp</code>'s vocabulary, is the call
+<code>piecewise(x &lt; 0, -x, x)</code>, written back in its branches;
+its value is that of the first branch whose condition holds.
+<code>all_of</code> and <code>any_of</code> are <code>and</code> and
+<code>or</code> of any number of operands, and <code>true</code> and
+<code>false</code> are constants.</p>
+<p>Step 17 (chunk 32) filled the handle. <code>math::expr</code> holds a
+term, or the error that kept it from being one, and each member makes a
+new handle or an answer, so that steps chain:
+<code>math::parse("x^2 * sin(x)").diff("x").str()</code>. Each member is
+a term-level entry's: <code>str()</code> is <code>expr_render</code>'s
+text; <code>eval&lt;T&gt;(bindings)</code> the fold in a type and
+<code>eval(bindings, context)</code> the exact one, each an
+<code>expr_result</code>, so that
+<code>math::parse("1/3 + 1/6").eval()</code> holds exactly 1/2; and
+<code>subs</code>, <code>simplify</code> and <code>diff</code> are
+handles of the rewrites' terms. An error passes through every member
+after it and comes out at the chain's end, as <code>str()</code>'s
+message or <code>eval</code>'s error; <code>math::try_parse(text)</code>
+gives the parse as an <code>expr_result&lt;expr&gt;</code>, for a caller
+who branches on it. Until step 25 fills the derivative,
+<code>diff</code> gives the error <code>not_yet</code>.</p>
+<p>Step 18 (chunk 33) filled the rewrites. <code>expr_substitute</code>,
+the handle's <code>subs</code>, puts a term in place of a variable:
+<code>x ^ 2 * sin(x)</code> with <code>x</code> by <code>t + 1</code> is
+<code>(t + 1) ^ 2 * sin(t + 1)</code>. <code>expr_simplify</code>, the
+handle's <code>simplify</code>, rewrites a term until no rule changes
+it: a node of exact numbers, <code>true</code> and <code>false</code> is
+folded to its value where that is exact or a boolean
+(<code>1/3 + 1/6</code> is <code>1/2</code>, <code>1 &lt; 2</code> is
+<code>true</code>, and <code>sqrt(2)</code> stays); <code>x ^ 1</code>
+is <code>x</code>, <code>x ^ 0</code> and <code>1 ^ x</code> are 1; a
+sum's terms are collected by their other factors, in any order, their
+exact coefficients summed (<code>2 * x + 3 * x</code> is
+<code>5 * x</code>, <code>x * y + y * x</code> is
+<code>2 * x * y</code>, <code>x - x</code> is 0); and a product's exact
+numbers are multiplied into one coefficient (<code>2 * x * 3</code> is
+<code>6 * x</code>). A rule applies only where it makes the term
+smaller, so that a term with nothing to simplify comes back as written.
+The value is kept at every binding at which each part of the term has a
+finite value; elsewhere, as in other computer algebra systems, it may
+differ: <code>0 * (1 / x)</code> is 0 even at x = 0.</p>
+<p>Step 19 (chunk 34) filled the matrix kind and the literals, the first
+of Phase 3. A matrix is a boxed kind of the value layer, "matrix", as
+the wide integer is, its table written in C++ in
+<code>expr/matrix_kind.hpp</code>; it is no number, and ranks past every
+number, so that its own table handles an operation of a matrix and a
+number. It keeps each element as it is given: as a dense array of
+<code>float</code>, <code>double</code> or <code>long double</code>
+where every element is one of those, in the widest one's type, and as
+<code>math::value</code>s otherwise, so that a matrix of exact numbers
+is exact and no element is rounded by being put in one.
+<code>expr_matrix(rows, columns, elements)</code> and
+<code>expr_vector(elements)</code> make one, a vector being one row;
+<code>expr_is_matrix</code>, <code>expr_shape_of</code> and
+<code>expr_element</code> read it. The literals <code>[1, 2, 3]</code>
+and <code>[1, 2; 3, 4]</code> parse, each element any term,
+<code>[x, 2 * y]</code>, print back as written, and evaluate to a matrix
+as a value: <code>math::parse("[1, 2; 3, 4]").eval()</code> is the exact
+2 by 2 matrix. In a floating-point type a matrix has no value
+(<code>bad_shape</code>).</p>
+<p>Step 20 (chunk 35) filled the operators on matrices, through the
+kind's table: <code>A + B</code> and <code>A - B</code> of one shape,
+<code>-A</code>, <code>A * s</code>, <code>s * A</code> and
+<code>A / s</code>, and <code>A * B</code> where A's columns are B's
+rows, each computed by linear algebra's kernels, a dense matrix's by the
+C core's <code>mat.h</code> in its type and one of values exactly; the
+transpose <code>A'</code>, between the unary minus and <code>^</code>,
+so that <code>A ^ 2'</code> is <code>(A ^ 2)'</code> as in MATLAB;
+<code>A ^ n</code> of a square matrix and a whole n &gt;= 0, by repeated
+squaring; and indexing from 1, <code>A[i, j]</code>, <code>v[i]</code>
+and <code>A[i]</code>, a row. Anything else on a matrix is a domain
+error: <code>A + 1</code>, <code>1 / A</code>, <code>A / B</code>.
+<code>math::parse("[1, 1; 1, 0] ^ 90").eval()</code> is exact, F(91),
+F(90) and F(89) its elements. Simplification keeps the order of matrix
+factors: <code>A * B + B * A</code> of two literals stays as written,
+while a variable is taken for a number.</p>
+<p>Step 21 (chunk 36) filled linear algebra's functions, the last of
+Phase 3's linear algebra: <code>det</code>, <code>inv</code>,
+<code>trace</code>, <code>norm</code> and <code>eig</code> of one
+argument, <code>dot</code>, <code>cross</code> and <code>solve</code> of
+two, in the function table, so that <code>det([1, 2; 3, 4])</code> is -2
+and <code>solve(A, b)</code> the x of <code>A x = b</code>. An exact
+matrix's determinant, inverse and solutions are exact, by the generic
+kernels; a dense one's are computed in its own type by the C core, LU
+with partial pivoting and Gauss-Jordan; a matrix mixed of exact and
+floating-point elements in the widest floating-point one's type.
+<code>eig</code> gives the eigenvalues, ascending, a symmetric matrix's
+by Jacobi and any other's by Hessenberg QR; an exact matrix's rational
+eigenvalues are exact, <code>eig([2, 1; 1, 2])</code> being
+<code>[1, 3]</code>, and a complex pair is a domain error until step 23
+gives the value a complex kind. A number is a scalar, as in Julia:
+<code>det(2)</code> is 2 and <code>inv(2)</code> is 1/2.
+<code>A ^ (-n)</code> is <code>inv(A) ^ n</code>; <code>[]</code> is the
+empty matrix, 0 by 0, <code>det([])</code> 1; and a literal's elements
+are blocks, so that <code>[A, b]</code> is A with the column b beside it
+and <code>[A; B]</code> A above B. The C core's <code>d_mat_power</code>
+now squares as the language does, so that a dense power has one answer
+in both. On 2026.10.27 the owner added three steps before Phase 4, 3d to
+3f, complex numbers and quaternions as kinds of the value, in the C core
+and the language (<code>roadmap.html</code>; <code>decisions.html</code>,
+S265 to S278).</p>
+<p><strong>Complex numbers.</strong> <code>cplx.h</code> holds the C
+core's complex numbers, step 22's first part (chunk 37):
+<code>struct dj_cplx_f</code>, <code>dj_cplx_d</code> and
+<code>dj_cplx_ld</code>, one member, <code>part[2]</code>, the real part
+first, the layout of <code>T[2]</code> that C99's <code>_Complex</code>
+and C++'s <code>std::complex</code> share (S267, S280). Its functions
+are C99's 22: <code>d_cplx_d_real</code>, <code>_imag</code>,
+<code>_conj</code> and <code>_proj</code>, exact, once, with the
+arithmetic of two complex numbers and of a complex number and a real
+one; and <code>_abs</code>, <code>_arg</code>, <code>_exp</code>,
+<code>_log</code>, <code>_pow</code>, <code>_sqrt</code>, the
+trigonometric and hyperbolic functions and their inverses, each in both
+forms. In C++ there is one name for every family,
+<code>d_cplx_exp(z)</code>. The arithmetic is pure and comes once: a
+product's parts by exact products, a quotient by the conjugate over the
+squared modulus and a residual's step, each part within a step of the
+correctly rounded one (S281), a zero part of the sign the textbook
+formula gives it, a quotient's as a product's (S382). The
+<code>_c</code> forms are one long double kernel for the three families,
+compiled once in a unit (<code>D_MATH_FN_KERNEL</code>, S282); the plain
+forms the same algorithms in each family's type on the C library's real
+functions, but for the plain <code>pow</code>'s general case, the
+<code>_c</code> kernel's (S283). The values at the cuts, the zeros, the
+infinities and the NaNs are C99's Annex G's, as C17 corrects them
+(S284), and in C a value converts to and from <code>_Complex</code>
+(S285). Where a target evaluates float and double wider than their
+types, as a 32-bit x87 does, their exact steps are taken in long double
+(S287). The real functions it needs, <code>log1p</code> and
+<code>expm1</code> in <code>exponential.h</code>, <code>asinh</code>,
+<code>acosh</code> and <code>atanh</code> in <code>hyperbolic.h</code>,
+are the core's too, in every family and both forms, their long double
+kernels and exp's within 0.53 of an ulp (S286). Each function's bound in
+steps is in the header's banner, and
+<code>tests/djinterp/c/modules/math/t_cplx.c</code> checks them against
+references made by mpmath, kept beside it (S288). Chunk 42 adds the five
+C99 has only for real arguments, <code>exp2</code>, <code>log2</code>,
+<code>log10</code>, <code>log1p</code> and <code>expm1</code> of a
+complex number: each one long double kernel of pure arithmetic, its
+parts carried as pairs to past twice the value's precision and rounded
+once, and both forms of every family that kernel rounded to the family,
+as standard C's library has none of them to be faster with, glibc and
+the UCRT giving <code>clog10</code> alone (S342); on the real axis,
+where the value is real, each form is the family's real function in that
+form, so that <code>log2(x + 0i)</code> is <code>log2(x)</code> bit for
+bit and <code>log2(-8)</code> 3 + 4.532...i (S343). <code>exp2</code>'s
+angle y ln 2 is reduced by pi/2 exactly for every y, by Payne and
+Hanek's method with 2 ln 2 / pi's digits (S344); <code>expm1</code>'s
+real part, which vanishes on the curve e^x cos y = 1, is formed of terms
+good to some 2^-(P+28), by series in pairs of its own for the
+exponential, the sine and the cosine (S345); and at an infinite or NaN
+part each takes the value of the function it is a form of, clog's or
+cexp's (S346). Each part is within a step of the correctly rounded one
+in every family and both forms; <code>t_cplx.c</code> checks them
+against <code>math_tests_cplx_five_refs.h</code>, made by mpmath.</p>
+<p><strong>Eigenvalues and complex matrices.</strong> Step 22's second
+part (chunk 38). <code>decomp.h</code> finds a general real matrix's
+eigenvalues and eigenvectors by LAPACK's <code>dgeev</code> path, each
+part public in every family and both forms:
+<code>d_decomp_d_balance</code> and <code>_balance_back</code>,
+<code>_hessenberg_q</code>, <code>_schur</code> (Francis's double-shift
+QR, as <code>dlahqr</code>), <code>_schur_vectors</code> (as
+<code>dtrevc</code>) and the driver, <code>d_decomp_d_eigen</code>, its
+eigenvalues <code>struct dj_cplx_d</code>, ascending by real part then
+imaginary, a pair exactly conjugate, and its eigenvectors of unit length
+with their largest entry real and positive, 2^k A's 2^k times A's bit
+for bit (S292 to S296). <code>cmat.h</code> holds complex matrices: LU,
+the determinant, the inverse and the solution of [A | B] (S297), a
+Hermitian matrix's eigenvalues by Jacobi's method with complex rotations
+(S298) and any other's by <code>zgeev</code>'s path (S299),
+<code>d_cmat_d_eigen</code>. <code>vec.h</code>'s norms, distance, unit
+vector and cosine are scaled where the squares would overflow or
+underflow, every bit in range as before (S301); <code>mat.h</code>'s
+<code>d_mat_d_solve</code> is the elimination of [A | B] with LU's bits
+(S302). <code>t_decomp.c</code> and <code>t_cmat.c</code> check every
+eigenvalue against references made by mpmath, to its condition number,
+and each part alone (S307).</p>
+<p><strong>The C++ face of complex numbers.</strong> Step 22's third
+part (chunk 39). <code>math/complex.hpp</code> holds
+<code>math::complex&lt;T&gt;</code>, of <code>float</code>,
+<code>double</code> and <code>long double</code>, from C++98: the face
+of <code>cplx.h</code>'s struct, as <code>math::value</code> is the
+value's (S270). Its operators, with a complex or a real operand on
+either side, and their assignments are <code>cplx.h</code>'s arithmetic,
+a real operand taken as itself; <code>real</code>, <code>imag</code>,
+<code>conj</code>, <code>proj</code>, <code>abs</code>, <code>arg</code>
+and C99's 16 other functions, and from chunk 42 <code>exp2</code>,
+<code>log2</code>, <code>log10</code>, <code>log1p</code> and
+<code>expm1</code>, are <code>cplx.h</code>'s, each the <code>_c</code>
+form at every level, so that a result has the same bits on every
+compiler, in a constant expression or not, from C++14 (S313); from chunk
+46 those by their own names are the plain forms at run time and the
+names ending <code>_c</code> the <code>_c</code> forms, as the owner
+ruled (S336, below). They are found by argument-dependent lookup, as
+<code>math::value</code>'s are. A <code>std::complex&lt;T&gt;</code>
+converts to it implicitly, and <code>to_std()</code> gives one back, so
+that no expression of the two is ambiguous. To
+<code>number_traits</code> it is a commutative field with no order, its
+magnitude <code>|re| + |im|</code>, LAPACK's, and its tolerance four of
+T's epsilons (S314), so that <code>linear_algebra</code>'s vectors and
+matrices of it compute: their determinant, by LU in the generic kernels,
+their inverse and their solution are <code>cmat.h</code>'s bit for bit
+(S315), and the faces' tolerances are of the real type, the magnitude's
+(S316). <code>general_eigen</code> gives every eigenvalue and
+eigenvector of a real matrix as <code>math::complex&lt;T&gt;</code>, a
+complex pair among them, converged() false only where not every
+eigenvalue was found (S308, S317). <code>math/expr/</code>'s constant
+table names <code>im</code>, <code>jm</code> and <code>km</code>, which
+answer <code>not_yet</code> until steps 23 and 24 give them values
+(S271, S275, S318), and the stubs' messages name the steps S265 made: 4a
+step 25 to 4d step 28 (S319).</p>
+<p><strong>Complex numbers in the language.</strong> Step 23's first
+part (chunk 40), of three (S324).
+<code>math/expr/complex_kind.hpp</code> makes complex numbers a boxed
+kind of the value, "complex", of rank 900, past every real kind's,
+written in C++ from C++11 beside the matrix kind (S327). Its parts are
+exact where both are given exact, kept as values, so that (1 + 2im)(3 -
+im) is exactly 5 + 5im, and otherwise dense, a
+<code>math::complex&lt;T&gt;</code> of the wider floating-point type; an
+exact number whose imaginary part comes to 0 is real, an inexact one
+keeps its zeros' signs. <code>value.h</code> asks the kind whether each
+value is exact, by a new last entry of its table (S325). Its arithmetic
+is exact for exact operands, G2's long double past the family, and
+otherwise <code>cplx.h</code>'s, a real operand taken as itself, so that
+(1 + 0im)(-1) is -1 - 0im; |z| is exact where it is rational, |3 + 4im|
+being 5 (S328). A complex number equals a number of equal parts, a real
+one's imaginary part 0, stands in no order, and converts to a real type
+where its imaginary part is 0 (S329). The value layer writes it
+<code>3 + 4im</code> and the renderer <code>(3 + 4 * im)</code>, which
+reads back with implied multiplication off, as by default, or on (S330).
+In the language <code>im</code> is its unit, exact, and a NaN in each
+floating-point type (S332); <code>complex(x, y)</code>,
+<code>real</code>, <code>imag</code>, <code>conj</code> and
+<code>arg</code> join the table, <code>abs</code> and the bars give the
+modulus, <code>z'</code> is the conjugate (S333), <code>=</code> and
+<code>!=</code> compare the parts and <code>&lt;</code>,
+<code>&lt;=</code>, <code>&gt;</code> and <code>&gt;=</code> are a
+domain error; an exact complex number to a whole power is exact, and the
+functions of the real line's order, <code>floor</code>, <code>mod</code>
+and the rest, are a domain error of one. Each other function's principal
+complex value, any other power, and matrices of complex numbers answer
+<code>not_yet</code>, naming step 23's part that brings them (S331).
+Every boxed kind's holders, the wide integer's and the matrix's too, are
+counted by <code>value.h</code>'s <code>d_math_boxed_hold</code> and
+<code>d_math_boxed_unhold</code>, atomically by default wherever the
+compiler can, behind the knob
+<code>D_CFG_MATH_VALUE_ATOMIC_HOLDERS</code> of the new
+<code>config/c/modules/math/cfg_value.h</code>, so that values may be
+shared between threads (S326, closing S134's flag).</p>
+<p><strong>Complex functions in the language.</strong> Step 23's second
+part comes in two chunks (S335), of which chunk 41 is the first. Each
+function of a complex argument gives its principal value, with C99 Annex
+G's cuts (S271): exact where it is a Gaussian rational,
+<code>sqrt(2im)</code> being 1 + im, <code>sqrt(3 + 4im)</code> 2 + im
+and <code>sign(3 + 4im)</code> 3/5 + 4/5im, an exact number to a
+rational power p/q exact where its principal q-th root is a Gaussian
+rational, found as D times the long double root rounded to whole numbers
+and taken where its q-th power is the number exactly,
+<code>(-2 + 2im) ^ (1/3)</code> being 1 + im (S337); otherwise
+<code>cplx.h</code>'s <code>_c</code> form,
+<code>math::complex&lt;T&gt;</code>'s <code>exp_c</code> and its kin
+from chunk 46, in the tower's type, a long double where every argument
+is exact, dense and never made real, so that a value has the same bits
+on every build (S336). So too a real function of a real argument outside
+its real domain (S272): <code>sqrt(-4)</code> is 2im,
+<code>log(-1)</code> pi im, <code>(-8) ^ (1/3)</code> 1 + 1.732...im
+while <code>cbrt(-8)</code> is -2, and <code>asin(2)</code> pi/2 +
+1.317...im, a real argument on a cut taken as x + 0i, as C, Python and
+NumPy take it (S341). <code>expr_context</code> gains its first field,
+<code>real_results</code>: set, an operation of real operands whose
+value is complex alone, <code>complex(x, y)</code> apart, is a domain
+error (S340). <code>log1p</code>, <code>expm1</code>,
+<code>asinh</code>, <code>acosh</code> and <code>atanh</code>, the C
+core's since chunk 37, join the table with <code>sign</code>, and
+<code>min</code> and <code>max</code> of any number of arguments, IEEE
+754-2019's <code>minimum</code> and <code>maximum</code> in a type and
+the least or the greatest argument itself as a value (S203, S338): 51
+functions. The folds take <code>math::complex&lt;T&gt;</code> for each
+floating-point T, where a real number stays real, so that a term whose
+every number is real has its bits in T, plus +0i, and
+<code>sqrt(-4)</code> is 2i (S339). Chunk 42, the second, gives
+<code>exp2</code>, <code>log2</code>, <code>log10</code>,
+<code>log1p</code> and <code>expm1</code> of a complex number, and
+<code>log2</code> and <code>log10</code> of a negative number and
+<code>log1p</code> of one below -1, their principal values,
+<code>cplx.h</code>'s new <code>_c</code> forms (S347):
+<code>log2(-8)</code> is 3 + 4.532...im, its real part 3 exactly; none
+of theirs at a Gaussian rational is one but a real value, so each is
+dense; and <code>real_results</code> makes the real ones a domain
+error.</p>
+<p><strong>Matrices of complex numbers.</strong> Step 23's third part
+(chunk 43), which ends the step. A matrix holds a complex element as it
+holds a real one (S348): densely, as <code>math::complex&lt;T&gt;</code>
+of the widest type, where every element is a float, a double, a long
+double or a complex number of such parts, a real one x then x + 0i; as
+values, each of its own kind, where any is exact or boxed. Its
+arithmetic is the kind's, a complex number among the scalars: dense in
+the widest type, element by element by <code>cplx.h</code>'s operators,
+a real operand taken as itself, a product's sums from 0 in order as the
+face's kernels sum them; exact for exact elements (S349).
+<code>A'</code> is the conjugate transpose and the new
+<code>transpose(A)</code> the transpose, of 52 functions now;
+<code>real</code>, <code>imag</code>, <code>conj</code> and
+<code>arg</code> of a matrix are its elements', and
+<code>complex(A, B)</code> of two of one shape the matrix of
+<code>complex(a_ij, b_ij)</code> (S350). <code>det</code>,
+<code>inv</code> and <code>solve</code> are <code>cmat.h</code>'s bit
+for bit where dense and exact where exact; <code>norm</code> is of the
+moduli, scaled where dense; <code>dot(a, b)</code> sums conj(a_i) b_i;
+<code>cross</code> conjugates nothing (S351). <code>eig</code> gives
+every eigenvalue: a real matrix's complex pairs by
+<code>decomp.h</code>'s <code>d_decomp_eigen</code>, a Hermitian
+matrix's real by <code>cmat.h</code>'s Jacobi method, any other complex
+matrix's by <code>d_cmat_eigen</code>, and an exact matrix's exact
+wherever they are Gaussian rationals, <code>eig([0, -1; 1, 0])</code>
+being <code>[-im, im]</code>; a spectrum ascends by real part, then by
+imaginary part, and <code>real_results</code> makes a complex spectrum
+of a real matrix a domain error; each solver is given 30 QR steps a row,
+at least 1000, the budget under which a matrix of 700 rows ran out
+(S352). No node of the language answered <code>not_yet</code> then but
+<code>jm</code> and <code>km</code>, step 24's (S353). The C++ face
+gives vectors of <code>math::complex&lt;T&gt;</code> <code>vdot</code>,
+the conjugating inner product, and <code>norm</code>,
+<code>length</code>, <code>norm_squared</code>, <code>normalize</code>
+and <code>distance</code> of the moduli, and matrices of them
+<code>frobenius_norm</code> and <code>is_unitary</code> (S354); and the
+generic kernels' norms sum <code>number_modulus_squared</code>, so that
+a <code>vector&lt;value&gt;</code> holding complex numbers has the norm
+of its moduli, the language's, exactly (S355).
+<code>t_expr_complex_matrix_face.cpp</code> checks them, the eigenvalues
+against references mpmath computes,
+<code>math_tests_expr_cmatrix_refs.h</code>.</p>
+<p><strong>Whole powers in pairs.</strong> Chunk 45 (S370, as S368
+recommended). <code>cplx.h</code>'s whole powers, z^n for n from -2^30
+to 2^30, are repeated squaring carried in long double's pairs, each
+product's parts exact sums of exact products, the result scaled by a
+power of two and rounded once: the <code>_c</code> kernel's to each
+family, and the plain forms by the same kernel, bit for bit, as no C
+library has a faster whole power to lean on. A power exact in twice long
+double's precision comes exactly; each part is within a step of the part
+correctly rounded where it is at least |n| 2^(4 - P) of the larger part,
+P long double's precision, and below that, where it may cancel past what
+the pairs carry, within |n| 2^(3 - 2P) of the larger part, so a part
+that cancels is no longer some steps of the larger part off, as chunk
+44's references found. <code>quat.h</code>'s <code>pow_c</code>, whose
+plane's power it is, is bounded of each part again.
+<code>t_cplx.c</code> checks 1,027 powers in the three families at
+points where a part cancels, against
+<code>math_tests_cplx_pow_refs.h</code>, made by mpmath.</p>
+<p><strong>Quaternions in the language.</strong> Step 24's second part
+(chunk 45), as the owner's rulings S275 and S277 have it.
+<code>expr/quaternion_kind.hpp</code> makes a quaternion a boxed kind of
+the value, of rank 950, past the complex number's 900 and below the
+matrix's 1000: exact where its four parts are, kept as values, and
+otherwise dense in the widest floating-point type of its parts,
+<code>math::quaternion&lt;T&gt;</code>, <code>quat.h</code>'s array; an
+exact one whose <code>jm</code> and <code>km</code> parts come to 0 is
+the complex number of the other two, or a real one, and an inexact one
+keeps its four parts (S371). <code>jm</code> and <code>km</code> are its
+units, so <code>1 + 2jm - km</code> is one. Its arithmetic is exact on
+exact parts, Hamilton's product of sixteen products and
+<code>p / q</code> = <code>p inv(q)</code>, the quotient on the right,
+and dense by <code>quat.h</code>'s accurate forms, each part rounded
+once, a real operand taken as itself and a complex one with its
+<code>im</code> the first unit (S372). <code>|q|</code> is the norm,
+exact where it is rational, <code>|1 + 2im + 2jm + 4km|</code> being 5;
+a quaternion equals a number whose parts equal its own and stands in no
+order; it converts to a real type where its other parts are 0; its text
+is <code>1 + 2im - 3jm + 4km</code> (S373).
+<code>quat(w, x, y, z)</code> makes one, <code>parts(q)</code> gives the
+row [w, x, y, z]; <code>real</code>, <code>conj</code> and
+<code>q'</code>, <code>abs</code> and the bars, <code>inv</code> and
+<code>sign</code> take one, exactly where they can; <code>exp</code>,
+<code>log</code> and <code>sqrt</code> are the complex functions in q's
+plane, <code>quat.h</code>'s <code>_c</code> forms, <code>sqrt</code>
+exact where the root is a quaternion of rationals; <code>q ^ r</code>
+takes a real exponent, exactly to a whole one and to a rational one
+whose root is rational, <code>(-46 + 3im + 6jm + 6km) ^ (1/3)</code>
+being <code>2 + im + 2jm + 2km</code>; and the others, <code>imag</code>
+and <code>arg</code> among them, and any complex or quaternion exponent,
+are a domain error (S374). <code>rotate(q, v)</code> is the 3-vector q v
+q^-1 of any q not 0, exact where q and v are, of v's shape (S375).
+Simplification keeps a quaternion's factors in their order, and a
+complex number's beside one, so that <code>jm * km + km * jm</code>
+stays; a real number and a variable still commute (S376). In a type
+<code>jm</code> and <code>km</code> are NaNs, <code>quat</code> its real
+or complex value where it is one, and <code>real_results</code> leaves
+<code>quat</code> apart, as it does <code>complex</code> (S377). A
+literal holding a quaternion, a product or quotient of a matrix and one,
+and linear algebra's functions of one but <code>inv</code> answered
+<code>not_yet</code> until chunk 46, matrices of quaternions (S369).
+<code>t_expr_quaternion_face.cpp</code> checks them: the kind, exact
+arithmetic against the test's own quaternions of rationals, dense
+arithmetic and the functions and rotation in each type
+<code>quat.h</code>'s bit for bit, the language, the folds in each type,
+the renderer and simplification.</p>
+<p><strong>Matrices of quaternions.</strong> Step 24's third part (chunk
+46), as the owner's ruling S277 has it, which ends the step. A matrix
+holds a quaternion as it holds a complex number (S386): densely, as
+<code>math::quaternion&lt;T&gt;</code> of the widest type, where every
+element is a float, a double, a long double or a complex number or a
+quaternion of such parts, a real one x then x + 0im + 0jm + 0km and a
+complex one x + yi x + yim + 0jm + 0km; as values, each of its own kind,
+where any is exact or boxed. Its arithmetic is the quaternion kind's
+own, element by element: the generic kernels compute on the kind's
+operands, <code>expr_quaternion_operand</code>, whose operators are the
+kind's dense arithmetic, a real or complex operand taken as itself, so
+that each element of a sum, of a product's sum or of a scaling is the
+kind's own operation on its two, bit for bit; a product's element sums a
+row's products with a column's, a_ik b_kj in that order, from 0; and a
+number's product with a matrix keeps its order, <code>q * A</code> and
+<code>A * q</code> two matrices, <code>A / q</code> being
+<code>A inv(q)</code> (S387). <code>A'</code> conjugates each element,
+<code>transpose</code> moves it, <code>real</code> and <code>conj</code>
+of a matrix are its elements', and <code>imag</code>, <code>arg</code>
+and <code>complex</code> of one a domain error. <code>inv</code> and
+<code>solve</code> are the generic kernels' Gauss-Jordan and elimination
+of [A | B], each product in its order and each row divided on the left,
+as A X = B asks: on the kind's operands where dense, and on values whose
+traits say they do not commute where exact, so that an exact inverse is
+exact; a singular matrix's a pole. <code>det</code> is a domain error,
+no determinant of quaternion matrices being both multiplicative and the
+complex one on complex matrices; <code>trace</code> is the kernels',
+<code>norm</code> of the moduli, <code>dot(a, b)</code> sums conj(a_i)
+b_i in that order, and <code>cross</code> conjugates nothing, each
+product in its order (S388). <code>eig</code> gives Zhang's standard
+right eigenvalues, the n complex ones of imaginary part 0 or more to one
+of which each right eigenvalue is similar: those of the complex adjoint
+[A1, A2; -conj(A2), conj(A1)], A = A1 + A2 jm, 2n by 2n, found as a
+complex matrix's are, by Jacobi where A is Hermitian and exactly where
+they are Gaussian rationals, one of each conjugate pair; a triangular
+matrix's are its diagonal's, each w + |v|i (S389). A quaternion is a
+scalar to linear algebra too: <code>det(q)</code> a domain error,
+<code>trace(q)</code> q, <code>norm(q)</code> |q|, <code>eig(q)</code>
+its standard eigenvalue, <code>dot(p, q)</code> conj(p) q, and
+<code>solve(q, B)</code> q^-1 B, on the left, <code>quat.h</code>'s left
+quotient where dense (S390). <code>A ^ 0</code> is the identity of A's
+storage, a dense complex matrix's too, which was the exact identity
+until now. No node of the language answers <code>not_yet</code> (S369).
+<code>t_expr_quaternion_matrix_face.cpp</code> checks them, the
+eigenvalues against references mpmath computes,
+<code>math_tests_expr_qmatrix_refs.h</code>.</p>
+<p><strong>Rotations.</strong> <code>expr/rotation.hpp</code>, new in
+chunk 46, holds a quaternion's functions that give or take a vector or a
+matrix, so that the matrix kind, which holds quaternions now, comes
+after the quaternion kind: <code>parts</code> and <code>rotate</code>,
+from <code>quaternion_kind.hpp</code>, and three new ones (S391).
+<code>rotmat(q)</code> is the 3 by 3 matrix of the rotation q names, R v
+= q v q^-1, as MATLAB's <code>rotmat(q, 'point')</code> is: exact where
+q is, and otherwise <code>quat.h</code>'s <code>to_matrix3</code>, each
+element within a step of the correctly rounded one.
+<code>rotquat(R)</code> is the unit quaternion of a rotation's matrix, w
+&gt;= 0. Where R is exact and exactly a rotation's, R^T R = I and det(R)
+= 1, it is Shepperd's method as <code>quat.h</code> computes it: exact
+where the root its largest candidate takes is rational,
+<code>rotquat(rotmat(1 + im + jm + km))</code> being
+<code>1/2 + im/2 + jm/2 + km/2</code>, otherwise <code>quat.h</code>'s
+<code>from_matrix3</code> in long double. Every other R, a dense one or
+an exact one that is no rotation's, is taken as a rotation's matrix that
+has drifted, and gives the quaternion of the rotation nearest it in the
+Frobenius norm, by Bar-Itzhack's method (2000): the eigenvector of the
+largest eigenvalue of a symmetric 4 by 4 matrix R's sums and differences
+make, by <code>decomp.h</code>'s cyclic Jacobi, in the elements' widest
+type (chunk 53, S429). A reflection, det(R) &lt;= 0, and a matrix
+farther than 1/2 from the nearest rotation's, far from any, are domain
+errors. Of a 4 by 4 matrix it takes the upper left.
+<code>slerp(p, q, t)</code> is the shorter arc between the rotations p
+and q name, <code>quat.h</code>'s accurate slerp of the two normalized:
+58 functions. MATLAB's equivalents, in its navigation, sensor fusion and
+robotics toolboxes, are <code>rotmat(q, 'point')</code> and
+<code>quaternion(R, 'rotmat', 'point')</code>, with the Robotics
+toolbox's <code>quat2rotm</code> and <code>rotm2quat</code>; SciPy's are
+<code>Rotation.as_matrix</code> and <code>Rotation.from_matrix</code>,
+which orthogonalizes a matrix that is no rotation's before it converts
+it, as rotquat takes the nearest rotation (S391, S429).</p>
+<p><strong>The owner's rulings S336 and S340.</strong> Chunk 46 makes
+them, as he ruled on 2026.11.04. S336:
+<code>math::complex&lt;T&gt;</code>'s functions by their own names are
+<code>cplx.h</code>'s plain forms at run time, on the C library's real
+functions, and its <code>_c</code> forms in a constant expression from
+C++20; the names ending <code>_c</code>, <code>exp_c</code> and the
+rest, are the <code>_c</code> forms at every level, constant expressions
+from C++14. The language's values take the <code>_c</code> forms, so
+that a value has the same bits on every build, and the fold in
+<code>math::complex&lt;T&gt;</code> the plain ones, as a fold in a real
+type takes the C library's. S340: every evaluator of the function table
+takes the fold's <code>expr_context</code>, which moves to
+<code>expr_common.hpp</code>, so that an evaluator is
+<code>Type (*)(const Type*, std::size_t, const expr_context&amp;)</code>;
+every value evaluator holds its own answer real where the context asks
+(<code>expr_real_only</code>), so that the fold no longer judges an
+answer after the call; and the typed folds take a context too.</p>
+<p><strong><code>dynamic_matrix</code> of every element type.</strong>
+Chunk 46 (S354, S392). <code>linalg::dynamic_matrix&lt;T&gt;</code>
+takes every element type the fixed-size matrix takes: float, double and
+long double on the C core's kernels, any other arithmetic type through
+double, and <code>math::complex&lt;T&gt;</code>,
+<code>math::value</code> and <code>math::inline_value</code> on the
+generic path, each zero, one and tolerance the traits', the
+<code>frobenius_norm</code> of a complex one a T, as the fixed-size
+matrix's is. Quaternions neither face's matrix takes, as the quaternion
+has no sums or traits; the language's matrices of them compute with the
+kind's own operands.</p>
+<p><strong>A term compiled once.</strong> Chunk 47 (S395). A fold walks
+the tree at every evaluation: it builds a vector of its children's
+answers at each node and looks each function and constant up by name,
+and in <code>double</code> it takes 79 to 624 times the C++ it stands
+for (chunk 47's benchmark, five terms).
+<code>expr_compile&lt;T&gt;(term)</code>, in
+<code>expr/program.hpp</code>, does that work once. It gives an
+<code>expr_program&lt;T&gt;</code>, for <code>float</code>,
+<code>double</code> or <code>long double</code> or the
+<code>math::complex</code> of one: the term's operations in postfix
+order, each literal already a number of T, each constant and function
+found, each variable a slot. A run is a loop over those steps on a stack
+of T whose depth is known at compile time, held in the caller's frame up
+to <code>D_CFG_MATH_EXPR_PROGRAM_STACK</code> (32, in
+<code>cfg_expr.h</code>), so a run allocates nothing; in a complex type
+too, as the complex fold's operations take their operands where they
+lie, but for a call of more than eight arguments.</p>
+<p>A run is the typed fold, not an approximation of it. Postfix order is
+the order in which the fold computes, children left to right and then
+the parent, and each step calls the function the fold calls on the same
+numbers. So each answer is the fold's bit for bit, and each error is the
+fold's first: the errors of a term's shape (an unknown name, a wrong
+number of arguments, a vector) at compile time, an unbound variable at a
+run of bindings. A run takes the variables' numbers in slot order (the
+term's own order unless another is given), <code>math::value</code>s, or
+bindings by name. The handle compiles too,
+<code>parse("x ^ 2 - y").compile&lt;double&gt;()</code>. A run of
+doubles takes 2.9 to 11.4 times the C++, a run of bindings 1.5 to 3.1
+times a run of doubles, and a compile pays for itself at the second run.
+<code>t_expr_program_face.cpp</code> checks it against the fold on 2,000
+random terms in each of the six types, every operator, call, constant
+and literal at every sort of value, and on its own edges.</p>
+<p><strong>One header per concept.</strong> Chunk 48 (S398 to S401). The
+framework had two quaternions, <code>math::quaternion</code> and
+<code>linalg::quaternion</code>, each a face of <code>quat.h</code>, and
+two of every function, so that a call such as
+<code>from_matrix(m)</code> of a <code>linalg::matrix</code> was
+ambiguous wherever both were read. Now
+<code>math::quaternion&lt;T&gt;</code> is the one class, with linear
+algebra's names, members <code>m_x</code>, <code>m_y</code>,
+<code>m_z</code> and <code>m_w</code>, <code>to_matrix3</code> and the
+default element type <code>double</code>, and
+<code>linear_algebra/quaternion.hpp</code> names it and each of its
+functions in <code>linalg</code> by using-declarations, so that
+<code>linalg::from_axis_angle</code> and
+<code>math::from_axis_angle</code> are one function (S398).
+<code>math.hpp</code> includes every header of the module,
+<code>expr/</code> and <code>linear_algebra/</code> among them, with its
+entry points first (S399). Of the language's headers, the four whose
+names another math header had are named for what they hold,
+<code>complex_kind.hpp</code>, <code>quaternion_kind.hpp</code>,
+<code>matrix_kind.hpp</code> and <code>summation.hpp</code> (S400); and
+the two largest are split along their concepts:
+<code>function.hpp</code>, 4,363 lines, into the tables
+(<code>function_table.hpp</code>), the arithmetic
+(<code>arithmetic.hpp</code>) and the relations and logic
+(<code>logic.hpp</code>), and <code>matrix.hpp</code>, 7,979 lines, into
+the kind (<code>matrix_kind.hpp</code>, 4,811) and linear algebra's
+functions of it (<code>matrix_function.hpp</code>, 3,256) (S401). No
+code changed in the move: every test's output is the same, byte for
+byte.</p>
+<p><strong>Compensated sums and a refined solve.</strong> Chunk 49 (S404
+to S408). The C core's dot products, sums, cross products, matrix
+products and traces were the formulas as written, each product rounded
+and summed in order, their error unbounded where the terms cancel. Now
+each is a sum rounded once from Ogita, Rump and Oishi's Dot2 or Sum2 -
+each product exact as a pair by Dekker's product, the terms summed by
+two-sums, the errors summed apart and added last - as accurate as the
+sum computed in twice the precision and rounded once, in pairs of double
+for the float and double families where double is evaluated in its own
+type and of long double otherwise; operands outside the range where the
+products are exact are scaled by a power of two, a NaN or an infinity
+gives the formula's value, and an exact zero is +0 (S404).
+<code>solve</code> refines each column of its solution as LAPACK's
+<code>dgerfsx</code> does: the residual by Dot2, the solution carried
+with a tail, corrected through the LU factors it keeps until the
+corrections fall below half an ulp or stop shrinking, at most
+<code>D_CFG_MATH_MAT_REFINE_STEPS</code> steps (<code>cfg_mat.h</code>),
+so that a system well away from singular is solved correctly rounded,
+entry by entry (S406, S407). Each kernel keeps its formula as written,
+bit for bit, under a <code>_fast</code> name, <code>dot_fast</code> to
+<code>solve_fast</code>, in the C core and both faces; the norms keep
+their sums, which cannot cancel (S405). <code>t_compensated.c</code>
+checks each result exactly, by integers of 768 bits, against Dot2's
+guarantee, and the refined solve against 65 systems whose solutions
+<code>math_tests_solve_refs.h</code> holds exactly rounded. The complex
+dense kernels follow (S408, flagged).</p>
+<p><strong>Complex matrices compensated and refined; projections
+scaled.</strong> Chunk 50 (S409 to S413). <code>cmat.h</code>'s product
+of complex matrices, new as <code>d_cmat_multiply</code>, rounds each
+part of each entry once from Dot2's pair -- the real part's products re
+re and -im im, the imaginary part's re im and im re, each exact as a
+pair - through an accumulator <code>vec.h</code> now keeps for callers
+whose terms are not arrays of one family; <code>d_cmat_solve</code>
+refines its solution as <code>d_mat_solve</code> does, part by part, and
+takes the factors' room, <code>(x, scratch, pivots, a, b, n, m)</code>;
+their formulas are <code>d_cmat_multiply_fast</code> and
+<code>d_cmat_solve_fast</code>, the old bits (S410). The generic path's
+complex sums and solve mirror them in C++ on the same accumulator, so
+the faces' matrices of <code>math::complex&lt;T&gt;</code> are
+<code>cmat.h</code>'s bit for bit, from C++98 and as constant
+expressions from C++14 (S411), and the language's complex products, a
+real operand's element taken as itself, are the kernels' (S412); its
+solves stay unrefined (S413, flagged). <code>project</code> and
+<code>reject</code> scale both operands where the squared norm or the
+ratio would leave the range, so that a projection in range is computed
+in range wherever its operands lie, every bit in range kept (S409, ruled
+as S301). <code>t_compensated.c</code> checks every part of 120,000
+complex dots exactly and the refined complex solve against 65 systems
+whose solutions <code>math_tests_csolve_refs.h</code> holds exactly
+rounded.</p>
+<p><strong>The double family: exp correctly rounded, pairs, a
+self-test.</strong> Chunk 51 (S414 to S423), the first of the double
+family's rewrite under the owner's rulings of 2026.11.16.
+<code>d_math_d_exp_c</code> is the exponential correctly rounded on
+every platform in double arithmetic alone, the lane's own algorithm in
+three phases, each bound proven with Sollya and Gappa from the code's
+own operations, fused or not: x reduced by ln2/128 against a table of
+2^(j/128) in 128 pairs; phase 1 in doubles, which decides 99.86% of
+arguments; phase 2 in pairs; phase 3 in fixed point, within 2^-218.3,
+for the arguments within 2^-100 of a rounding boundary. It costs 9.9 ns
+a call over its range, against the C library's 6.7 and chunk 50's 266,
+and is a constant expression from C++14 through all three phases (S416);
+the plain <code>d_math_d_exp</code> stayed the C library's until the
+owner's ruling 12 (chunk 63, below). <code>dd.h</code>, new, is a public
+pair of doubles, <code>struct dj_math_dd</code>: the exact sum and
+product, then sums, products, quotients and a square root, each within a
+proven bound (S417). Every exact product in the core takes its low part
+by an explicit fused multiply-add where the target has one, the bits
+Dekker's product gives where it has none, so that a compiler that fuses
+cannot break it, and every generated header tells clang not to fuse
+(S414). Where double is evaluated wider than double, as on a 32-bit x87,
+a translation unit that calls the double family's correctly rounded
+functions does not compile, the message naming the flags,
+<code>-msse2 -mfpmath=sse</code> (S418). <code>self_test.h</code>, new,
+says at start-up whether the build keeps those guarantees,
+<code>d_math_self_test()</code>, 0 where it does, and whether it fuses
+the plain formulas, <code>d_math_formulas_fuse()</code> (S419): a
+program that needs the same bits everywhere calls the first once and
+stops where it is not 0. <code>t_exponential.c</code> checks
+<code>exp_c</code> against 2,398 references made by mpmath at 400 bits,
+each phase alone at every one (S422), and <code>t_dd.c</code>, new,
+every pair operation exactly, in integers of 768 bits.</p>
+<p><strong>The double family: log correctly rounded.</strong> Chunk 52
+(S424 to S427), the second of the rewrite. <code>d_math_d_log_c</code>
+is the natural logarithm correctly rounded on every platform in double
+arithmetic alone, as <code>exp_c</code> is: x = m 2^e reduced against a
+table of 129 inverses of 1 + i/128 and their logarithms, so that log(x)
+= e ln2 + L + log1p(r), r exact as a pair and below 2^-8; phase 1 in
+doubles, which decides 99.93% of arguments; phase 2 in pairs; phase 3 in
+<code>exp_c</code>'s fixed point, within 2^-165.8. Each phase's bound is
+proven with Sollya and Gappa in each of three cases - e not 0; e = 0
+with L and log1p(r) partly cancelling; x near 1, where r = x - 1 -- and
+each phase's test checked sound (S424). It cost 18.2 ns a call, against
+the C library's 3.9 and the long double kernel's 157 to 175, and is a
+constant expression from C++14 through all three phases; its speed was
+flagged, and chunk 54 made it faster (below).
+<code>t_exponential.c</code> checks it against 2,354 references made by
+mpmath at 400 bits, each phase alone at every one, and
+<code>d_math_self_test()</code> takes it at four arguments, its bit 4
+(S425). On the x87 it refuses to compile, as <code>exp_c</code> does
+(S426).</p>
+<p><strong>The compile-time core at C++11, and 0.8's items.</strong>
+Chunk 53 (S428 to S431), step 29 (5a), with the items the owner ruled on
+2026.11.16 for 0.8. <code>expression.hpp</code> compiles from C++11 and
+is empty below it (N1): its nodes,</p>
+<ul>
+<li><ul>
+<li><ul>
+<li>/, <code>squared</code>, <code>abs</code> and <code>dot</code> are
+constant expressions from C++11, and <code>exp</code>, <code>sin</code>,
+<code>cos</code>, <code>tan</code> and <code>sqrt</code> are the C
+core's <code>_c</code> kernels at compile time and at run time alike,
+constant expressions from C++14 (N3, S430). Its own kernels gave
+<code>sqrt(1e300)</code> as 7.89e269, <code>exp</code> up to 13,408 ulps
+off and <code>sin(1e22)</code> a NaN, and a C++20 program had two
+answers to one call; now there is one. Its placeholders <code>x</code>
+to <code>phi</code> live in <code>djinterp::math::variables</code>
+(S403): bring them in with
+<code>using namespace djinterp::math::variables;</code>, and
+<code>math.hpp</code> is clean under <code>-Wshadow</code>.
+<code>t_expression_face.cpp</code>, new, checks it at every rung. The
+language's dense solves, real and complex, are the C core's refined
+ones, each part correctly rounded where the system is well conditioned,
+as <code>la::solve</code>'s are (S428). <code>rotquat(R)</code> gives
+the quaternion of the rotation nearest R, by Bar-Itzhack's method, where
+R is no exact rotation's matrix, and refuses a reflection or a matrix
+far from any rotation (S429); the docs list MATLAB's and SciPy's
+equivalents (section 2's rotations).</li>
+</ul></li>
+</ul></li>
+</ul>
+<p><strong>The double logarithm faster.</strong> Chunk 54 (S432 to
+S434), the next step of 6a. <code>log_c</code> is 1.70 to 1.85 times as
+fast as chunk 52's, its results the same bits at 26 million arguments:
+the table's inverses are of 26 bits and held halved from i = 53, so that
+m is never halved - a branch that a random argument mispredicted half
+the time - and m inv is Dekker's product with m alone split; every
+positive normal x is taken in one test; phase 1 sums rh^2 q(rh), q of
+degree 6, and decides where its result is within 2^-90 of itself plus 11
+2^-55 rh^2 of the logarithm, the shape of its own error, with no branch
+(S433). It costs 12.2 ns a call where chunk 52's took 22.2 and the C
+library 5.3 (gcc -O2), 151 instructions where chunk 52's took 206; 1.95
+to 3.03 times the library's time across compilers and arguments, still
+past the twice that ruling 12's recommendation asks in most of them.
+Each bound is proven again, phase 1's in two parts, Z and W, joined in
+exact arithmetic (chunk 54's record, <code>proofs/</code>).</p>
+<p><strong>The largest files in parts.</strong> Chunk 55 (S435 to S440),
+as the owner ruled on 2026.11.21: no modules of math's own, but no file
+past about 4,000 lines. The generator writes the eight largest headers
+in 44 parts, from 3,989 lines down, each a header that stands alone, and
+the header of each name includes its parts in order: the code an
+includer sees is the same, token for token, in the same order (S436).
+<code>expr/matrix_kind.hpp</code> is in three parts, the storage, the
+arithmetic and the transpose (S437); the face test
+<code>t_expr_face.cpp</code> in eight, one program with the same 520
+checks (S438); and the generator, 32,000 lines, is a package of 26
+modules, writing the same bytes (S439). The generator also aligns each
+parameter list's names, as the owner aligned <code>cmat.h</code>'s, and
+writes the banners' converted tag (S435). No result changed.</p>
+<p><strong>Functions, sampling and the bridge from C++11.</strong> Chunk
+56 (S441 to S446), step 30 (5b): <code>function/function.hpp</code>,
+<code>values.hpp</code> and <code>functional.hpp</code> stand on the
+compile-time core from C++11, each empty below it as the core is (S441).
+Each constexpr function is one return, the index sequences are re_std's,
+and the traits' <code>_v</code> forms wait for variable templates: the
+relations, the logic, implicit functions and level sets are constant
+expressions from C++11, the forms over <code>std::tuple</code> and
+<code>math_function</code>'s calls from a <code>std::array</code> or a
+<code>std::tuple</code> from C++14, where <code>std::get</code> is
+(S442). Two of the headers' own failures went on the way:
+<code>math_function</code> now takes a coordinate system's point, a
+<code>linalg::vector</code>, as its banner said it did (S443), and
+<code>sample_over</code> samples an interval's members, where an
+interval open below gave its bound and lost its last member, (0, 4]
+giving 0 to 3 (S444). Three face tests check them at every rung, the
+bridge's with the functional subframework itself (S445).</p>
+<p><strong>One hyphen for a dash.</strong> Chunk 57 (S447 to S449) cut
+chunks 55's and 56's zips again on the owner's push of 2026.11.23, which
+gives the tree's prose one hyphen for a dash: the lane's files have it
+too, and so do the strings the generator writes its headers' comments
+from, so that its <code>--check</code> holds on his main again (S448).
+No C or C++ token changed.</p>
+<p><strong>The calculus from C++11.</strong> Chunk 58 (S450 to S455),
+step 31 (5c), and with it step 33 (5e): the six calculus headers compile
+at every level, each empty below C++11 as the core they stand on, and
+<code>math.hpp</code> compiles at every rung with them, so that the
+ladder needs no math line (S450). A form that is one return is a
+constant expression from C++11: each derivative, the higher derivatives
+and the gradient, the 5-point rule, the Taylor and Maclaurin
+evaluations, the arithmetic sequence and sums, <code>factorial</code> by
+halving its product and <code>gcd</code> by Euclid's steps; one that
+loops as many times as an argument says, reads a <code>std::array</code>
+or calls a transcendental is one from C++14, the same code at run time
+below it, so that every form keeps its bits but <code>log</code> and
+<code>atan</code> (S451). Each derivative rule takes
+<code>wrt&lt;I&gt;</code>, so that its type is deduced from its
+arguments, as GCC needs at C++11 (S452). <code>log</code> and
+<code>atan</code> are the C core's kernels: the header's own logarithm
+was not correctly rounded at a third of 20,000 arguments, and at the
+smallest subnormal had 13 of its 53 bits right; its arctangent was 4.25
+ulps off (S453). <code>t_calculus_face.cpp</code> checks the six headers
+at every rung (S454).</p>
+<p><strong>From compile time to run time.</strong> Chunk 59 (S456 to
+S462), step 32 (5d): <code>math::reify(e)</code>, in
+<code>expr/reify.hpp</code>, makes a compile-time expression a term of
+the run-time language, node for node in its shape, nothing rewritten, so
+that it prints, simplifies, substitutes and evaluates by name, and
+<code>math::expr</code> wraps it (S456). Its variables are x, y, z and t
+by index, or the names given, <code>reify(e, "r", "theta")</code>, each
+checked at compile time (S457). A constant that is an integer below
+2^53, -0 apart, is the exact integer, so that <code>expr_simplify</code>
+collects a reified derivative's coefficients:
+<code>derivative&lt;0&gt;(x * sin(x))</code> reified is
+<code>1 * sin(x) + x * (cos(x) * 1)</code>, simplified
+<code>sin(x) + x * cos(x)</code> (S458). A piecewise's last branch is
+its otherwise, as C++ evaluates it, and arithmetic in an integer type is
+refused (S459). In double the term's arithmetic, sqrt and abs give the
+expression's value bit for bit; its exp, sin, cos, tan, log and atan are
+the language's plain functions, one ulp from the C core's correctly
+rounded kernels at 1 to 56 of 20,000 arguments each, until ruling 12
+(S460); exp's since chunk 63 the kernel's, bit for bit (S480). The
+run-time derivative is step 25's (4a), which takes the term when it
+comes. <code>t_reify_face.cpp</code> checks reify at every rung
+(S461).</p>
+<p><strong>The lazy type.</strong> Chunk 60 (S463 to S468), step 34
+(5f), as decision 2 asks: <code>lazy(x)</code>, in
+<code>linear_algebra/lazy.hpp</code>, wraps a vector, a matrix or a
+dynamic matrix by reference, and its operators build an expression that
+<code>eval(e)</code> or <code>assign(dst, e)</code> computes each
+element once, with no temporary a step: sums, differences, negations,
+scalings, a vector divided, <code>hadamard</code>, the matrix products
+and <code>transpose</code> (S463). Each element is the eager
+arithmetic's, bit for bit: its operations in the eager loops' order, the
+products and transposes the eager operations' own, computed once before
+the elements, and each product of the loop fenced where the build may
+fuse a multiply and an add, as gcc's fuses a fifth of them otherwise
+(S464). Operands are lazy on both sides and held by reference,
+<code>lazy</code> of a temporary refused (S465); <code>assign</code>
+writes in place, safe where the expression reads the destination (S466).
+For a four-step expression of dynamic matrices of double, from 4 x 4 to
+512 x 512, <code>eval</code> took a half to a quarter of the eager
+arithmetic's time and <code>assign</code> a third to a fifth, and about
+half where the fence is (chunk 60's record, <code>raw/measure/</code>).
+<code>t_lazy_face.cpp</code> checks it at every rung (S467).</p>
+<p><strong>The style debt.</strong> Chunk 61 (S469 to S473), step 35
+(5g), which closes Phase 5. The compile-time headers' template
+parameters, and <code>reify.hpp</code>'s, no longer begin with the
+underscore and capital the language reserves: <code>Type</code>,
+<code>T</code>, <code>Args</code>, as the style guides spell them, each
+name everywhere in its file, the code token for token as it was and its
+objects the same bytes (S469, S472). Their Roman-numeral sections are
+numbered 1. on, each header with a table of contents (S470). The four
+functions of math past the owner's limit of 100 lines, two in
+<code>decimal.h</code>, one in <code>wide.h</code> and
+<code>parse_number</code>, are split along a seam each, every result as
+before (S471). Left as they were: the banners' HOW TO USE, OPTIONS and
+CONFIGURATION, which 91 of math's headers did not have yet, and two
+<code>created: TBA</code>, both on the owner's punch list (S473).</p>
+<p><strong>The banners' sections.</strong> Chunk 62 (S474 to S477), as
+the owner ruled S473 on 2026.11.24. Every header of math has the three
+sections the style guides ask of a banner under its description: HOW TO
+USE, how a caller reaches the header and the names it gives; OPTIONS,
+what a run or a caller chooses, and how; CONFIGURATION, the
+<code>D_CFG_</code> knobs it reads, the levels it compiles at and any
+flag it needs (S474). The 91 hand-written headers that lacked them have
+them; the 64 the generator writes take theirs from
+<code>scripts/gen_c_math/banner_sections.py</code>, which refuses a new
+header without them, each part of a split header pointing to its header
+(S475). The code is chunk 61's token for token (S476), and, as the owner
+ruled, its objects are too, by g++ and clang over every smoke build, two
+tests' differing only in their asserts' line numbers (chunk 63, S481).
+The two <code>created: TBA</code> stay, their dates not known
+(S477).</p>
+<p><strong>The plain double exp correctly rounded.</strong> Chunk 63
+(S478 to S482), as the owner ruled on 2026.11.24: ruling 12 makes each
+plain double function the correctly rounded one once that is within
+about twice the C library's time, and his decision 48 asked for exp's
+switch first. <code>d_math_d_exp</code> is <code>d_math_d_exp_c</code>
+wherever double is evaluated in double, so that every plain exp call,
+the language's <code>exp</code> and the complex numbers' plain
+exponentials among them, gives the correctly rounded value, the same
+bits on every platform and at compile time (S478); on a 32-bit x87 it
+stays the C library's, so that the plain form builds everywhere (S479).
+Measured again, the plain exp takes 1.3 to 1.7 times the library's time
+over exp's whole range but 2.1 to 2.6 on ordinary arguments with gcc, up
+to 3.0 with clang, past the twice there; chunk 65's speed step brought
+it to 1.6 to 2.2 (S489), and <code>d_math_d_exp_fast</code> is there for
+glibc's time (S490), as the owner's note asked.
+<code>t_exponential</code> checks the plain exp against
+<code>exp_c</code> bit for bit at ten million arguments, and
+<code>t_reify_face.cpp</code> a reified term's exp against the
+expression's (S480). The float and long double plain exp, and every
+other plain double function, stay the library's until each comes within
+twice; <code>log</code> switched after its speed step, in chunk 66
+(S496).</p>
+<p><strong>The scalar helpers.</strong> Chunk 64 (S483 to S488), as the
+owner's ruling 13 has them, step 52 of 62.
+<code>c/modules/math/scalar.h</code>, generated, gives each family
+<code>abs</code>, <code>copysign</code> and <code>is_finite</code>;
+<code>min</code> and <code>max</code>, IEEE 754-2019's minimum and
+maximum, a NaN in either giving that NaN and -0 below +0, as the
+expression language's (S338); <code>min_num</code> and
+<code>max_num</code>, which pass a NaN over, as C23's
+<code>fminimum_num</code> does; <code>clamp</code>, max then min, which
+keeps a NaN; <code>lerp</code>, C++20's, exact at both ends, monotonic
+and never past an end; and <code>ldexp</code> and <code>frexp</code>
+(S483). Each is exact: <code>abs</code>, <code>copysign</code>,
+<code>is_finite</code>, <code>ldexp</code> and <code>frexp</code> come
+twice, the <code>_c</code> form pure arithmetic and the plain form the C
+library's, bit for bit the same; the rest, which C99 lacks, once; every
+one but the plain forms a constant expression from C++14 (S484, S485).
+<code>t_scalar</code> checks them against the C library, against glibc's
+C23 <code>fminimum</code> and its kin, and in C++20 <code>lerp</code>
+against <code>std::lerp</code> where the target has no fused
+multiply-add, each to the bit (S486). The owner's note on chunk 63's
+exp, a fast and a slow form unless <code>exp_c</code> can match glibc,
+is step 53's plan (S487); his ruling numbered the terps' needs as steps
+52 to 62, Phase 9 (S488).</p>
+<p><strong>exp's speed, and a fast exp.</strong> Chunk 65 (S489 to
+S494), step 53 of 62, as the owner's note on chunk 63's exp has it: a
+fast and a slow form, unless <code>exp_c</code> can be made as good as
+glibc's. <code>exp_c</code>'s common path, 2^-53 &lt; |x| &lt;= 708 with
+its first phase deciding, is now small enough to inline: its second and
+third phases are out of line, under <code>math_common.h</code>'s new
+<code>D_MATH_FN_COLD</code>; the table holds each high part with its
+split; the reduction's index is taken without a division; there the
+result is normal, so the subnormals' test is skipped; and the range is
+tested by x^2, with no branch on the sign. The bits are the three
+phases' at every argument. On ordinary arguments the plain exp, which is
+<code>exp_c</code>, went from 2.5 to 2.9 times glibc's time to 1.6 to
+2.2 (S489): faster, but not glibc's, whose exp this machine runs with
+fused multiply-adds. So <code>d_math_d_exp_fast</code> sits beside it,
+e^x within 0.511 of an ulp, proven by Gappa whether or not the build
+fuses, in glibc's shape and in pure arithmetic: 0.8 to 1.07 times
+glibc's time (S490). It is the double family's alone, with no C++
+overload, never a constant expression, <code>exp_c</code> outside the
+common path and the C library's on a 32-bit x87; the plain exp stays
+<code>exp_c</code>, as ruling 12 has it (S491).
+<code>t_exponential</code> checks the common path against the three
+phases at ten million arguments, and <code>exp_fast</code> within an ulp
+of <code>exp_c</code> and within 0.511 of the exact value (S492). The
+owner's question of 2026.11.25, how other libraries handle a NaN, found
+one precedent named wrongly: Eigen's inverse of the zero quaternion is
+the zero quaternion, not NaNs; <code>quat.h</code>'s stays NaN, as the
+formula and GLM give it (S494, correcting S359's reason).</p>
+<p><strong>log's speed, and the plain log correctly rounded.</strong>
+Chunk 66 (S495 to S499), step 54 of 62, as ruling 12 has it: a speed
+step for <code>log_c</code>, then the plain double <code>log</code>
+switched once it is within about twice glibc's time. Where the language
+reads a double's bits, as every build of the tiers does,
+<code>log_c</code>'s reduction takes e, the table's row and m's split
+for the exact product from them by integer operations, where it took
+them in floating point; its second and third phases are out of line
+under <code>D_MATH_FN_COLD</code>, as exp's are; a positive normal x is
+one comparison of its bits; and the first phase's absolute value is a
+negation and a maximum. The reduction gives the same values at every
+argument, so the bits are the three phases' and chunk 54's proofs hold
+as recorded. A call takes 7.0 ns where it took 10.2 (gcc -O2, every
+binade): 1.6 to 2.6 times glibc's time where it took 2.4 to 3.6 (S495).
+So <code>d_math_d_log</code> is now <code>d_math_d_log_c</code>, the
+correctly rounded logarithm, wherever double is evaluated in double, and
+through it the language's <code>log</code> and the complex numbers'
+plain functions that take a real logarithm; on a 32-bit x87 the C
+library's (S496, S497). <code>t_exponential</code> checks the plain log
+against <code>log_c</code> bit for bit, the common path against the
+three phases and the reduction against one by <code>frexp</code> and an
+exact product, each at ten million arguments;
+<code>t_reify_face.cpp</code> a reified term's log against the
+expression's (S498). S424's flag closes; S460's narrows to sin, cos, tan
+and atan (S499).</p>
+<p><strong>A fast log.</strong> Chunk 67 (S500 to S504), as the owner's
+decision 71 of 2026.11.25 asked, before step 55.
+<code>d_math_d_log_fast</code> sits beside <code>log_c</code> as
+<code>exp_fast</code> sits beside <code>exp_c</code>: log x within 0.53
+of an ulp, glibc's method in pure arithmetic, proven by Gappa whether or
+not the build fuses. Near 1, x within [1 - 2^-4, 1 + 0x1.09p-4), it
+takes r = x - 1 and log1p(r) as r - r^2/2 + r^3 B(r), r^2/2 split so
+that the first sum is exact; elsewhere x = 2^k z, z in [0x1.6p-1,
+0x1.6p0), a row of 128 from z's bits, r = (z - chi - clo) inv, z - chi -
+clo exact, and log x = (k LN2H + L1) + r + (k LN2L + L2) + r^2 A(r)
+(S500). It takes 1.10 to 1.24 times glibc's time by pointer and 0.84 to
+1.04 inline where the build does not fuse, 0.82 to 1.08 and 0.70 to 0.87
+where it does; measured, 0.5210 of an ulp at worst. It is the double
+family's alone, never a constant expression, <code>log_c</code> at the
+specials and subnormals and wherever the language cannot read a double's
+bits, and the C library's on a 32-bit x87; the plain log stays
+<code>log_c</code> (S501). With it <code>exponential_d.h</code> would
+have passed 4,000 lines, so the double family's logarithms are a part of
+their own, <code>exponential_d_log.h</code> (S502).
+<code>t_exponential</code> checks it within an ulp of <code>log_c</code>
+and within each path's bound of the exact value at ten million
+arguments, about nine seams, and <code>log_c</code>'s value where it
+hands over (S503).</p>
+<p><strong>Decimal text.</strong> <code>decimal.h</code> reads a decimal
+number of any length as the nearest <code>float</code>,
+<code>double</code> or <code>long double</code>, ties to even, whatever
+the rounding mode, and says when the result overflowed to an infinity or
+underflowed to an inexact subnormal or zero. It is the C core's
+<code>strtod</code>, with one answer on every build and a constant
+expression from C++14. It reads only the number itself: no space,
+locale, hexadecimal, infinity or NaN, which are other tokens' business.
+The algorithm is Simple Decimal Conversion, as in Go and Wuffs. Its
+buffer holds every digit that a value halfway between two
+<code>long double</code>s can have, so the rounding is exact for any
+input, however long.</p>
+<p><strong>Literals.</strong> <code>literal.h</code> reads a number's
+text as a value: an integer, a decimal, scientific notation, a fraction
+(<code>2/3</code>) or a mixed number (<code>1 1/2</code>). The value is
+exact wherever it is a rational over <code>dj_math_imax</code>, so
+<code>0.1</code> is the rational 1/10 and <code>1 1/2</code> is 3/2.
+Otherwise it is the long double nearest the literal, flagged inexact, as
+an exact result too wide for <code>dj_math_imax</code> is. A fraction
+over 0 is a pole, or invalid for 0/0. A literal past every long double,
+or a fraction whose terms pass two words, is a range error until bignum
+exists. A decimal literal read straight into a <code>float</code>,
+<code>double</code> or <code>long double</code> goes through
+<code>decimal.h</code>, rounded once.</p>
+<p><strong>Comparing numbers as text.</strong>
+<code>numeric_compare.hpp</code>, a C++ face from C++98, compares two
+numbers written as text, in <code>literal.h</code>'s syntax, exactly at
+any length: <code>0.1</code> is below <code>1/9</code>, and
+<code>1e100000000000000000000</code> below
+<code>2e100000000000000000000</code>. It reads them as
+<code>rational_value</code>s, signed rationals of any size times a power
+of ten of any size, whose digits are <code>integer_value</code>s in a
+<code>std::string</code>; until bignum, the C core has no arbitrary
+precision of its own. A text that is not a number, or a fraction over 0,
+is unordered with everything, as a NaN is.</p>
+<hr />
+<h2 id="3-layout">3. Layout</h2>
+<pre><code>inc/djinterp/c/modules/math/            the C core
+  math_common.h        kernel qualifiers, widest integers, evaluation width
+  float_order.h        next_up, next_down, advance, steps between values
+  interval.h           integer intervals (hand-written)
+  interval_float.h     floating-point intervals
+  rational.h           exact rationals, correct rounding to float (hand-written)
+  value.h              the generic value: kinds, tower, errors, boxed kinds
+                       (hand-written)
+  wide.h               signed integers of 256 bits in limbs (hand-written)
+  value_wide.h         the wide integer as a boxed kind of the value
+                       (hand-written)
+  decimal.h            decimal text to float, double, long double (hand-written)
+  literal.h            number literals read as exact values (hand-written)
+  elementary.h         sqrt, sin, cos, asin, acos, exact helpers
+  exponential.h        exp, log, exp2, log2, log10, log1p, expm1; the
+                       double exp_c and log_c correctly rounded in double
+                       arithmetic (chunks 51 and 52), the plain double
+                       exp and log those (chunks 63 and 66); the double
+                       exp_fast and log_fast within 0.511 and 0.53 of an
+                       ulp (chunks 65 and 67); in parts
+  dd.h                 pairs of doubles: exact sums and products, proven
+                       bounds (chunk 51)
+  self_test.h          the double family&#39;s start-up self-test; whether the
+                       build fuses (chunk 51)
+  tangent.h            tan, atan, atan2
+  hyperbolic.h         sinh, cosh, tanh, asinh, acosh, atanh
+  power.h              cbrt, pow, hypot
+  remainder.h          fmod, remainder, remquo
+  nearest_integer.h    floor, ceil, trunc, round (whole range)
+  scalar.h             abs, copysign, is_finite, min, max, min_num,
+                       max_num, clamp, lerp, ldexp, frexp (chunk 64)
+  vec.h, mat.h, quat.h vectors, matrices, quaternions
+                       (each in parts: S436)
+  decomp.h             LU, QR, Cholesky, SVD, symmetric Jacobi eigen,
+                       balancing, Hessenberg form, real Schur form,
+                       general eigenvalues and vectors (in parts)
+  coord.h              coordinate conversions (in parts)
+  isect.h, plane.h     ray intersections, planar polygons
+  cplx.h               complex numbers: the arithmetic, C99&#39;s 22
+                       functions, and exp2, log2, log10, log1p and
+                       expm1 of a complex number (in parts)
+  cmat.h               complex matrices: LU, inverse, solution,
+                       Hermitian and general eigenvalues and vectors
+                       (in parts)
+  decomp_*.h, cmat_*.h, cplx_*.h, quat_*.h, vec_*.h, coord_*.h, mat_*.h,
+  exponential_*.h      the eight headers&#39; parts, each standing alone
+
+inc/djinterp/cpp/modules/math/          the C++ faces
+  math_common.hpp      NS_MATH and the environment
+  constants.hpp        constants::of&lt;T&gt;::pi() and kin; number bases
+  quaternion.hpp       the one quaternion: math::quaternion&lt;T&gt;, quat.h&#39;s face
+  interval/            interval, closed/open/discrete, interval_common
+  linear_algebra/      vector, matrix, square, transform, decomposition,
+                       solve, svd, eigen, dynamic_matrix, linalg_common,
+                       linalg.hpp (umbrella), and quaternion, which names
+                       math::quaternion and its functions in linalg
+  coordinate/          cartesian, polar, cylindrical, spherical, coordinate
+  geometry/            13 headers and geometry.hpp (umbrella)
+  expression.hpp       compile-time expression templates (C++11)
+  values.hpp           sampling an expression
+  function/            math_function, piecewise, parametric, implicit
+  functional.hpp       bridge to the functional subframework
+  calculus/            differentiation, integration, sequence, series,
+                       elementary, calculus.hpp (umbrella)
+  numeric_compare.hpp  numbers written as text, compared exactly
+  value.hpp            the generic value: math::value and inline_value
+  number_traits.hpp    number_traits, common_number and the concept number
+  complex.hpp          complex numbers: math::complex&lt;T&gt;, cplx.h&#39;s face
+  expr/                the run-time expression language (C++11): token,
+                       operator, parse, term, evaluate, render,
+                       substitute, simplify, derivative, numeric,
+                       summation, antiderivative; function_table, the
+                       function and constant tables; arithmetic, the
+                       functions&#39; evaluators and ^ and mod; logic, the
+                       relations, logic and piecewise; complex_kind,
+                       quaternion_kind and matrix_kind, the kinds,
+                       matrix_kind in three parts (storage, arithmetic,
+                       transpose: S437);
+                       matrix_function, linear algebra&#39;s functions of
+                       them; rotation, a quaternion&#39;s functions of
+                       vectors and matrices; program, a term compiled
+                       once for a type; expr_common, what they share and
+                       a map of them; expr, the handle, which includes
+                       them all
+  math.hpp             umbrella: every header of the module
+  README.html, roadmap.html, decisions.html, comparison.html
+
+inc/djinterp/config/c/modules/math/     the C core&#39;s knobs
+  cfg_value.h          how every box counts its holders
+  cfg_value_wide.h     where the wide integer&#39;s boxes are stored
+
+inc/djinterp/config/cpp/modules/math/expr/
+  cfg_expr.h           the language&#39;s knobs: a compiled term&#39;s stack
+
+inc/djinterp/cpp/modules/parse/expression/
+                       the expression core the language is built on
+
+tests/djinterp/c/modules/math/t_*.c     C harnesses, one per core header
+tests/djinterp/c/modules/math/math_tests_*.h
+                       their shared random numbers, exact reference and
+                       mpmath&#39;s references
+tests/djinterp/cpp/modules/math/**/t_*_face.cpp
+                       face tests (t_expr_face.cpp in eight parts,
+                       t_expr_face_*.hpp, one program: S438)
+scripts/gen_c_math_float.py             the generator, which runs
+scripts/gen_c_math/                     its modules (S439)
+scripts/ci/check_math_tests.sh          the tests: smoke, full and fused tiers
+scripts/ci/ladder.py                    the C and C++ ladders
+                                        (+ ladder_known.txt, the known list)
+scripts/ci/check_style.py               the guides&#39; measurable rules
+                                        (+ style_known.txt)
+_handoffs/math98_*                      one record per delivered step,
+                                        kept with the lane&#39;s deliveries,
+                                        not in the tree (from 2026.11.21)</code></pre>
+<p>The run-time expression language, <code>math/expr/</code>, is built
+on <code>inc/djinterp/cpp/modules/parse/expression/</code>, the
+framework's shared expression core: a term type, folds, a
+precedence-climbing parser, a renderer and a compile-time term. Its
+floor is C++11. Chunk 27 fixed what stopped each part compiling once
+used, and
+<code>tests/djinterp/cpp/modules/math/t_parse_expression_face.cpp</code>
+runs all of it, over a small language of its own;
+<code>tests/djinterp/cpp/modules/math/expr/t_expr_face.cpp</code> runs
+<code>math/expr/</code>, and <code>t_expr_complex_face.cpp</code> beside
+it its complex numbers, and
+<code>t_expr_complex_function_face.cpp</code> their functions, with the
+references of <code>math_tests_expr_complex_refs.h</code>, which
+<code>_handoffs/math98_chunk41_2026.11.01/tools/refs_c41.py</code> makes
+from mpmath, <code>t_expr_complex_five_face.cpp</code> the five of chunk
+42, and <code>t_expr_complex_matrix_face.cpp</code> matrices of complex
+numbers, with <code>math_tests_expr_cmatrix_refs.h</code>, which
+<code>_handoffs/math98_chunk43_2026.11.02/tools/refs_c43.py</code>
+makes.</p>
+<hr />
+<h2 id="4-levels">4. Levels</h2>
+<p>Each face compiles from its floor and adds features as the language
+allows:</p>
+<table>
+<thead>
+<tr class="header">
+<th>Level</th>
+<th>What the faces gain</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>ISO strict C++98</td>
+<td>everything in the first six rows of section 1; no
+<code>long long</code>, and on a 32-bit target no 64-bit integer at
+all</td>
+</tr>
+<tr class="even">
+<td>C++11</td>
+<td><code>constexpr</code> constants; conversions to and from
+<code>std::array</code>; <code>math::value</code> moves;
+<code>common_number_t</code>; the run-time expression language,
+<code>math/expr/</code>; the compile-time core,
+<code>expression.hpp</code>, and on it functions, sampling and the
+bridge to the functional subframework</td>
+</tr>
+<tr class="odd">
+<td>C++14</td>
+<td>the <code>_c</code> kernels are constant expressions; variable
+templates (<code>constants::pi&lt;T&gt;</code>);
+<code>math::inline_value</code>'s operations are constant expressions,
+and vectors and matrices of inline values; the compile-time core's
+transcendentals and forms over <code>std::tuple</code> are constant
+expressions, and <code>sample_over</code></td>
+</tr>
+<tr class="even">
+<td>C++20</td>
+<td><code>std::is_constant_evaluated</code> lets a face use
+<code>_c</code> in constant evaluation and the library at run time;
+<code>math::value</code> is a constant expression for the inline kinds,
+with <code>&lt;=&gt;</code> and the concept <code>number</code></td>
+</tr>
+</tbody>
+</table>
+<p>ISO strict means
+<code>-std=c++98 -pedantic-errors -DD_CFG_ENV_ISO_STRICT=1 -DRE_STD_CFG_ISO_STRICT=1</code>.
+With <code>-m32</code> that build has no 64-bit integer, which is the
+hardest case the C core supports.</p>
+<hr />
+<h2 id="5-building-and-checking">5. Building and checking</h2>
+<p>Everything was verified on Ubuntu 24.04 with GCC 13.3 and Clang 18.1,
+plus the 32-bit libraries. From the repository root:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">bash</span> scripts/ci/check_math_tests.sh               <span class="co"># the tests, smoke tier</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">bash</span> scripts/ci/check_math_tests.sh full          <span class="co"># the tests, full matrix</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="fu">bash</span> scripts/ci/check_math_tests.sh full t_decomp <span class="co"># one test, every build</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="fu">bash</span> scripts/ci/check_math_tests.sh fused         <span class="co"># as compilers that fuse</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="ex">python3</span> scripts/gen_c_math_float.py <span class="at">--check</span>       <span class="co"># generated headers in step</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="ex">python3</span> scripts/ci/ladder.py <span class="at">--known</span> scripts/ci/ladder_known.txt <span class="dt">\</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    inc/djinterp/c/modules/math inc/djinterp/cpp/modules/math</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>                                                  <span class="co"># the ladders, the module</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="ex">python3</span> scripts/ci/check_style.py <span class="at">--known</span> scripts/ci/style_known.txt <span class="dt">\</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>    inc/djinterp/c/modules/math inc/djinterp/cpp/modules/math</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>                                                  <span class="co"># the guides&#39; rules</span></span></code></pre></div>
+<p><code>scripts/ci/check_math_tests.sh</code> finds every C harness
+(<code>tests/djinterp/c/modules/math/t_*.c</code>) and every face test
+(<code>tests/djinterp/cpp/modules/math/**/t_*_face.cpp</code>) on each
+run, then builds and runs them in one of three tiers. A build passes
+when it compiles with warnings as errors, exits 0, and reports 0
+failures.</p>
+<ul>
+<li><code>JOBS</code> sets how many builds run at once; the default is
+one per core.</li>
+<li><code>--list</code> prints the commands without running them.</li>
+<li><code>--save &lt;file&gt;</code> keeps every build's result
+line.</li>
+<li>Naming tests (<code>t_decomp</code>, <code>t_eigen_face</code>) runs
+only those.</li>
+</ul>
+<p><strong>The smoke tier</strong> is the default. It builds every
+harness once (gcc, C99) and every face test at three rungs (g++ at ISO
+strict C++98, C++14 and C++20): 145 builds after chunk 51, 167 after
+chunk 64. It needs only gcc and g++. On a 2.1 GHz Xeon it took 8 minutes
+with one job and 4 with two; chunk 40's, on two cores of it, 7, chunk
+41's, 6, chunks 42's and 43's, 7, chunk 44's, 9, and chunk 45's, 7.</p>
+<p><strong>The full tier</strong> is the matrix. Each C harness is built
+12 ways:</p>
+<ul>
+<li>gcc and clang at C99 and C11;</li>
+<li>g++ and clang++ at ISO strict C++98;</li>
+<li>gcc and clang <code>-m32</code> on SSE;</li>
+<li>gcc <code>-m32</code> on the x87;</li>
+<li>g++ and clang++ ISO strict C++98 <code>-m32</code> on SSE;</li>
+<li>g++ ISO strict C++98 <code>-m32</code> on the x87.</li>
+</ul>
+<p>A harness with a C++14 section, where it checks constant evaluation
+(twenty after chunk 64), is also built at C++14 and C++20 by g++ and
+clang++. Each face test is built 64 ways: 2 compilers, 64-bit and
+<code>-m32</code>, 8 rungs, plain and testing. That made 384 harness
+builds and 2,368 face builds at chunk 26, and makes 428 and 2,944 after
+chunk 64. On two cores of a 2.8 GHz Xeon, chunk 26's run took 107
+minutes: 85 for the harnesses, a third of it <code>t_power</code>'s,
+whose 16 builds compile slowly, and 22 for the face tests; chunk 27's
+face test adds a minute, and chunk 28's, as chunks 29 and 30 grew it,
+two minutes. On two cores again, chunk 37's ran in parts: the 360
+harness builds in some 70 minutes, <code>t_power</code>'s and
+<code>t_elementary</code>'s the slowest, and the 1,984 face builds in
+20; chunk 38's, the 380 harness builds in 79 minutes and the face builds
+in 21; chunk 39's 2,048 face builds, <code>t_complex_face.cpp</code>'s
+among them, in 31; chunk 40's 2,112,
+<code>t_expr_complex_face.cpp</code>'s among them, in 32, and the 64
+builds of the four harnesses that include <code>value.h</code> in 6;
+chunk 41's, over the owner's restructured tree, the 380 harness builds
+in 74 minutes and the 2,176 face builds,
+<code>t_expr_complex_function_face.cpp</code>'s among them, in 33; chunk
+42's, the 2,240 face builds, <code>t_expr_complex_five_face.cpp</code>'s
+among them, in 38, and the 380 harness builds, <code>t_cplx.c</code>'s
+references grown, in 80; chunk 43's, the 2,304 face builds,
+<code>t_expr_complex_matrix_face.cpp</code>'s among them, in 40; chunk
+44's, the 2,304 face builds, <code>t_quaternion_face.cpp</code> grown,
+in 47, and the 384 harness builds, <code>t_quat.c</code>'s 16 among
+them, in 97; chunk 45's, the 2,368 face builds,
+<code>t_expr_quaternion_face.cpp</code>'s among them, in 39, and the 64
+builds of the four harnesses that include <code>cplx.h</code> in 21. The
+full tier needs clang and the 32-bit libraries; if either is missing, it
+stops before building anything.</p>
+<p><strong>The fused tier</strong> (chunk 51, S414) builds every test as
+compilers that fuse a multiply and an add build it: each harness by gcc
+and clang in GNU C11, a harness with a C++14 section by g++ and clang++
+in GNU C++14 and C++20 too, and each face test by g++ and clang++ in GNU
+C++17, plain and testing, all with the host's fused multiply-add
+(<code>-march=x86-64-v3</code>): 288 builds. Where a build fuses, the
+harnesses leave out the checks that a function's bits are another
+computation's, and say so (S421).</p>
+<p><strong>The double family on 32-bit x86.</strong> Its correctly
+rounded functions, <code>dd.h</code> and <code>d_math_self_test</code>
+need double evaluated as double: build with
+<code>-msse2 -mfpmath=sse</code>. Without them a translation unit that
+calls one does not compile (S418); the full tier's x87 builds leave them
+out with a note. A program that needs the same bits everywhere calls
+<code>d_math_self_test()</code> once at start-up, in each translation
+unit whose build may differ, and stops where it is not 0 (S419).</p>
+<h3 id="on-windows">On Windows</h3>
+<ul>
+<li><p><strong>WSL 2 with Ubuntu 24.04</strong> runs all of the above
+unchanged. This is the recommended route because it is the environment
+everything was measured in:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> apt-get update</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> apt-get install <span class="at">-y</span> build-essential clang python3 git <span class="dt">\</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    gcc-multilib g++-multilib lib32stdc++-13-dev libc6-dev-i386 libssl-dev</span></code></pre></div>
+<p>Clone into the Linux file system (<code>~/</code>), not
+<code>/mnt/c</code>. File access across the boundary is many times
+slower. Then run <code>scripts/ci/check_math_tests.sh</code> from the
+clone's root.</p></li>
+<li><p><strong>MSYS2</strong> (MinGW-w64 GCC or Clang, with bash) should
+run the 64-bit builds. The <code>-m32</code> builds need the 32-bit
+MinGW environment. Not yet tried.</p></li>
+<li><p><strong>MSVC</strong> has never compiled the math core. On MSVC
+<code>long double</code> is <code>double</code>, and the signed-zero
+test that GCC and Clang make with <code>__builtin_copysign</code> falls
+back to <code>1 / x</code>, which is not a constant expression. A CMake
+and CTest runner that includes MSVC is roadmap item C4c.</p></li>
+</ul>
+<hr />
+<h2 id="6-how-the-work-is-done">6. How the work is done</h2>
+<p>The math lane works in small chunks, one coherent change each. Every
+chunk consists of:</p>
+<ol type="1">
+<li><strong>The change, as plain files.</strong> It must build and pass
+on its own. From chunk 25 the lane commits nothing: the owner tests the
+files on his own machine and commits them himself (his ruling of
+2026.10.18). Through chunk 24 each change was a commit on the lane's
+branch.</li>
+<li><strong>A record</strong>,
+<code>_handoffs/math98_chunkN_&lt;date&gt;/</code>. It holds a
+<code>README.html</code> (what changed, what was measured, decisions with
+their alternatives, what was noticed and not changed, how to reproduce),
+plus <code>tools/</code> and <code>raw/</code>. Every number in a record
+comes from a tool in <code>tools/</code> whose output is in
+<code>raw/</code>.</li>
+<li><strong>A short note</strong> to the owner.</li>
+<li><strong>The changed files</strong>, as a zip with a manifest, laid
+over earlier trees and tested there. From chunk 28 it carries every file
+the lane has made or changed since the owner's tree of 2026.10.07, and
+the records from chunk 16, so that it applies over the owner's tree of
+2026.10.23 as over any lane tree from chunk 15. From chunk 37, at his
+word of 2026.10.28 ("One ZIP"), it carries every file of the lane's tree
+his tree has not or holds otherwise - every record, and the repository's
+own directories - so that it alone, over his tree, gives the lane's.
+From chunk 16 to 27 it was cumulative since chunk 15; through chunk 15,
+a git bundle of the new commits.</li>
+</ol>
+<p>The owner reviews each delivery. His next message after a note
+accepts that note's decisions; he may ask for several steps at once, as
+for the rest of Phase 1.</p>
+<hr />
+<h2 id="7-decisions">7. Decisions</h2>
+<p>The lane's own decisions are numbered S1 onward, each recorded with
+its alternative in the record that took it. The owner's rulings that
+shape this module:</p>
+<table>
+<thead>
+<tr class="header">
+<th>When</th>
+<th>Ruling</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>2026.10.04</td>
+<td>C core as the foundation; C++ as a wrapper adding features per
+level; a generic C++ path for other element types</td>
+</tr>
+<tr class="even">
+<td>2026.10.04</td>
+<td>floating-point intervals contain the representable values within
+their bounds</td>
+</tr>
+<tr class="odd">
+<td>2026.10.05</td>
+<td>geometry and coordinate from C++98; points become
+<code>linalg::vector</code>, collections <code>re_std::array</code></td>
+</tr>
+<tr class="even">
+<td>2026.10.09</td>
+<td>fix <code>eigenvalues_qr</code> (M1) and <code>general_eigen</code>
+(M2); <code>numeric_compare</code> to C++98 (M3)</td>
+</tr>
+<tr class="odd">
+<td>2026.10.13</td>
+<td>expression, function and calculus to a C++11 floor for now, with a
+runtime expression for C++98 later if needed. Lower levels get every
+feature they can express; higher levels get every optimization they
+allow; code is shared between levels (N1)</td>
+</tr>
+<tr class="even">
+<td>2026.10.13</td>
+<td><code>_fast</code> variants only where measured demand exists, each
+with a documented ulp bound; eager values by default and laziness as an
+opt-in from C++11; chaining wherever it is appropriate; a generic value
+mechanism before further features; benchmarks and bignum near the end of
+the roadmap</td>
+</tr>
+<tr class="odd">
+<td>2026.10.13</td>
+<td>the root's <code>D_STATIC_ASSERT</code> fallback gets
+<code>D_MAYBE_UNUSED</code> (C2); the lane fixes the test headers' floor
+comments (C3); the 09.29 lane is mined only for what is missing
+(C6)</td>
+</tr>
+<tr class="even">
+<td>2026.10.18</td>
+<td>no commits from the lane: everything in plain files, delivered as a
+zip of the modified files, which the owner tests on his machine and
+commits himself; work through the rest of Phase 1</td>
+</tr>
+<tr class="odd">
+<td>2026.11.04</td>
+<td><code>math::complex&lt;T&gt;</code>'s functions by their own names
+<code>cplx.h</code>'s plain forms at run time, the <code>_c</code> forms
+in constant evaluation and by the <code>_c</code> names; the language's
+values the <code>_c</code> forms (S336); every evaluator given the
+fold's context, each value evaluator holding its answer real where it
+asks (S340)</td>
+</tr>
+<tr class="even">
+<td>2026.11.12</td>
+<td>before the itinerary goes on, the four groups of fixes of the lane's
+evaluation: speed, consolidation, <code>math::expr::</code> and
+accuracy</td>
+</tr>
+<tr class="odd">
+<td>2026.11.14</td>
+<td>the language flat in <code>djinterp::math</code>, no namespace below
+it; a clean break for the old names; the prefix left to the lane's
+recommendation, fewer or no levels below <code>math</code> (S397)</td>
+</tr>
+<tr class="even">
+<td>2026.11.16</td>
+<td>the double family rewritten on pairs of doubles: one result, the
+correctly rounded one, on every platform, under eight rules, by the
+lane's own algorithms proven with Gappa and Sollya; exp and log first,
+then 0.8's items, core v2 in December, then the rest; the x87 refused
+for the family; a public pair type; kernels immune to fusing (rulings 1
+to 7, S414 to S419); before 0.8, the language's solves refined,
+<code>rotquat</code> the nearest rotation, <code>expression.hpp</code>'s
+variables in a namespace (rulings 8 to 10)</td>
+</tr>
+<tr class="odd">
+<td>2026.11.21</td>
+<td>math in no modules of its own: its largest files split instead, each
+to about 4,000 lines at most, the old names kept as headers that include
+their parts; the deeper modularization not now (S436 to S439)</td>
+</tr>
+<tr class="even">
+<td>2026.11.21</td>
+<td>chunk 53's decisions stand ("continue"): <code>log_c</code>'s speed
+next</td>
+</tr>
+<tr class="odd">
+<td>2026.11.20</td>
+<td>chunk 51's decisions stand ("continue for now"), and chunk 52's
+("continue"): step 29 (5a) with 0.8's items next</td>
+</tr>
+<tr class="even">
+<td>2026.11.14</td>
+<td>accuracy before 0.8 for the float and double families: compensated
+sums and a refined solve, then their <code>_c</code> forms correctly
+rounded, provably, at today's speed; the long double family and the
+plain forms at step 36 (S404 to S408)</td>
+</tr>
+<tr class="odd">
+<td>2026.11.23</td>
+<td>chunks 55 to 58's decisions stand ("continue"): step 32 (5d),
+<code>reify</code>, next</td>
+</tr>
+<tr class="even">
+<td>2026.11.23</td>
+<td>chunk 59's decisions stand ("continue"): step 34 (5f), the lazy
+type, next</td>
+</tr>
+<tr class="odd">
+<td>2026.11.24</td>
+<td>chunk 60's decisions stand ("continue"): step 35 (5g), the style
+debt, next</td>
+</tr>
+<tr class="even">
+<td>2026.11.24</td>
+<td>S473 ruled: the banners' HOW TO USE, OPTIONS and CONFIGURATION
+written today; chunk 61's decisions stand ("continue")</td>
+</tr>
+<tr class="odd">
+<td>2026.11.24</td>
+<td>rulings 12, 13, 14's 9b and 15, each as recommended: each plain
+double function correctly rounded once within about twice the C
+library's time; <code>min</code> and <code>max</code> as IEEE
+754-2019's, with <code>min_num</code> and <code>max_num</code>; random
+numbers math's, the seeds and keys simterp's; the elementary block
+first, then root finding, banded solves and table lookups, the number
+types, random numbers, the rest; chunk 62's S474, S475 and S477
+stand</td>
+</tr>
+<tr class="even">
+<td>2026.11.24</td>
+<td>ruling 14's 9a and 9c: the ODE steppers math's, <code>st_math</code>
+the terps'; S476 B, chunk 62's objects compared as well; the rulings'
+work now, exp's switch first, then the scalar helpers</td>
+</tr>
+<tr class="odd">
+<td>2026.11.24</td>
+<td>chunk 63's decisions stand, S482 B: the terps' needs numbered now,
+steps 52 on; on S478, a fast and a slow exp unless <code>exp_c</code>
+can match glibc</td>
+</tr>
+<tr class="even">
+<td>2026.11.25</td>
+<td>chunk 64's decisions stand ("continue"): step 53, exp's speed,
+next</td>
+</tr>
+<tr class="odd">
+<td>2026.11.25</td>
+<td>chunk 65's decisions ruled, each as recommended (08:38): step 54,
+log's speed, next</td>
+</tr>
+<tr class="even">
+<td>2026.11.25</td>
+<td>chunk 66's decisions ruled, each as recommended (14:42); decision
+71: a fast log next, in chunk 67, before step 55</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="8-branches-and-other-lanes">8. Branches and other lanes</h2>
+<p><code>master</code> is the main branch. As of chunk 12 it points at
+the math lane's tip, which contains the owner's tree of 2026.10.07
+(<code>ef7c81f</code>) and every lane merged since. The math lane
+committed on its own branch, <code>consolidated</code>, through chunk
+24; from chunk 25 it commits nothing, and the owner commits its files.
+Other lanes that started from the same tree (net, and any others) merge
+into <code>master</code> when they finish, and so does this one.</p>
+<p>From chunk 28 the lane works on the owner's tree of 2026.10.23, and
+from chunk 37 on his tree of 2026.10.27, with the lane's files laid over
+it. That tree had none of the lane's files: it had moved on from
+2026.10.07 elsewhere (<code>fs</code> renamed <code>filesys</code>, net,
+re_std, the root's <code>D_STATIC_ASSERT</code>). Of the files the lane
+changed, two the owner had changed too, each with the lane's change in a
+form of his own, and his versions stand: <code>c/djinterp.h</code>
+(chunk 15's C2) and re_std's <code>reverse_iterator.hpp</code>.</p>
+<p>From chunk 41 the lane is built and checked over the owner's
+restructured tree of 2026.11.01, the restructure's run without the math
+lane (<code>restructure_2026_10_29</code>): every other file moved to
+the <code>c/</code> and <code>cpp/</code> layout and its C and C++ types
+renamed. The lane keeps its old paths and names, as the owner runs the
+restructuring script over it on his machine; the build has, at the old
+paths, one-line shims to the headers the restructure moved, and the old
+names of the two renames the lane meets, <code>parse_status</code> and
+<code>kv_pair</code>, none of which the delivery holds
+(<code>_handoffs/math98_chunk41_2026.11.01/tools/shims_c41.py</code>).
+The restructured tree holds older copies, of 2026.09.21 to 2026.10.02,
+of 55 files the lane changed, at the paths the restructure gave them; no
+test of the lane's reaches one, and the lane's copies are the ones the
+script should move into those paths (chunk 41's record,
+<code>raw/base_tree.txt</code>).</p>
+<p>From chunk 45b (2026.11.07) the lane works in the owner's
+restructured tree itself, as lane A ruled for chunk 44 on: chunks 44 and
+45 laid into his tree of 2026.11.07, every file of the lane at its
+restructured path, its banners' paths and tags and its generator's paths
+as the tree has them, every C type renamed <code>dj_</code>, and no
+shims (chunk 45b's record).</p>
+<p>From chunk 51 (2026.11.16) the lane works over the owner's tree of
+2026.11.16, which holds chunks 44 to 50 as he committed them, and
+delivers a zip over it of the files the chunk changed or made, with its
+record (S423); chunk 52's holds chunk 51's files with its own, so that
+it is right over that tree whether or not chunk 51's zip is in it
+(S427), chunk 53's chunks 51's and 52's with its own (S431), and chunk
+54's chunks 51's to 53's with its own (S434). From chunk 55 (2026.11.21)
+the zip goes over the owner's main as his push names it, with the chunks
+before it that have not landed laid over it, and carries no record: the
+records stay with the lane's own deliveries (S440); chunk 56's goes over
+his main of 2026.11.21 with chunks 52's and 55's zips laid over it, and
+holds chunk 56's files alone (S446). Both were cut again on his main of
+2026.11.23, Friday's over Wednesday's, their files at the tree's root as
+his merge window reads a zip (S447, S449); chunk 58's goes over that
+main with both laid over it, in order (S455), chunk 59's over that with
+chunk 58's laid too (S462), and chunk 60's after chunk 59's (S468),
+chunk 61's after chunk 60's (S473), chunk 62's after chunk 61's (S477),
+chunk 63's after chunk 62's (S482), chunk 64's after chunk 63's (S488),
+chunk 65's after chunk 64's (S493), chunk 66's after chunk 65's (S499),
+and chunk 67's after chunk 66's (S504). From 2026.11.18 the lane's notes
+and deliveries go out once a day.</p>
+<p>Outside <code>cpp/modules/math/</code>, <code>c/modules/math/</code>
+and their tests, this lane changed:</p>
+<ul>
+<li><code>re_std</code>'s <code>array</code> (5 files), and
+<code>reverse_iterator.hpp</code> (to C++98; the owner's tree of
+2026.10.23 has the same port, and its version stands);</li>
+<li>the root's <code>D_STATIC_ASSERT</code> fallback (chunk 15, C2; the
+owner's tree of 2026.10.23 has his own form of it, which stands);</li>
+<li>the ladders' known lists and the stdint lint's, then in
+<code>ci/</code> (lane A's <code>scripts/ci/</code> holds their
+successors), and <code>scripts/ci/check_math_tests.sh</code> (new);</li>
+<li><code>src/djinterp/cpp/modules/math/numeric_compare.cpp</code>, now
+a translation unit that only includes its header, as its neighbours
+there do;</li>
+<li><code>scripts/gen_c_math_float.py</code> (new), and its modules,
+<code>scripts/gen_c_math/</code> (new, S439);</li>
+<li><code>config/c/modules/math/cfg_value_wide.h</code> (new), the wide
+integer's allocation hooks;</li>
+<li><code>cpp/modules/parse/expression/</code>'s four headers
+<code>expression_ops.hpp</code>, <code>expression_parse.hpp</code>,
+<code>expression_render.hpp</code> and
+<code>expression_static.hpp</code> (chunk 27, P0): their defects fixed,
+nothing else changed;</li>
+<li>seven test headers' comments.</li>
+</ul>
+<p>It also carries the register lane's retirement of four
+<code>env/db</code> configs (#93b), which <code>master</code> still had
+at <code>ef7c81f</code>; the owner's tree of 2026.10.23 still has them,
+and a zip of files cannot delete them. These are the files a merge from
+another lane could touch.</p>
+</body>
+</html>

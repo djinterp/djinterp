@@ -6,7 +6,7 @@
 *
 *
 * path:      /build/cmake/config/testing/djinterp/cpp/modules/interp/skeleton/skeleton_tests_runner.cpp
-* link(s):   /docs/djinterp/interp/DESIGN.md
+* link(s):   /docs/djinterp/cpp/modules/interp/DESIGN.html
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.22
 *                                                            revised: 2026.11.22
 *******************************************************************************/

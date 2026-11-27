@@ -8,7 +8,7 @@
 * adding state.  The four blocks below each cover both types, because the two
 * wrappers present the identical a/b/c/d surface.
 *
-*   Two faces, selected by DTEST_SPEC_MODE (see djinterp_testing.md S3).
+*   Two faces, selected by DTEST_SPEC_MODE (see djinterp_testing.html S3).
 *
 *
 * path:      /tests/djinterp/cpp/util/color/color_cie_lab_tests.hpp

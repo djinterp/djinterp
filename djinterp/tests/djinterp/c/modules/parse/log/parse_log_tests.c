@@ -6,7 +6,7 @@
 *
 *
 * path:      /tests/djinterp/c/modules/parse/log/parse_log_tests.c
-* link(s):   /docs/djinterp/log/log_design.md
+* link(s):   /docs/djinterp/c/log/log_design.html
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.23
 *                                                            revised: 2026.11.23
 *******************************************************************************/

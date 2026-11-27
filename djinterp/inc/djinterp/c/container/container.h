@@ -38,7 +38,7 @@ TABLE OF CONTENTS
 // the D_CFG_CONTAINER_ALL and D_CFG_FILTER aggregates) are resolved and
 // validated in djinterp/config/c/container/cfg_container.h, included above:
 // a module reads its configuration, it does not derive it (the localization
-// rule of docs/dconfig_readme.md).
+// rule of docs/djinterp/config/dconfig_readme.html).
 
 
 // dj_merge_conflict_flag

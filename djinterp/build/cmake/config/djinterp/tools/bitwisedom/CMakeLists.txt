@@ -18,7 +18,7 @@
 #                       importer, the settings and the edits, and the file
 #                       format - with no window in it
 #     bitwisedom::cli    the command line's commands, on djinterp's kit
-#     bitwisedom         the command line (GRAMMAR.md, section 10); `gui`
+#     bitwisedom         the command line (GRAMMAR.html, section 10); `gui`
 #                       loads the window's module, built in build/cmake/config/ui
 #     bitwisedom-gen     the generator's command line, as build scripts have
 #                       always called it

@@ -14,7 +14,7 @@
 * way, and `sizeof(x)` has the re_std-spelled type without a conversion.
 *
 *   <cstddef> is one of the three standard headers the dependency rules
-* permit (RE_STD_AGENT_README.md, "Dependency Rules" 3) precisely because
+* permit (RE_STD_AGENT_README.html, "Dependency Rules" 3) precisely because
 * of this: the fundamental types cannot be reimplemented, only surfaced.
 *
 *

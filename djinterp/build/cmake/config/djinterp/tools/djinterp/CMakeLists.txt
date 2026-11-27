@@ -2,7 +2,7 @@
 # djinterp [tools]                                              CMakeLists.txt
 #
 # The djinterp program's leaf: its 0.8 preview, on the command-line kit, and
-# the runs that test it (docs/djinterp/interp/DESIGN.md, 6.4).
+# the runs that test it (docs/djinterp/cpp/modules/interp/DESIGN.html, 6.4).
 #   The program is its two sources under src/djinterp/tools/djinterp/ and
 # the djin records (c/modules/interp/djin.c), linked to the kit as
 # DjinterpCli.cmake makes it - the argument parser, the kit, filesys and

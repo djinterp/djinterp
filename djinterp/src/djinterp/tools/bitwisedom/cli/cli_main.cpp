@@ -5,7 +5,7 @@
 *   `bitwisedom` is a program of commands, made with djinterp's kit: the
 * commands that read a sheet, those that make or change one, and the window,
 * which the program loads only when `gui` asks for it, so the program
-* carries none of it (GRAMMAR.md, section 7).
+* carries none of it (GRAMMAR.html, section 7).
 *   `bitwisedom-gen` is one command's program: gen's options, the sheet as
 * an operand or by --example, and the two jobs it always had beside the
 * header - listing the examples and saving one - as the options it always

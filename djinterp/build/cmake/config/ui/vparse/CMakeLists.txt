@@ -1,7 +1,7 @@
 #*******************************************************************************
 # vparse [ui]                                                     CMakeLists.txt
 #
-# vparse's window: the workbench, the module `vparse gui` loads (GRAMMAR.md,
+# vparse's window: the workbench, the module `vparse gui` loads (GRAMMAR.html,
 # section 7), made on uxoxo and Dear ImGui outside the djinterp tree - its
 # sources in inc/ui/vparse, src/ui/vparse and tests/ui/vparse.
 #   A top-level build: it builds djinterp's vparse

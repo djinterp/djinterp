@@ -1,7 +1,7 @@
 # =============================================================================
 # djinterp [test]  -  build/cmake/config/testing/djinterp/cpp/container/write_only_container/CMakeLists.txt
 #
-#   Test leaf for write_only_container_tests, in DTest's spec idiom (docs/djinterp_testing.md,
+#   Test leaf for write_only_container_tests, in DTest's spec idiom (docs/djinterp_testing.html,
 # section 6.1): the runner in this directory, the section translation units
 # globbed from the tests tree.
 #

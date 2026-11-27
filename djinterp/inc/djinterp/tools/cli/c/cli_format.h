@@ -2,7 +2,7 @@
 * djinterp [c][tools]                                               cli_format.h
 *
 * Help as GNU programs lay it out, for the argument parser's formatter.
-*   The layout (GRAMMAR.md, section 6):
+*   The layout (GRAMMAR.html, section 6):
 *
 *     Usage: bitwisedom gen [OPTION]... SHEET
 *     Write a sheet's header.

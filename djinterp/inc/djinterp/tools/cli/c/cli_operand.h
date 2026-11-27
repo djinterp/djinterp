@@ -2,7 +2,7 @@
 * djinterp [c][tools]                                              cli_operand.h
 *
 * The command-line kit's operands that name something other than a file
-* (GRAMMAR.md, R13).
+* (GRAMMAR.html, R13).
 *   An operand that names something else says so with a prefix of two
 * lowercase letters or more and a colon - `example:uart_cr`, the built-in
 * example named `uart_cr` - as git, docker and scp name what is not a

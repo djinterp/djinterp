@@ -108,7 +108,7 @@ option(DJINTERP_VPARSE_STRICT
        ON)
 
 # how many sections the suite has - every one of them at every level, so a
-# level that ran fewer has lost one. vparse-AGENTS.md states the same number
+# level that ran fewer has lost one. vparse-AGENTS.html states the same number
 set(_sections 32)
 
 foreach(_level IN LISTS DJINTERP_VPARSE_CXX_LEVELS)

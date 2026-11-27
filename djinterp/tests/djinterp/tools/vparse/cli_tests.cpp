@@ -31,7 +31,7 @@
 #if D_ENV_LANG_IS_CPP17_OR_HIGHER  // the floor its header has
 
 // std
-#include <cctype>            // std::tolower
+#include <cctype>            // std::tolower, std::isalnum
 #include <cerrno>            // errno, ENOSPC
 #include <cstddef>           // std::size_t
 #include <cstdio>            // std::FILE, std::fopen, std::fclose
@@ -81,7 +81,7 @@ const char* const SCRATCH = "cli_tests_files";
 // command line to; the build defines it. Without it the section reads
 // nothing, and fails.
 #ifndef VPARSE_README
-    #define VPARSE_README "README.md"
+    #define VPARSE_README "README.html"
 #endif  // VPARSE_README
 
 // INPUT
@@ -1894,7 +1894,7 @@ captured memoized_by(
 /*
 tests_cli_memoize_values
   --memoize collects its values, as an option that collects them does
-(GRAMMAR.md, R8), and folds them in order.
+(GRAMMAR.html, R8), and folds them in order.
   Tests the following:
   - names given one an option are the names given separated by commas
   - a word given after names replaces them, and names after a word replace
@@ -2213,8 +2213,56 @@ const json_node* node_at(
 }
 
 /**
- * @brief Reads the README's JSON tables: each `#### `ID`` heading and the
- *        keys its table's rows give, in order.
+ * @brief The text of an HTML fragment with its five escapes undone.
+ *
+ * @param[in] _text  the fragment, without tags.
+ * @return the text it shows.
+ */
+std::string unescaped(
+    const std::string& _text
+)
+{
+    static const char* const from[] = { "&amp;", "&lt;", "&gt;", "&quot;",
+                                        "&#39;" };
+    static const char        to[]   = { '&', '<', '>', '"', '\'' };
+    std::string              out;
+    std::size_t              at = 0u;
+
+    while (at < _text.size())
+    {
+        bool done = false;
+
+        // one escape, or one character
+        for (std::size_t k = 0u; ( (k < 5u) && (!done) ); k++)
+        {
+            const std::string escape(from[k]);
+
+            if (_text.compare(at,
+                              escape.size(),
+                              escape) == 0)
+            {
+                out += to[k];
+                at  += escape.size();
+                done = true;
+            }
+        }
+
+        if (!done)
+        {
+            out += _text[at];
+            at++;
+        }
+    }
+
+    return out;
+}
+
+/**
+ * @brief Reads the README's JSON tables: each heading of level 4 that is a
+ *        code span, its ID, and the keys the first cells of its table's
+ *        rows give, in order. A heading of level 2 ends a table's section.
+ *        The README is HTML (docs/djinterp/tools/vparse/README.html), as
+ *        pandoc writes it, so a tag may break across lines.
  *
  * @param[in] _readme  the README.
  * @return each table's keys, by its ID.
@@ -2225,36 +2273,74 @@ std::map<std::string, std::vector<std::string>> documented(
 {
     std::map<std::string, std::vector<std::string>> tables;
     std::string                                     id;
-    std::size_t                                     start = 0u;
+    bool                                            first_cell = false;
+    std::size_t                                     at         = 0u;
 
-    // a line at a time
-    while (start < _readme.size())
+    // a tag at a time
+    while ( (at = _readme.find('<', at)) != std::string::npos )
     {
-        std::size_t       end  = _readme.find('\n',
-                                              start);
-        end                    = (end == std::string::npos) ? _readme.size()
-                                                            : end;
-        const std::string line = _readme.substr(start,
-                                                end - start);
-        const std::size_t tick = line.find('`',
-                                           6u);
+        const std::size_t close = _readme.find('>',
+                                               at);
+        std::size_t       name  = at + 1u;
 
-        // a table's heading, or a row of the table under it
-        if (line.rfind("#### `", 0u) == 0u)
+        if (close == std::string::npos)
         {
-            id         = line.substr(6u,
-                                     tick - 6u);
-            tables[id] = std::vector<std::string>();
-        }
-        else if ( (!id.empty()) &&
-                  (line.rfind("| `", 0u) == 0u) )
-        {
-            tables[id].push_back(line.substr(3u,
-                                             line.find('`', 3u) - 3u));
+            break;
         }
 
-        id    = (line.rfind("## ", 0u) == 0u) ? std::string() : id;
-        start = end + 1u;
+        while ( (name < close) &&
+                (std::isalnum(static_cast<unsigned char>(_readme[name]))) )
+        {
+            name++;
+        }
+
+        const std::string tag  = _readme.substr(at + 1u,
+                                                name - at - 1u);
+        const std::size_t body = close + 1u;
+        const bool        code = (_readme.compare(body,
+                                                  6u,
+                                                  "<code>") == 0);
+        const std::size_t end  = code ? _readme.find("</code>", body)
+                                      : std::string::npos;
+        const std::string text = (end == std::string::npos)
+                               ? std::string()
+                               : unescaped(_readme.substr(body + 6u,
+                                                          end - body - 6u));
+
+        // a table's heading, a row's first cell, or the end of a section
+        if (tag == "h4")
+        {
+            id = code ? text : id;
+            if (code)
+            {
+                tables[id] = std::vector<std::string>();
+            }
+        }
+        else if (tag == "h2")
+        {
+            id.clear();
+        }
+        else if (tag == "tr")
+        {
+            first_cell = true;
+        }
+        else if (tag == "td")
+        {
+            if ( (first_cell) &&
+                 (code)       &&
+                 (!id.empty()) )
+            {
+                tables[id].push_back(text);
+            }
+
+            first_cell = false;
+        }
+        else if (tag == "th")
+        {
+            first_cell = false;
+        }
+
+        at = close + 1u;
     }
 
     return tables;
@@ -2394,7 +2480,7 @@ bool held(
 /*
 tests_cli_json
   Every JSON document the command line writes is the one vparse's README
-documents (GRAMMAR.md, R19): the README's tables are read, and each command
+documents (GRAMMAR.html, R19): the README's tables are read, and each command
 is run and held to its table, key for key and in order.
   Tests the following:
   - each document, each object within one, and each refusal, has exactly

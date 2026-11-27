@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>djinterp — Configuration Subframework</title>
+  <style>
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+    /* CSS for syntax highlighting */
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+</head>
+<body>
+<h1 id="djinterp--configuration-subframework">djinterp — Configuration
+Subframework</h1>
+<blockquote>
+<p><strong>Location:</strong> this file belongs at
+<code>docs/djinterp/config/dconfig_readme.html</code>. <strong>Audience:</strong> humans
+authoring/maintaining config, and agents editing it.
+<strong>One-liner:</strong> every piece of build-time configuration
+lives in a <code>cfg_*.h</code> header, exposes <code>D_CFG_*</code>
+toggles, and resolves itself <strong>in that file</strong> so the
+modules it targets stay logic-free.</p>
+</blockquote>
+<hr />
+<h2 id="0-quick-reference-read-this-first">0. Quick reference (read this
+first)</h2>
+<table>
+<thead>
+<tr class="header">
+<th>Thing</th>
+<th>Rule</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>File name</strong></td>
+<td><code>cfg_&lt;name&gt;.h</code> — every config header is prefixed
+<code>cfg_</code> (excepting dconfig.h).</td>
+</tr>
+<tr class="even">
+<td><strong>File path</strong></td>
+<td>Mirrors the target module's path under <code>config/</code> (e.g.
+module <code>c/memory/pool.h</code> →
+<code>config/c/memory/cfg_pool.h</code>). Infrastructure files that
+target no single module live at the config root.</td>
+</tr>
+<tr class="odd">
+<td><strong>Public symbols</strong></td>
+<td><code>D_CFG_*</code> — user-settable knobs, always integer
+<code>0</code>/<code>1</code> (or a small enum).</td>
+</tr>
+<tr class="even">
+<td><strong>Derived symbols</strong></td>
+<td><code>D_INTERNAL_*</code> — computed <em>from</em>
+<code>D_CFG_*</code>; read by modules, never set by users.</td>
+</tr>
+<tr class="odd">
+<td><strong>Where logic lives</strong></td>
+<td>In the <code>cfg_*.h</code> file. The target module reads resolved
+symbols only — no <code>#ifndef D_CFG_… #define</code> blocks in module
+headers.</td>
+</tr>
+<tr class="even">
+<td><strong>Load order</strong></td>
+<td>Every <code>cfg_*.h</code> includes <code>cfg_common.h</code> first;
+then its dependencies' configs; then its own cascade.</td>
+</tr>
+<tr class="odd">
+<td><strong>Resolution</strong></td>
+<td>User override → preset/aggregate → derived/propagated → env-detected
+→ hard default. Each layer <code>#ifndef</code>-guarded.</td>
+</tr>
+<tr class="even">
+<td><strong>Testing</strong></td>
+<td><code>D_CFG_TESTING</code> (canonical) follows
+<code>D_TESTING</code>; when on, <code>cfg_testing.h</code> is
+auto-applied.</td>
+</tr>
+<tr class="odd">
+<td><strong>Fixed-width integers</strong></td>
+<td>Only through re_std: <code>cstdint/dstdint.h</code> (C),
+<code>cstdint/cstdint.hpp</code> (C++); its switches are in section
+12.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>File set at a glance</strong></p>
+<table>
+<thead>
+<tr class="header">
+<th>File</th>
+<th>Role</th>
+<th>Prefixed?</th>
+<th>Targets a module?</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>cfg_common.h</code></td>
+<td>Root: helpers, user pickup, testing flag, preset hook. Included
+first by <em>every</em> config file.</td>
+<td>yes</td>
+<td>no (infrastructure)</td>
+</tr>
+<tr class="even">
+<td><code>dconfig.h</code></td>
+<td>Umbrella: <code>#include</code>s every <code>cfg_*.h</code>. Opt-in,
+for global resolution / PCH.</td>
+<td>yes</td>
+<td>no</td>
+</tr>
+<tr class="odd">
+<td><code>cfg_testing.h</code></td>
+<td>Testing/debug preset. Auto-applied when
+<code>D_CFG_TESTING == 1</code>.</td>
+<td>yes</td>
+<td>no</td>
+</tr>
+<tr class="even">
+<td><code>cfg_custom.h</code></td>
+<td>Your overrides. Auto-detected via <code>__has_include</code>.
+<strong>Not shipped.</strong></td>
+<td>yes</td>
+<td>no</td>
+</tr>
+<tr class="odd">
+<td><code>cfg_&lt;module&gt;.h</code></td>
+<td>Per-module config.</td>
+<td>yes</td>
+<td><strong>yes</strong> — path mirrors the module</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="1-what-this-is-and-why-it-exists">1. What this is and why it
+exists</h2>
+<p>The configuration subframework is a set of
+<strong>pure-preprocessor</strong> headers (no C/C++ code, no build
+step) that gate framework functionality behind <code>D_CFG_*</code>
+toggles. It is built on four principles:</p>
+<ol type="1">
+<li><strong>Localized.</strong> All resolution logic for a knob — its
+default, any propagation, validation, and the derived values modules
+consume — lives in one <code>cfg_*.h</code> file. A module never
+re-derives config; it reads the answer.</li>
+<li><strong>Single source of truth.</strong> Each knob has exactly one
+canonical default, in one file. Everyone else <em>reads</em> it.</li>
+<li><strong>Demand-loaded.</strong> A module pulls its own
+<code>cfg_&lt;module&gt;.h</code>; if you never include the module, its
+config never loads. You pay only for what you use. (Preprocessing even
+thousands of guarded knobs is a few milliseconds, and re-inclusion is
+free thanks to include guards — so this is about clarity, not raw
+speed.)</li>
+<li><strong>Overridable anywhere.</strong> The
+<code>#ifndef</code>-guarded cascade means any value you
+<code>#define</code> before the framework loads — via <code>-D</code>, a
+prefix header, or <code>cfg_custom.h</code> — wins.</li>
+</ol>
+<hr />
+<h2 id="2-naming--layout">2. Naming &amp; layout</h2>
+<h3 id="21-file-naming">2.1 File naming</h3>
+<ul>
+<li><strong>Prefix every config header with <code>cfg_</code>.</strong>
+No exceptions, other than <code>dconfig.h</code>.</li>
+<li><strong>Per-module configs mirror the module's path</strong> under
+<code>config/</code>. If the module is <code>c/memory/pool.h</code>, its
+config is <code>config/c/memory/cfg_pool.h</code>. This makes the target
+obvious from the path and keeps config discoverable next to nothing but
+other config.</li>
+<li><strong>Infrastructure configs</strong> (<code>cfg_common.h</code>,
+<code>dconfig.h</code>, <code>cfg_testing.h</code>,
+<code>cfg_custom.h</code>) target no single module and live at the
+config root.</li>
+</ul>
+<h3 id="22-directory-layout">2.2 Directory layout</h3>
+<pre><code>config/
+├── cfg_common.h            # root — included first by every cfg_*.h
+├── cfg_custom.h            # YOUR overrides (auto-detected; git-ignore if desired)
+├── cfg_qualifiers.h        # storage / linkage qualifiers
+├── cfg_re_std.h            # djinterp&#39;s settings for re_std
+├── cfg_testing.h           # testing/debug preset (auto-applied when testing)
+├── dconfig.h               # umbrella — includes every cfg_*.h (opt-in)
+├── env/
+│   └── cfg_env.h           # targets env/env.h
+├── c/
+│   └── memory/
+│       └── cfg_pool.h      # targets c/memory/pool.h
+└── cpp/                    # the C++ modules&#39; configs, likewise</code></pre>
+<h3 id="23-symbol-naming">2.3 Symbol naming</h3>
+<ul>
+<li><strong><code>D_CFG_&lt;AREA&gt;_&lt;KNOB&gt;</code></strong> — a
+public, user-settable knob. Always resolves to the integer
+<code>0</code> or <code>1</code> (or a small documented enum). Example:
+<code>D_CFG_DEFINE_INLINE</code>,
+<code>D_CFG_TESTING_STRIP_CONSTEXPR</code>.</li>
+<li><strong><code>D_INTERNAL_*</code></strong> — a value
+<em>derived</em> from <code>D_CFG_*</code> inside a
+<code>cfg_*.h</code>, consumed by the target module. Not user-settable.
+Example: <code>D_INTERNAL_CFG_INLINE</code>,
+<code>D_INTERNAL_QUAL_TESTING</code>.</li>
+<li>Keep the area segment consistent with the module
+(<code>D_CFG_ENV_*</code>, <code>D_CFG_QUAL_*</code>, …) so the
+namespace mirrors the tree.</li>
+</ul>
+<hr />
+<h2 id="3-shared-vocabulary-cfg_commonh">3. Shared vocabulary
+(<code>cfg_common.h</code>)</h2>
+<p><code>cfg_common.h</code> is the root every config file includes
+first. It provides:</p>
+<ul>
+<li><strong><code>D_CFG_ON</code> / <code>D_CFG_OFF</code></strong> —
+canonical <code>1</code> / <code>0</code>.</li>
+<li><strong><code>D_CFG_NORM(x)</code></strong> → <code>(x + 0)</code> —
+normalizes a possibly-empty / possibly- undefined flag to an int. (No
+parentheses around <code>x</code>, so an empty expansion becomes unary
+<code>+ 0</code> == <code>0</code>.)</li>
+<li><strong><code>D_CFG_IS_ON(x)</code> /
+<code>D_CFG_IS_OFF(x)</code></strong> — <code>#if</code>-safe
+predicates: <code>#if D_CFG_IS_ON(D_CFG_FOO)</code>.</li>
+<li><strong><code>D_CFG_TESTING</code></strong> — the single canonical
+"testing/debug mode" flag, defaulting from <code>D_TESTING</code>.</li>
+<li><strong>User-override pickup</strong> — auto-<code>#include</code>s
+<code>cfg_custom.h</code> if present.</li>
+<li><strong>Testing-preset hook</strong> — <code>#include</code>s
+<code>cfg_testing.h</code> when <code>D_CFG_TESTING</code>.</li>
+</ul>
+<p><strong>Empty-flag convention:</strong> flags are always
+<code>0</code> or <code>1</code>. Undefined, <code>=0</code>, and true-
+empty (<code>-DFLAG=</code>) all read as <em>off</em>; only
+<code>=1</code> (or GCC's bare <code>-DFLAG</code>, which is
+<code>=1</code>) reads as <em>on</em>. <strong>Always test flags with
+<code>D_CFG_IS_ON</code> / <code>D_CFG_NORM</code>, never a bare
+<code>#if D_CFG_FOO == 1</code>,</strong> so an empty define can't cause
+a syntax error.</p>
+<hr />
+<h2 id="4-the-resolution-cascade-the-core-idiom">4. The resolution
+cascade (the core idiom)</h2>
+<p>Every knob resolves top-down. Each layer only applies if nothing
+higher set the value, which is what the <code>#ifndef</code> guards
+enforce:</p>
+<ol type="1">
+<li><strong>Explicit user override</strong> — the user
+<code>#define</code>s it (via <code>-D</code>, a prefix header, or
+<code>cfg_custom.h</code>).</li>
+<li><strong>Preset / aggregate</strong> — a group switch fills many
+knobs at once (<code>cfg_testing.h</code>, or a
+<code>D_CFG_&lt;AREA&gt;_ALL</code> toggle).</li>
+<li><strong>Derived / propagated</strong> — the framework's job:
+parent-on ⇒ child-on, or one module expressing a need to a
+dependency.</li>
+<li><strong>Environment-detected</strong> — a default taken from
+<code>env.h</code> detection.</li>
+<li><strong>Hard default</strong> — the final fallback.</li>
+</ol>
+<p>You do not <em>deduce</em> "skip this module's defaults." If a module
+isn't included, its <code>cfg_*.h</code> never loads and its defaults
+never run — the include graph is the mechanism.</p>
+<hr />
+<h2 id="5-the-localization-rule-important">5. The localization rule
+(important)</h2>
+<blockquote>
+<p><strong>All <code>D_CFG_*</code> logic lives in <code>cfg_*.h</code>.
+A target module contains no config resolution — it reads the
+already-computed <code>D_CFG_*</code> / <code>D_INTERNAL_*</code>
+symbols.</strong></p>
+</blockquote>
+<p>Concretely: defaults, propagation, aggregate fallbacks, validation,
+and the <code>D_INTERNAL_*</code> "effective value" computation all
+belong in the <code>cfg_&lt;module&gt;.h</code>. The module header just
+consumes the result.</p>
+<p><strong>Do</strong> (in <code>cfg_qualifiers.h</code>):</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">// compute the effective gate here, once</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="pp">#if (D_CFG_TESTING == 1)</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    <span class="pp">#define D_INTERNAL_CFG_INLINE  </span><span class="co">/* … from testing knobs … */</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="pp">#else</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    <span class="pp">#define D_INTERNAL_CFG_INLINE  </span><span class="co">/* … from normal knobs … */</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="pp">#endif</span></span></code></pre></div>
+<p><strong>Do</strong> (in the module, e.g.
+<code>djinterp.h</code>):</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&quot;../config/cfg_qualifiers.h&quot;</span><span class="pp">   </span><span class="co">// pulls cfg_common.h transitively</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="co">// … just READ the resolved symbol …</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="pp">#if !defined(D_INLINE) &amp;&amp; (D_INTERNAL_CFG_INLINE == 1)</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    <span class="pp">#define D_INLINE  </span><span class="co">/* … */</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="pp">#endif</span></span></code></pre></div>
+<p><strong>Don't</strong> (config logic leaking into the module):</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co">// ❌ in djinterp.h — belongs in cfg_qualifiers.h</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="pp">#ifndef D_CFG_DEFINE_INLINE</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="pp">#  define D_CFG_DEFINE_INLINE </span><span class="dv">1</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="pp">#endif</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="pp">#if D_CFG_TESTING …            </span><span class="co">// ❌ re-deriving what cfg_qualifiers.h already resolved</span></span></code></pre></div>
+<p>Why: one place to change behavior, no drift between a knob's default
+in two files, and modules that read as intent rather than plumbing.</p>
+<hr />
+<h2 id="6-authoring-a-new-cfg_moduleh">6. Authoring a new
+<code>cfg_&lt;module&gt;.h</code></h2>
+<h3 id="61-skeleton">6.1 Skeleton</h3>
+<div class="sourceCode" id="cb5"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co">/*****************************************************************************</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="co">* djinterp [core]                                                cfg_&lt;name&gt;.h</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="co">*</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="co">*   &lt;One or two sentences: what this configures.&gt;</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="co">*</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="co">*   targets:  &lt;module header(s) and the symbols they consume, e.g.</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="co">*             djinterp.h -&gt; D_STATIC / D_INLINE / D_STATIC_INLINE&gt;</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="co">*   requires: cfg_common.h (helpers, D_CFG_TESTING); &lt;dependency cfgs&gt;</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="co">*</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a><span class="co">* path:      /config/&lt;mirrored/module/path&gt;/cfg_&lt;name&gt;.h</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a><span class="co">* author(s): &lt;name&gt;</span></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a><span class="co">*****************************************************************************/</span></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a><span class="pp">#ifndef DJINTERP_CONFIG_&lt;PATH&gt;_H</span></span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a><span class="pp">#define DJINTERP_CONFIG_</span><span class="op">&lt;</span><span class="pp">PATH</span><span class="op">&gt;</span><span class="pp">_H </span><span class="dv">1</span></span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a><span class="co">// (0) root first: helpers, user overrides, testing flag/preset.</span></span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&quot;&lt;relative&gt;/cfg_common.h&quot;</span></span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a><span class="co">// (0b) dependencies&#39; configs, if this module&#39;s config depends on them.</span></span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a><span class="co">// #include &quot;../&lt;dep&gt;/cfg_&lt;dep&gt;.h&quot;</span></span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a><span class="co">// (1) user overrides are honored automatically (every #define below is guarded).</span></span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a><span class="co">// (2) propagation — parent-on =&gt; child-on (guarded so user values win).</span></span>
+<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a><span class="co">// #if D_CFG_IS_ON(D_CFG_&lt;AREA&gt;_PARENT)</span></span>
+<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a><span class="co">// #   ifndef D_CFG_&lt;AREA&gt;_CHILD</span></span>
+<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a><span class="co">// #     define D_CFG_&lt;AREA&gt;_CHILD 1</span></span>
+<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a><span class="co">// #   endif</span></span>
+<span id="cb5-29"><a href="#cb5-29" aria-hidden="true" tabindex="-1"></a><span class="co">// #endif</span></span>
+<span id="cb5-30"><a href="#cb5-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-31"><a href="#cb5-31" aria-hidden="true" tabindex="-1"></a><span class="co">// (3) defaults — the SINGLE canonical home for each knob.</span></span>
+<span id="cb5-32"><a href="#cb5-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-33"><a href="#cb5-33" aria-hidden="true" tabindex="-1"></a><span class="co">// D_CFG_&lt;AREA&gt;_&lt;KNOB&gt;</span></span>
+<span id="cb5-34"><a href="#cb5-34" aria-hidden="true" tabindex="-1"></a><span class="co">//   brief: &lt;what it gates, and what 0/1 mean&gt;.</span></span>
+<span id="cb5-35"><a href="#cb5-35" aria-hidden="true" tabindex="-1"></a><span class="pp">#ifndef D_CFG_&lt;AREA&gt;_&lt;KNOB&gt;</span></span>
+<span id="cb5-36"><a href="#cb5-36" aria-hidden="true" tabindex="-1"></a><span class="pp">#   if defined(D_CFG_&lt;AREA&gt;_ALL)          </span><span class="co">// optional aggregate fallback</span></span>
+<span id="cb5-37"><a href="#cb5-37" aria-hidden="true" tabindex="-1"></a><span class="pp">#       define D_CFG_</span><span class="op">&lt;</span><span class="pp">AREA</span><span class="op">&gt;</span><span class="pp">_</span><span class="op">&lt;</span><span class="pp">KNOB</span><span class="op">&gt;</span><span class="pp"> D_CFG_</span><span class="op">&lt;</span><span class="pp">AREA</span><span class="op">&gt;</span><span class="pp">_ALL</span></span>
+<span id="cb5-38"><a href="#cb5-38" aria-hidden="true" tabindex="-1"></a><span class="pp">#   else</span></span>
+<span id="cb5-39"><a href="#cb5-39" aria-hidden="true" tabindex="-1"></a><span class="pp">#       define D_CFG_</span><span class="op">&lt;</span><span class="pp">AREA</span><span class="op">&gt;</span><span class="pp">_</span><span class="op">&lt;</span><span class="pp">KNOB</span><span class="op">&gt;</span><span class="pp"> </span><span class="dv">0</span></span>
+<span id="cb5-40"><a href="#cb5-40" aria-hidden="true" tabindex="-1"></a><span class="pp">#   endif</span></span>
+<span id="cb5-41"><a href="#cb5-41" aria-hidden="true" tabindex="-1"></a><span class="pp">#endif</span></span>
+<span id="cb5-42"><a href="#cb5-42" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-43"><a href="#cb5-43" aria-hidden="true" tabindex="-1"></a><span class="co">// (4) validation — cheap; catches typos before they mis-gate anything.</span></span>
+<span id="cb5-44"><a href="#cb5-44" aria-hidden="true" tabindex="-1"></a><span class="pp">#if !D_CFG_IS_ON(D_CFG_&lt;AREA&gt;_&lt;KNOB&gt;) &amp;&amp; !D_CFG_IS_OFF(D_CFG_&lt;AREA&gt;_&lt;KNOB&gt;)</span></span>
+<span id="cb5-45"><a href="#cb5-45" aria-hidden="true" tabindex="-1"></a><span class="pp">#   error &quot;D_CFG_&lt;AREA&gt;_&lt;KNOB&gt; must be 0 or 1&quot;</span></span>
+<span id="cb5-46"><a href="#cb5-46" aria-hidden="true" tabindex="-1"></a><span class="pp">#endif</span></span>
+<span id="cb5-47"><a href="#cb5-47" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-48"><a href="#cb5-48" aria-hidden="true" tabindex="-1"></a><span class="co">// (5) derived / effective values consumed by the module (D_INTERNAL_*).</span></span>
+<span id="cb5-49"><a href="#cb5-49" aria-hidden="true" tabindex="-1"></a><span class="co">// D_INTERNAL_&lt;AREA&gt;_&lt;THING&gt;</span></span>
+<span id="cb5-50"><a href="#cb5-50" aria-hidden="true" tabindex="-1"></a><span class="co">//   brief: &lt;what the module reads; how it is computed&gt;.</span></span>
+<span id="cb5-51"><a href="#cb5-51" aria-hidden="true" tabindex="-1"></a><span class="pp">#if (D_CFG_TESTING == 1)</span></span>
+<span id="cb5-52"><a href="#cb5-52" aria-hidden="true" tabindex="-1"></a><span class="pp">#   define D_INTERNAL_</span><span class="op">&lt;</span><span class="pp">AREA</span><span class="op">&gt;</span><span class="pp">_</span><span class="op">&lt;</span><span class="pp">THING</span><span class="op">&gt;</span><span class="pp"> </span><span class="co">/* … */</span></span>
+<span id="cb5-53"><a href="#cb5-53" aria-hidden="true" tabindex="-1"></a><span class="pp">#else</span></span>
+<span id="cb5-54"><a href="#cb5-54" aria-hidden="true" tabindex="-1"></a><span class="pp">#   define D_INTERNAL_</span><span class="op">&lt;</span><span class="pp">AREA</span><span class="op">&gt;</span><span class="pp">_</span><span class="op">&lt;</span><span class="pp">THING</span><span class="op">&gt;</span><span class="pp"> </span><span class="co">/* … */</span></span>
+<span id="cb5-55"><a href="#cb5-55" aria-hidden="true" tabindex="-1"></a><span class="pp">#endif</span></span>
+<span id="cb5-56"><a href="#cb5-56" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-57"><a href="#cb5-57" aria-hidden="true" tabindex="-1"></a><span class="pp">#endif  </span><span class="co">// DJINTERP_CONFIG_&lt;PATH&gt;_H</span></span></code></pre></div>
+<h3 id="62-ordering-rules">6.2 Ordering rules</h3>
+<ul>
+<li><code>cfg_common.h</code> <strong>first</strong>, always.</li>
+<li>A config that influences a <strong>dependency</strong>: set the
+dependency's override <em>then</em> <code>#include</code> the
+dependency's <code>cfg_*.h</code>, so its cascade honors your
+value.</li>
+<li>Within a knob: <strong>propagation before defaults</strong>
+(propagation uses <code>#ifndef</code> so a user value still wins; the
+default then sees the value set and skips).</li>
+<li><strong>Cross-cutting</strong> deductions (module A flipping
+something in an unrelated module B) can't be ordered by demand-loading —
+put those in <code>dconfig.h</code>.</li>
+</ul>
+<h3 id="63-aggregates-d_cfg_area_all">6.3 Aggregates
+(<code>D_CFG_&lt;AREA&gt;_ALL</code>)</h3>
+<p>Don't force N child defines from an aggregate (you can't
+<code>#define</code> from a macro anyway). Instead make each child's
+<strong>default fall back to the aggregate</strong>, as in the
+skeleton's knob block: individual override &gt; aggregate &gt; hard
+default, composes cleanly, no central block.</p>
+<hr />
+<h2 id="7-wiring-a-module-to-its-config">7. Wiring a module to its
+config</h2>
+<ol type="1">
+<li>In the module header, <code>#include</code> its
+<code>cfg_&lt;module&gt;.h</code> (which pulls <code>cfg_common.h</code>
+transitively). Do this near the module's other includes.</li>
+<li>Read only resolved symbols (<code>D_CFG_*</code>,
+<code>D_INTERNAL_*</code>). Add no config logic.</li>
+<li>For global up-front resolution or a precompiled header, include
+<code>dconfig.h</code> once, early — otherwise rely on per-module
+demand-loading.</li>
+</ol>
+<p>Example (qualifiers): <code>djinterp.h</code> includes
+<code>cfg_qualifiers.h</code>, then defines <code>D_STATIC</code> /
+<code>D_INLINE</code> / <code>D_STATIC_INLINE</code> gated on
+<code>D_INTERNAL_CFG_*</code>; <code>djinterp.hpp</code> inherits
+<code>cfg_qualifiers.h</code> through <code>djinterp.h</code> and
+defines only the constexpr family.</p>
+<hr />
+<h2 id="8-testing--debug-configuration-cfg_testingh">8. Testing / debug
+configuration (<code>cfg_testing.h</code>)</h2>
+<ul>
+<li><code>cfg_common.h</code> normalizes <code>D_TESTING</code> into
+<strong><code>D_CFG_TESTING</code></strong> (the single flag every
+config reads) and, when it's <code>1</code>, auto-applies
+<code>cfg_testing.h</code>.</li>
+<li><code>cfg_testing.h</code> is the <strong>one visible home</strong>
+for "what differs in a test/debug build." Its knobs are
+<code>#ifndef</code>-guarded, so explicit user overrides still win:
+<strong>user overrides &gt; testing preset &gt; module
+defaults.</strong></li>
+<li>Trigger it by building with <code>-DD_TESTING=1</code>. To force it
+without <code>D_TESTING</code>, set <code>-DD_CFG_TESTING=1</code>; to
+couple it to unoptimized builds instead, define
+<code>D_CFG_TESTING</code> from <code>env.h</code>'s
+<code>D_ENV_BUILD_DEBUG</code> in <code>cfg_custom.h</code>. Suppress it
+entirely with <code>-DD_CFG_NO_TESTING_PRESET</code>.</li>
+<li>Add a subframework's testing overrides as a labelled, guarded block
+in <code>cfg_testing.h</code>; keep the per-module <em>defaults</em> in
+the module's <code>cfg_*.h</code>.</li>
+</ul>
+<hr />
+<h2 id="9-documentation--commenting-standards">9. Documentation &amp;
+commenting standards</h2>
+<p><strong>Every config file has a header comment</strong> that states,
+at minimum:</p>
+<ul>
+<li><strong>what it configures</strong> (one or two sentences),</li>
+<li><strong><code>targets:</code></strong> — the module header(s) it
+serves and the symbols they consume,</li>
+<li><strong><code>requires:</code></strong> — <code>cfg_common.h</code>
+plus any dependency configs,</li>
+<li>path and author.</li>
+</ul>
+<p><strong>Every symbol is commented</strong> in the two-line house
+format:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co">// D_CFG_&lt;AREA&gt;_&lt;KNOB&gt;</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="co">//   brief: &lt;what it gates; what 0 and 1 mean; any default rationale&gt;.</span></span></code></pre></div>
+<p>A family that one sentence describes shares one brief. Its head names
+every member, in one of the forms the tree uses, and the members are
+defined right below it:</p>
+<table>
+<thead>
+<tr class="header">
+<th>Head</th>
+<th>For</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>A / B</code></td>
+<td>two or three names</td>
+<td><code>// D_CFG_IS_ON(x) / D_CFG_IS_OFF(x)</code></td>
+</tr>
+<tr class="even">
+<td><code>A / _B / _C</code></td>
+<td>siblings; a name that starts with <code>_</code> is the first name's
+prefix plus it</td>
+<td><code>// D_INTERNAL_MEM_POISON / _POISON_ALLOC / _POISON_FREE</code></td>
+</tr>
+<tr class="odd">
+<td><code>A .. B</code></td>
+<td>a numbered run</td>
+<td><code>// D_CFG_DMACRO_INCLUDE_TUPLE_1 .. D_CFG_DMACRO_INCLUDE_TUPLE_16</code></td>
+</tr>
+<tr class="even">
+<td><code>PREFIX_*</code>, <code>PREFIX_&lt;X&gt;</code></td>
+<td>a whole family, by its pattern</td>
+<td><code>// D_CFG_DMACRO_VARIANT_*</code>,
+<code>// D_INTERNAL_TABLE_DEFAULT_&lt;CATEGORY&gt;</code></td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>Use <code>//</code> comments and an 80-column limit (matches the
+rest of the tree).</li>
+<li>Give each file a short table-of-contents block if it defines more
+than a handful of knobs.</li>
+<li><code>D_INTERNAL_*</code> values get a <code>brief:</code> too,
+noting how they're computed and who reads them.</li>
+</ul>
+<hr />
+<h2 id="10-checklists">10. Checklists</h2>
+<h3 id="create-a-new-cfg_moduleh">Create a new
+<code>cfg_&lt;module&gt;.h</code></h3>
+<ul class="task-list">
+<li><label><input type="checkbox" />Named
+<code>cfg_&lt;module&gt;.h</code>, placed at the config path mirroring
+the module.</label></li>
+<li><label><input type="checkbox" />Header comment with
+<code>targets:</code> and <code>requires:</code>.</label></li>
+<li><label><input type="checkbox" />Include guard
+<code>DJINTERP_CONFIG_&lt;PATH&gt;_H</code>, named after the file's path
+under <code>inc/djinterp/config/</code>
+(<code>c/memory/cfg_pool.h</code> has
+<code>DJINTERP_CONFIG_C_MEMORY_CFG_POOL_H</code>);
+<code>#include "…/cfg_common.h"</code> first.</label></li>
+<li><label><input type="checkbox" />Dependency configs included
+(overrides set <em>before</em> including them).</label></li>
+<li><label><input type="checkbox" />Every knob: single canonical
+default, <code>#ifndef</code>-guarded, commented.</label></li>
+<li><label><input type="checkbox" />Aggregates done as per-child
+fallbacks, not central force-blocks.</label></li>
+<li><label><input type="checkbox" />Validation <code>#error</code> for
+each boolean knob.</label></li>
+<li><label><input type="checkbox" /><code>D_INTERNAL_*</code> effective
+values computed here; commented.</label></li>
+<li><label><input type="checkbox" />Added to <code>dconfig.h</code>'s
+include list (dependency order).</label></li>
+</ul>
+<h3 id="add-a-knob-to-an-existing-config">Add a knob to an existing
+config</h3>
+<ul class="task-list">
+<li><label><input type="checkbox" />Lives in the right
+<code>cfg_*.h</code> (never in a module header).</label></li>
+<li><label><input
+type="checkbox" /><code>D_CFG_&lt;AREA&gt;_&lt;KNOB&gt;</code>, integer
+<code>0</code>/<code>1</code>, <code>#ifndef</code>-guarded
+default.</label></li>
+<li><label><input type="checkbox" />Commented (<code>brief:</code>),
+validated.</label></li>
+<li><label><input type="checkbox" />If it changes for tests, add the
+guarded override to <code>cfg_testing.h</code>.</label></li>
+</ul>
+<h3 id="wire--edit-a-module">Wire / edit a module</h3>
+<ul class="task-list">
+<li><label><input type="checkbox" />Module includes its
+<code>cfg_&lt;module&gt;.h</code>; no <code>D_CFG_</code> defaults in
+the module.</label></li>
+<li><label><input type="checkbox" />Module reads only
+<code>D_CFG_*</code> / <code>D_INTERNAL_*</code>.</label></li>
+<li><label><input type="checkbox" />Flags tested via
+<code>D_CFG_IS_ON</code> / <code>D_CFG_NORM</code>, not bare
+<code>== 1</code>.</label></li>
+</ul>
+<hr />
+<h2 id="11-gotchas">11. Gotchas</h2>
+<ul>
+<li><strong>You cannot <code>#define</code> from inside a macro
+expansion.</strong> Aggregates and propagation are written as explicit
+directive blocks (or generated offline); the variadic macros in
+<code>dmacro.h</code> can't emit config <code>#define</code>s.</li>
+<li><strong>Keep include guards clean</strong> — the guard macro must be
+the first thing in the file and <code>#endif</code> the last, or the
+compiler's multiple-include optimization won't skip re-reads. Don't
+over-fragment into hundreds of micro-files; group config per
+subframework.</li>
+<li><strong>Empty flags read as off.</strong> Test with
+<code>D_CFG_IS_ON</code> / <code>D_CFG_NORM</code>; never
+<code>#if D_CFG_FOO == 1</code> on a flag that could arrive empty.</li>
+<li><strong>Cross-cutting deductions need
+<code>dconfig.h</code>.</strong> Demand-loading resolves in include
+order; long-range "A flips B" rules only resolve deterministically when
+everything is loaded up front.</li>
+<li><strong>One canonical default per knob.</strong> If a default
+appears in two files, that's a bug waiting to drift — delete one and
+read the other.</li>
+</ul>
+<hr />
+<h2 id="12-fixed-width-integers-re_stds-switches">12. Fixed-width
+integers: re_std's switches</h2>
+<p>djinterp takes the fixed-width integer types, limits, constants and
+formats from re_std: <code>cstdint/dstdint.h</code> in C,
+<code>cstdint/cstdint.hpp</code> in C++, never
+<code>&lt;stdint.h&gt;</code>, <code>&lt;cstdint&gt;</code>,
+<code>&lt;inttypes.h&gt;</code> or <code>&lt;cinttypes&gt;</code>
+directly (the style guides' "Include Directives";
+<code>tools/check_stdint_includes.py</code> enforces it). re_std reads
+only its own <code>config.h</code>. djinterp's config carries its
+switches into re_std through <code>config/cfg_re_std.h</code>, which
+<code>cfg_common.h</code> includes.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Switch</th>
+<th>Values</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>RE_STD_CFG_STDINT_BACKEND</code></td>
+<td><code>RE_STD_CFG_STDINT_BACKEND_AUTO</code> (0, the default),
+<code>_PLATFORM</code> (1), <code>_OWN</code> (2)</td>
+<td>Which definitions <code>dstdint.h</code> gives: the platform's
+headers, completed where they fall short, or the header's own, from the
+compiler's predefined types. AUTO takes the platform's where they can
+serve; under ISO strict C++98 that is the header's own. Any other value
+is an <code>#error</code>, and so is <code>_PLATFORM</code> where the
+platform's <code>&lt;stdint.h&gt;</code> cannot serve. It replaces
+<code>D_CFG_STDINT_BACKEND</code>, which no longer exists: a build that
+pinned that sets this.</td>
+</tr>
+<tr class="even">
+<td><code>D_CFG_ENV_ISO_STRICT</code></td>
+<td>0 (default), 1</td>
+<td>ISO strict C++98: no <code>long long</code>, no variadic macros.
+<code>config/cfg_re_std.h</code> turns re_std's
+<code>RE_STD_CFG_ISO_STRICT</code> on with it.</td>
+</tr>
+<tr class="odd">
+<td><code>RE_STD_HAS_HEADER_INTTYPES</code></td>
+<td>0, 1</td>
+<td>The build's word on whether an <code>&lt;inttypes.h&gt;</code>
+exists. Only a build with a <code>&lt;stdint.h&gt;</code> of its own and
+no <code>&lt;inttypes.h&gt;</code> needs it, as 0: Clang's own
+<code>&lt;inttypes.h&gt;</code> wrapper makes the question unanswerable
+from inside a header.</td>
+</tr>
+<tr class="even">
+<td><code>RE_STD_POINTER_BITS</code></td>
+<td>16, 32, 64</td>
+<td>The pointer's width, where the compiler does not say.
+<code>D_ENV_ARCH_POINTER_BITS</code> (<code>env/env_arch.h</code>) is
+djinterp's; <code>dstdint.c</code> holds both to
+<code>sizeof(void*)</code>.</td>
+</tr>
+</tbody>
+</table>
+<p>Three things to know:</p>
+<ul>
+<li>The carry is <code>#ifndef</code>-guarded, so it holds only where
+djinterp's config is read before the first re_std header - through the
+framework root or <code>cfg_common.h</code>. djinterp's own files see to
+it: their re_std includes sit in a <code>// re_std</code> group after
+<code>// djinterp</code>. Where a translation unit reads re_std's config
+first anyway and djinterp's later, and the two disagree,
+<code>config/cfg_re_std.h</code> stops the build with an
+<code>#error</code> rather than let re_std run on another configuration
+than djinterp's. A build that must not depend on include order at all
+sets each <code>RE_STD_CFG_*</code> switch beside its
+<code>D_CFG_*</code> one - <code>RE_STD_CFG_ISO_STRICT=1</code> with
+<code>D_CFG_ENV_ISO_STRICT=1</code>, <code>RE_STD_CFG_TESTING=1</code>
+with <code>D_TESTING=1</code> - as the CI ladder does.</li>
+<li>Clang 20 and older, freestanding, on the platform backend, give
+<code>UINT8_C</code> and <code>UINT16_C</code> the wrong type (WG14 DR
+209, fixed in Clang 21); the own backend is the way out.</li>
+<li>MinGW with <code>__USE_MINGW_ANSI_STDIO=0</code> has no 8-bit scanf
+formats, by design: Microsoft's runtime would overrun the argument.</li>
+</ul>
+</body>
+</html>

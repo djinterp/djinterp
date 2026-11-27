@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Color</title>
+  <style>
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+</head>
+<body>
+<h1 id="color">Color</h1>
+<p>The color module's headers: what each promises, who uses what, and
+what stays fixed until the freeze of Friday 2026-12-11. The headers hold
+the full contracts; this is the map.</p>
+<h2 id="the-rule-until-the-freeze">The rule until the freeze</h2>
+<p>From the agreement of 2026-11-13 until 12-11:</p>
+<ul>
+<li><strong>Nothing named here changes in a way that breaks a
+caller</strong> without the agreement of those who use it (the table
+under "Who uses what").</li>
+<li><strong>Additions are allowed</strong>: a new function, a new model,
+a new conversion. No member is added to a model's struct, in C or C++,
+since that changes its layout.</li>
+<li><strong>Every change is announced</strong> with the delivery that
+makes it, to those who use what changed.</li>
+</ul>
+<h2 id="the-headers">The headers</h2>
+<table>
+<thead>
+<tr class="header">
+<th>Header</th>
+<th>What it is</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>c/util/color/color_common.h</code></td>
+<td>the C kernel's shared pieces: how its functions are emitted,
+<code>D_COLOR_EPSILON</code>, <code>d_color_fabsf</code></td>
+</tr>
+<tr class="even">
+<td><code>c/util/color/color_rgb.h</code>, <code>color_cmyk.h</code>,
+<code>color_hsv.h</code>, <code>color_hsl.h</code>,
+<code>color_lab.h</code>, <code>color_ycbcr.h</code></td>
+<td>one model each, in C: its struct, making, validating, clamping;
+<code>color_rgb.h</code> also has <code>rgba</code> and interpolation,
+and <code>color_lab.h</code> has CIE XYZ as well as L*a*b*</td>
+</tr>
+<tr class="odd">
+<td><code>c/util/color/color_convert.h</code></td>
+<td>conversions between the models, through RGB</td>
+</tr>
+<tr class="even">
+<td><code>c/util/color/color.h</code></td>
+<td>everything above, plus the operations across models: saturation,
+brightness and hue through HSL, and the CIEDE2000 difference</td>
+</tr>
+<tr class="odd">
+<td><code>cpp/util/color/color_common.hpp</code></td>
+<td><code>channel_t</code>, the model tags and
+<code>is_color_model</code></td>
+</tr>
+<tr class="even">
+<td><code>cpp/util/color/color_rgb.hpp</code>,
+<code>color_cmyk.hpp</code>, <code>color_hsv.hpp</code>,
+<code>color_hsl.hpp</code>, <code>color_ycbcr.hpp</code>,
+<code>color_cie_lab.hpp</code></td>
+<td>one model each, in C++, each deriving from its C struct</td>
+</tr>
+<tr class="odd">
+<td><code>cpp/util/color/color_convert.hpp</code></td>
+<td>every model, plus <code>color_cast</code>,
+<code>is_convertible_color</code> and, from C++20, the concepts
+<code>color_model_type</code> and
+<code>convertible_color_type</code></td>
+</tr>
+<tr class="even">
+<td><code>cpp/util/color/color.hpp</code></td>
+<td>the umbrella: <code>color_convert.hpp</code> and
+<code>c/util/color/color.h</code>, so every model, the facade and the C
+operations across models</td>
+</tr>
+</tbody>
+</table>
+<p><code>color.hpp</code> defines nothing of its own, so it can be
+included beside any header it gathers, before or after it. A unit that
+needs one model can include that model's header alone.</p>
+<p><strong>Levels.</strong> The C face needs C99. The C++ face needs
+C++14 (C++11 for <code>color_common.hpp</code>); below that its headers
+are empty rather than an error.</p>
+<p><strong>Linking.</strong> The C kernel's bodies are in the headers. A
+normal build links <code>src/djinterp/c/util/color/*.c</code>, which
+emit one out-of-line definition of each. Defined before inclusion,
+<code>D_COLOR_HEADER_ONLY</code> makes every function
+<code>static inline</code> instead, and needs no <code>.c</code>
+file.</p>
+<h2 id="what-each-promises">What each promises</h2>
+<h3 id="channels">Channels</h3>
+<ul>
+<li><strong>A channel is a <code>float</code></strong>, in C and in C++
+(<code>channel_t</code>). The setting that once offered another,
+<code>D_COLOR_CHANNEL_TYPE</code>, is retired: defined as anything but
+<code>float</code>, it stops the build with a message saying so.</li>
+<li>RGB channels run from 0 to 1. Linear RGB may leave that range;
+nothing clamps unless asked (<code>clamp</code>,
+<code>d_color_rgb_clamp</code>), and <code>is_valid</code> says whether
+every channel is inside it.</li>
+</ul>
+<h3 id="rgb-and-rgba"><code>rgb</code> and <code>rgba</code></h3>
+<ul>
+<li><code>rgb</code> is <code>r</code>, <code>g</code> and
+<code>b</code>; <code>rgba</code> adds <code>a</code>, straight (not
+premultiplied) alpha. Each derives from its C struct
+(<code>dj_color_rgb</code>, <code>dj_color_rgba</code>) and adds no
+state.</li>
+<li><strong>Constructors</strong>: from channels;
+<code>rgba(rgb, alpha)</code>; and from the C struct, implicitly, so a
+kernel's result becomes a model. A default <code>rgb</code> is black,
+and a default <code>rgba</code> is transparent black: every channel
+0.</li>
+<li><code>rgba::to_rgb()</code> drops alpha, without
+premultiplying.</li>
+<li><code>rgba</code> is a carrier, not a model: it has no model tag and
+takes no part in conversion.</li>
+<li><strong><code>==</code> and <code>!=</code></strong> compare every
+channel exactly, alpha included. Either side may be the C struct, at
+every level from C++14, and both work in a constant expression. Two
+different models don't compare.</li>
+</ul>
+<h3 id="interpolation">Interpolation</h3>
+<ul>
+<li><code>lerp(a, b, t)</code>, for two <code>rgb</code> or two
+<code>rgba</code>, is <code>a * (1 - t) + b * t</code> in each channel,
+alpha included. It returns <code>a</code> at <code>t = 0</code> and
+<code>b</code> at <code>t = 1</code>, and clamps nothing: a
+<code>t</code> outside 0 to 1 extrapolates, and a channel may leave its
+range. It keeps its overload's type.</li>
+<li>In C, <code>d_color_rgb_lerp</code> and
+<code>d_color_rgba_lerp</code> give the same values.</li>
+</ul>
+<h3 id="conversion">Conversion</h3>
+<ul>
+<li><code>color_cast&lt;To&gt;(from)</code> converts between any two
+models, through RGB. A type that isn't a model doesn't convert, except
+to itself.</li>
+<li><code>is_convertible_color&lt;From, To&gt;</code> says whether a
+pair converts. It is a
+<code>std::integral_constant&lt;bool, ...&gt;</code>, as
+<code>is_color_model</code> is.</li>
+</ul>
+<h3 id="the-ciede2000-difference">The CIEDE2000 difference</h3>
+<ul>
+<li><code>d_color_delta_e(lab1, lab2)</code> is CIEDE2000 with
+<code>k_L = k_C = k_H = 1</code>. It follows Sharma, Wu and Dalal's
+implementation notes (Color Research and Application 30(1), 2005) and
+reproduces their 34 test pairs to within 10⁻⁴, in either order.</li>
+<li>It is 0 for a color and itself, and the same either way round.</li>
+<li><code>d_color_rgb_delta_e</code> converts both RGB colors to L*a*b*
+first.</li>
+</ul>
+<h2 id="who-uses-what">Who uses what</h2>
+<p>On the tree of 2026-11-17, with <code>color.hpp</code> the umbrella
+(Friday 11-20):</p>
+<table>
+<thead>
+<tr class="header">
+<th>Where</th>
+<th>What it uses</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>the UI kit's <code>types.hpp</code>, and the front ends that include
+it (<code>ui/frontends/imgui.hpp</code>)</td>
+<td><code>rgb</code>, <code>rgba</code> (channel constructors,
+<code>rgba(rgb, alpha)</code>, <code>to_rgb()</code>, members
+<code>r</code>, <code>g</code>, <code>b</code>, <code>a</code>, the
+transparent default), <code>channel_t</code>, <code>lerp</code></td>
+</tr>
+<tr class="even">
+<td>fonts (<code>cpp/text/font.hpp</code>)</td>
+<td><code>rgb</code>, the default font color</td>
+</tr>
+<tr class="odd">
+<td>the PDF layer (<code>pdf_primitives.hpp</code>), and DTest's PDF
+reports through it</td>
+<td><code>rgb</code>, <code>rgba</code>, <code>cmyk</code>,
+<code>channel_t</code>, <code>is_color_model</code>,
+<code>color_cast</code>, through <code>color.hpp</code>;
+<code>pdf_color</code> takes any model, keeping <code>cmyk</code> as
+DeviceCMYK and converting the rest to RGB</td>
+</tr>
+<tr class="even">
+<td>CSS (<code>cpp/text/css/css.hpp</code>)</td>
+<td><code>rgb</code>, <code>rgba</code>, <code>channel_t</code>,
+<code>is_color_model</code>, <code>color_cast</code>, through
+<code>color.hpp</code>; <code>to_css_color</code> takes any model,
+through RGB</td>
+</tr>
+</tbody>
+</table>
+</body>
+</html>

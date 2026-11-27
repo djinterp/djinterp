@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>The djinterp command-line kit</title>
+  <style>
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+    /* CSS for syntax highlighting */
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+</head>
+<body>
+<h1 id="the-djinterp-command-line-kit">The djinterp command-line
+kit</h1>
+<blockquote>
+<p><strong>Where this file is, what its paths mean, and what has changed
+(2026-11-09).</strong> This is the kit's README as it stood before the
+restructure of 2026-11-03, which deleted it with <code>parse/cli/</code>
+(afb60e61); it is restored from that commit's parent, here, beside the
+kit's <code>GRAMMAR.html</code> (ruling rs c). It is kept as written but
+for what the kit's rulings of 11-04 added, each marked <em>(added
+11-04)</em>; read its paths through this table.</p>
+<table>
+<thead>
+<tr class="header">
+<th>the README says</th>
+<th>the tree has</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>parse/cli/</code>, <code>c/</code>, the kit</td>
+<td><code>inc/djinterp/tools/cli/c/</code> for C,
+<code>inc/djinterp/tools/cli/</code> for the C++ face</td>
+</tr>
+<tr class="even">
+<td><code>arg_parser/</code></td>
+<td><code>inc/djinterp/c/modules/parse/cli/arg_parser/</code>, and
+<code>cpp/modules/parse/cli/arg_parser/</code></td>
+</tr>
+<tr class="odd">
+<td><code>../../config/parse/cli/cfg_cli.h</code>,
+<code>config/parse/cli/cfg_cli.h</code></td>
+<td><code>inc/djinterp/config/tools/cli/cfg_cli.h</code></td>
+</tr>
+<tr class="even">
+<td><code>../../env/parse/cli/env_cli.h</code></td>
+<td><code>inc/djinterp/env/tools/cli/env_cli.h</code></td>
+</tr>
+<tr class="odd">
+<td><code>src/djinterp/parse/cli/c/cli_system.c</code></td>
+<td><code>src/djinterp/tools/cli/c/cli_system.c</code></td>
+</tr>
+<tr class="even">
+<td><code>#include "djinterp/parse/cli/c/cli.h"</code>,
+<code>".../cli.hpp"</code></td>
+<td><code>&lt;djinterp/tools/cli/c/cli.h&gt;</code>,
+<code>&lt;djinterp/tools/cli/cli.hpp&gt;</code></td>
+</tr>
+<tr class="odd">
+<td><code>build/cmake/djinterp/parse/cli/DjinterpCli.cmake</code>,
+<code>DjinterpCliSources.cmake</code></td>
+<td><code>build/cmake/config/djinterp/tools/cli/</code></td>
+</tr>
+<tr class="even">
+<td><code>tests/djinterp/parse/cli/</code></td>
+<td><code>tests/djinterp/tools/cli/</code></td>
+</tr>
+<tr class="odd">
+<td><code>build/cmake/config/testing/djinterp/parse/cli/cli/</code></td>
+<td><code>build/cmake/config/testing/djinterp/tools/cli/</code></td>
+</tr>
+</tbody>
+</table>
+</blockquote>
+<p><code>parse/cli/</code> is what every djinterp program shares on its
+command line: the grammar in <a href="GRAMMAR.html">GRAMMAR.html</a>,
+installed over the argument parser (<code>arg_parser/</code>) so that a
+program declares only its own commands. A program made with the kit has,
+without writing them, <code>-h</code>/<code>--help</code>,
+<code>--version</code>, <code>-q</code>, <code>-v</code>,
+<code>--color</code>, the <code>help</code> and <code>completion</code>
+commands, help laid out as GNU programs lay it out, failures in the GNU
+shape on standard error, the grammar's exit statuses, and - for a
+command that is a window - a module loaded only when that command
+runs.</p>
+<p>The kit is C99 (<code>c/</code>, the <code>d_cli_</code> library),
+with a C++ face beside it (<code>cli_program.hpp</code>,
+<code>cli_io.hpp</code>, <code>cli_plugin.hpp</code>) that adds no state
+of its own: a <code>kit::program</code> <em>is</em> the parser and holds
+the kit's C record. <em>(added 11-27)</em> The class is
+<code>djinterp::cli::program</code>, and the face has two headers more,
+<code>cli_edit.hpp</code> and <code>cli_operand.hpp</code>.</p>
+<hr />
+<h2 id="files">Files</h2>
+<table>
+<thead>
+<tr class="header">
+<th>file</th>
+<th>what it holds</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>c/cli_program.h</code></td>
+<td>the program: making one, its commands and their work, the run and
+its halves, the reports</td>
+</tr>
+<tr class="even">
+<td><code>c/cli_format.h</code></td>
+<td>help's layout, as the parser's formatter</td>
+</tr>
+<tr class="odd">
+<td><code>c/cli_help.h</code></td>
+<td><em>(added 11-23)</em> the program's description as JSON,
+<code>help --format=json</code> (HELP_JSON.html), and the small writer it
+is written with, which a program's hook adds its own members with</td>
+</tr>
+<tr class="even">
+<td><code>c/cli_io.h</code></td>
+<td>the standard streams, terminals, colour, and files read and written
+whole</td>
+</tr>
+<tr class="odd">
+<td><code>c/cli_plugin.h</code></td>
+<td>the plugin interface, finding and loading a command's module, both
+sides of a plugin</td>
+</tr>
+<tr class="even">
+<td><code>c/cli_settings.h</code></td>
+<td>the run's settings on the knob-and-option pattern: the kit's own,
+the user's file, the environment, those the command line gives
+<em>(added 11-13)</em>. <em>(added 11-20)</em> What the file and the
+environment could not set is held, and said once the parse ends, as
+<code>cli.unknown_settings</code> and <code>cli.shared_refusals</code>
+say; a variable set empty is taken as not set. <em>(added 11-27)</em>
+The file's sections, for a program that writes it
+(<code>d_cli_settings_next_header</code>,
+<code>d_cli_settings_section_reads</code>); a privileged run's refusals;
+<code>cli.unknown_djin</code></td>
+</tr>
+<tr class="odd">
+<td><code>c/cli_edit.h</code></td>
+<td><em>(added 11-27)</em> a command that changes a file: its operand,
+<code>-o</code>, <code>-n</code> and <code>-i</code>, and the result
+written where the program's rule sends it</td>
+</tr>
+<tr class="even">
+<td><code>c/cli_operand.h</code></td>
+<td><em>(added 11-27)</em> operands that name something other than a
+file, by a prefix (<code>example:uart_cr</code>)</td>
+</tr>
+<tr class="odd">
+<td><code>c/cli.h</code></td>
+<td>every C header of the kit, and the parser's</td>
+</tr>
+<tr class="even">
+<td><code>cli_program.hpp</code>, <code>cli_io.hpp</code>,
+<code>cli_plugin.hpp</code></td>
+<td>the C++ face of each; <em>(added 11-27)</em> and
+<code>cli_edit.hpp</code>, <code>cli_operand.hpp</code></td>
+</tr>
+<tr class="odd">
+<td><code>cli.hpp</code></td>
+<td>every C++ header of the kit, and the parser's face</td>
+</tr>
+<tr class="even">
+<td><code>../../config/parse/cli/cfg_cli.h</code></td>
+<td>the kit's knobs</td>
+</tr>
+<tr class="odd">
+<td><code>../../env/parse/cli/env_cli.h</code></td>
+<td>what the platform has: consoles, modules, the program's own file;
+<em>(added 11-27)</em> the search path's separators, and how a run is
+asked whether it has privileges its caller lacks</td>
+</tr>
+<tr class="even">
+<td><code>src/djinterp/parse/cli/c/cli_system.c</code></td>
+<td>everything the kit asks of the system; the only source that includes
+a system header</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="a-program-in-c">A program in C</h2>
+<div class="sourceCode" id="cb1"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;stdbool.h&gt;</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&quot;djinterp/parse/cli/c/cli.h&quot;</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="co">// `hello say NAME`: the command&#39;s work, given the program and the command</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="dt">static</span> <span class="dt">int</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>say<span class="op">(</span><span class="kw">struct</span> d_cli_program<span class="op">*</span> _program<span class="op">,</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    <span class="kw">struct</span> d_arg_command<span class="op">*</span> _command<span class="op">,</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    <span class="dt">void</span><span class="op">*</span>                 _context<span class="op">)</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    <span class="dt">size_t</span>                          count <span class="op">=</span> <span class="dv">0</span><span class="bu">u</span><span class="op">;</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    <span class="dt">const</span> <span class="kw">struct</span> d_pack_text<span class="op">*</span> <span class="dt">const</span> name  <span class="op">=</span> d_arg_option_values<span class="op">(</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>        d_arg_command_option<span class="op">(</span>_command<span class="op">,</span> <span class="st">&quot;NAME&quot;</span><span class="op">),</span> <span class="op">&amp;</span>count<span class="op">);</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>    <span class="op">(</span><span class="dt">void</span><span class="op">)</span>_context<span class="op">;</span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>    printf<span class="op">(</span><span class="st">&quot;hello </span><span class="sc">%.*s\n</span><span class="st">&quot;</span><span class="op">,</span> <span class="op">(</span><span class="dt">int</span><span class="op">)</span>name<span class="op">[</span><span class="dv">0</span><span class="op">].</span>length<span class="op">,</span> name<span class="op">[</span><span class="dv">0</span><span class="op">].</span>data<span class="op">);</span></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>    d_cli_note<span class="op">(</span>_program<span class="op">,</span> <span class="dv">1</span><span class="op">,</span> <span class="st">&quot;said hello&quot;</span><span class="op">);</span>      <span class="co">// shown at -v</span></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> D_CLI_EXIT_OK<span class="op">;</span></span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span></span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>main<span class="op">(</span><span class="dt">int</span> argc<span class="op">,</span> <span class="dt">char</span><span class="op">**</span> argv<span class="op">)</span></span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>    <span class="kw">struct</span> d_arg_parser  parser<span class="op">;</span></span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>    <span class="kw">struct</span> d_cli_program program<span class="op">;</span></span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>    <span class="co">// the kit first: the rule that an option given twice takes its last</span></span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>    <span class="co">// value is a default, and reaches only what is defined after it. Any</span></span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a>    <span class="co">// of the making that fails is kept, and the run says it</span></span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a>    <span class="op">(</span><span class="dt">void</span><span class="op">)</span>d_arg_parser_init<span class="op">(&amp;</span>parser<span class="op">,</span> <span class="st">&quot;say hello&quot;</span><span class="op">,</span> <span class="st">&quot;hello&quot;</span><span class="op">);</span></span>
+<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a>    <span class="op">(</span><span class="dt">void</span><span class="op">)</span>d_cli_program_init<span class="op">(&amp;</span>program<span class="op">,</span> <span class="op">&amp;</span>parser<span class="op">,</span> <span class="st">&quot;hello&quot;</span><span class="op">,</span> <span class="st">&quot;1.0&quot;</span><span class="op">,</span></span>
+<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a>                             D_CLI_PROGRAM_COMMANDS<span class="op">);</span></span>
+<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a>    <span class="kw">struct</span> d_arg_command<span class="op">*</span> <span class="dt">const</span> command <span class="op">=</span> d_cli_program_add_command<span class="op">(</span></span>
+<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a>        <span class="op">&amp;</span>program<span class="op">,</span> NULL<span class="op">,</span> <span class="st">&quot;say&quot;</span><span class="op">,</span> <span class="st">&quot;say hello to NAME&quot;</span><span class="op">,</span> say<span class="op">,</span> NULL<span class="op">,</span> NULL<span class="op">);</span></span>
+<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a>    <span class="kw">struct</span> d_arg_option<span class="op">*</span> <span class="dt">const</span>  name    <span class="op">=</span> <span class="op">(</span>command <span class="op">!=</span> NULL<span class="op">)</span></span>
+<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a>        <span class="op">?</span> d_arg_command_add_option<span class="op">(</span>command<span class="op">,</span> <span class="st">&quot;NAME&quot;</span><span class="op">,</span> <span class="st">&quot;who to greet&quot;</span><span class="op">)</span></span>
+<span id="cb1-39"><a href="#cb1-39" aria-hidden="true" tabindex="-1"></a>        <span class="op">:</span> NULL<span class="op">;</span></span>
+<span id="cb1-40"><a href="#cb1-40" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-41"><a href="#cb1-41" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="op">(</span>name <span class="op">!=</span> NULL<span class="op">)</span></span>
+<span id="cb1-42"><a href="#cb1-42" aria-hidden="true" tabindex="-1"></a>    <span class="op">{</span></span>
+<span id="cb1-43"><a href="#cb1-43" aria-hidden="true" tabindex="-1"></a>        d_arg_option_set_required<span class="op">(</span>name<span class="op">,</span> <span class="kw">true</span><span class="op">);</span></span>
+<span id="cb1-44"><a href="#cb1-44" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb1-45"><a href="#cb1-45" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-46"><a href="#cb1-46" aria-hidden="true" tabindex="-1"></a>    <span class="dt">const</span> <span class="dt">int</span> status <span class="op">=</span> d_cli_program_run<span class="op">(&amp;</span>program<span class="op">,</span> argc<span class="op">,</span></span>
+<span id="cb1-47"><a href="#cb1-47" aria-hidden="true" tabindex="-1"></a>                                         <span class="op">(</span><span class="dt">const</span> <span class="dt">char</span><span class="op">*</span> <span class="dt">const</span><span class="op">*)</span>argv<span class="op">);</span></span>
+<span id="cb1-48"><a href="#cb1-48" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-49"><a href="#cb1-49" aria-hidden="true" tabindex="-1"></a>    d_cli_program_release<span class="op">(&amp;</span>program<span class="op">);</span></span>
+<span id="cb1-50"><a href="#cb1-50" aria-hidden="true" tabindex="-1"></a>    d_arg_parser_release<span class="op">(&amp;</span>parser<span class="op">);</span></span>
+<span id="cb1-51"><a href="#cb1-51" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-52"><a href="#cb1-52" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> status<span class="op">;</span></span>
+<span id="cb1-53"><a href="#cb1-53" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p><code>d_cli_program_run</code> is the whole of <code>main</code>: the
+parse; the ending a parse calls for - help, a version or a completion
+script to standard output and 0, a failure to standard error and 2 - and
+otherwise the work of the command the arguments reached, whose status
+the program exits with. A program with something to do between the two
+calls <code>d_cli_program_parse</code>, which returns <code>true</code>
+when the run is over, and then <code>d_cli_program_dispatch</code>.</p>
+<p><code>main</code> checks nothing it makes. A definition that fails -
+the parser's, or the kit's, for want of memory or a name used twice - is
+kept, by the parser or in the program's <code>status</code>, and the run
+ends in trouble and says why, <code>hello: error: out of memory</code>,
+rather than run a program short of a command.</p>
+<p>A program of one command gives the root work of its own with
+<code>d_cli_program_set_main</code>, and leaves
+<code>D_CLI_PROGRAM_COMMANDS</code> out.</p>
+<hr />
+<h2 id="a-program-in-c-1">A program in C++</h2>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;string&gt;</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&quot;djinterp/parse/cli/cli.hpp&quot;</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="kw">namespace</span> kit <span class="op">=</span> djinterp<span class="op">::</span>parse<span class="op">::</span>cli<span class="op">;</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>main<span class="op">(</span><span class="dt">int</span> argc<span class="op">,</span> <span class="dt">char</span><span class="op">**</span> argv<span class="op">)</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>    kit<span class="op">::</span>program program<span class="op">(</span><span class="st">&quot;hello&quot;</span><span class="op">,</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>                         <span class="st">&quot;1.0&quot;</span><span class="op">,</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>                         <span class="st">&quot;say hello&quot;</span><span class="op">,</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>                         kit<span class="op">::</span>program_flags<span class="op">::</span>commands<span class="op">);</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>    <span class="bu">std::</span>string  name<span class="op">;</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>    kit<span class="op">::</span>command say <span class="op">=</span> program<span class="op">.</span>add_command<span class="op">(</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;say&quot;</span><span class="op">,</span></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;say hello to NAME&quot;</span><span class="op">,</span></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>        <span class="op">[&amp;</span>name<span class="op">](</span>kit<span class="op">::</span>program<span class="op">&amp;</span> _program<span class="op">,</span> kit<span class="op">::</span>command<span class="op">)</span></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>        <span class="op">{</span></span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>            <span class="op">(</span><span class="dt">void</span><span class="op">)</span>kit<span class="op">::</span>write_file<span class="op">(</span><span class="st">&quot;-&quot;</span><span class="op">,</span> <span class="st">&quot;hello &quot;</span> <span class="op">+</span> name <span class="op">+</span> <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">);</span></span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>            _program<span class="op">.</span>note<span class="op">(</span><span class="dv">1</span><span class="op">,</span> <span class="st">&quot;said hello&quot;</span><span class="op">);</span></span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> kit<span class="op">::</span>exit_status<span class="op">::</span>ok<span class="op">;</span></span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>        <span class="op">});</span></span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>    say<span class="op">.</span>add_option<span class="op">(</span><span class="st">&quot;NAME&quot;</span><span class="op">,</span> name<span class="op">,</span> <span class="st">&quot;who to greet&quot;</span><span class="op">).</span>required<span class="op">();</span></span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> program<span class="op">.</span>run<span class="op">(</span>argc<span class="op">,</span> argv<span class="op">);</span></span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>A command's work is any function object - a function, a functor, a
+lambda -- called as <code>work(program, command)</code>, returning an
+<code>int</code> or an <code>exit_status</code>. The program keeps a
+copy and frees it with itself. The work runs behind the face's guard: an
+exception it lets out is said as the program's error - its
+<code>what()</code>, or <code>out of memory</code> - and the run is
+trouble, 2.</p>
+<p>Every definition CLI11's <code>App</code> makes is made on a
+<code>kit::program</code> as on any parser, since the program is
+one.</p>
+<hr />
+<h2 id="what-a-commands-work-says">What a command's work says</h2>
+<table>
+<thead>
+<tr class="header">
+<th>call</th>
+<th>writes</th>
+<th>returns</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>d_cli_report(program, D_CLI_SEVERITY_ERROR, ...)</code></td>
+<td><code>PROGRAM: error: MESSAGE</code></td>
+<td>-</td>
+</tr>
+<tr class="even">
+<td><code>d_cli_report_at(program, severity, file, line, column, ...)</code></td>
+<td><code>FILE:LINE:COLUMN: warning: MESSAGE</code></td>
+<td>-</td>
+</tr>
+<tr class="odd">
+<td><code>d_cli_note(program, level, ...)</code></td>
+<td><code>PROGRAM: note: MESSAGE</code>, at <code>-v</code> for level 1,
+<code>-vv</code> for 2</td>
+<td>-</td>
+</tr>
+<tr class="even">
+<td><code>d_cli_usage_error(program, command, ...)</code></td>
+<td><code>PROGRAM: error: COMMAND: MESSAGE</code> and
+<code>Try 'PROGRAM COMMAND --help' ...</code></td>
+<td>2</td>
+</tr>
+<tr class="odd">
+<td><code>d_cli_file_error(program, "read", path, errno)</code></td>
+<td><code>PROGRAM: error: cannot read 'PATH': REASON</code></td>
+<td>2</td>
+</tr>
+<tr class="even">
+<td><code>d_cli_output_error(program, &amp;watch)</code> <em>(added
+11-18)</em></td>
+<td><code>PROGRAM: error: cannot write standard output: REASON</code></td>
+<td>2</td>
+</tr>
+</tbody>
+</table>
+<p>A message is printf's format, starting in lower case, with no full
+stop. <code>-q</code> leaves only errors. Each report is composed whole
+and written in one write; one there is no memory to compose is composed
+in a room of its own on the stack, and cut there if it must be, so that
+the want of memory shortens a diagnostic and never loses it. The C++
+face has the same calls on the program, each with the message given
+whole: a <code>%</code> in it is written as it is.</p>
+<p>Results go to standard output, everything said about them to standard
+error. Help, a version or a script the output refuses - a full disk - is
+trouble, said:
+<code>hello: error: cannot write standard output: No space left on device</code>.
+<em>(added 11-18)</em> A command's own results are said the same way
+when it writes them through
+<code>d_cli_program_watched(program, &amp;watch)</code>, a sink over the
+program's output that keeps the system's reason for the first write
+refused, and ends with
+<code>return d_cli_output_error(program, &amp;watch);</code> when a
+write fails. <code>d_cli_write_file</code> writes a file whole or not at
+all - <code>-</code> is standard output - and through a symbolic link to
+the file it leads to, the link kept; a link it cannot follow, for any
+reason but that it leads nowhere, fails the write rather than be
+replaced. <code>d_cli_read_file</code> reads a file whole -
+<code>-</code> is standard input.</p>
+<p><strong>Settings on the command line</strong> <em>(added 11-18,
+revised 11-23)</em>. The parser offers the kit each long option it does
+not know, where it reads it, through its setting hook
+(<code>d_arg_parser_set_setting_hook</code>); the kit takes those shaped
+as a setting, and leaves the rest to the parser (GRAMMAR.html, R26). So a
+response file's settings are taken as if typed, an abbreviated option
+keeps its value, and a plugin command's arguments are its module's. A
+program that sets a hook of its own before the run keeps it, and can
+hand an argument on to the kit's, <code>d_cli_settings_hook</code>.</p>
+<hr />
+<h2 id="a-command-that-is-a-window">A command that is a window</h2>
+<p>The program declares the command, and nothing of the window:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>program<span class="op">.</span>add_plugin<span class="op">(</span><span class="st">&quot;gui&quot;</span><span class="op">,</span> <span class="st">&quot;open the window&quot;</span><span class="op">);</span></span></code></pre></div>
+<p><code>hello gui ARGUMENT...</code> then finds <code>hello-gui</code>
+with the platform's suffix for a module - along
+<code>HELLO_PLUGIN_PATH</code>, then beside the program, then in
+<code>../lib/hello/</code> from it - loads it, checks that it is
+<code>hello</code>'s at <code>1.0</code>, and runs it with every
+argument after <code>gui</code>. A module not there, or not this
+program's, is said, with where it was looked for or why it was refused,
+and the run is 2. A module loaded stays loaded until the process
+ends.</p>
+<p>The module is a program of its own, made from the host that runs it,
+so that <code>hello gui --help</code> is the window's help and
+<code>hello -v gui</code> is verbose in the window too:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&quot;djinterp/parse/cli/cli.hpp&quot;</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="kw">namespace</span> kit <span class="op">=</span> djinterp<span class="op">::</span>parse<span class="op">::</span>cli<span class="op">;</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="at">static</span> <span class="dt">int</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>run_window<span class="op">(</span><span class="at">const</span> d_cli_plugin_host<span class="op">*</span> _host<span class="op">,</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>           <span class="dt">int</span>                      _argc<span class="op">,</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>           <span class="at">const</span> <span class="dt">char</span><span class="op">*</span> <span class="at">const</span><span class="op">*</span>       _argv<span class="op">)</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>    kit<span class="op">::</span>program window<span class="op">(*</span>_host<span class="op">,</span> <span class="st">&quot;open the window&quot;</span><span class="op">);</span></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>    window<span class="op">.</span>set_main<span class="op">([](</span>kit<span class="op">::</span>program<span class="op">&amp;,</span> kit<span class="op">::</span>command<span class="op">)</span></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>                    <span class="op">{</span></span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>                        <span class="co">// the window&#39;s own loop</span></span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>                        <span class="cf">return</span> kit<span class="op">::</span>exit_status<span class="op">::</span>ok<span class="op">;</span></span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>                    <span class="op">});</span></span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> window<span class="op">.</span>run<span class="op">(</span>_argc<span class="op">,</span> _argv<span class="op">);</span></span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a>D_CLI_PLUGIN<span class="op">(</span><span class="st">&quot;hello&quot;</span><span class="op">,</span> <span class="st">&quot;1.0&quot;</span><span class="op">,</span> <span class="st">&quot;gui&quot;</span><span class="op">,</span> <span class="st">&quot;open the window&quot;</span><span class="op">,</span> run_window<span class="op">)</span></span></code></pre></div>
+<p>A module and its program meet at two C records and one function
+(<code>cli_plugin.h</code>): nothing else crosses, so a module built
+with another toolchain's runtime still runs. Its run function must not
+let an exception out; running a <code>kit::program</code>, whose work is
+guarded, is the usual way to be sure.</p>
+<hr />
+<h2 id="building">Building</h2>
+<p>With CMake, include the kit's module; it makes
+<code>djinterp::arg_parser</code> and <code>djinterp::cli</code>, static
+and position-independent, and the function that makes a module:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode cmake"><code class="sourceCode cmake"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">include</span>(&lt;djinterp root&gt;/build/cmake/djinterp/parse/cli/DjinterpCli.cmake)</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="kw">add_executable</span>(<span class="bn">hello</span> main.cpp)</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="kw">target_link_libraries</span>(<span class="bn">hello</span> <span class="ot">PRIVATE</span> <span class="bn">djinterp::cli</span>)</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="fu">d_cli_add_plugin</span>(hello-gui SOURCES window.cpp)</span></code></pre></div>
+<p><code>d_cli_add_plugin</code> makes a <code>MODULE</code> library
+with no <code>lib</code> prefix, linking the kit, whose one exported
+symbol is its entry point. Place it as the program looks for it.</p>
+<p>What a module holds is the build's choice,
+<code>DJINTERP_CLI_LINKAGE</code> <em>(added 11-04: cli-taken 13)</em>:
+<code>SELF_CONTAINED</code>, the default, links the kit and the core
+into each module, so a module needs nothing beside it;
+<code>SHARED_CORE</code> builds the core as a shared library the program
+and its modules share, each module then holding only its own code. Under
+cl the kit's libraries carry <code>/Zc:preprocessor</code>, which
+djinterp's headers need, to everything that links them (cli b).</p>
+<p>Without CMake, compile <code>DJINTERP_ARG_PARSER_SOURCES</code> and
+<code>DJINTERP_CLI_SOURCES</code> - listed in
+<code>build/cmake/djinterp/parse/cli/DjinterpCliSources.cmake</code> -
+as C99, with <code>inc/</code> on the include path, and link the dynamic
+loader where the platform keeps it apart (<code>-ldl</code> on older
+Linux).</p>
+<hr />
+<h2 id="knobs">Knobs</h2>
+<p><code>config/parse/cli/cfg_cli.h</code>; each is
+<code>#ifndef</code>-guarded, so <code>-D</code> wins. A feature knob
+removes code, never a structure's member, so units built with different
+settings still agree on every layout.</p>
+<table>
+<thead>
+<tr class="header">
+<th>knob</th>
+<th>default</th>
+<th>what it does</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>D_CFG_CLI_ALL</code></td>
+<td>unset</td>
+<td>the default of every feature knob without a value of its own</td>
+</tr>
+<tr class="even">
+<td><code>D_CFG_CLI_PLUGINS</code></td>
+<td>1</td>
+<td>the plugin loader, where the platform has modules; without it a
+plugin command says so and exits 2</td>
+</tr>
+<tr class="odd">
+<td><code>D_CFG_CLI_COLOUR</code></td>
+<td>1</td>
+<td>colour on a terminal, as <code>--color</code>, <code>NO_COLOR</code>
+and <code>TERM</code> allow</td>
+</tr>
+<tr class="even">
+<td><code>D_CFG_CLI_FORMATTER</code></td>
+<td>1</td>
+<td>help in the GNU layout; without it, the parser's own</td>
+</tr>
+<tr class="odd">
+<td><code>D_CFG_CLI_CONSOLE_WIDE</code></td>
+<td>1</td>
+<td>a Windows console written through <code>WriteConsoleW</code></td>
+</tr>
+<tr class="even">
+<td><code>D_CFG_CLI_HELP_WIDTH</code></td>
+<td>80</td>
+<td>the columns help takes off a terminal</td>
+</tr>
+<tr class="odd">
+<td><code>D_CFG_CLI_HELP_WIDTH_MAX</code></td>
+<td>100</td>
+<td>the most columns help takes on a terminal</td>
+</tr>
+<tr class="even">
+<td><code>D_CFG_CLI_HELP_COLUMN_MAX</code></td>
+<td>30</td>
+<td>the furthest right a description starts</td>
+</tr>
+<tr class="odd">
+<td><code>D_CFG_CLI_PLUGIN_SEARCH</code></td>
+<td><code>"$ORIGIN:$ORIGIN/../lib/$PROGRAM"</code> (<code>;</code> on
+Windows)</td>
+<td>the build's directories for a module, after those a run is given and
+<code>PROGRAM_PLUGIN_PATH</code>'s; <code>$ORIGIN</code> is the
+program's directory and <code>$PROGRAM</code> its name <em>(added 11-04:
+cli-taken 14)</em></td>
+</tr>
+<tr class="even">
+<td><code>D_CFG_CLI_PLUGIN_VARIABLE</code></td>
+<td>1</td>
+<td>whether <code>PROGRAM_PLUGIN_PATH</code> is read; 0 for a program
+that must not let its environment choose the code it loads <em>(added
+11-04: cli-taken 14)</em>. <em>(added 11-20)</em> At 0,
+<code>plugin_path</code> and <code>cli.plugin_search</code> refuse the
+user's file, the environment and the command line, and only the program
+and an override bind them</td>
+</tr>
+<tr class="odd">
+<td><code>D_CFG_CLI_PLUGIN_STRICT_VERSION</code></td>
+<td>1</td>
+<td>a module of another program version refused; 0 loads it with a
+warning naming both versions; a program sets it per run with
+<code>d_cli_program_set_plugin_versions</code>, and a module of another
+interface version is always refused <em>(added 11-04: cli-taken
+15)</em></td>
+</tr>
+<tr class="even">
+<td><code>D_CFG_CLI_UNKNOWN_SETTINGS</code></td>
+<td><code>D_CLI_UNKNOWN_SETTINGS_TYPOS</code></td>
+<td><em>(added 11-20)</em> the default of
+<code>cli.unknown_settings</code>: what is said of a line of the user's
+file - which every program shares - that names no setting here.
+<code>none</code>; <code>typos</code>, a warning for a near miss and for
+a djin's setting that djin lacks, nothing for a djin the program does
+not register; <code>all</code>, a warning for each; <code>error</code>,
+an error for each, and exit 2</td>
+</tr>
+<tr class="odd">
+<td><code>D_CFG_CLI_SHARED_REFUSALS</code></td>
+<td><code>D_CLI_SHARED_REFUSALS_VERBOSE</code></td>
+<td><em>(added 11-20)</em> the default of
+<code>cli.shared_refusals</code>: what is said when the user's file or
+<code>DJINTERP_</code> sets a setting that refuses that source.
+<code>none</code>; <code>verbose</code>, a note at <code>-v</code>;
+<code>warn</code>; <code>error</code>, and exit 2. The program's own
+prefix is always warned of, and the command line refused</td>
+</tr>
+<tr class="even">
+<td><code>D_CFG_CLI_UNKNOWN_DJIN</code></td>
+<td><code>D_CLI_UNKNOWN_DJIN_REASON</code></td>
+<td><em>(added 11-27)</em> the default of <code>cli.unknown_djin</code>:
+how a name for a djin the program does not register is told from one it
+should know. <code>reason</code>, the registry's own reason;
+<code>lookup</code>, the kit's lookup of the name's first part. They
+differ only for a first part the root takes as a scope</td>
+</tr>
+<tr class="odd">
+<td><code>D_CFG_CLI_SETTINGS_SECTIONS</code></td>
+<td>1</td>
+<td><em>(added 11-27)</em> the default of
+<code>cli.settings_sections</code>: the user's file read in sections,
+<code>[PROGRAM]</code> the lines for one program and <code>[*]</code>
+every program's again (GRAMMAR.html, section 6); 0 reads it as one part.
+The setting refuses the file and the command line</td>
+</tr>
+<tr class="even">
+<td><code>D_CFG_CLI_PRIVILEGED_REFUSE</code></td>
+<td>1</td>
+<td><em>(added 11-27)</em> the default of
+<code>cli.privileged_refuse</code>: in a run with privileges its caller
+lacks, <code>plugin_path</code> and <code>cli.plugin_search</code>
+refuse the caller's sources, whatever
+<code>D_CFG_CLI_PLUGIN_VARIABLE</code> says; 0, they take them, with a
+warning. An ordinary run is never changed</td>
+</tr>
+<tr class="odd">
+<td><code>D_CFG_CLI_PRIVILEGED_OPTION</code></td>
+<td>1</td>
+<td><em>(added 11-27)</em> whether <code>cli.privileged_refuse</code> is
+declared, so that a program can choose at run time
+(<code>d_cli_program_set_plugin_privileged</code>); in a privileged run
+only the program sets it. 0 compiles it out</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="settings-and-privileged-runs">Settings and privileged runs</h2>
+<p><em>(added 11-27)</em> A program on the kit calls nothing to have its
+settings: the run starts them at its first parse, from the user's file,
+the environment and the command line (GRAMMAR.html, section 6). A program
+with djins of its own registers them before the run, so that their
+settings are read from the same three sources.</p>
+<ul>
+<li><strong>A program that writes the user's file,</strong> as
+<code>djinterp set</code> does, finds its sections as the kit reads
+them: <code>d_cli_settings_next_header</code> finds the next header
+where a statement could begin, and
+<code>d_cli_settings_section_reads</code> says whether a program reads
+the lines under it. <code>d_cli_settings_sectioned</code> says whether
+this run reads the file in sections at all. Keep the headers either way:
+they are the file's structure, not one run's view of it.
+<code>d_cli_settings_foreign</code> says whether a setting's name is
+another program's, as the run tells the file's lines
+(<code>cli.unknown_djin</code>): the only names such a program may write
+without checking them.</li>
+<li><strong>A program run with privileges its caller lacks</strong>
+(set-user-ID, set-group-ID, or capabilities given to its file) refuses
+the caller the plugin settings by default. A program that would choose
+for itself says so before its first parse, with
+<code>d_cli_program_set_plugin_privileged(program, D_CLI_PLUGIN_PRIVILEGED_REFUSE)</code>
+or <code>D_CLI_PLUGIN_PRIVILEGED_TRUST</code>;
+<code>D_CLI_PLUGIN_PRIVILEGED_DEFAULT</code> leaves it to the build. A
+run that trusts its caller says so, as a warning naming whose word it
+is. The question is asked as the loader asks it (<code>env_cli.h</code>,
+<code>D_ENV_CLI_PRIVILEGE</code>), and a testing build can pretend
+either answer with <code>d_cli_settings_pretend_privileged</code>.</li>
+</ul>
+<hr />
+<h2 id="tests">Tests</h2>
+<p>The suites are under <code>tests/djinterp/tools/cli/</code>: the C
+suites in <code>c/</code>, the C++ suite beside them, and the probe
+modules the plugin suites load in <code>c/probe/</code>. Beside the C
+suites is the allocation sweep, <code>c/cli_sweep_tests.c</code>: each
+of its cases - a program made, a command line run to its end, a file
+written or read, a module found or loaded - run once as it is, then once
+for each allocation it makes with that one refused, every run held to
+leaving nothing live and to doing all the clean run did or ending in
+trouble and saying <code>out of memory</code>. It wraps
+<code>malloc</code> and its kin at link time, so it is built where the
+linker has <code>--wrap</code>.</p>
+<p><em>(added 11-20)</em> Every suite runs on DTest's C face
+(<code>c/modules/test/test_suite.h</code>). A suite is a block of its
+spec form and each section a test; the C suites run as one module,
+<code>cli</code>, the sweep as <code>cli_sweep</code> and the C++ suite
+as <code>cli_cpp</code>. A case's status, output and error output are
+three checks, each named by the case's tag, and a difference is a note
+on the failed test: DTest's text check gives the line and column, and
+every byte counts, so a CR before an LF, which that check passes over,
+fails the case too.</p>
+<p>Their leaf,
+<code>build/cmake/config/testing/djinterp/tools/cli/</code>, builds them
+two ways, each holding every run to the count of tests
+<code>expected_sections.txt</code> gives it, all passed:</p>
+<pre><code>cmake -S build/cmake/config/testing/djinterp/tools/cli -B out
+cmake --build out
+ctest --test-dir out
+
+build/cmake/config/testing/djinterp/tools/cli/run_cli_tests.sh [--sanitize]</code></pre>
+<p>The script takes <code>CC</code>, <code>CXX</code> and
+<code>AR</code>, and for a Windows cross build
+<code>EXE_SUFFIX=.exe</code> and a <code>RUN_PREFIX</code> that runs a
+Windows program, such as <code>env LC_ALL=C.UTF-8 wine</code>. A run's
+first argument is the directory the probes are in, or it looks beside
+itself. <em>(added 11-20)</em> Any other is DTest's:
+<code>--failures</code>, <code>--checks</code>, <code>--no-table</code>
+and <code>--filter=TEXT</code>, such as
+<code>--filter=cli_settings</code> to run one suite's tests.</p>
+<p>A case's expected output is in its table. With
+<code>D_TESTS_CLI_DUMP</code> set in the environment, a C run prints
+what each case came to as the table entry that would hold it - for a
+change to the kit's words made on purpose, to be read, checked, and put
+in the table. With <code>D_TESTS_CLI_SWEEP_SHOW</code> set, the sweep
+prints everything both runs wrote for each run that fell short.</p>
+</body>
+</html>
