@@ -83,7 +83,7 @@ V.    ANY CLASS
 // `any` keeps a scalar in a `long long` or `unsigned long long` member, so it
 // exists wherever `long long` does (decision 4.6): every C++11 build, and
 // C++98 as the extension, where the diagnostic pair keeps -pedantic quiet.
-// Under ISO strict C++98 there is no `long long`, and `any` is absent --
+// Under ISO strict C++98 there is no `long long`, and `any` is absent -
 // re_std's rule is omit, don't degrade.
 #include "../../config.hpp"  // RE_STD_* configuration
 #if RE_STD_HAS_LONG_LONG

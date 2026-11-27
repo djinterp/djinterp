@@ -66,7 +66,7 @@ TABLE OF CONTENTS
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
 // declares only where the build can spell one. Below it - ISO strict C++98
-// wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS --
+// wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS -
 // the header compiles to nothing (the owner's ruling of 2026.10.03 on round 3's
 // question 1, (a)).
 #if RE_STD_HAS_INT64
@@ -244,7 +244,7 @@ int32_t d_option_result_status_of(
 //         printf("%u %llu\n", i, (unsigned long long)cell->key);
 //     }
 //
-//   The callback form - `d_option_set_for_each` with an `fn_option_visit` --
+//   The callback form - `d_option_set_for_each` with an `fn_option_visit` -
 // remains the composable path and is what a fold should use. This is for the
 // cases where writing a callback and its context struct is more machinery
 // than the loop it replaces.

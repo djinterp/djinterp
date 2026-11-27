@@ -19,7 +19,7 @@
 * keeps pointing where it did. The XML records each media part's MD5, as hex
 * or as base64; every copy of the old checksum, in every XML part, is
 * rewritten to the new one, which keeps the duplicate list theme.xml holds in
-* step without knowing where it is. A media part used by any other part --
+* step without knowing where it is. A media part used by any other part -
 * another slide, a layout, a master - is refused.
 *   Not known yet, so not changed: anything recording a clip's duration. A
 * replacement of a different length may need its timeline adjusted in

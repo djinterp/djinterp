@@ -174,7 +174,7 @@ struct dj_internal_magic
 //   `start` to `end`, how many parts the template has, and whether it is
 //   a parameter's, {{{...}}}, whose name is only cleaned.  Found: its
 //   name, the comments and dropped tags within it gone, past the prefixes
-//   MediaWiki takes off it - `safesubst:`, `msgnw:`, `msg:`, `raw:` --
+//   MediaWiki takes off it - `safesubst:`, `msgnw:`, `msg:`, `raw:` -
 //   and trimmed; where that name stands on the page, `name_start` to
 //   `name_end`; and a function's `:`, D_WIKI_NONE for none.
 struct dj_internal_named
@@ -769,7 +769,7 @@ bool d_internal_ends_reference(
 
 /*
 d_internal_html_tag
-  The length of an HTML tag at `_at` that MediaWiki's sanitizer keeps --
+  The length of an HTML tag at `_at` that MediaWiki's sanitizer keeps -
 open, closing or empty, its name one of its elements' - to its `>`, with
 no `<` before that; 0 for none, the `<` then text.
   Long as the sanitizer's list of elements is, held here.
@@ -1459,7 +1459,7 @@ bool d_internal_take_prefix(
 d_internal_function_colon
   Past `msgnw:` or `msg:`, then `raw:`, which MediaWiki takes off a
 template's name, `*_first` to `_end`, where a parser function's `:` is: a
-name of MediaWiki's before it, or any after `#`, the extensions' --
+name of MediaWiki's before it, or any after `#`, the extensions' -
 the name's end for one with none; D_WIKI_NONE for no function.
 */
 static
@@ -4192,7 +4192,7 @@ void d_internal_external_link(
 /*
 d_internal_label_end
   Where an external link's label, from `_label`, ends in a stream: at its
-`]`, a line ending or a control but a tab, what is not the link's own --
+`]`, a line ending or a control but a tab, what is not the link's own -
 another link, or in the page an image - passed whole.
 */
 static
@@ -6323,7 +6323,7 @@ void d_internal_labels(
 
 /*
 d_internal_titles
-  The headings no block has kept - within templates, elements, tables --
+  The headings no block has kept - within templates, elements, tables -
 kept as headings not at the top; then each heading's title as plain text.
 */
 static
@@ -6670,7 +6670,7 @@ d_internal_fragment
   Writes a title, its runs of space and `_` one space already, as
 MediaWiki makes it a fragment, then an id: the marks that set a direction
 gone, each run of white space one `_` but for one at its end, 1024
-characters at most - unless it holds U+FFFD, which it leaves as it is --
+characters at most - unless it holds U+FFFD, which it leaves as it is -
 then escaped, HTML5's way or the legacy way.
 */
 static

@@ -493,7 +493,7 @@ public:
     }
 
     // digest
-    //   accessor: a 64-bit key over the structure, the rules, and the pool --
+    //   accessor: a 64-bit key over the structure, the rules, and the pool -
     // not over source positions, so two spellings of one grammar agree.
     re_std::uint64_t digest() const noexcept
     {

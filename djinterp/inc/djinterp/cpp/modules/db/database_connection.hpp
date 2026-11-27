@@ -136,7 +136,7 @@ NS_END  // internal
 //     is_connected_impl()       whether it is open; const, noexcept
 //     ping_impl()               whether the database answers; const
 //     execute_query_impl(text)  runs one statement - SQL, or the vendor's
-//                               own language: a MongoDB command document --
+//                               own language: a MongoDB command document -
 //                               its face::rows
 //     execute_update_impl(text) runs it: what it changed
 //     get_server_version_impl() the server's or library's version; const

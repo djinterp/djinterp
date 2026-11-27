@@ -187,7 +187,7 @@ wb::run_request request(
 //------------------------------------------------------------------------------
 // 2.3.1
 // disassembly
-//   function: a program listed the way session::disassembly() lists one --
+//   function: a program listed the way session::disassembly() lists one -
 // addresses right-aligned to four columns, two spaces, the instruction.
 inline
 std::string disassembly(

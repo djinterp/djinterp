@@ -787,7 +787,7 @@ d_parsegen_analyze
   Derives what a grammar means and folds it into what the grammar reports.
 NOTE:
   Left recursion is reported as a NOTE, never an error. Whether it is a problem
-depends on which family will run the grammar, and that is a registry query --
+depends on which family will run the grammar, and that is a registry query -
 so analysis sets LEFT_RECURSION and lets selection decide. A rule that can
 never match, by contrast, makes the grammar unusable under any family, and is
 an error.

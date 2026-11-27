@@ -530,7 +530,7 @@ int d_arg_internal_system_stat(
 /*
 d_arg_internal_path_query
   _wstat64's answer: a directory or not, a regular file or not, the size,
-and the permissions Microsoft's std::filesystem reports for any file --
+and the permissions Microsoft's std::filesystem reports for any file -
 read and execute always, write unless the file is read-only, which the
 runtime's write bit says - rather than the runtime's own execute bit,
 which only certain extensions get.

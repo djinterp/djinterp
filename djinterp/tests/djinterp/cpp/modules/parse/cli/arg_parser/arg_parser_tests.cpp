@@ -7,7 +7,7 @@
 * ends them, as a program would with CLI11's App. tools/cppref/cppref.py
 * compiles that section against CLI11 2.7.2, through the face's names for
 * CLI11's (cli11_shim.hpp), and the transcripts below are what CLI11 wrote;
-* so the CASES section is written in the part of the face CLI11 shares --
+* so the CASES section is written in the part of the face CLI11 shares -
 * every parse through the run, which has a form for each of the parser's,
 * `->` on every handle, no status taken from a call - and C++98 unless a
 * guard says otherwise. The sections that are the module's own are written

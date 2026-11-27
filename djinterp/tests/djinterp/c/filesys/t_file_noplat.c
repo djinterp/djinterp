@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [c][filesys]                                          t_file_noplat.c
 *
-*   Runtime harness for c/filesys built with neither POSIX nor Windows --
+*   Runtime harness for c/filesys built with neither POSIX nor Windows -
 * D_CFG_FILE_HAS_POSIX=0 on a POSIX host, or a target env counts as neither,
 * as WASI is - which puts every module on the ISO C backend. It checks that
 * every call needing the platform fails with ENOSYS, the allocating ones

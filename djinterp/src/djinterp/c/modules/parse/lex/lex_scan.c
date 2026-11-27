@@ -1584,7 +1584,7 @@ size_t d_internal_prefix_length(
 /**
  * @brief Resolves an identifier's extent to a keyword kind.
  *
- * @note An identifier whose byte range was rewritten by an earlier phase --
+ * @note An identifier whose byte range was rewritten by an earlier phase -
  *       `in`, a splice, then `t` - is not spelled by its bytes, so the range
  *       cannot be offered to the table directly. The rewritten case re-reads
  *       the range through the reader, which is what resolved it in the first

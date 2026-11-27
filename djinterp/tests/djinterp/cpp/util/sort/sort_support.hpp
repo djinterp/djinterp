@@ -804,7 +804,7 @@ std::vector<int> shape_organ_pipe(
 }
 
 // shape_nearly_sorted
-//   function: ascending with every eighth adjacent pair transposed --
+//   function: ascending with every eighth adjacent pair transposed -
 // the input an adaptive algorithm must still finish quickly, and the one
 // that exercises a bubble pass whose last swap is far from the end.
 inline

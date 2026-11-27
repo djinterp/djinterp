@@ -321,7 +321,7 @@ trial try_insert(
 
 /*
 try_change
-  The copy, the row's fields replaced in it - its id and its rows kept --
+  The copy, the row's fields replaced in it - its id and its rows kept -
 the copy resolved and the row judged.
 */
 trial try_change(
@@ -494,7 +494,7 @@ bool move_by(
 /*
 sort_rows
   The sheet as the window would show it sorted by the key, each row's place
-there by its id, and every group's rows - the sheet's own among them --
+there by its id, and every group's rows - the sheet's own among them -
 stably put in those places.
 */
 int sort_rows(

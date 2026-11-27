@@ -9,7 +9,7 @@
 * static members, from C++11 moves and the f forms, and the forms each later
 * level adds where the compiler has them: std::optional text and deduced
 * guards (C++17), face::connection, std::span columns, UTF-8 strings and
-* formats checked at compile time (C++20), std::expected results (C++23) --
+* formats checked at compile time (C++20), std::expected results (C++23) -
 * and samples every module, each member being generated from its C
 * prototype, its arguments in the C order. The summary names the level forms
 * the build had.

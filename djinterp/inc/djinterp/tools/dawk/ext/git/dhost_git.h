@@ -97,7 +97,7 @@ struct dj_host_git;
 //   git_set_line(f, i, text); git_remove_line(f, i)
 // patterns, of ignore and attribute files
 //   git_patterns(f); git_pattern(f, i, field)
-//                                  line, text - as written - pattern --
+//                                  line, text - as written - pattern -
 //                                  as git matches it - negated, directory,
 //                                  anywhere, quoted, macro, states
 //   git_state(f, i, n, field)      the nth state of a pattern's line: name,
@@ -140,7 +140,7 @@ struct dj_host_git;
 //   git_quote_path(path); git_unquote(text)
 // repositories
 //   git_repo([path])               the repository a path is in: r, or -1
-//   git_dir(r), git_common_dir(r), git_work_tree(r) - "" when bare --
+//   git_dir(r), git_common_dir(r), git_work_tree(r) - "" when bare -
 //   git_hash(r)                    sha1 or sha256
 //   git_config_file(r[, scope])    the file git config --scope writes:
 //                                  local, worktree, global, system
@@ -185,8 +185,8 @@ struct dj_host_git;
 //                                  file, ignores the path; else 0
 //   git_ignore_rule(h, path)       what decided, as git check-ignore -v:
 //                                  file:line:pattern; "" for nothing
-//   git_attr(h, path[, name])      an attribute's state for the path --
-//                                  set, unset, unspecified, or its value --
+//   git_attr(h, path[, name])      an attribute's state for the path -
+//                                  set, unset, unspecified, or its value -
 //                                  or, unnamed, every one, "name: state" a
 //                                  line, as git check-attr -a
 //   git_status(r[, options])       as git status --porcelain --no-renames,

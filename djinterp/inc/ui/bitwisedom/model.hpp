@@ -78,7 +78,7 @@ const int CURSOR_NONE  = -9;
 
 // special_cursor / cursor_special
 //   a probe or usage row as the cursor names its row - by its id among the
-// special rows, below zero, where a row of the sheet's is its id, above --
+// special rows, below zero, where a row of the sheet's is its id, above -
 // and back again: -1 for a row of the sheet's, or none.
 inline
 int special_cursor(

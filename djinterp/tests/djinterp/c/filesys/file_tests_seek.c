@@ -3,7 +3,7 @@
 *
 *   V. Position (file_seek) - 64-bit positioning and truncation. The stream
 * positioners run on every backend; truncation is descriptor-based and reports
-* ENOSYS on the ISO C backend. d_file_truncate_fd is checked in both directions --
+* ENOSYS on the ISO C backend. d_file_truncate_fd is checked in both directions -
 * shrinking discards the tail, extending zero-fills - since neither is a
 * no-op, and the stream form's flush-then-truncate contract is exercised
 * through a written file.

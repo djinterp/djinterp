@@ -547,7 +547,7 @@ struct dj_test_object* d_tests_dir_rangefor(void)
 
 /*
 d_tests_dir_entry
-  A file entry reports as a regular file and the subdirectory as a directory --
+  A file entry reports as a regular file and the subdirectory as a directory -
 WHEN the filesystem reported the type in the readdir (type_known()). If it did
 not, those two checks are skipped rather than failed, because the type is then
 genuinely unavailable without a stat - omit, do not fake.

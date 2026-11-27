@@ -66,7 +66,7 @@ struct dj_make_reader
 
 // 2.1    Records
 //------------------------------------------------------------------------------
-// d_make_reader_statement adds a statement of a kind over a logical line --
+// d_make_reader_statement adds a statement of a kind over a logical line -
 // its places the line's, every part empty at the line's start, its branch
 // D_MAKE_NONE - and gives its index, or D_MAKE_NONE when memory runs out,
 // the reader then failed.  An index stays good as statements are added; a

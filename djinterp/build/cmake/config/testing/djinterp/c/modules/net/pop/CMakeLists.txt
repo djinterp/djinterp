@@ -1,5 +1,5 @@
 # =============================================================================
-# djinterp [test] --
+# djinterp [test] -
 # build/cmake/config/testing/djinterp/c/modules/net/pop/CMakeLists.txt
 #
 #   Test leaf for POP3 (c/modules/net/pop), in DTest's C face, a CTest test

@@ -57,7 +57,7 @@ D_STATIC_ASSERT(D_INTERNAL_STARTTLS_BUFFER_BYTES >= D_STARTTLS_BUFFER_MIN,
 d_starttls_internal_fail
   File-local, so its contract lives here: moves the session to
 D_STARTTLS_STATE_FAILED and returns `_status`, so each fatal path is a single
-return at its call site. Errors that leave the stream where it was --
+return at its call site. Errors that leave the stream where it was -
 INVALID_ARGUMENT, STATE, an orderly CLOSED, a refused send - never come
 through here.
 */

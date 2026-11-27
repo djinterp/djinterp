@@ -144,7 +144,7 @@ typedef enum dj_text_template_error(*dj_text_template_fn)(void*  _context,
 
 // struct dj_text_template
 //   forward declaration: the list callback below takes a pointer to one,
-// and a struct first named inside a parameter list has prototype scope --
+// and a struct first named inside a parameter list has prototype scope -
 // it would be a different type from the struct defined further down.
 struct dj_text_template;
 

@@ -21,7 +21,7 @@
 *
 *   BACK-PORTED FROM C++20 TO C++11:
 *   std added is_clock in C++20. The implementation needs only void_t and
-* partial specialisation, both C++11, so re_std provides it from C++11 --
+* partial specialisation, both C++11, so re_std provides it from C++11 -
 * a nine-year lead. The _v spelling follows variable templates and so
 * appears from C++14.
 *

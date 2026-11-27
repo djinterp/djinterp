@@ -18,8 +18,8 @@
 * "document", in the handle's document format - every batch of the cursor
 * read; a query to read a page at a time is mongodb_cursor.h's. A write
 * reports what the server counted, in struct dj_mongodb_write_counts.
-*   RESULTS. 0; the server's code for a write or a command it refused --
-* 11000 for a duplicate key, 121 for a document its validator refused --
+*   RESULTS. 0; the server's code for a write or a command it refused -
+* 11000 for a duplicate key, 121 for a document its validator refused -
 * which d_mongodb_error_message describes and d_mongodb_error_reply details;
 * libbson's, packed, for text that is not the JSON it must be; the driver's
 * for a failure of its own; D_DB_NOT_FOUND where a function that hands back
@@ -70,7 +70,7 @@ TABLE OF CONTENTS
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
 // declares only where the build can spell one. Below it - ISO strict C++98
-// wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS --
+// wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS -
 // the header compiles to nothing (the owner's ruling of 2026.10.03 on round 3's
 // question 1, (a)).
 #if defined(INT64_MAX)

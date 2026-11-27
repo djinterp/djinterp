@@ -42,7 +42,7 @@
 * has a code for the condition, and D_DB_MISMATCH. d_mongodb_error_message
 * describes the last failure in the words of whoever reported it.
 *   DOCUMENTS. Documents, filters, updates, pipelines and options travel as
-* MongoDB Extended JSON, which the layer reads in any of its forms --
+* MongoDB Extended JSON, which the layer reads in any of its forms -
 * canonical, relaxed, or the legacy one - and writes as the handle's
 * document format says (mongodb_settings.h): canonical by default, every
 * value's BSON type written out, so that what is read and written back keeps

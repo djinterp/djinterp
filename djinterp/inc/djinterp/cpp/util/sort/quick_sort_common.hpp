@@ -17,7 +17,7 @@
 *       only.
 *
 *   MEDIAN OF THREE, MOVED TO THE FRONT.  The pivot is the median of the
-* first, middle and last elements, which keeps ordered and reversed input --
+* first, middle and last elements, which keeps ordered and reversed input -
 * the cases a first-element pivot turns quadratic - at O(n log n).  The three
 * are put in order in place, so the middle one is the median, and that median
 * is then exchanged to the front, where the partition expects its pivot.

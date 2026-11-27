@@ -24,7 +24,7 @@
 * that must not compile (see d_tests_mongodb_face_variadic).
 *
 *   Build: compile the layer's C sources and src/djinterp/c/sync/dmutex.c as
-* C, this file as C++, and link them with the driver and threads --
+* C, this file as C++, and link them with the driver and threads -
 * scripts/ci/check_db_mongodb.sh does, at every level.
 *
 *

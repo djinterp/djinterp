@@ -313,7 +313,7 @@ int d_arg_internal_option_take_name(
  *         taking.
  *
  * CLI11's split_names: the text is cut at every comma, each piece trimmed,
- * and an empty piece - between two commas, or the whole of an empty text --
+ * and an empty piece - between two commas, or the whole of an empty text -
  * names nothing.
  */
 D_STATIC
@@ -914,7 +914,7 @@ const char* d_arg_internal_option_matching_dashed(
  *
  * CLI11's two positional tests: a configurable option known only by its
  * positional name collides with any name of the other's, and the other's
- * positional name - when it has no short or flag names, as CLI11 tests --
+ * positional name - when it has no short or flag names, as CLI11 tests -
  * with any of this option's.
  */
 D_STATIC

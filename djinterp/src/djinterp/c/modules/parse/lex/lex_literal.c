@@ -1320,7 +1320,7 @@ size_t d_internal_ucn(
 
 
 /**
- * @brief Reads a numeric escape - octal or hexadecimal, braced or not --
+ * @brief Reads a numeric escape - octal or hexadecimal, braced or not -
  *        and checks that it fits one code unit.
  *
  * @param[in,out] _d    the decode.

@@ -132,8 +132,8 @@ d_tests_smtp_serve_implicit(
 
 /*
 d_tests_smtp_serve_thread
-  Server thread: accepts one connection, and runs one session over it --
-in TLS from the first byte when asked, or none at all, only a refusal --
+  Server thread: accepts one connection, and runs one session over it -
+in TLS from the first byte when asked, or none at all, only a refusal -
 then closes it.
 */
 static

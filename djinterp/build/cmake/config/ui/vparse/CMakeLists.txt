@@ -16,7 +16,7 @@
 #     vparse::workbench_imgui  those elements on uxoxo's Dear ImGui platform,
 #                              and the theme
 #     vparse-gui               the module, with the command line in bin/,
-#                              named as the command line looks for it --
+#                              named as the command line looks for it -
 #                              vparse-gui-linux64.so beside vparse-linux64:
 #                              the window on Win32 + Direct3D 11 on Windows,
 #                              GLFW + OpenGL 3 elsewhere, or none

@@ -64,7 +64,7 @@ namespace gui
 {
 
 // ADD_NEW_LABEL / ADD_NEW_GAP / ADD_NEW_FADE
-//   constants: what the add buttons - the tree's, and the grid's add row --
+//   constants: what the add buttons - the tree's, and the grid's add row -
 // say beside their "+"; the gap between the two, at a scale of one; and how
 // opaque the words are until the mouse is on them: slightly faded.
 const char* const ADD_NEW_LABEL = "Add new...";
@@ -97,7 +97,7 @@ uxoxo::element_template  definition_view(uxoxo::option_set _attrs = {});
 // window that docks in it, by its "key", with its "title", over _items:
 // "dockspace", "dock_with", "place", "focus", "zoom", "zoom_action",
 // "close_action", "focus_action" and "value", "document", "unsaved",
-// "scroll", "flush", and - for a window of its own, which does not dock --
+// "scroll", "flush", and - for a window of its own, which does not dock -
 // "dockable" false, "width" and "height"
 uxoxo::element_template  dock_space(uxoxo::option_set _attrs = {});
 uxoxo::element_template  dock_window(const std::string& _key,
@@ -118,7 +118,7 @@ uxoxo::element_template  menu_bar_rest(element_list      _leading,
                                        uxoxo::option_set _attrs = {});
 
 // the status bar - along the window's foot: "left", what the sheet in
-// front is, and at the right end "right", what the window last said --
+// front is, and at the right end "right", what the window last said -
 // "error" when it went wrong - after a "*" while the sheet has changes
 // ("dirty"); a click on it posts "action" with "value"
 uxoxo::element_template  status_bar(uxoxo::option_set _attrs = {});
@@ -242,7 +242,7 @@ struct grid_point
  *                   "edge.name" or "edge.value" - a pinned column's edge;
  *                   "end" or "room" - where the columns end, and the
  *                   right edge of the width they were laid out to fill;
- *                   "add" - the add row's "Add new..."; "heading" --
+ *                   "add" - the add row's "Add new..."; "heading" -
  *                   the name column's heading, under its buttons; or
  *                   "names_by.symbol", "names_by.name" or
  *                   "names_by.value" - a button over the symbols column,

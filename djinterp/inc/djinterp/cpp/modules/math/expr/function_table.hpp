@@ -13,7 +13,7 @@
 * its function, and its function is the table's entry of that name.
 *   THE CONTEXT's real_results is an option of each evaluator (S340): where
 * it is set, every standard function's evaluator as a value gives a domain
-* error where its real arguments' value is complex alone or a quaternion --
+* error where its real arguments' value is complex alone or a quaternion -
 * sqrt(-4), log(-1), asin(2), log2(-8), pow(-8, 1/3), eig of a real matrix
 * with a complex pair - complex(x, y) and quat(w, x, y, z) apart, as Julia's
 * and C's are (S272); in a type it changes no evaluator's answer, a real

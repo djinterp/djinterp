@@ -161,7 +161,7 @@ TABLE OF CONTENTS
 
 //   THE OFF PATH IS UNREACHABLE IN THE BUILD THAT MATTERS, and saying so is
 // the point of this note.  D_INTERNAL_TEST_METADATA is (TESTING || METADATA),
-// so under D_TESTING=1 the knob reads 0 and the module is still compiled in --
+// so under D_TESTING=1 the knob reads 0 and the module is still compiled in -
 // knob_probe.c prints exactly that.  The forcing matches cfg_test_counter.h's
 // convention and is intended; what was missing was anywhere that said so, and
 // rev07 recorded the off path as tested when it had been tested in a build the

@@ -3,8 +3,8 @@
 *
 * The C/C++ header generator.
 *   The header is built as a list of lines. A first walk over the tree
-* numbers the groups the way the style guide numbers a header's structure --
-* top-level groups are sections, their groups subsections, theirs items --
+* numbers the groups the way the style guide numbers a header's structure -
+* top-level groups are sections, their groups subsections, theirs items -
 * and that numbering serves both the table of contents and the section
 * banners, so the two cannot disagree. A second walk writes each group's
 * symbols: a brief, the macro, and the macros its templates make for it.

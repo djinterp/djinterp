@@ -3,7 +3,7 @@
 *
 *   Tests for the one quaternion, math::quaternion, by both its names - its
 * header, math/quaternion.hpp, and math/linear_algebra/quaternion.hpp, whose
-* linalg::quaternion and functions are its by using-declarations (S398) --
+* linalg::quaternion and functions are its by using-declarations (S398) -
 * at every level from C++98: from an axis and angle, the C library's sine
 * and cosine in the C core's formula, bit for bit, by either name the same
 * function; the Hamilton product, the norm and the rotation within a

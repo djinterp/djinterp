@@ -75,7 +75,7 @@ TABLE OF CONTENTS
 // 1.1.3
 // D_ENV_SMTP_CAN_TLS
 //   capability: STARTTLS and implicit TLS can run here, as a client and as
-// a server: an SSL engine can be built, and a TCP transport carries it --
+// a server: an SSL engine can be built, and a TCP transport carries it -
 // exactly D_ENV_SSL_AVAILABLE.
 #ifndef D_ENV_SMTP_CAN_TLS
     #define D_ENV_SMTP_CAN_TLS D_ENV_SSL_AVAILABLE

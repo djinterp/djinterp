@@ -341,7 +341,7 @@ const char* d_git_doc_text(
 
 // d_internal_compare
 //   struct: what the records outside a splice are compared with: the
-//   records before and after, the splice, and the sections it changed --
+//   records before and after, the splice, and the sections it changed -
 //   from `old_first` up to `old_end` of the old, `new_first` up to
 //   `new_end` of the new.
 struct dj_internal_compare

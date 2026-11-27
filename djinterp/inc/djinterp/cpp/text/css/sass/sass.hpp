@@ -866,7 +866,7 @@ struct has_variable_name_access
 
 
 // has_is_default_method
-//   trait: true if `Type` exposes `is_default()` const --
+//   trait: true if `Type` exposes `is_default()` const -
 // used for variable declarations carrying `!default`.
 template<typename Type, typename = void>
 struct has_is_default_method : std::false_type {};
@@ -984,7 +984,7 @@ struct has_accepts_content_block_method<Type, void_t<
 ///////////////////////////////////////////////////////////////////////////////
 
 // has_include_target_method
-//   trait: true if `Type` exposes `include_target()` const --
+//   trait: true if `Type` exposes `include_target()` const -
 // the mixin name being included.
 template<typename Type, typename = void>
 struct has_include_target_method : std::false_type {};
@@ -1005,7 +1005,7 @@ struct has_arguments_method<Type, void_t<
 
 
 // has_extend_target_method
-//   trait: true if `Type` exposes `extend_target()` const --
+//   trait: true if `Type` exposes `extend_target()` const -
 // the selector being extended.
 template<typename Type, typename = void>
 struct has_extend_target_method : std::false_type {};
@@ -1055,7 +1055,7 @@ struct has_condition_access
 
 
 // has_loop_variable_method
-//   trait: true if `Type` exposes `loop_variable()` const --
+//   trait: true if `Type` exposes `loop_variable()` const -
 // `$x` in `@each $x in ...` or `@for $x from ...`.
 template<typename Type, typename = void>
 struct has_loop_variable_method : std::false_type {};
@@ -1066,7 +1066,7 @@ struct has_loop_variable_method<Type, void_t<
 
 
 // has_loop_iterable_method
-//   trait: true if `Type` exposes `loop_iterable()` const --
+//   trait: true if `Type` exposes `loop_iterable()` const -
 // the list / range being iterated.
 template<typename Type, typename = void>
 struct has_loop_iterable_method : std::false_type {};
@@ -1109,7 +1109,7 @@ struct has_loop_through_method<Type, void_t<
 ///////////////////////////////////////////////////////////////////////////////
 
 // has_module_url_method
-//   trait: true if `Type` exposes `module_url()` const --
+//   trait: true if `Type` exposes `module_url()` const -
 // the URL string of `@use 'name'` or `@forward 'name'`.
 template<typename Type, typename = void>
 struct has_module_url_method : std::false_type {};
@@ -1209,7 +1209,7 @@ struct has_render_to_sass_source_method<Type, void_t<
 
 
 // has_compile_to_css_method
-//   trait: true if `Type` exposes `compile_to_css(...)` --
+//   trait: true if `Type` exposes `compile_to_css(...)` -
 // evaluates the Sass tree and emits compiled CSS.
 template<typename Type, typename = void>
 struct has_compile_to_css_method : std::false_type {};

@@ -159,7 +159,7 @@ bool tests_sort_common_order_comparator_non_const()
     DTallyingLess tally;
 
     //   The wrapper holds a mutable copy of its comparator, so a comparator
-    // whose call operator mutates - one that tallies its calls, here --
+    // whose call operator mutates - one that tallies its calls, here -
     // works through it even when the wrapper itself is const.  The calls
     // land on the wrapper's copy, not on the caller's.
     const ::djinterp::internal::DOrderComparator<DTallyingLess> descending(

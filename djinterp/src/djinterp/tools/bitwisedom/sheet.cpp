@@ -832,7 +832,7 @@ sheet make_sheet(
 /*
 make_document
   A new document starts with one full-width, nestable range, with no fill
--- it spans every bit, and a fill across all of them would say nothing --
+-- it spans every bit, and a fill across all of them would say nothing -
 holding one bit, bit 0, the 0x...01 a sheet's first flag usually is.
 make_sheet stays empty, for the importers, the examples and the other
 callers that fill a sheet themselves.

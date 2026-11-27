@@ -1196,7 +1196,7 @@ private:
 
 // DSassDefaultBackend
 //   struct: bundled in-memory backend for the Sass facades.
-// Reuses the CSS default backend's storage types verbatim --
+// Reuses the CSS default backend's storage types verbatim -
 // the Sass extension state fits entirely into existing fields
 // on the CSS default node, so no parallel storage hierarchy is
 // needed. Exposes BOTH the CSS backend tag and the Sass

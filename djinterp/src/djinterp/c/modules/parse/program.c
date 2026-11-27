@@ -1069,7 +1069,7 @@ d_parse_instr_format
   Renders one instruction, taking its mnemonic from the registry and its
 operand meanings from the shape table.
 NOTE:
-  One disassembler for every family. The alternative - a fmt() per family --
+  One disassembler for every family. The alternative - a fmt() per family -
 is the same function written twice, and the second copy is the one that drifts.
 
 Parameter(s):

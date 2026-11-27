@@ -213,7 +213,7 @@ bool d_git_doc_remove_line(
 
 // 2.4    Attributes
 //------------------------------------------------------------------------------
-// d_git_doc_set_state writes an attribute's state on a pattern's line --
+// d_git_doc_set_state writes an attribute's state on a pattern's line -
 // replacing the state of that name the line ends with, or after the line's
 // last - for a name git allows and a value with no blank;
 // d_git_doc_remove_state takes every state of the name off the line, the

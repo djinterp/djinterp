@@ -1,5 +1,5 @@
 # =============================================================================
-# djinterp [test] --
+# djinterp [test] -
 # build/cmake/config/testing/djinterp/cpp/modules/net/CMakeLists.txt
 #
 #  Aggregate for cpp/modules/net's programs: recurses into each leaf. The

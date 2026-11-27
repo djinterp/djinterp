@@ -8,7 +8,7 @@
 # no backend; the parity tests compare it with the C counter, whose source,
 # c/util/counter/counter.c, comes from djinterp_c_runtime, so nothing is
 # compiled beside the runner and the section TUs (report_builder's archive
-# packaging is opt-in via D_TEST_REPORT_ENABLE_ARCHIVE and stays inert here --
+# packaging is opt-in via D_TEST_REPORT_ENABLE_ARCHIVE and stays inert here -
 # the console + single-PDF path has no archive dependency).
 #
 #   INCLUDES:

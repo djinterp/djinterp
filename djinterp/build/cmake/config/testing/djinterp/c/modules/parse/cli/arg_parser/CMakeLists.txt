@@ -215,7 +215,7 @@ endfunction()
 # djinterp_arg_parser_cpp_test
 #   function: one build of the C++ suites at a C++ level, against the
 # library, run as a test held to the count expected_sections.txt gives
-# `_key`; anything after the key is a compile option of the C++ sources --
+# `_key`; anything after the key is a compile option of the C++ sources -
 # the one that turns exceptions off. C++98 without extensions is the
 # framework's strict ISO mode, in which its variadic macros, an extension
 # there, give way to ISO forms. The suites' one C source, the scratch

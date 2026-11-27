@@ -5,7 +5,7 @@
 # bitwisedom's go to bin/tools/bitwisedom/: Debug products in the debug/
 # child directory, other configurations in the directory itself. Every owned
 # binary and library carries a target-architecture suffix (win64, win32,
-# winarm64, linux64, macosarm64, ...). Dependencies - uxoxo, Dear ImGui --
+# winarm64, linux64, macosarm64, ...). Dependencies - uxoxo, Dear ImGui -
 # and the test executables keep their own layout.
 #
 # path:      /build/cmake/config/djinterp/tools/vparse/cmake/OutputLayout.cmake

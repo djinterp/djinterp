@@ -1842,7 +1842,7 @@ d_tests_points(
 
 // d_tests_random_text
 //   a random decimal number into _text: _digits digits, in a pattern - a
-// few nonzero digits among zeros, runs of nines, a 5 among zeros, or any --
+// few nonzero digits among zeros, runs of nines, a 5 among zeros, or any -
 // with a point anywhere or none, maybe leading zeros and a sign, and an
 // exponent putting the value near 10^_place. Returns its length.
 static size_t

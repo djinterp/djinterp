@@ -6,7 +6,7 @@
 * The HTML facades inherit from the XML facades so that storage and
 * memory layout are unchanged; HTML-specific behaviour (DOCTYPE
 * emission, void-element shorthand, class/id helpers, semantic-tag
-* classification) is added via methods and free functions only --
+* classification) is added via methods and free functions only -
 * never via additional state.
 *
 *   CONSOLIDATION:

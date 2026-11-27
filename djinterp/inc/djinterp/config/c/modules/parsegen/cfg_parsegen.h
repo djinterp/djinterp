@@ -8,7 +8,7 @@
 *
 *   Note the dependency the derived values encode: a grammar and a program both
 * carry an operand pool, so neither can be heap-backed unless the pool is. That
-* conjunction is resolved here, once, rather than re-derived in each module --
+* conjunction is resolved here, once, rather than re-derived in each module -
 * which is what the localization rule is for.
 *
 * targets:  parsegen/c/grammar.h  -> D_INTERNAL_PARSEGEN_GRAMMAR_HEAP /

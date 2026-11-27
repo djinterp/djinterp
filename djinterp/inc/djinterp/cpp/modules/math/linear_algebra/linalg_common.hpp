@@ -23,7 +23,7 @@
 *   math::complex<T> takes the generic path, its arithmetic the C core's
 * cplx.h's, and its determinant LU's with partial pivoting by magnitude, as
 * cmat.h's, rather than Bareiss's, which every other type there keeps: its
-* determinant and inverse are cmat.h's bit for bit (S315). Its sums --
+* determinant and inverse are cmat.h's bit for bit (S315). Its sums -
 * dot, sum, the products, the trace and the power - are compensated as the
 * C families' are, each part rounded once from Dot2's or Sum2's pair by
 * vec.h's accumulator (linalg_sums), and its solve refined with extra

@@ -1,5 +1,5 @@
 # =============================================================================
-# djinterp [test] --
+# djinterp [test] -
 # build/cmake/config/testing/djinterp/c/modules/db/sqlite/CMakeLists.txt
 #
 #   Test leaf for c/modules/db/sqlite's suites, in DTest's C face

@@ -14,7 +14,7 @@
 * C++11, enumerations; the tuple-like types - std::pair, and from C++11
 * std::tuple and std::array - which take one value for each part; complex
 * numbers; from C++17, std::optional and std::string_view; a type made from
-* a std::string; with wide text, a type made from a std::wstring --
+* a std::string; with wide text, a type made from a std::wstring -
 * std::wstring itself, and, where the system's own text is wide, as on
 * Windows, one made from either, as std::filesystem::path is; from C++11, a
 * type made from a number, and a std::chrono duration, read and written as
@@ -22,7 +22,7 @@
 * operator<<, as CLI11 reads and writes a type it knows nothing else of.
 *   The conversions are CLI11's: an empty value is the type's
 * value-initialized object; a container takes one element from each value,
-* or from each group of values for elements taking more - a map's pairs --
+* or from each group of values for elements taking more - a map's pairs -
 * is emptied by "{}", and its elements convert as the element type does; a
 * streamed value must be read whole; a value made wide must be UTF-8. As the
 * C library's converters do, the face's write their target only when they
@@ -325,7 +325,7 @@ NS_INTERNAL
     //   traits: the dj_arg_builtin that describes Type, as `value`, or -1 for
     //   a type that none describes. The fixed-width and `size_t` types are
     //   these types under other names, and are found as them; where
-    //   std::size_t or std::ptrdiff_t is a type no specialization names --
+    //   std::size_t or std::ptrdiff_t is a type no specialization names -
     //   `unsigned long long` and `long long` where C++98 strict has no such
     //   types, on a system whose `long` is narrower than a pointer - it is
     //   found by builtin_fallback, as the C library's SIZE and PTRDIFF.
@@ -1680,7 +1680,7 @@ NS_INTERNAL
 
     // 3.3.10
     // DNumberFill and kin
-    //   class, traits, function: from C++11, a type made from a number --
+    //   class, traits, function: from C++11, a type made from a number -
     //   CLI11's number_constructible, integer_constructible and
     //   double_constructible - given the value read as an `int`, or as a
     //   `double`, as its category allows and in that order, else read with
@@ -1913,8 +1913,8 @@ NS_INTERNAL
 
     // 3.3.14
     // widen_text and kin
-    //   functions, classes: with wide text, UTF-8 made a std::wstring --
-    //   d_arg_wide_from_utf8's status, `_out` changed only for D_ARG_OK --
+    //   functions, classes: with wide text, UTF-8 made a std::wstring -
+    //   d_arg_wide_from_utf8's status, `_out` changed only for D_ARG_OK -
     //   and wide text written to a sink as UTF-8; and a type made from wide
     //   text - CLI11's wstring_assignable and wstring_constructible - given
     //   the value widened, as CLI11's widen() makes it, assigned where it may
@@ -2226,7 +2226,7 @@ NS_INTERNAL
 
     // 3.4.8
     // Tuples
-    //   trait: a tuple-like type - std::pair, std::tuple, std::array --
+    //   trait: a tuple-like type - std::pair, std::tuple, std::array -
     //   converts and writes part by part, named as CLI11 names it,
     //   "[INT,TEXT]", sized by the sums of its parts' sizes, expecting one
     //   group of values, without flags; made the first time it is asked

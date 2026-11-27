@@ -12,7 +12,7 @@
 * whole truth table here would test the C layer twice. What is not covered
 * there, and is covered here, is everything the C++ type adds: value semantics,
 * the invalid state a move leaves behind, and the two places the C++ surface
-* deliberately differs from the C one --
+* deliberately differs from the C one -
 *
 *     extension()  returns ""  where d_path_extension returns NULL
 *     c_str()      returns ""  where a C caller would hold a null pointer

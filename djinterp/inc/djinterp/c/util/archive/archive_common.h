@@ -131,7 +131,7 @@ D_EXTERN_C_BEGIN
 // =============================================================================
 // II.  FORMAT IDENTITY
 // =============================================================================
-//   Values are pinned explicitly and MUST NOT be reordered.  This ordering --
+//   Values are pinned explicitly and MUST NOT be reordered.  This ordering -
 // zip, tar, gz, tar_gz, sevenzip, rar - is the one output_packaging and
 // document_bundle already pass by value, and it deliberately differs from
 // DTest's test_archive_format, which orders tar_gz before gz.  A static_cast

@@ -4140,7 +4140,7 @@ d_tests_mariadb_cursors
     values after it too
   - a short page ends the run; a fetch after is D_DB_INVALID_ARGUMENT, and
     the connection runs its next statement
-  - while a run is open, everything that would send the server anything --
+  - while a run is open, everything that would send the server anything -
     a query, a script, a prepare, another statement's run, a ping, a change
     of database or character set - is 2014, having sent nothing; values
     bound meanwhile serve the next run, which the run itself goes on without

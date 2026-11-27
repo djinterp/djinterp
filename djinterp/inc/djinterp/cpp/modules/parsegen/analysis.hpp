@@ -247,7 +247,7 @@ public:
     }
 
     // head_set
-    //   accessor: the symbols any alternative of a choice can begin with --
+    //   accessor: the symbols any alternative of a choice can begin with -
     // what a head-fail test compares against.
     D_NODISCARD bool head_set(
         const dj_parsegen_grammar& _grammar,

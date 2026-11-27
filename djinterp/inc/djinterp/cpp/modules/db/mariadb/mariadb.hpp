@@ -4,7 +4,7 @@
 * djinterp MariaDB connection module:
 *   The MariaDB connection, mariadb_connection, over the MariaDB layer's C++
 * face through mysql_common_connection, which holds the face and implements
-* what MariaDB and MySQL share; this leaf adds MariaDB's configuration --
+* what MariaDB and MySQL share; this leaf adds MariaDB's configuration -
 * Galera's causal reads, the default storage engine - the wire protocol's
 * field types (MYSQL_TYPE_*, as mysql_field_type, without the client's
 * header), MariaDB's own (INET6, UUID, the JSON alias), how each maps to
@@ -1138,7 +1138,7 @@ public:
     // hooks (mariadb.cpp), for mysql_common_connection's connect: MariaDB
     // adds wsrep_sync_wait and the default storage engine, where configured,
     // as init commands - a connect the server refuses either of throws
-    // connection_exception, as does an engine's name that is no identifier --
+    // connection_exception, as does an engine's name that is no identifier -
     // and has nothing to run once connected
     void add_settings_impl(
         mysql::internal::mariadb_settings& _settings

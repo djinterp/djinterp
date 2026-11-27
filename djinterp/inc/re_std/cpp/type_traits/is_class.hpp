@@ -14,7 +14,7 @@
 *   FALLBACK (no intrinsic):
 *   Without `__is_class`, no portable C++ implementation exists that
 * covers all cases (the SFINAE-on-pointer-to-member trick fails for
-* unions on some compilers). The fallback degrades to false_type --
+* unions on some compilers). The fallback degrades to false_type -
 * matching the conservative "don't claim a property without evidence"
 * convention used by is_enum.
 *

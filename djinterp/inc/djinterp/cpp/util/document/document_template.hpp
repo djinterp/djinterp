@@ -213,7 +213,7 @@ enum class DElementKind
 //   struct: one element of a skeleton.  `text` / `secondary` are
 // token-bearing sources (interpolated at render time); `style` names a style the
 // renderer may resolve; `children` nest; `sequence` names the sequence a repeat
-// or table iterates.  Fields not meaningful for a kind are simply unused --
+// or table iterates.  Fields not meaningful for a kind are simply unused -
 // which keeps one flat type rather than a variant hierarchy over ten shapes.
 struct DTemplateElement
 {

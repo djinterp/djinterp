@@ -91,7 +91,7 @@ TABLE OF CONTENTS
 #endif
 
 // D_CFG_EVENT_HANDLER_GUARD_VERDICT
-//   brief: the verdict a guarded shim reports when a handler throws --
+//   brief: the verdict a guarded shim reports when a handler throws -
 // 0 (pass, the default) lets the remaining word run, 1 (consume) stops it.
 // Only consulted when D_CFG_EVENT_HANDLER_GUARD_EXCEPTIONS is 1.
 #ifndef D_CFG_EVENT_HANDLER_GUARD_VERDICT

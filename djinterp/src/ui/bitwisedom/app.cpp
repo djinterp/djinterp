@@ -514,7 +514,7 @@ std::filesystem::path utf8_path(
 
 /*
 new_row
-  A row as the user adds it: in the colour the preferences give new rows --
+  A row as the user adds it: in the colour the preferences give new rows -
 none of its own, its bits drawn plain; the palette's, each its own, as a
 row left to the palette is; or the one colour, every new row alike.
 */
@@ -1490,7 +1490,7 @@ workspace* app::holding(
 /*
 add_workspace
   A new workspace, with the tool windows a workspace opens with - the
-symbols tree among them only when the user keeps it apart from the grid --
+symbols tree among them only when the user keeps it apart from the grid -
 and no documents yet. It is added, not put in front.
 */
 workspace& app::add_workspace()
@@ -3054,7 +3054,7 @@ bool app::apply_shell(
     else if ( (kind == "doc.next") ||
               (kind == "doc.previous") )
     {
-        // the sheet after the one in front, or before, in its workspace --
+        // the sheet after the one in front, or before, in its workspace -
         // no further than either end
         const std::vector<int>& order = current().documents;
         const auto              at    = std::find(order.begin(),
@@ -3952,7 +3952,7 @@ void app::select(
 
 /*
 place_cursor
-  The grid's cursor put on a cell, with the range from it to another --
+  The grid's cursor put on a cell, with the range from it to another -
 itself, for one cell: the cells as the cursor names them. A run of Tabs
 and End mode end with it.
 */
@@ -5367,7 +5367,7 @@ void app::special_edit(
 
 /*
 display_edit
-  What a part of the grid shows. "display.set" shows or hides a part --
+  What a part of the grid shows. "display.set" shows or hides a part -
 digits, names, colours - over a region: rows, by id, as "rows" lists
 them ("" for every row), from bit "lsb" to "msb" (every bit when msb is
 below lsb), "value" 1 shown, 0 hidden, -1 as the rest of the grid; "only"

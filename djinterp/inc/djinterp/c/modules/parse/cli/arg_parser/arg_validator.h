@@ -157,7 +157,7 @@ D_EXTERN_C_BEGIN
 // d_arg_validation_init / d_arg_validation_release
 //   lifetime: init starts a validation of `_value`, which it borrows, with no
 // option and the configured D_INTERNAL_ARG_PARSER_INTEGER_RULE; release
-// frees what the validation came to own - a replaced value, a message --
+// frees what the validation came to own - a replaced value, a message -
 // after which `value` must not be read. Neither fails, and release accepts
 // NULL.
 D_ARG_PARSER_API void d_arg_validation_init(
@@ -456,7 +456,7 @@ D_ARG_PARSER_API int d_arg_validator_set_description(
 
 // 2.4.2
 // d_arg_validator_set_active and kin
-//   settings: CLI11's active(), non_modifying() - with its sense reversed --
+//   settings: CLI11's active(), non_modifying() - with its sense reversed -
 // and application_index(), in which -1 means every value. None fails, and
 // each ignores NULL.
 D_ARG_PARSER_API void d_arg_validator_set_active(
@@ -582,7 +582,7 @@ D_ARG_PARSER_API struct dj_arg_validator d_arg_validator_and(
  *       (second)" when both operands have one, and the one they have
  *       otherwise. Flags and application are those of d_arg_validator_and.
  *       It lists the values of both operands, and completes as a number
- *       when both operands do, and otherwise as a path when either does --
+ *       when both operands do, and otherwise as a path when either does -
  *       as a directory when every operand that completes as a path
  *       completes as a directory.
  *
@@ -676,7 +676,7 @@ D_ARG_PARSER_API void d_arg_validator_set_describe(
 
 // 4.1.4
 // d_arg_validator_set_choices / d_arg_validator_set_value_kind
-//   settings: tell shell completion what a custom validator accepts --
+//   settings: tell shell completion what a custom validator accepts -
 // `_choices` lists its values (NULL for none), and `_kind` is 0,
 // D_ARG_VALIDATOR_PATH, D_ARG_VALIDATOR_DIRECTORY, which sets the path flag
 // too, or D_ARG_VALIDATOR_NUMBER. Neither fails, and each ignores a NULL
@@ -708,7 +708,7 @@ D_ARG_PARSER_API void d_arg_validator_set_value_kind(
  *
  * @note Rejects with "Value <value> not in range [<low> - <high>]", and is
  *       described as "<TYPE> in [<low> - <high>]", the bounds written as
- *       CLI11 streams them: a character as itself, integers in full --
+ *       CLI11 streams them: a character as itself, integers in full -
  *       8-bit ones too, which CLI11 streams as characters - and floating
  *       point to six significant digits. The value is converted as CLI11's
  *       lexical_cast converts it: as an option of the type would, but for

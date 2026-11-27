@@ -490,7 +490,7 @@ const char SETTINGS[] =
 // ITEMS
 //   constant: what the steps of d_tests_arg_cpp_config_items write: the
 // module's own, as CLI11's ConfigItem is a struct of strings, filled in
-// place, where an item here is built through calls that copy its text --
+// place, where an item here is built through calls that copy its text -
 // NUL bytes kept - and is adopted by the list that keeps it (ISSUES 16).
 const char ITEMS[] =
     "none: valid=0 parents=[] name=[] inputs=[] multiline=0 full=[]\n"
@@ -1625,7 +1625,7 @@ const std::size_t PARSED_COUNT =
 
 // framed
 //   class: a format whose writing frames each command it writes - the root,
-// and each subcommand, which the writing writes through the same format --
+// and each subcommand, which the writing writes through the same format -
 // between comment lines naming the command and the prefix it is written
 // under.
 class framed : public cli::config_format

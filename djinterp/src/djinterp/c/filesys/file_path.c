@@ -657,7 +657,7 @@ d_internal_path_climb
   Backs the written output over its last component and the separators before
 it, never into the root, and reports where the output now ends. A "./" left at
 the front can only be the one written ahead of a drive-like component
-(d_internal_path_looks_like_drive) - a "." of the input is never written --
+(d_internal_path_looks_like_drive) - a "." of the input is never written -
 so it goes with that component.
 */
 static
@@ -764,7 +764,7 @@ size_t d_internal_path_separate(
 
 /*
 d_internal_path_trailing
-  The separators that end a path - _run, the input's last run of them --
+  The separators that end a path - _run, the input's last run of them -
 dropped under D_CFG_FILE_PATH_STRIP_TRAILING_SEP, and otherwise kept: one, or
 the whole run where runs are kept, after the last component, or after a
 share, whose root directory they are. A root that ends in a separator already

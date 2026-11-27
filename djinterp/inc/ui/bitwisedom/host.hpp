@@ -3,7 +3,7 @@
 *
 * The window's host: what opens the window, runs its frames and closes it.
 *   Each platform's host defines run_window - Win32 and Direct3D 11 on
-* Windows (host_win32.cpp), GLFW and OpenGL 3 elsewhere (host_glfw.cpp) --
+* Windows (host_win32.cpp), GLFW and OpenGL 3 elsewhere (host_glfw.cpp) -
 * and the build links one. The module's run function (plugin.cpp) reads
 * `bitwisedom gui`'s arguments into window_options and calls it, so a host
 * reads no command line of its own; and it says what it has to say - a

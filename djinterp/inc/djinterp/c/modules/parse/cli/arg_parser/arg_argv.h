@@ -107,7 +107,7 @@ TABLE OF CONTENTS
 
 // 1.1.3
 // D_ARG_SPLIT_LINE_BREAKS
-//   constant: for the C runtime's rules, a line break - `\n` or `\r` --
+//   constant: for the C runtime's rules, a line break - `\n` or `\r` -
 // outside quotes separates words as a space does, as MSVC's tools and
 // clang-cl read a response file; the runtime itself reads a command line,
 // which holds none, with spaces and tabs alone. The other rules always
@@ -155,7 +155,7 @@ D_EXTERN_C_BEGIN
  *
  * @param[in]     _line     the text; a NUL byte in it is an ordinary
  *                          character, though a word holding one - or one
- *                          that CLI11's escapes `\\0` and `\\u0000` give --
+ *                          that CLI11's escapes `\\0` and `\\u0000` give -
  *                          reads, from the list, as ending there, where
  *                          d_arg_parser_parse_line keeps it whole.
  * @param[in]     _quoting  a dj_arg_quoting value.
@@ -260,7 +260,7 @@ D_ARG_PARSER_API int d_arg_split_program_name(
  *       Windows' line ends gives words ending in one. A byte-order mark is
  *       honoured, whatever the rules: UTF-8's is skipped, and a file starting
  *       with UTF-16's, little- or big-endian, is read as UTF-16, as MSVC
- *       reads one, an unpaired surrogate - or an odd byte left at the end --
+ *       reads one, an unpaired surrogate - or an odd byte left at the end -
  *       becoming U+FFFD. A NUL byte is an ordinary character, as
  *       d_arg_split_line reads one: a word holding one reads, from the
  *       list, as ending there, where a parse reading the file keeps it whole
@@ -326,7 +326,7 @@ D_ARG_PARSER_API int d_arg_utf8_from_wide(
  *
  * @note `wchar_t` is written as UTF-16 where it has 16 bits, as on Windows,
  *       a code point past U+FFFF as a surrogate pair, and as UTF-32 where it
- *       has more. Only well-formed UTF-8 converts, as RFC 3629 defines it --
+ *       has more. Only well-formed UTF-8 converts, as RFC 3629 defines it -
  *       no overlong form, no surrogate, nothing past U+10FFFF, no sequence
  *       cut short - where CLI11's widen throws std::range_error. A NUL byte
  *       is a 0 unit, kept. Text never takes more units than it has bytes, so

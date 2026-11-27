@@ -1,5 +1,5 @@
 # =============================================================================
-# djinterp [test] --
+# djinterp [test] -
 # build/cmake/config/testing/djinterp/c/modules/db/mongodb/CMakeLists.txt
 #
 #   Test leaf for c/modules/db/mongodb's suites, in DTest's C face

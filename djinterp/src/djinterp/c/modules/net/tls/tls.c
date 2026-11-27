@@ -2772,7 +2772,7 @@ d_tls_config_plan(
 d_internal_tls_engine_status
   Holds an engine to its contract. OK, the known formal statuses,
 OUT_OF_MEMORY, and BACKEND pass as they are; so do WANT_READ and
-CLOSED where the operation may return them. Anything else --
+CLOSED where the operation may return them. Anything else -
 WOULD_BLOCK and TRANSPORT above all, which only a transport may report
 -- becomes BACKEND, so a misbehaving engine can neither make the kernel
 retry forever nor pass itself off as the network.
@@ -3722,7 +3722,7 @@ d_internal_tls_handshake(
 /*
 d_internal_tls_read
   The read pump of an established session. A WANT_READ may follow records
-the engine absorbed without yielding data - session tickets, key updates --
+the engine absorbed without yielding data - session tickets, key updates -
 so the loop runs until data, the peer's close_notify, or a failure.
 */
 static enum dj_tls_error

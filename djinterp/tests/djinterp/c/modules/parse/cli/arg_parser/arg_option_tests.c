@@ -320,7 +320,7 @@ enum dj_tests_arg_option_setter
 };
 
 // dj_tests_arg_option_count_step
-//   struct: one step of COUNTS: the label of the line written after it --
+//   struct: one step of COUNTS: the label of the line written after it -
 // NULL for none - the setter it calls, the setter's arguments, and whether
 // it starts with a fresh option rather than going on with the last.
 struct dj_tests_arg_option_count_step
@@ -2809,10 +2809,10 @@ static const char RESULTS[] =
     "as 3\n";
 
 // DEPARTED_COUNTS
-//   constant: the counts of the options of DEPARTED_STEPS, whose items --
+//   constant: the counts of the options of DEPARTED_STEPS, whose items -
 // the type size times the expected count - an `int` cannot hold: the
 // minimum held at D_ARG_EXPECTED_UNLIMITED, as CLI11 holds the maximum.
-// CLI11 multiplies the minimum unchecked, and the `int` overflows --
+// CLI11 multiplies the minimum unchecked, and the `int` overflows -
 // undefined behaviour, which its builds turn into `items=0,536870912` for
 // the first and `items=-2147483648,536870912` for the second: an option
 // that takes no values at all, or fewer than none.
@@ -4724,7 +4724,7 @@ void d_tests_arg_option_text_cleared(
 }
 
 // dj_tests_arg_option_defaulted
-//   struct: what DEFAULTS works on: the run, the transcript, its options --
+//   struct: what DEFAULTS works on: the run, the transcript, its options -
 // one bound to nothing, one to `n`, one to `s` - and the two variables,
 // which the options borrow for as long as the run lasts.
 struct dj_tests_arg_option_defaulted
@@ -6321,7 +6321,7 @@ d_tests_arg_option_conflicts
   Ignoring case or underscores where two options' names would then match,
 and the names two options share, as CLI11's matching_name.
   Tests the following:
-  - ignore_case and ignore_underscore refused with OptionAlreadyAdded --
+  - ignore_case and ignore_underscore refused with OptionAlreadyAdded -
     "adding ignore case caused a name conflict with <name> is already
     added" - when a long, short or positional name of another option would
     then match, the setting kept off; allowed, and kept, when none would
@@ -6417,7 +6417,7 @@ bool d_tests_arg_option_text(void)
 d_tests_arg_option_counts
   The counts each count setter leaves, as CLI11's.
   Tests the following:
-  - expected(n): exactly n, 0 for none; a negative n, at least |n| --
+  - expected(n): exactly n, 0 for none; a negative n, at least |n| -
     keeping a larger maximum - and extra arguments; unlimited, at least
     one and extra arguments
   - expected(min, max): negative bounds - the minimum's magnitude, an
@@ -6446,7 +6446,7 @@ capture_default_str, default_val and default_function.
   - an option starts without default text, bound or not; capturing gives
     a bound variable's value as it is then, and nothing without a variable
   - default_str sets the text alone; default_val checks the value as one
-    given, leaves the values given as they were, and runs the callback --
+    given, leaves the values given as they were, and runs the callback -
     the bound variable takes the default - unless run_callback_for_default
     is off
   - a default the variable cannot take refused with ConversionError, in
@@ -6745,7 +6745,7 @@ get_validator.
   Tests the following:
   - checks run in the order added, after the transformations, each added
     before the others; each() runs where it was added
-  - a validator found by name - the empty name finding the unnamed one --
+  - a validator found by name - the empty name finding the unnamed one -
     and by index; none past either
   - values changed by a transformation, and kept as given among the
     option's results; a check refusing one with ValidationError, "<name>:
@@ -6871,7 +6871,7 @@ flag `--flag,--no-flag{false},-f{2}`.
     inverted - `false` for `true` or 1, `true` for `false`, 0 or -1, a
     number's negation, a word as it is
   - an override refused with ArgumentMismatch when the flag disables them:
-    any input but the name's own value - `true` for a name without one --
+    any input but the name's own value - `true` for a name without one -
     unless it is a forced flag's default text
   - names matched as the flag matches them: with case and underscores
     ignored, `NO-FLAG` and `no_flag` are `no-flag`

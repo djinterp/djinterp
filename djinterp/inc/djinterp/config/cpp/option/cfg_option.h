@@ -74,7 +74,7 @@
 // as an INTERNED HANDLE (D_OPTION_FLAG_INTERNED_KEY). At uint16_t a build gets
 // 65,535 distinct class-type keys for its whole lifetime, which is generous
 // for a configuration surface and wrong for anything content-derived.
-//   Whether handles are session-local or content-derived is still open --
+//   Whether handles are session-local or content-derived is still open -
 // AGENT_README §9 item 3 - so a build that narrows this is betting on the
 // answer to a question the framework has not settled.
 #ifndef D_CFG_OPTION_KEY_TYPE

@@ -101,7 +101,7 @@ TABLE OF CONTENTS
 //==============================================================================
 // 1.  MODULES
 //==============================================================================
-// How a program loads the module of a command it does not carry itself --
+// How a program loads the module of a command it does not carry itself -
 // its window, as a plugin (GRAMMAR.html, section 7).
 
 

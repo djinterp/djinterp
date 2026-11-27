@@ -81,7 +81,7 @@ struct dj_internal_candidate
 
 // 1.1.3
 // d_internal_words
-//   struct: a change to a rule's words: the part, the word's index, how --
+//   struct: a change to a rule's words: the part, the word's index, how -
 //   1 inserted, -1 removed, 0 set - the word written, and the splice that
 //   makes it, its text kept here.
 struct dj_internal_words

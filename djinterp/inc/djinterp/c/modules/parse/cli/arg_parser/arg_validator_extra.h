@@ -427,7 +427,7 @@ D_EXTERN_C_BEGIN
  *       arithmetic, written as the type writes values; a unit alone stands
  *       for its factor, and a number without a unit is kept as written,
  *       trimmed. Overflow is refused where CLI11's checked_multiply refuses
- *       it. The units are kept in the order CLI11's std::map keeps them --
+ *       it. The units are kept in the order CLI11's std::map keeps them -
  *       by name, by lowercase name when they match without case - and of
  *       units given twice the first is kept, as a std::map made from them
  *       keeps it; the factors are converted under the configured integer
@@ -451,7 +451,7 @@ D_EXTERN_C_BEGIN
  * @return the validator; on failure, a failed validator holding CLI11's
  *         construction error - D_ARG_ERROR_VALIDATION with "Unit must not
  *         be empty.", "Unit must contain only letters." or "Several
- *         matching lowercase unit representations are found: <unit>" --
+ *         matching lowercase unit representations are found: <unit>" -
  *         or D_ARG_ERROR_BAD_ARGUMENT for a NULL argument, a type that is
  *         not arithmetic, or a factor that does not convert;
  *         D_ARG_ERROR_OUT_OF_MEMORY when the units could not be copied.

@@ -41,7 +41,7 @@ int main()
     constexpr auto s = sample<4>(sq, 0.0, 1.0);
     static_assert(s[0]==0.0 && s[1]==1.0 && s[2]==4.0 && s[3]==9.0, "sample");
 
-    // ---- sample_over a discrete interval: first point = lower, then +step --
+    // ---- sample_over a discrete interval: first point = lower, then +step -
     using I = interval<int,0,8,false,false,2>;
     constexpr auto s2 = sample_over<I>(x);
     static_assert(s2[0]==0.0 && s2[1]==2.0, "sample_over first/step");

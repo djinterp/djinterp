@@ -4,7 +4,7 @@
 * djinterp SMTP kernel tests - STARTTLS.
 *   Tests of STARTTLS on both sides, with net_tests_peer.h's
 * scripted peer as the other party and its toy engine as the TLS kernel's
-* engine, so every byte on the wire - plaintext, handshake, and sealed --
+* engine, so every byte on the wire - plaintext, handshake, and sealed -
 * is checked, and every way TLS fails can be had on cue: a session the
 * engine will not make, a handshake it fails, a certificate it doubts, a
 * peer that hangs up or stalls mid-handshake, plaintext injected behind the

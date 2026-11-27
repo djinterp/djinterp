@@ -366,7 +366,7 @@ bool d_internal_alternates(
 
 /*
 d_internal_environment_alternates
-  The stores GIT_ALTERNATE_OBJECT_DIRECTORIES names, apart by colons --
+  The stores GIT_ALTERNATE_OBJECT_DIRECTORIES names, apart by colons -
 semicolons on Windows.
 */
 static

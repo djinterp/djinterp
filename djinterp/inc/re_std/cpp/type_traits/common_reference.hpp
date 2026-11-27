@@ -40,7 +40,7 @@
 *   PORTABILITY:
 *   Available on C++11 and later, gated on
 * RE_STD_LANG_HAS_ALIAS_TEMPLATES (the trait's signature uses
-* template-template parameters that take a single type and yield a type --
+* template-template parameters that take a single type and yield a type -
 * that requires alias templates, since the qualifier-applying templates
 * are typically alias templates). Standardized in C++20; re_std backports.
 *
@@ -280,7 +280,7 @@ namespace re_std
             typedef typename common_ref_LL_inner<const X, Y>::type type;
         };
 
-        // RL: A is lvalue ref, B is rvalue ref. Symmetric to LR --
+        // RL: A is lvalue ref, B is rvalue ref. Symmetric to LR -
         //   COMMON-REF(A, B) = COMMON-REF(B, A).
         template<typename X, typename Y>
         struct common_ref<

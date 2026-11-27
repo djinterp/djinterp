@@ -279,7 +279,7 @@ uxoxo overlay of 2026.10.18, which replaces that directory and nothing
 else. The window's sheets and tool windows dock, float and tab as Visual
 Studio's do, and those are the docking branch's: ImGui 1.92.8 WIP, its
 <code>docking</code> branch at <code>dee5bf3e</code>. Before 2026.10.18
-it was written for the uxoxo of 2026.10.11 --
+it was written for the uxoxo of 2026.10.11 -
 <code>uxoxo_2026_10_11b.zip</code>, whose blueprints share their
 drawing, so a tree of a thousand rows is realized in linear time.</p>
 <hr />
@@ -405,7 +405,7 @@ can select, whatever the build's own level is.</p>
 <hr />
 <h2 id="flags">Flags</h2>
 <p>bitwis(e)dom's own sources - the model, the generator, the window,
-the tests -- are held to the style guide's whole baseline:
+the tests - are held to the style guide's whole baseline:
 <code>-Wall -Wextra -Wshadow -Wcast-qual -Wconversion</code> under
 <code>-pedantic-errors</code> and <code>-Werror=undef</code>, and under
 Clang <code>-Wreserved-identifier</code> and
@@ -487,8 +487,8 @@ kit, uxoxo and Dear ImGui, so the window's build compiles everything
 position-independent; of its own, it exports its entry point alone, so
 its copy of the model never binds to the program's.</p>
 <p><code>bitwisedom gui [SHEET]...</code> opens the window on the sheets
-named -- <code>example:NAME</code>, or any file the window opens, a
-header to import among them -- or where it was left. Its operands are
+named - <code>example:NAME</code>, or any file the window opens, a
+header to import among them - or where it was left. Its operands are
 read by the commands' rules, so a name that is no example, or a file
 that cannot be read, is refused before any window opens, in the
 commands' words. <code>--size=WxH</code> and <code>--scale=S</code> set
@@ -885,7 +885,7 @@ the smoke test failed - "code in and out", at the code a new sheet is
 made from - and the rest passed. The section copies a row as code and,
 at once, puts other code on the clipboard to make a sheet from; and on
 Windows ImGui's clipboard is the system's, whose every copy a program
-watching it -- the clipboard history, a remote desktop, a password
+watching it - the clipboard history, a remote desktop, a password
 manager - opens it to read, so a copy straight after another can fail
 without a word, and the section read the row's code instead. The smoke
 test now keeps a clipboard of its own, in memory, in every ImGui it
@@ -919,7 +919,7 @@ Debug</td>
 </tbody>
 </table>
 <p>Later on 2026.10.20, after the grid was given a cursor and Excel's
-keys -- the arrows with Shift and Ctrl, Home, End and End mode, Page Up
+keys - the arrows with Shift and Ctrl, Home, End and End mode, Page Up
 and Page Down with Alt and Ctrl, Enter and Tab round a range,
 Shift+Space, Ctrl+Space, Ctrl+A, Shift+Backspace, Ctrl+Backspace,
 Ctrl+., F8, F2 and Space - against the same djinterp and uxoxo:</p>
@@ -1114,7 +1114,7 @@ failed: the model's suite at its three levels, and <code>ui_smoke</code>
 other passed. That is the old programs, run against the new counts: the
 overlay's files kept their archive's times, older than the objects of
 the build before, and the build compiled none of them. The same was done
-here on fresh trees -- the overlay of the afternoon of 2026.10.18 built
+here on fresh trees - the overlay of the afternoon of 2026.10.18 built
 and tested, then the overlay of the evening unzipped over it, configured
 and built - and the same four failed, the build having compiled nothing
 it changed. Configure now marks every source whose content changed since
@@ -1162,7 +1162,7 @@ Windows host takes <code>--warp</code>, to tell a GPU driver's stray
 pixels from the drawing's. GCC Debug and Clang Release: 391 of 391
 tests; MinGW-w64: every target built.</p>
 <p>In the evening of 2026.10.18, after the window took Visual Studio's
-shape -- each sheet in a window of its own, tool windows that dock,
+shape - each sheet in a window of its own, tool windows that dock,
 float, tab and close, workspaces and the Window menu's arrangements, a
 zoom for each window, the session kept, the Options and settings files -
 and after the symbols tree became the grid's symbols column, one add
@@ -1498,7 +1498,7 @@ elements are built again:</p>
 </table>
 <p>Opening the example takes 28 ms (release) and 142 ms (debug); opening
 its groups one by one, 22 ms and 154 ms each. Before the grid found its
-rows by an index, each frame walked the tree for each row -- with 1,424
+rows by an index, each frame walked the tree for each row - with 1,424
 rows, its largest cost. Debug is GCC's <code>-O0</code>; MSVC's debug
 library checks its iterators, and will be slower. <code>ui_smoke</code>
 takes 26 seconds in a debug build with its new section, from 43 with the
@@ -1595,7 +1595,7 @@ tests run under Wine, the 38 wide self-tests linked
 <p>A wide sheet's self-test checks, for <code>pci_config_header</code>
 at C99, 294 things as it compiles and 434 as it runs; for
 <code>wide_mix</code>, 71 and 118. Before they were trusted they were
-tried against headers with faults put in by hand -- a word of an
+tried against headers with faults put in by hand - a word of an
 initializer, the array macros' modulus, a field's <code>_SET</code>
 shift and its <code>_GET</code> mask, a value, a bit's place - and each
 fault failed them, as they compiled or as they ran. The

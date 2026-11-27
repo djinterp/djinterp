@@ -1158,7 +1158,7 @@ D_ARG_PARSER_API void d_arg_command_set_subcommand_fallthrough(
 // d_arg_command_set_ignore_case / d_arg_command_set_ignore_underscore
 //   settings: CLI11's ignore_case() and ignore_underscore(), which refuse to
 // turn on when the command's name or an alias would then match another of
-// its fallthrough parent's subcommands - or, at the root, one of its own --
+// its fallthrough parent's subcommands - or, at the root, one of its own -
 // (D_ARG_ERROR_OPTION_ALREADY_ADDED, "ignore case would cause subcommand
 // name conflicts: <name> is already added", or "ignore underscore ..."),
 // keeping the setting off.
@@ -1294,7 +1294,7 @@ D_ARG_PARSER_API void d_arg_command_set_pre_callback(
 // of the caller's. NULL - what every command starts with - uses the
 // parent's, and at the root d_arg_failure_simple, CLI11's default; so a
 // subcommand follows its parent's later changes, where CLI11's keeps a copy
-// of the message its parent had when it was made. A function that fails --
+// of the message its parent had when it was made. A function that fails -
 // returns anything but D_ARG_OK - is followed by d_arg_failure_simple's
 // message, so that no failed parse goes unreported.
 D_ARG_PARSER_API void d_arg_command_set_failure_message(

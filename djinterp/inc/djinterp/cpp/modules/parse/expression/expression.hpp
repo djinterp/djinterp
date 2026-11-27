@@ -222,7 +222,7 @@ struct operator_descriptor
 // list) and value-agnostic (the value defaults to operator_descriptor but
 // may be any per-operator payload a language wants).  A renderer consults it
 // for spelling and parenthesization, a parser for precedence and fixity.
-// Lookup is a first-match-wins walk - the intuition of the lookup family --
+// Lookup is a first-match-wins walk - the intuition of the lookup family -
 // and a miss yields a null value or the lookup_npos index.
 template<typename OpId,
          typename Value      = operator_descriptor,
@@ -498,7 +498,7 @@ NS_INTERNAL
 
     // expr_carrier
     //   helper: binds OpId and Atom so expr_layer presents as the
-    // single-argument template-template parameter mu (and cofree) require --
+    // single-argument template-template parameter mu (and cofree) require -
     // the same nested-alias device parser_layer uses for free.
     template<typename OpId,
              typename Atom>

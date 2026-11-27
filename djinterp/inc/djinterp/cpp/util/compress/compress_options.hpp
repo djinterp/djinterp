@@ -32,7 +32,7 @@
 *
 *   ONE BEHAVIOURAL CHANGE, DELIBERATE.  A default-constructed set is PRISTINE
 * (every knob D_COMPRESS_KNOB_UNSET), not zero.  It has to be: 0 is a
-* meaningful value for most of these knobs - level 0 means "no compression" --
+* meaningful value for most of these knobs - level 0 means "no compression" -
 * so a zero-filled set is a fully-specified request masquerading as an untouched
 * one.  The core resolves UNSET knobs to its own pinned defaults at dispatch,
 * which is what keeps C and C++ sending a backend identical parameters.
@@ -417,7 +417,7 @@ std::string describe_compress_option_diff(
 }
 
 // describe_compress_diff_from_default
-//   function: the same field list taken against a freshly constructed set --
+//   function: the same field list taken against a freshly constructed set -
 // "what has this option set changed from pristine?".
 inline
 std::string describe_compress_diff_from_default(

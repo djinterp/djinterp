@@ -1,5 +1,5 @@
 # =============================================================================
-# djinterp [test] --
+# djinterp [test] -
 # build/cmake/config/testing/djinterp/cpp/modules/net/lmtp/CMakeLists.txt
 #
 #  Leaf for LMTP's C++ facade (cpp/modules/net/lmtp), at C++98 and C++20

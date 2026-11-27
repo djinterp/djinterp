@@ -1,5 +1,5 @@
 # =============================================================================
-# djinterp [test] --
+# djinterp [test] -
 # build/cmake/config/testing/djinterp/cpp/modules/net/core/CMakeLists.txt
 #
 #  Leaf for net's C++ core (cpp/modules/net): four programs, each at C++98

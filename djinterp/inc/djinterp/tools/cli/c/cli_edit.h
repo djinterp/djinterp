@@ -234,7 +234,7 @@ D_CLI_API bool d_cli_edit_dry_run(
  * @param[in] _length   how many bytes.
  * @return D_CLI_EXIT_OK when written, or nothing was to be; else
  *         D_CLI_EXIT_TROUBLE, said as d_cli_file_error says it - `cannot
- *         write 'FILE': REASON`, `cannot write standard output: REASON` --
+ *         write 'FILE': REASON`, `cannot write standard output: REASON` -
  *         or as `out of memory`, the file as it was; D_CLI_EXIT_TROUBLE,
  *         unsaid, for a NULL program or record, or NULL data with a length.
  */

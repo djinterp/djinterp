@@ -569,7 +569,7 @@ bool d_http_status_is_redirect(
 // is_token - one or more tchar (RFC 9110, 5.6.2), as field names, methods,
 // and parameter names are; is_field_value - visible ASCII, obs-text, and
 // interior spaces and tabs, with no whitespace at either end and never CR,
-// LF, or NUL (RFC 9110, 5.5), and an empty value is one; trim_whitespace --
+// LF, or NUL (RFC 9110, 5.5), and an empty value is one; trim_whitespace -
 // the text without the SP and HTAB at its ends, the OWS around a value
 bool d_http_is_token(
     struct dj_pack_text _text

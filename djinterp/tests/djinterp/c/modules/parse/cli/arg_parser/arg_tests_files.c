@@ -257,7 +257,7 @@ bool d_tests_arg_files_os_mode(
 }
 
 /**
- * @brief Removes one thing made: a directory with rmdir, anything else --
+ * @brief Removes one thing made: a directory with rmdir, anything else -
  *        a link itself, not what it points to - with unlink.
  *
  * @param[in] _name    its name, relative.

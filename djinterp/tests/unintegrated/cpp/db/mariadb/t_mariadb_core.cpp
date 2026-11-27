@@ -676,7 +676,7 @@ client's flags.
   - multi_statements, and a custom option the client has no keyword for,
     refused with D_DB_UNSUPPORTED; a URI's scheme passes
   - found_rows makes an UPDATE count the rows it matched
-  - change_user: to the same user, kept; with a wrong password, refused --
+  - change_user: to the same user, kept; with a wrong password, refused -
     MariaDB keeping the connection, MySQL closing it, which is then lost
 */
 template<typename Connection>

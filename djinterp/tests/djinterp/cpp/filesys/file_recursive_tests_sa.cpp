@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][filesys]                            file_recursive_tests_sa.cpp
 *
-*   Unit tests for the recursive traversal in inc/djinterp/cpp/filesys/file_recursive.hpp --
+*   Unit tests for the recursive traversal in inc/djinterp/cpp/filesys/file_recursive.hpp -
 * walk and remove_all. One file for the facility, sibling to the other suites,
 * same harness and same three rules. Free functions, so a flat tier ladder.
 *

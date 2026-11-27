@@ -501,7 +501,7 @@ NS_END  // internal
 
 
 // is_xml_dialect
-//   trait: true if `Type` exposes the XML dialect surface --
+//   trait: true if `Type` exposes the XML dialect surface -
 // specifically a `flag` member of type `DXmlDialectFlag`.
 // Detects both `DXmlDialect<Flag>` instantiations and
 // third-party policy structs that follow the same convention.

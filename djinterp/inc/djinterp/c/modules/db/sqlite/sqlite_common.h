@@ -188,9 +188,9 @@ const char* d_sqlite_result_message(
 // none again). SQLite has no SQLSTATE, so the function is given NULL for one.
 // The default reads the primary result, and the extended where it says more:
 // SQLITE_CONSTRAINT is a constraint, SQLITE_BUSY and SQLITE_LOCKED busy,
-// SQLITE_ERROR syntax - SQLite's code for a statement it could not prepare --
+// SQLITE_ERROR syntax - SQLite's code for a statement it could not prepare -
 // SQLITE_CANTOPEN and SQLITE_NOTADB a connection, SQLITE_PERM, SQLITE_AUTH and
-// SQLITE_READONLY denied - SQLite has no login, so nothing of its is auth --
+// SQLITE_READONLY denied - SQLite has no login, so nothing of its is auth -
 // SQLITE_MISMATCH, SQLITE_TOOBIG and SQLITE_RANGE data, SQLITE_MISUSE and
 // SQLITE_NOLFS unsupported, and SQLITE_IOERR, SQLITE_CORRUPT, SQLITE_NOMEM and
 // the rest of SQLite's own failures internal. Success, SQLITE_ROW,

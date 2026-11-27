@@ -21,7 +21,7 @@ D_EXTERN_C_BEGIN
    =============================================================================
      Section I was METADATA and is now test_metadata.c (revision.md §6),
    taking the seven d_test_metadata_* definitions and the static helper
-   d_test_key_equal_ with it.  Nothing below calls into the metadata module --
+   d_test_key_equal_ with it.  Nothing below calls into the metadata module -
    that is the cut, and it was exactly one call site: d_test_object_init used
    to end `return d_test_metadata_init(&_object->metadata);`. */
 

@@ -355,7 +355,7 @@ void d_tests_file_print(
 
 // d_tests_file_scratch
 //   function: a distinct filename per call, in the working directory, for a
-// group that needs a real file. Standard C throughout - no platform call --
+// group that needs a real file. Standard C throughout - no platform call -
 // so the test keeps the header's no-OS discipline. The caller remove()s it.
 static
 const char* d_tests_file_scratch(void)

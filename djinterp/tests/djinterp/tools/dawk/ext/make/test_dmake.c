@@ -14,7 +14,7 @@
 * as the make named or guessed, and proves the records sound: statements in
 * order and apart, each over whole lines, its parts within it; comments in
 * order; every line a statement's or blank or a comment.
-*   With --fuzz, it makes changes at random to each file named instead --
+*   With --fuzz, it makes changes at random to each file named instead -
 * parts and words set, inserted and removed, commands added and removed,
 * statements inserted, replaced and removed, and raw splices - and proves
 * of each, apart from the document's own check, that a change kept left

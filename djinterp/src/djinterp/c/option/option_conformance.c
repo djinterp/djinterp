@@ -2,7 +2,7 @@
 * djinterp [c][option]                                      option_conformance.c
 *
 *   The conformance suite for body-options.tex. Goal 1: "Every formal relation
-* and operator ships with tests that transcribe the .tex's own claims --
+* and operator ships with tests that transcribe the .tex's own claims -
 * INCLUDING ITS STATED NON-PROPERTIES."
 *
 *   Two tests here exist for that second clause and are the reason the file is
@@ -11,7 +11,7 @@
 *     C05  agreement is NOT transitive
 *     C13  (+) is NOT commutative
 *
-*   Both would still pass if someone "simplified" the relation they guard --
+*   Both would still pass if someone "simplified" the relation they guard -
 * which is exactly why they assert the failure rather than the success. A suite
 * that only tested the positive properties would go green on a tolerance
 * silently promoted to an equivalence, and that promotion is a real temptation:

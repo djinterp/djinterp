@@ -111,7 +111,7 @@ TABLE OF CONTENTS
 
 // 1.2.3
 // D_INTERNAL_SQLITE_BIND64
-//   macro: 1 where text and bytes are bound by a 64-bit length --
+//   macro: 1 where text and bytes are bound by a 64-bit length -
 // sqlite3_bind_text64 and sqlite3_bind_blob64, from 3.8.7 - and 0 where
 // sqlite3_bind_text and sqlite3_bind_blob take an int, past which the layer
 // answers SQLITE_TOOBIG itself.

@@ -262,7 +262,7 @@ void d_tests_ops_print(
 
 // d_tests_ops_name
 //   function: a distinct scratch filename per call. Rotates a small set of
-// static buffers so two names held at once - a rename's from and to, say --
+// static buffers so two names held at once - a rename's from and to, say -
 // do not alias the same storage (which would rename a file onto itself).
 static
 const char* d_tests_ops_name(void)

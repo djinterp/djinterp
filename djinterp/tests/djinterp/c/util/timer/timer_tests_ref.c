@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [c][utility]                                        timer_tests_ref.c
 *
-* The timer suite, block "ref": timer.h's interface over any timer --
+* The timer suite, block "ref": timer.h's interface over any timer -
 * struct dj_timer_vtable, struct dj_timer_ref and the d_timer_ref_* functions
 * - on each of the three kinds, and across them.
 *

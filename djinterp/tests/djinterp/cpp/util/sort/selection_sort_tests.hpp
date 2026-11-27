@@ -9,7 +9,7 @@
 *     selection_sort_tests_primitives.cpp  selection_min_index /
 *                                          selection_pass - the forward scan
 *                                          and the pass over a sub-run
-*     selection_sort_tests_apply.cpp       internal::selection_sort_apply --
+*     selection_sort_tests_apply.cpp       internal::selection_sort_apply -
 *                                          the minimum scan, the swap bound,
 *                                          and the exact comparison count
 *     selection_sort_tests_entry.cpp       the public selection_sort /

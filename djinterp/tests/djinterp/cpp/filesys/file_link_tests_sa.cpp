@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][filesys]                                 file_link_tests_sa.cpp
 *
-*   Unit tests for the symlink operations in inc/djinterp/cpp/filesys/file_link.hpp --
+*   Unit tests for the symlink operations in inc/djinterp/cpp/filesys/file_link.hpp -
 * create_symlink, read_symlink, is_symlink - and, because this suite can
 * finally create a symlink, the follow-vs-no-follow difference that
 * status_tests_sa.cpp had to defer: status() follows a link, symlink_status()
@@ -336,7 +336,7 @@ struct dj_test_object* d_tests_link_create_read(void)
 
 /*
 d_tests_link_is
-  is_symlink is true for a link and false for the ordinary file it points at --
+  is_symlink is true for a link and false for the ordinary file it points at -
 without following the link in either case.
 */
 static

@@ -1176,7 +1176,7 @@ d_ftp_client_login(
 
 /*
 d_ftp_internal_client_reserved
-  File-local: reports whether a command changes state the client keeps --
+  File-local: reports whether a command changes state the client keeps -
 the login, TLS, data protection, the representation type, the data
 connection - or opens a data connection, and so must go through this
 header's own functions.

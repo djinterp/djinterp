@@ -223,7 +223,7 @@ struct DMarkupProfile
 
 // markup_attr_height
 //   key: this dialect's own hint for a CSS height, set by vertical_space when
-// the profile spells presentation as CSS.  Private to the markup renderer --
+// the profile spells presentation as CSS.  Private to the markup renderer -
 // no other renderer reads it, which is exactly the open-vocabulary rule the
 // hint bag is built on.  Follows document_attributes.hpp's linkage pattern.
 #if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
@@ -1253,7 +1253,7 @@ private:
             _out += " id=\"" + escaped(_value) + "\"";
         }
 
-        // colspan / rowspan are real table attributes, not presentation --
+        // colspan / rowspan are real table attributes, not presentation -
         // this is where a model's merge cover lands in HTML
         _value = attr_or(_attrs, doc_attr_colspan, std::string());
 

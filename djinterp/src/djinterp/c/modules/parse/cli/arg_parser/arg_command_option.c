@@ -677,7 +677,7 @@ int d_arg_internal_command_check_names(
  * @return the option; NULL when it was refused, the refusal recorded as a
  *         definition error.
  *
- * CLI11's add_option up to storing the option: it is made from the names --
+ * CLI11's add_option up to storing the option: it is made from the names -
  * a bad name recorded - its names checked, and stored last; a refused option
  * is not kept.
  */
@@ -1382,7 +1382,7 @@ struct dj_arg_option* d_arg_internal_command_finish_flag(
  *         then freed - or the values could not be given.
  *
  * The option for a flag with names carrying values: added under the names
- * without them, then given the values. Returns the status, with the option --
+ * without them, then given the values. Returns the status, with the option -
  * NULL when it was refused - in `*_option`.
  */
 D_STATIC
@@ -1706,7 +1706,7 @@ struct dj_pack_text d_arg_internal_command_flag_first(
  * @return D_ARG_OK when the value is false; D_ARG_ERROR_CONVERSION for a value
  *         that is no truth value; otherwise the function's status.
  *
- * CLI11's add_flag_callback lambda: the first value read as a truth value --
+ * CLI11's add_flag_callback lambda: the first value read as a truth value -
  * one that is none refuses the values - and the function called with 1 when
  * it is true.
  */

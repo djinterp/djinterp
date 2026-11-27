@@ -81,7 +81,7 @@ TABLE OF CONTENTS
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
 // declares only where the build can spell one. Below it - ISO strict C++98
-// wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS --
+// wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS -
 // the header compiles to nothing (the owner's ruling of 2026.10.03 on round 3's
 // question 1, (a)).
 #if defined(INT64_MAX)
@@ -529,7 +529,7 @@ int d_mariadb_has_trigger_s(
 // rest of the statement, e.g. "AFTER INSERT ON t FOR EACH ROW SET @n = @n +
 // 1", its table resolved as the server resolves it: in the current database
 // unless qualified, and it must be the trigger's. D_DB_IF_NOT_EXISTS makes an
-// existing one a success. Dropping --
+// existing one a success. Dropping -
 // D_DB_IF_EXISTS makes a missing one a success. Each returns 0, the client's
 // error number (1359, the name is taken; 1360, no such trigger),
 // CR_OUT_OF_MEMORY (2008), or D_DB_INVALID_ARGUMENT.

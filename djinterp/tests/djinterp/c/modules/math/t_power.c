@@ -22,7 +22,7 @@
 *
 *   pow_c must be correctly rounded too. For float, at a million pairs over
 * six ranges - x about 1, any x with x^y anywhere in range, integer powers
-* of either sign, x near 1 to a large y, subnormal results, subnormal x --
+* of either sign, x near 1 to a large y, subnormal results, subnormal x -
 * against the double library's pow rounded to float wherever that decides,
 * and within two ulps of powf. For double, two million pairs within two ulps
 * of pow, how many differ printed; and exact at 54 values from rational
@@ -57,7 +57,7 @@
 * wants a 64-bit long). Compiled as C++, it checks the overloads; from C++14,
 * that cbrt_c, pow_c and hypot_c are constant expressions, for every family,
 * with the bits they have at run time. It needs no 64-bit integer - its
-* random numbers come from math_tests_random.h, the same in every build --
+* random numbers come from math_tests_random.h, the same in every build -
 * so that ISO-strict C++98 on a 32-bit target, where dj_math_umax has 32
 * bits, builds it too.
 *
@@ -578,7 +578,7 @@ d_tests_specials(void)
                     "cbrt_c of the least subnormal", 0);
 
     // the plain form is the C library's - read through volatiles, so that
-    // no compiler folds the call into its own correctly rounded constant --
+    // no compiler folds the call into its own correctly rounded constant -
     // but in C++ before C++11, which has no cbrt, where it is cbrt_c
 #if ( defined(__cplusplus) &&                                                 \
       !D_ENV_LANG_IS_CPP11_OR_HIGHER )
@@ -1469,7 +1469,7 @@ d_tests_hypot_sign_f(
 }
 
 // d_tests_hypot_correct_f
-//   whether _r is hypot(_x, _y) correctly rounded: the midpoints about _r --
+//   whether _r is hypot(_x, _y) correctly rounded: the midpoints about _r -
 // half the gap above it and below it, which is half as wide at a power of 2
 // - the one above past the root, or on it with _r even, and the one below
 // short of it, or on it with _r even. +inf where the root lies on or past

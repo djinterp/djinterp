@@ -185,7 +185,7 @@ struct dj_internal_desc_djin
 };
 
 // d_internal_desc_djin
-//   variable: the djin "desc", its variables declared by its initialiser --
+//   variable: the djin "desc", its variables declared by its initialiser -
 // what d_option_env_declare_all would leave - so it is ready before the
 // program runs. It has no scopes until a type is declared.
 static struct dj_internal_desc_djin d_internal_desc_djin =

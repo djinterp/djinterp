@@ -190,7 +190,7 @@ struct dj_make_span
 //                line
 //   A loop's variables are its `name`, and its `in` its `separator`.
 //   A conditional's `depth` is the count of conditionals open about it, from
-//   0, and `next_branch` the index of the conditional that continues it --
+//   0, and `next_branch` the index of the conditional that continues it -
 //   the `else` after an `if`, the `endif` after an `else` - D_MAKE_NONE for
 //   an `endif`.  `orphan` marks a recipe's line with no rule above it, which
 //   make refuses where no rule is live.
@@ -273,7 +273,7 @@ struct dj_make_problem
 //   d_make_guess guesses a file's make from the first of its lines, outside
 // a recipe, that only one make reads: a directive of BSD's, `.include` or
 // `.if` and the rest, gives BSD; one of NMake's, `!include` or `!IF` and
-// the rest, NMake; one of GNU's - `define`, `ifeq`, `ifdef` and the rest --
+// the rest, NMake; one of GNU's - `define`, `ifeq`, `ifdef` and the rest -
 // or a call of one of its functions, `$(call ...`, GNU. A file with none of
 // these is GNU's when an assignment by `:=` or a pattern rule suggests it,
 // as POSIX mode refuses both, and POSIX's otherwise.

@@ -8,11 +8,11 @@
 * the window makes - so a row the window would refuse is refused here in
 * the same words. Every operand is checked before anything is written, so
 * a command that fails leaves the file as it was.
-*   A row is defined as a bitfield's row is, by options: one definition --
+*   A row is defined as a bitfield's row is, by options: one definition -
 * a bit, a range, a value in a range, a literal, an expression, a macro, or
 * for add a group - and anything else a row may say. add takes exactly
 * one definition; change takes one to replace the row's, or only the parts
-* of its own - a range's width, a value's number, a macro's parameters --
+* of its own - a range's width, a value's number, a macro's parameters -
 * and keeps whatever it is not given. An option counts as given when it is
 * on the command line at all, so `--note=` clears a note.
 *
@@ -185,7 +185,7 @@ struct new_request
 
 /*
 run_new
-  File > New's sheet - a full-width range named root, and in it one bit --
+  File > New's sheet - a full-width range named root, and in it one bit -
 under the title, width and affixes given.
 */
 int run_new(

@@ -150,7 +150,7 @@ namespace cli
 //------------------------------------------------------------------------------
 // 1.1.1
 // status_code
-//   enum: the dj_arg_status values, named for CLI11's error classes --
+//   enum: the dj_arg_status values, named for CLI11's error classes -
 // call_for_help is CallForHelp, bad_name_string BadNameString - with ok
 // for D_ARG_OK and the last three the C library's own. See status.
 struct status_code
@@ -590,7 +590,7 @@ private:
 // 2.4.1
 // error
 //   class: a view of an error report - the last parse's, the parser's
-// definition error, or the one a failure message is asked to describe --
+// definition error, or the one a failure message is asked to describe -
 // read as CLI11's Error is read: get_name(), get_exit_code(), what(). The
 // report is the C library's, so the view holds a pointer to it and is valid
 // while the report is: until the next parse, clear or release.
@@ -927,7 +927,7 @@ NS_INTERNAL
      *        through a C frame.
      *
      * @note Every function the C core calls into C++ through runs its work
-     *       here. With C++ exceptions - D_INTERNAL_ARG_PARSER_CPP_CATCH --
+     *       here. With C++ exceptions - D_INTERNAL_ARG_PARSER_CPP_CATCH -
      *       an exception the work lets out is caught and given to
      *       `_handler`, with whether it is std::bad_alloc: a std::exception
      *       as itself, anything else as NULL. Without them, the work's result

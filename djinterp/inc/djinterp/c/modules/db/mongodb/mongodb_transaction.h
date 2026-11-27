@@ -4,7 +4,7 @@
 * Multi-document transactions.
 *   A transaction runs in a session, which the handle starts at its first
 * transaction and keeps until it closes; while one is open, every operation
-* the layer sends on the handle - commands, documents, cursors, schema --
+* the layer sends on the handle - commands, documents, cursors, schema -
 * carries the session, so that each is part of it. A transaction needs a
 * replica set (MongoDB 4.0 and later), a sharded cluster (4.2 and later) or a
 * load balancer (D_MONGODB_FEATURE_TRANSACTIONS): a standalone server has

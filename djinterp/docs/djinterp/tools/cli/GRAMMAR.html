@@ -439,7 +439,7 @@ argument</h2>
 gives a meaning to where the grammar puts them:</p>
 <pre><code>A-Z a-z 0-9   -   _   .   /   :   +   ,   and   =   after the first character</code></pre>
 <p>Everything else is the user's to quote, and an argument that holds
-them -- an expression, a macro's body, a grammar given inline - is
+them - an expression, a macro's body, a grammar given inline - is
 quoted, or read from a file or from standard input instead. Every
 command that takes such text has a way to read it from a file or
 <code>-</code>.</p>
@@ -839,7 +839,7 @@ display can install the program alone.</p>
 every argument after <code>gui</code>. The module reads them with the
 same parser and the same grammar, so <code>PROGRAM gui --help</code> is
 the window's own help, and an option the window shares with a command -
-a sheet to open, a grammar to run -- is spelled as the command spells
+a sheet to open, a grammar to run - is spelled as the command spells
 it.</li>
 <li>The module is <code>PROGRAM-gui</code> with the platform's suffix
 for a loadable module - <code>bitwisedom-gui.dll</code>,
@@ -873,7 +873,7 @@ exit status</h2>
 <ul>
 <li><strong>R17.</strong> <strong>Standard output holds the result and
 nothing else</strong>: the header, the listing, the JSON. Everything
-said <em>about</em> the work -- errors, warnings, notes, progress - goes
+said <em>about</em> the work - errors, warnings, notes, progress - goes
 to standard error.</li>
 <li><strong>R18.</strong> Text is UTF-8, its lines ended by LF on every
 system. On a Windows console it is written through the console's own
@@ -1018,7 +1018,7 @@ named <code>--</code>).</p></li>
 <li><p><strong>R24.</strong> A word that is not an option's value is the
 <strong>next command</strong> while the command reached so far has
 subcommands and none has been given, and otherwise the <strong>next
-operand</strong>. A word that is neither -- no such command, no room for
+operand</strong>. A word that is neither - no such command, no room for
 another operand - is a usage error, and the nearest command is
 suggested.</p></li>
 <li><p><strong>R25.</strong> After <code>--</code>, every argument is an
@@ -1251,7 +1251,7 @@ read</strong>, whole or not at all (R20), in the shape it was read in;
 was; a sheet read from standard input is written to standard output;
 <code>-n, --dry-run</code> writes nothing and says what would change.
 Every issue the change brings is said, at the sheet. <strong>A change
-that would give the sheet an error it does not have</strong> -- an
+that would give the sheet an error it does not have</strong> - an
 expression naming a row that is gone, a value whose range is no longer
 one - <strong>is refused</strong>, nothing written, and the command
 exits 2; <code>-f, --force</code> writes it anyway. The window makes any

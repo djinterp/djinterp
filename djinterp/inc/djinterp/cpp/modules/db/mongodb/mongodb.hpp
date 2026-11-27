@@ -1384,7 +1384,7 @@ private:
 //   Every other member is one call of the layer on the current database,
 // which the configuration's database, or the connection string's, names
 // first, and use_database changes; a filter, a document, an update, a
-// pipeline or options is Extended JSON, and an empty string means none --
+// pipeline or options is Extended JSON, and an empty string means none -
 // every document, for a filter - where the layer takes none. Documents come
 // back as the document format writes them, canonical Extended JSON unless
 // set otherwise. Each write records what it changed, which
@@ -1932,7 +1932,7 @@ public:
     //   mongodb_settings.h: the connection's defaults, which the document
     //   members, the cursors and the transactions follow and their options
     //   may replace for one operation; commands run as written. Each is
-    //   given and read back as MongoDB writes it in a command, as JSON --
+    //   given and read back as MongoDB writes it in a command, as JSON -
     //   {"level": "majority"}, {"w": "majority", "j": true}, {"mode":
     //   "secondaryPreferred", "maxStalenessSeconds": 120} - "" setting the
     //   deployment's own default, which reads back as "{}" (a read
@@ -2099,7 +2099,7 @@ public:
         const mongo_connect_config& _config
     );
 
-    // get_face - the MongoDB layer's face, for the layer's other calls --
+    // get_face - the MongoDB layer's face, for the layer's other calls -
     // its f forms, a cursor's own options; closing or replacing the handle
     // through it is the connection's to do, not the face's
     face::mongodb& get_face() noexcept;

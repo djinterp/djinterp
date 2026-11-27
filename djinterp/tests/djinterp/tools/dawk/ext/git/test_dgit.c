@@ -3599,7 +3599,7 @@ bool d_tests_same_text(
 
 /*
 d_tests_corpus_file
-  A file read, proved sound, and each of its first lines set to itself --
+  A file read, proved sound, and each of its first lines set to itself -
 the first's text past a byte-order mark - which must be kept and change
 nothing.
   Long as the file is read, proved and its lines set, each a step.
@@ -4182,7 +4182,7 @@ bool d_tests_fuzz_change(
 /*
 d_tests_fuzz_text
   Random changes to a text of a kind, each proved: one kept leaves sound
-records, the same a fresh reading of its text gives, and - for a splice --
+records, the same a fresh reading of its text gives, and - for a splice -
 every line outside it as it was; one refused leaves the text as it was and
 says why.
   Long as each change is made and then proved, a branch for each proof.
@@ -4497,7 +4497,7 @@ int d_tests_oracle_check(
 
 /*
 d_tests_oracle_log
-  log: the commits revisions reach, as git rev-list gives them --
+  log: the commits revisions reach, as git rev-list gives them -
 --first-parent, -n most, and - path among the arguments.
 */
 static

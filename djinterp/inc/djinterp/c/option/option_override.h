@@ -6,7 +6,7 @@
 *
 * NO C FACE, AND THAT IS NOT AN OMISSION.
 *   There is no `option_override_c.h`. A C face exists to add C ERGONOMICS on
-* top of the core - macros, _Generic dispatch, a literal-friendly spelling --
+* top of the core - macros, _Generic dispatch, a literal-friendly spelling -
 * and the merge engine has none to add: `d_option_set_override` takes three
 * sets and a policy, and there is no sugar that makes that shorter without
 * making it less clear. Shipping an empty `_c.h` for symmetry would be a file
@@ -32,7 +32,7 @@
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
 // declares only where the build can spell one. Below it - ISO strict C++98
-// wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS --
+// wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS -
 // the header compiles to nothing (the owner's ruling of 2026.10.03 on round 3's
 // question 1, (a)).
 #if RE_STD_HAS_INT64

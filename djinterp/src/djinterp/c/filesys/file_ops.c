@@ -369,7 +369,7 @@ int d_internal_ops_same_file(
 d_internal_ops_restrict
   The source's bits, on the descriptor, before any data reaches it. An
 existing destination keeps its own bits through open, so without this a 0600
-private key would be written into a 0644 file and only then made private --
+private key would be written into a 0644 file and only then made private -
 readable by anyone for as long as the copy took.
 */
 static
@@ -893,7 +893,7 @@ int d_internal_ops_unlink(
 /*
 d_internal_ops_move
   rename, which replaces silently, so refusing is done here: a name that
-exists - a dangling symlink included, which a following stat would miss --
+exists - a dangling symlink included, which a following stat would miss -
 is refused. lstat is called directly, as a missing destination is the normal
 case and no failure worth a notice. The check is NOT atomic with the rename:
 another process can create _new in between, and there is no portable

@@ -81,8 +81,8 @@ struct dj_host_cmake;
 // commands
 //   cmake_commands(f)              how many
 //   cmake_command(f, n, field)     name, line, column, end_line, depth,
-//                                  block - if ... block, or "" - role --
-//                                  open, branch, close, or "" - partner --
+//                                  block - if ... block, or "" - role -
+//                                  open, branch, close, or "" - partner -
 //                                  an opener's closer, a branch's or a
 //                                  closer's opener, 0 for none - unpaired,
 //                                  args, text, indent
@@ -93,7 +93,7 @@ struct dj_host_cmake;
 // arguments
 //   cmake_arg(f, n, k[, field])    text, as written, by default; value, as
 //                                  CMake reads it; items, the arguments
-//                                  CMake passes for it, a line each; kind --
+//                                  CMake passes for it, a line each; kind -
 //                                  unquoted, quoted, bracket - line,
 //                                  column, end_line, legacy, paren
 //   cmake_value(f, n, k)           its value
@@ -104,7 +104,7 @@ struct dj_host_cmake;
 //   cmake_comments(f); cmake_comment(f, i, field)
 //                                  text, body - what it says, past its `#`
 //                                  or within its brackets - line, column,
-//                                  end_line, bracket, trailing, command --
+//                                  end_line, bracket, trailing, command -
 //                                  the one whose arguments hold it, or 0
 // changes, each 1 kept, or -1
 //   cmake_set_arg(f, n, k, text)   text as written, one argument

@@ -8,7 +8,7 @@
 *     opt = re_std::nullopt;
 *     if (opt == re_std::nullopt) { ... }
 *
-*   nullopt_t is intentionally non-default-constructible from {} alone --
+*   nullopt_t is intentionally non-default-constructible from {} alone -
 * its constructor takes a private tag struct so that brace-initialization
 * of an optional<T> from an empty brace-init-list does not accidentally
 * construct a nullopt_t. This matches the standard's design.

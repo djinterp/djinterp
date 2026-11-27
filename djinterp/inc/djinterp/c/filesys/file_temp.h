@@ -128,7 +128,7 @@ int d_file_temp_name(
 /**
  * @brief Reports the directory temporary files should go in.
  *
- * @note It consults TMPDIR, TMP and TEMP, then the platform's default --
+ * @note It consults TMPDIR, TMP and TEMP, then the platform's default -
  *       unless D_CFG_FILE_TEMP_HONOUR_ENV is 0, which is what a set-uid
  *       program wants.
  *

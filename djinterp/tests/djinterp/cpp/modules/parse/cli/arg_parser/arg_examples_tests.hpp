@@ -5,7 +5,7 @@
 * the C++ face.
 *   Each of CLI11 2.7.2's examples that ports is a section: its program
 * written through the face, run with the arguments CLI11's own tests give
-* it, and others where they show more, as its main runs them --
+* it, and others where they show more, as its main runs them -
 * CLI11_PARSE's ending, then what the example prints - the transcripts
 * CLI11's own, of the same text compiled against it (the suite's CASES
 * section, through tools/cppref/cppref.py). The examples are C++11, so the

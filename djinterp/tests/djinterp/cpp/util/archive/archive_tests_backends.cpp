@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][utility]                             archive_tests_backends.cpp
 *
-*   Tests for the 7z and rar backends: capability-consistent behaviour --
+*   Tests for the 7z and rar backends: capability-consistent behaviour -
 * create/extract succeed when the backend reports writable/readable and
 * report status_unavailable otherwise.
 *

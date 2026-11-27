@@ -3,7 +3,7 @@
 *
 * Property registry: what properties a host understands, known at load.
 *   A host describes each property once - its name, whether it inherits, its
-* initial value, a check on its value, and the callback that evaluates it --
+* initial value, a check on its value, and the callback that evaluates it -
 * and hands the table over.  The engine then refuses a sheet naming a
 * property no host registered, before any file is read: a misspelt
 * property is otherwise a declaration that silently never holds or fails.

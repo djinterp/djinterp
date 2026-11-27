@@ -416,7 +416,7 @@ struct line_note
 };
 
 // line_notes
-//   a definition file's notes, by the line each names - "line N: ..." --
+//   a definition file's notes, by the line each names - "line N: ..." -
 // counting from 1; a note that names no line is left out.
 std::map<int, std::vector<line_note>> line_notes(
     const model& _model,

@@ -253,7 +253,7 @@ size_t d_internal_spell(
 /**
  * @brief Measures a spelling up to its first newline.
  *
- * A token that spans lines - a block comment, a raw string, a spliced name --
+ * A token that spans lines - a block comment, a raw string, a spliced name -
  * has a width only on the line where it begins, which is the line a layout rule
  * is about.
  *
@@ -1984,7 +1984,7 @@ unsigned d_internal_ordinal_value(
  *        letter and not as a Roman numeral.
  *
  * @note Only an ordinal that is a single letter and nothing more is asked:
- *       `C.  name`.  One with a second part - `VII.1`, `I.a`, `C.II.` --
+ *       `C.  name`.  One with a second part - `VII.1`, `I.a`, `C.II.` -
  *       is read by its first run of numeral letters, as it always was.
  *
  * @param[in] _build  the build.

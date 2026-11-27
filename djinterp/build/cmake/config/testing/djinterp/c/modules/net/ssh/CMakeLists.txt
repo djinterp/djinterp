@@ -1,5 +1,5 @@
 # =============================================================================
-# djinterp [test] --
+# djinterp [test] -
 # build/cmake/config/testing/djinterp/c/modules/net/ssh/CMakeLists.txt
 #
 #   Test leaf for net's SSH client (c/modules/net/ssh), in DTest's C face, a

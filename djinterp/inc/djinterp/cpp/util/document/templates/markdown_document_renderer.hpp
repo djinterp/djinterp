@@ -469,7 +469,7 @@ private:
     }
 
     // emphasised
-    //   _text escaped and wrapped in the emphasis runs its hints ask for --
+    //   _text escaped and wrapped in the emphasis runs its hints ask for -
     // the two presentation hints Markdown can actually spell.
     D_NODISCARD static std::string emphasised(
         const std::string&    _text,

@@ -3,7 +3,7 @@
 *
 *   Conformance tests for djinterp's MongoDB convenience layer: every
 * function in c/modules/db/mongodb/mongodb_*.h, its success paths, its
-* documented failures and its argument checks, against a live deployment --
+* documented failures and its argument checks, against a live deployment -
 * MongoDB from 4.2, a replica set - through whichever driver it is linked with,
 * 1.21 and later of either line. Where the answer depends on the server or the
 * driver, the check asks the handle the server's version, or the layer the

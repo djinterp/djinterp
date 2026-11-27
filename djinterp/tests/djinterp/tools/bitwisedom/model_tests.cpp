@@ -2753,7 +2753,7 @@ void definition_notes()
 /*
 edits_tried
   A row tried before it is added: named for its kind and made unique, a bit
-at the lowest its group leaves free, and refused - the sheet unchanged --
+at the lowest its group leaves free, and refused - the sheet unchanged -
 where the window refuses it: nowhere to put it, a macro name that is no C
 identifier, or another symbol's. Its issues go with it, not refused.
 */

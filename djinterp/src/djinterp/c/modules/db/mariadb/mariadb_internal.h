@@ -142,7 +142,7 @@ TABLE OF CONTENTS
 //------------------------------------------------------------------------------
 // 1.2.1
 // D_INTERNAL_MARIADB_ESCAPE_QUOTE
-//   brief: 1 where values are escaped with mysql_real_escape_string_quote --
+//   brief: 1 where values are escaped with mysql_real_escape_string_quote -
 // libmysqlclient from 5.7.6, whose plain mysql_real_escape_string fails
 // outright under the NO_BACKSLASH_ESCAPES SQL mode - and 0 where they are
 // escaped with the plain call, which MariaDB's clients adapt to that mode
@@ -300,7 +300,7 @@ TABLE OF CONTENTS
 // 1.2.12
 // D_INTERNAL_MARIADB_CLEARTEXT_SWITCH
 //   brief: 1 where the client sends a password in clear text, when the
-// server's authentication asks for it, only once told it may --
+// server's authentication asks for it, only once told it may -
 // libmysqlclient's MYSQL_ENABLE_CLEARTEXT_PLUGIN; 0 for MariaDB's clients,
 // which send it unasked: Connector/C takes the option and does nothing with
 // it.

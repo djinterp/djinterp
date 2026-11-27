@@ -327,7 +327,7 @@ public:
         std::size_t        _count
     );
     /**
-     * @brief Parses arguments once, as main does with D_ARG_PARSE --
+     * @brief Parses arguments once, as main does with D_ARG_PARSE -
      *        CLI11's CLI11_PARSE - and writes what main comes to, as
      *        parse_main() writes it: a ported program's own parse, which
      *        runs its callbacks once.
@@ -504,7 +504,7 @@ bool steps_hold(
 // escape / render
 //   functions: a text as a transcript line holds it - a tab as `\t`, a
 // newline as `\n`, any other control byte as `\x` and two hexadecimal
-// digits, and, by escape() but not by render(), a backslash as `\\` --
+// digits, and, by escape() but not by render(), a backslash as `\\` -
 // so that a line stays one line and a backslash is told from an escape.
 // std::bad_alloc when the text cannot be held.
 std::string escape(
@@ -542,7 +542,7 @@ std::string number(
  *
  * @note A value's line is the value in brackets, then `-> pass` and the
  *       value it became, `-> fail` and why, or, where the validator stopped
- *       with an error of its own - CLI11's validators throw there --
+ *       with an error of its own - CLI11's validators throw there -
  *       `-> status` and the message, each in angle brackets. Integers are
  *       read under CLI11's rule for leading zeros.
  *

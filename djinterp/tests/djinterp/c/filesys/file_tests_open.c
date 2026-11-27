@@ -188,7 +188,7 @@ void d_fs_tests_open_freopen(
 
         //   d_file_reopen_stream REUSES the stream it is handed, so `reopened` and
         // `file` are one handle, not two. Closing it closes both, and the
-        // `if (file)` cleanup further down would close it a second time --
+        // `if (file)` cleanup further down would close it a second time -
         // which is a double free, not a leak. It went unnoticed because the
         // case in between reassigned `file` before the cleanup ran, so the
         // stale pointer was overwritten by luck rather than by design.

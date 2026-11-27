@@ -125,7 +125,7 @@ TABLE OF CONTENTS
 // d_mongodb_set_document_format says otherwise (mongodb_settings.h): 0,
 // canonical extended JSON, every value's BSON type written out - {"n":
 // {"$numberLong": "5"}} - so that a document read and written back keeps
-// every type; 1, relaxed extended JSON, numbers as plain JSON - {"n": 5} --
+// every type; 1, relaxed extended JSON, numbers as plain JSON - {"n": 5} -
 // readable, but read back an int64 that fits 32 bits becomes an int32 and a
 // double without a fraction an integer; 2, the document's BSON itself, as
 // bytes. Defaults to 0. The layer reads every extended JSON, canonical,
@@ -140,7 +140,7 @@ TABLE OF CONTENTS
 // D_CFG_MONGODB_LOG_LEVEL
 //   knob: what the driver's log may print. The driver logs through one
 // handler for the whole process, whose default prints errors, criticals and
-// warnings on stderr, and messages, information and debugging on stdout --
+// warnings on stderr, and messages, information and debugging on stdout -
 // a failed sign-in among them - where they mix with a program's own output.
 // From 0 to 6, the driver's levels (error, critical, warning, message, info,
 // debug, trace): the layer installs a handler of its own the first time it

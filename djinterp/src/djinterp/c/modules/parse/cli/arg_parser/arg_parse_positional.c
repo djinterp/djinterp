@@ -382,7 +382,7 @@ int d_arg_internal_parse_group_positional(
  *         has a parent that can take another; `false` otherwise.
  *
  * CLI11's last look in _parse_positional, with subcommand fallthrough: a
- * subcommand the fallthrough parent - or, at the root, the command itself --
+ * subcommand the fallthrough parent - or, at the root, the command itself -
  * finds by the argument, used before or not, whose own parent can take
  * another; it is left to the parents.
  */

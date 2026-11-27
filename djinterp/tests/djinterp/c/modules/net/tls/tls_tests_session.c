@@ -550,7 +550,7 @@ d_tests_tls_wants
   - an established session awaits nothing
   - a read with nothing to read would block, awaiting the transport's
     bytes
-  - a write of a whole record - more than the session's stage holds --
+  - a write of a whole record - more than the session's stage holds -
     into a pipe that takes less is taken whole, and awaits the transport's
     room for the rest
   - the rest goes out as the peer reads, whole, and then nothing is awaited

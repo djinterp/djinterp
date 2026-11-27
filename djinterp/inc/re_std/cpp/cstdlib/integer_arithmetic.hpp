@@ -25,7 +25,7 @@
 * until <cmath> lands.
 *
 *   THE ONE VALUE THAT HAS NO ABSOLUTE VALUE:
-*   abs(INT_MIN) is undefined behaviour on a two's complement machine --
+*   abs(INT_MIN) is undefined behaviour on a two's complement machine -
 * the magnitude is not representable in the same type. This is not a
 * corner case in practice: it is how overflow reaches sanitiser builds
 * from timestamp and hash code. re_std::ratio rejects INTMAX_MIN at

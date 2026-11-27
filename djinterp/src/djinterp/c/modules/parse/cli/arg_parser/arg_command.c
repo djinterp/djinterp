@@ -1045,7 +1045,7 @@ struct dj_arg_parser* d_arg_internal_parser_of(
  * @param[in]  _list    the options.
  * @param[in]  _option  the option.
  * @param[out] _found   receives whether it does.
- * @return D_ARG_OK, or the failure to write a name --
+ * @return D_ARG_OK, or the failure to write a name -
  *         D_ARG_ERROR_OUT_OF_MEMORY - with `*_found` false.
  *
  * Whether `_option` answers to the display name of an option the list

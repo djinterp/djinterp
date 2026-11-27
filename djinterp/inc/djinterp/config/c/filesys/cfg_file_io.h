@@ -9,7 +9,7 @@
 * short-transfer retry. They keep separate knobs because they are not the same
 * tuning problem.
 *
-*   Two knobs here decide what your files look like after a crash --
+*   Two knobs here decide what your files look like after a crash -
 * D_CFG_FILE_WRITE_ATOMIC and D_CFG_FILE_WRITE_SYNC. Neither is free; read
 * their notes before flipping them.
 *
@@ -455,7 +455,7 @@ TABLE OF CONTENTS
 
 // 3.1.6
 // D_INTERNAL_FILE_READ_NUL_EXTRA
-//   resolved: extra bytes the whole-file path allocates for the terminator --
+//   resolved: extra bytes the whole-file path allocates for the terminator -
 // 1 or 0. Used directly in the size arithmetic so the two code paths differ
 // by a constant instead of by an #if.
 #if D_CFG_IS_ON(D_CFG_FILE_READ_NUL_TERMINATE)

@@ -145,7 +145,7 @@ D_NODISCARD bool is_environment(
 );
 
 // is_preference
-//   whether a sheet's setting is a preference a settings file carries --
+//   whether a sheet's setting is a preference a settings file carries -
 // how the sheet is drawn and written - rather than its content: its
 // title, width, affixes and names are its own.
 D_NODISCARD bool is_preference(

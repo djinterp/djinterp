@@ -113,7 +113,7 @@ bool tests_sort_dispatch_sorter_dynamic_construction()
     DSorter<DDynamicAlgorithm> explicit_bubble(DSortAlgorithm::bubble);
     DSorter<>                  shorthand;
 
-    //   The default constructor binds to DDefaultSortTag - quicksort --
+    //   The default constructor binds to DDefaultSortTag - quicksort -
     // matching the compile-time default.
     result.check(defaulted.algorithm() == DDefaultSortTag::value);
     result.check(defaulted.algorithm() == DSortAlgorithm::quick);

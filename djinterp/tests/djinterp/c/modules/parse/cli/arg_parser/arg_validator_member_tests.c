@@ -2044,7 +2044,7 @@ bool d_tests_arg_member_owned(void)
 /**
  * @brief A context that cannot be copied, and a filter that cannot filter.
  *
- * @return whether a refused copy fails what needed it, keeping nothing --
+ * @return whether a refused copy fails what needed it, keeping nothing -
  *         the set, when it is made, or a copy of the set - and a filter's
  *         failure stops the validation with its status.
  */

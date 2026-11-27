@@ -271,7 +271,7 @@ D_EXTERN_C_BEGIN
 //------------------------------------------------------------------------------
 // 3.1.1
 // dj_off32_t / dj_off64_t
-//   type: a file offset - signed, since a seek may count back from the end --
+//   type: a file offset - signed, since a seek may count back from the end -
 // at a fixed width whatever the platform's off_t is.
 typedef int32_t dj_off32_t;
 #if D_FILE_64_IS_AVAILABLE
@@ -1049,7 +1049,7 @@ const dj_internal_file_nchar_t* d_internal_file_to_native(
     size_t                    _count
 );
 // D_INTERNAL_FILE_NATIVE_ON_HEAP
-//   constant: 1 where a path's room in the platform's text is on the heap --
+//   constant: 1 where a path's room in the platform's text is on the heap -
 // a build that hands Windows UTF-16 with long paths, where the room is 32767
 // characters and some - and 0 where it is an array on the stack.
 #if ( (D_INTERNAL_FILE_WIDE == 1) &&                                           \

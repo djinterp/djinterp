@@ -3,7 +3,7 @@
 *
 * FTP client options.
 *   Backend-neutral settings for a client session - credentials, security,
-* data-connection mode, representation type, verification, and timeouts --
+* data-connection mode, representation type, verification, and timeouts -
 * with defaults that favor safety.
 *
 *

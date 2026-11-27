@@ -438,7 +438,7 @@ static_evaluate
 ///             VI.   REIFY  (static term -> dynamic expression)           ///
 ///////////////////////////////////////////////////////////////////////////////
 //   Lowers a static term into the dynamic expression<OpId, Atom>, so a term
-// built (and folded) at compile time can enter the runtime machinery --
+// built (and folded) at compile time can enter the runtime machinery -
 // rewriting, rendering, substitution.  The target OpId / Atom are named
 // explicitly: the caller says which dynamic language the static shape maps
 // onto (the tag's value must be usable as OpId, each atom as Atom).  This

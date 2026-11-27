@@ -14,7 +14,7 @@
 *        they walk a tree (session, module, test, status, and diagnostic
 *        events); and
 *     2. the D_TEST_EVENT family of macros, so a user can declare a custom
-*        test event - one carrying the same node payload as the built-ins --
+*        test event - one carrying the same node payload as the built-ins -
 *        in a single line, and bind / fire it through exactly the same
 *        handler API.
 *

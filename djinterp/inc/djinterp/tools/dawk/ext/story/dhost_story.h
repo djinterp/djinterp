@@ -2,7 +2,7 @@
 * djinterp [c][tools]                                              dhost_story.h
 *
 * Storyline: the host extension for e-learning stories.
-*   A story is slides in order, each holding media - audio, video, images --
+*   A story is slides in order, each holding media - audio, video, images -
 * that a package stores apart from the slides. This unit is that model and no
 * format: a driver reads one format into it and writes changes back, and the
 * Articulate driver is one such. A program sees the model through host

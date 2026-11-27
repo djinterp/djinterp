@@ -1,5 +1,5 @@
 # =============================================================================
-# djinterp [test] --
+# djinterp [test] -
 # build/cmake/config/testing/djinterp/c/modules/db/log/CMakeLists.txt
 #
 #   Test leaf for db's codes for the log (c/modules/db/db_log.h), in DTest's C

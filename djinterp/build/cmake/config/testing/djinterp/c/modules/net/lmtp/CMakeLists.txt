@@ -1,5 +1,5 @@
 # =============================================================================
-# djinterp [test] --
+# djinterp [test] -
 # build/cmake/config/testing/djinterp/c/modules/net/lmtp/CMakeLists.txt
 #
 #   Test leaf for LMTP (c/modules/net/lmtp), in DTest's C face, a CTest test

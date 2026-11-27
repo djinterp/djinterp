@@ -8,7 +8,7 @@
 * directions: reading takes the field, writing assigns it, so the two
 * cannot disagree on which field a path names.
 *   A settings file is JSON: its format and version, then the window's own
-* settings and a sheet's preferences, each an object of values by path --
+* settings and a sheet's preferences, each an object of values by path -
 * a flag as a boolean, a choice or an integer as a number, a real as a
 * number, a colour as #RRGGBBAA and text as a string. Reading it gives back
 * the payloads a "set" of each would post, so a file is applied exactly as

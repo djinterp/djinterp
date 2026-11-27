@@ -8,7 +8,7 @@
 * stays good while it makes them. Two that would overlap are refused, as
 * neither could then be kept whole. Applying them writes a new text in which
 * every byte no change touched is the old text's own.
-*   A caller that edits a format - a CMake file, a Visual Studio project --
+*   A caller that edits a format - a CMake file, a Visual Studio project -
 * decides what makes a change sound in it; this only keeps the changes apart
 * and applies them.
 *

@@ -29,7 +29,7 @@
 * why `d_pdf_format_date` is exposed separately from `d_pdf_creation_date`.
 *
 *   THE BACKEND CLASS IS NOT HERE. `DBuiltinPdfBackend` implements nine pure
-* virtuals, and its C form is a struct of function pointers plus a context --
+* virtuals, and its C form is a struct of function pointers plus a context -
 * who owns the context, what a null slot means, whether the table is versioned.
 * Those are decisions, not translations, and they belong with the module that
 * first dispatches through the table. This header carries the primitives that

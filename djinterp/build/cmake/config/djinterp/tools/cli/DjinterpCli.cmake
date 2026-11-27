@@ -30,7 +30,7 @@
 #
 # which makes a module a program loads for one of its commands (GRAMMAR.html,
 # section 7): a MODULE library with no `lib` prefix, linking djinterp::cli,
-# whose only exported symbol is its entry point, d_cli_plugin_entry --
+# whose only exported symbol is its entry point, d_cli_plugin_entry -
 # hidden visibility, the static libraries' symbols kept in (GNU ld and lld's
 # --exclude-libs), and on Apple's linker that one symbol exported; under
 # SHARED_CORE, the core linked as the program links it. Name it, and place
@@ -46,9 +46,9 @@
 # expression matches, on its output or its errors - both held at once,
 # where a PASS_REGULAR_EXPRESSION of ctest's passes whatever the status.
 # DjinterpCliTest.cmake, beside this file, runs the program for it.
-#   DJINTERP_ROOT, the repository root - the directory with inc/ and src/ --
+#   DJINTERP_ROOT, the repository root - the directory with inc/ and src/ -
 # defaults to the tree this file is in. A project that has made the two
-# libraries its own way - the kit's tests build them in testing mode --
+# libraries its own way - the kit's tests build them in testing mode -
 # defines djinterp::arg_parser and djinterp::cli first, from the lists
 # DjinterpCliSources.cmake gives, and this file then makes neither and
 # gives d_cli_add_plugin alone.

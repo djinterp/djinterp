@@ -11,7 +11,7 @@
 * after the prefix, or tells it the operand is a file's name.
 *   A file may still have such a name, on a system whose names may hold a
 * colon: the word then names the other thing, and the run says so, once,
-* with the spelling that reaches the file (ruling 11) --
+* with the spelling that reaches the file (ruling 11) -
 *
 *     PROGRAM: warning: 'example:x' is the built-in example; the file is
 *     './example:x'
@@ -72,7 +72,7 @@ D_EXTERN_C_BEGIN
  * @brief Reads an operand as a named operand of a prefix (R13): the name
  *        after `PREFIX:`, or none, the operand being a file's name; and,
  *        where the operand is a named operand that is also the name of
- *        something there other than a directory, a warning --
+ *        something there other than a directory, a warning -
  *        `PROGRAM: warning: 'WORD' is WHAT; the file is './WORD'`.
  *
  * @note The prefix matches as it is spelled, and the name is at least one
@@ -91,7 +91,7 @@ D_EXTERN_C_BEGIN
  *                       while it is; NULL when the operand is a file's
  *                       name.
  * @return D_ARG_OK; D_ARG_ERROR_OUT_OF_MEMORY, said as `out of memory`,
- *         when there was no room to ask whether the file is there --
+ *         when there was no room to ask whether the file is there -
  *         `*_name` set all the same; D_ARG_ERROR_BAD_ARGUMENT for a NULL
  *         argument or a prefix R13 does not allow, unsaid, `*_name` NULL
  *         where it can be written.

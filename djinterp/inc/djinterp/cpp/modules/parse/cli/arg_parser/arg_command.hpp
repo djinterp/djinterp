@@ -293,7 +293,7 @@ NS_INTERNAL
     // 2.2.3
     // command_result
     //   trait: what a setting of DCommandInterface returns for the class
-    //   deriving it, as `type`: a reference to the object - the parser --
+    //   deriving it, as `type`: a reference to the object - the parser -
     //   by default, and a handle by value, as CLI11's App* is.
     template<typename Derived>
     struct command_result
@@ -1242,7 +1242,7 @@ cli::status deprecate_option(
 // 4.2.2
 // retire_option
 //   functions: CLI11's retire_option: the option, or the one a command finds
-// by name - or a new one taking at most one value when there is none --
+// by name - or a new one taking at most one value when there is none -
 // replaced with one that takes the same values, warns, and does nothing. The
 // retired option, or a NULL handle when the definition failed.
 option retire_option(
@@ -4349,7 +4349,7 @@ int internal::DCommandFailure::operator()(
 }
 
 // internal::DCommandCall / command_function
-//   The function called with nothing; its result - nothing or a status --
+//   The function called with nothing; its result - nothing or a status -
 // the callback's status.
 template<typename Function>
 inline

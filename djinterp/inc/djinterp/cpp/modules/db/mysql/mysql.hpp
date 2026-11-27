@@ -577,7 +577,7 @@ enum class mysql_ssl_mode : re_std::uint8_t
 // enable_cleartext_plugin says. server_public_key names a file holding the
 // server's RSA public key, with which caching_sha2_password and
 // sha256_password encrypt the password where the connection has no TLS;
-// get_server_public_key lets the client ask the server for it instead --
+// get_server_public_key lets the client ask the server for it instead -
 // libmysqlclient from 8.0.3, which otherwise does not, and Connector/C,
 // which always does. enable_session_tracking has the server
 // report every kind of session state it tracks (get_session_track_info):
@@ -769,7 +769,7 @@ public:
      *        name again replaces its value.
      *
      * @note The next statement is whatever the connection sends next, its
-     *       own among them - has_table's query, set_charset's SET NAMES --
+     *       own among them - has_table's query, set_charset's SET NAMES -
      *       which drops every attribute set, whether it succeeds or not. A
      *       prepared statement's execution neither carries nor drops them;
      *       a reset and a change of user drop them.

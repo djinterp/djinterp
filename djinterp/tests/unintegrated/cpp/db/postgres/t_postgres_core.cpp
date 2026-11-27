@@ -22,7 +22,7 @@
 *
 *   Build: compile the layer's C sources as C, src/djinterp/cpp/modules/db/
 * database.cpp, database_statement.cpp and postgres/postgres.cpp and this
-* file as C++17 or later, and link them with libpq --
+* file as C++17 or later, and link them with libpq -
 * scripts/ci/check_db_postgres.sh does.
 *
 *
@@ -1087,7 +1087,7 @@ void d_tests_postgres_core_tables(
                                             "AND flag IS NULL AND n IS "
                                             "NULL") == 1);
 
-    // a row the server refuses - its key taken behind the table's back --
+    // a row the server refuses - its key taken behind the table's back -
     // fails the whole COPY
     _db.execute("INSERT INTO " + table + " (id) VALUES (5)");
     events.insert_row({ core::big_value(3), core::text_value("ok"),

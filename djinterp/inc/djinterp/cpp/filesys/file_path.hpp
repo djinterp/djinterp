@@ -99,7 +99,7 @@ TABLE OF CONTENTS
 // NS_DJINTERP / NS_INTERNAL / NS_END
 //   macro: the namespace layer, from the root (djinterp.hpp, through
 // file_common.hpp); this header kept a private copy until the root defined
-// the kit (4.2). Everything public is FLAT in djinterp --
+// the kit (4.2). Everything public is FLAT in djinterp -
 // djinterp::path, not djinterp::filesys::path - because the filesys grouping
 // is a property of the C modules' link granularity, and a C++ caller has no
 // use for it. Implementation details go in djinterp::internal, which is the
@@ -649,7 +649,7 @@ public:
     //--------------------------------------------------------------------------
     /**
      * @brief Returns a lexically cleaned copy: "." dropped, ".." resolved
-     *        against the preceding component, separator runs collapsed --
+     *        against the preceding component, separator runs collapsed -
      *        each as c/filesys configures it (d_path_normalize).
      *
      * @warning LEXICAL, and the distinction is not academic: given /x/link ->

@@ -378,7 +378,7 @@ struct dj_pack_text d_arg_internal_trim(
 // 2.1.2
 // d_arg_internal_equal_cstr and kin
 //   predicates: whether a span holds exactly the NUL-terminated `_word`,
-// byte for byte, or with ASCII case folded - a NULL word equals nothing --
+// byte for byte, or with ASCII case folded - a NULL word equals nothing -
 // and whether it is CLI11's is_separator: empty, or `%%`.
 bool d_arg_internal_equal_cstr(
     struct dj_pack_text _text,
@@ -658,7 +658,7 @@ double d_arg_internal_double_stored(
 // 3.3.1
 // D_INTERNAL_ARG_NUMBER_TEXT_MAX
 //   constant: room for any number the functions below write - a 128-bit
-// integer in decimal, or a quadruple-precision value to all its digits --
+// integer in decimal, or a quadruple-precision value to all its digits -
 // with a terminator.
 #define D_INTERNAL_ARG_NUMBER_TEXT_MAX 128u
 
@@ -864,7 +864,7 @@ int d_arg_internal_number_write(
 //------------------------------------------------------------------------------
 // 4.1.1
 // dj_arg_internal_scratch
-//   union: room on the stack for a temporary object of any built-in type --
+//   union: room on the stack for a temporary object of any built-in type -
 // what a validator converts a value into to judge it - aligned for every
 // one of them.
 union dj_arg_internal_scratch
@@ -1828,7 +1828,7 @@ int d_arg_internal_validator_read(
 
 // 7.4.3
 // d_arg_internal_validator_reject / d_arg_internal_validator_stop
-//   verdicts: reject records CLI11's message built by concatenation --
+//   verdicts: reject records CLI11's message built by concatenation -
 // `_before`, then `_text`, its bytes kept whole, NUL among them, then
 // `_after` - as the value's rejection, and returns D_ARG_OK, or
 // D_ARG_ERROR_OUT_OF_MEMORY when the message could not be kept; stop
@@ -2187,7 +2187,7 @@ int d_arg_internal_expand_responses(
  * @note Surrounding whitespace is trimmed, and so is each piece's. A piece
  *       starting with a quote or a bracket runs to its match, quotes and
  *       brackets kept, and a delimiter or an opening quote or bracket right
- *       after it is consumed; any other piece runs to the next delimiter --
+ *       after it is consumed; any other piece runs to the next delimiter -
  *       with NUL for the delimiter, any whitespace. Defined in arg_argv.c.
  *
  * @param[in]     _text       the text.
@@ -2278,7 +2278,7 @@ bool d_arg_internal_quoting_known(
  *        close_sequence. Defined in arg_argv.c.
  *
  * @note A double quote closes at the next one no backslash escapes, past
- *       the end by one when a backslash is last; a single or back quote --
+ *       the end by one when a backslash is last; a single or back quote -
  *       or any byte that is not a bracket's closer - at the next such byte;
  *       a bracket where its nesting, quotes skipped whole, comes back to it.
  *       A run that never closes ends at the text's length.
@@ -2407,7 +2407,7 @@ bool d_arg_internal_parse_split_windows(
 
 // 8.4.1
 // d_arg_internal_parse_stored
-//   recording: a status from storage - a list that grew, or could not --
+//   recording: a status from storage - a list that grew, or could not -
 // recorded against the command when it is a refusal; returns the status.
 int d_arg_internal_parse_stored(
     const struct dj_arg_command* _command,
@@ -2723,7 +2723,7 @@ struct dj_arg_internal_utf16
 // 9.3.4
 // d_arg_internal_utf16_feed / d_arg_internal_utf16_finish
 //   decoding: feed takes one UTF-16 unit, appending as UTF-8 the code point it
-// completes - an unpaired surrogate as U+FFFD, as Windows converts one --
+// completes - an unpaired surrogate as U+FFFD, as Windows converts one -
 // and finish appends U+FFFD for a high surrogate left waiting. Both return
 // the buffer's status.
 int d_arg_internal_utf16_feed(
@@ -2758,7 +2758,7 @@ bool d_arg_internal_utf8_next(
 
 // 9.4.1
 // d_arg_internal_edit_distance
-//   arithmetic: the optimal string alignment distance between two texts --
+//   arithmetic: the optimal string alignment distance between two texts -
 // Levenshtein's, with a swap of neighbours counting as one edit, byte by
 // byte - or `_limit` + 1 as soon as it is known to exceed `_limit`, which
 // is taken as 8 when larger. Never allocates.
@@ -2843,7 +2843,7 @@ bool d_arg_internal_help_mode(
 
 // 10.1.2
 // d_arg_internal_help_ratio
-//   arithmetic: a long-name alignment ratio as CLI11's setter stores it --
+//   arithmetic: a long-name alignment ratio as CLI11's setter stores it -
 // kept from 0 to 1, inverted above, taken by its magnitude below 0 - and
 // 1/3, CLI11's default, for a NaN.
 float d_arg_internal_help_ratio(
@@ -3168,7 +3168,7 @@ int d_arg_internal_complete_lines(
 
 // 11.2.3
 // d_arg_internal_complete_line_text
-//   view: the first line of a description, without the spaces around it --
+//   view: the first line of a description, without the spaces around it -
 // what a script shows beside a name; empty for NULL.
 struct dj_pack_text d_arg_internal_complete_line_text(
     const char* _text

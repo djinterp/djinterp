@@ -2009,7 +2009,7 @@ int d_arg_internal_validator_non_negative_describe(
 d_arg_validator_range
   The type kept as the parameter, the bounds copied into the validator, so
 nothing is allocated; the type must be arithmetic, convert into a scratch
-object - which a container's does not, whatever its flags and size say --
+object - which a container's does not, whatever its flags and size say -
 and fit the bounds' room. Its values complete as numbers.
 */
 struct dj_arg_validator d_arg_validator_range(

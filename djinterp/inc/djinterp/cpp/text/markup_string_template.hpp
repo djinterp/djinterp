@@ -249,7 +249,7 @@ struct DMarkupStringTemplateSyntaxCurlyDollar
 
 
 // DMarkupStringTemplateSyntaxXmlPi
-//   struct: XML-processing-instruction-style delimiters --
+//   struct: XML-processing-instruction-style delimiters -
 // `<?tpl name ?>`. The templated source remains valid XML even
 // before substitution (PIs are syntactically legal anywhere
 // text content is), so half-rendered templates still parse.
@@ -454,7 +454,7 @@ class DMarkupStringTemplate;
 // scopes (e.g. iterating over a list).
 //
 // Parameterised on `EscapePolicy` because the partial map
-// holds shared pointers to templates with that same policy --
+// holds shared pointers to templates with that same policy -
 // templates with different escape policies are distinct types.
 template<typename EscapePolicy>
 class DMarkupStringTemplateContext

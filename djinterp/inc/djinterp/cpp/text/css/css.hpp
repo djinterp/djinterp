@@ -158,7 +158,7 @@ using DCssSize    = std::size_t;
 
 // DCssLevel
 //   enum: identifies the document's target CSS level. CSS3 is
-// modular - "level 3" really means a particular module set --
+// modular - "level 3" really means a particular module set -
 // but the coarse level tag is still useful for runtime
 // classification. CSS4 has no integrated spec; the value is
 // used for "currently-in-draft" features.
@@ -1667,7 +1667,7 @@ struct is_css_declaration_loose
 
 
 // is_css_rule
-//   trait: true if `Type` satisfies the rule protocol --
+//   trait: true if `Type` satisfies the rule protocol -
 // rule-kind accessor plus selector OR at-keyword OR
 // declarations OR rules access.
 template<typename Type>
@@ -1693,7 +1693,7 @@ struct is_css_rule_loose
 
 
 // is_css_style_rule
-//   trait: true if `Type` is identifiable as a style rule --
+//   trait: true if `Type` is identifiable as a style rule -
 // has selector access AND declaration access.
 template<typename Type>
 struct is_css_style_rule
@@ -1705,7 +1705,7 @@ struct is_css_style_rule
 
 
 // is_css_at_rule
-//   trait: true if `Type` is identifiable as an at-rule --
+//   trait: true if `Type` is identifiable as an at-rule -
 // has at-keyword access.
 template<typename Type>
 struct is_css_at_rule

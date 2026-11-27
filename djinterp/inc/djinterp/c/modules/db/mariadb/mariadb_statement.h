@@ -88,7 +88,7 @@ TABLE OF CONTENTS
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
 // declares only where the build can spell one. Below it - ISO strict C++98
-// wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS --
+// wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS -
 // the header compiles to nothing (the owner's ruling of 2026.10.03 on round 3's
 // question 1, (a)).
 #if defined(INT64_MAX)
@@ -152,7 +152,7 @@ int d_mariadb_preparef(
  *
  * @note A run of its own ends first, read to its end. While another
  *       statement's run, or a call that does not block, holds the
- *       connection, the server is told once the connection is free --
+ *       connection, the server is told once the connection is free -
  *       before the layer's next command on it, or at its close. A call of
  *       the statement's own that does not block is abandoned, never waited
  *       for: the connection is then good only for d_mariadb_close.

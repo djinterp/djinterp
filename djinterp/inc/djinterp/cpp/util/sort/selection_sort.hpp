@@ -182,7 +182,7 @@ void selection_sort(
 // folded into the comparator, which costs the same and composes better.
 //
 //   Takes a sort_order rather than a bool, matching the other _ordered entry
-// points and matching what internal::DOrderComparator's constructor accepts --
+// points and matching what internal::DOrderComparator's constructor accepts -
 // the previous `bool _ascending` parameter could not compile, since sort_order
 // is a scoped enum and admits no implicit conversion from bool.
 template<typename RandomIterator,

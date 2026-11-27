@@ -160,7 +160,7 @@ std::string narrow_self_test(
 }
 
 // word_type
-//   the type a wide sheet's self-test holds a word in: the header's own --
+//   the type a wide sheet's self-test holds a word in: the header's own -
 // the fixed-width type in the C++ constants form, which includes <cstdint>
 // for it - and elsewhere the C type as wide.
 std::string word_type(
@@ -188,7 +188,7 @@ std::string word_type(
 /*
 wide_self_test
   A wide sheet's self-test. What C knows as an integer - a place, a value,
-a literal an integer holds, and the templates' words, shifts and masks --
+a literal an integer holds, and the templates' words, shifts and masks -
 is checked as it is compiled, as a narrow sheet's values are. What lives in
 arrays is checked as it runs: each array the header defines against the
 words the sheet gives it, every bit set, tested and cleared through the

@@ -182,7 +182,7 @@ void d_fs_tests_link(
  *        symlink, which is a test of the probe.
  *     2. May THIS PROCESS create one?  -> genuinely runtime, and only on
  *        Windows, where it needs SeCreateSymbolicLinkPrivilege that an
- *        ordinary account does not have. That one still has to be tried --
+ *        ordinary account does not have. That one still has to be tried -
  *        but its failure is an omission, not a pass.
  *****************************************************************************/
 

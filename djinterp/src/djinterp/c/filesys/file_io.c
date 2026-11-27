@@ -229,7 +229,7 @@ dj_off64_t d_internal_io_seek(
 
 /*
 d_internal_io_pread
-  pread(2), which reads at the offset without touching the shared position --
+  pread(2), which reads at the offset without touching the shared position -
 atomic against every other user of the descriptor.
 */
 static

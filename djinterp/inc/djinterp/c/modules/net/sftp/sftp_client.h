@@ -145,7 +145,7 @@ typedef enum dj_sftp_error (*dj_sftp_entry_fn)(void*                     _contex
 //   struct: one SFTP session. `extensions`, `read_size`, `write_size`, and
 // the four diagnostics - `net_error` behind D_SFTP_ERROR_TRANSPORT and
 // D_SFTP_ERROR_CONNECTION_LOST, `ssh_status` behind it over the client's own
-// channel, and the code and message of the last status the server sent --
+// channel, and the code and message of the last status the server sent -
 // may be read freely; the other fields are the client's own. A failed
 // stream is d_sftp_error_from_net of `net_error`. A stream that ends before
 // a reply does has ended too soon - D_NET_ERROR_CLOSED, as net.h has it,

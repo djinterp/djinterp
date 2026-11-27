@@ -124,7 +124,7 @@ void stop_raw(
 }
 
 // drive
-//   function: the whole of a driver's inner loop - fetch, dispatch, repeat --
+//   function: the whole of a driver's inner loop - fetch, dispatch, repeat -
 // over PROGRAM, and whether the run ended as it must: halted successfully, two
 // ticks counted, seven added, and nothing reported.
 bool drive(

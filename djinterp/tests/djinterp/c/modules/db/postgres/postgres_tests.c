@@ -3,7 +3,7 @@
 *
 *   Conformance tests for djinterp's PostgreSQL convenience layer: every
 * function in c/modules/db/postgres/postgres_*.h, its success paths, its
-* documented failures and its argument checks, against a live server --
+* documented failures and its argument checks, against a live server -
 * PostgreSQL from 10 - through whichever libpq it is linked with. Where the
 * answer depends on the server, the check asks the server's version and expects
 * the matching answer, so one suite passes on every server the layer supports.

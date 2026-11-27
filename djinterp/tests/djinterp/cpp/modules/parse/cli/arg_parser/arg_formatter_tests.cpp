@@ -11,7 +11,7 @@
 * the face's names for CLI11's (cli11_shim.hpp, whose formatter is a
 * Formatter shared with the App it is given to, its steps the formatter's
 * virtual functions), and the transcripts below are what CLI11 wrote; so
-* the CASES section is written in the part of the face CLI11 shares --
+* the CASES section is written in the part of the face CLI11 shares -
 * each setting a statement of its own, as CLI11's return nothing, each
 * formatter a static object, which a command here borrows, and each given
 * to a command before the command's subcommands are made, which CLI11's
@@ -402,7 +402,7 @@ void write_formatter(
 
 /**
  * @brief Defines the program the help steps write: a description and a
- *        footer, a required option, one with a captured default, flags --
+ *        footer, a required option, one with a captured default, flags -
  *        one with a value of its own - a positional, an option in a group
  *        of its own, and a subcommand with an option.
  *

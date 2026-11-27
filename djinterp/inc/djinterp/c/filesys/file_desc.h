@@ -54,7 +54,7 @@ D_EXTERN_C_BEGIN
 /**
  * @brief Opens a file and returns a descriptor (POSIX open equivalent).
  *
- * @note    Unless the build turns it off, the descriptor is close-on-exec --
+ * @note    Unless the build turns it off, the descriptor is close-on-exec -
  *          on Windows, its handle is not inherited by a child process - and
  *          on Windows it is binary unless `_flags` names a text mode.
  * @note    With D_CFG_FILE_WIDE_PATHS, `_path` is UTF-8 on Windows as

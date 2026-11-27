@@ -9,7 +9,7 @@
 # sibling checkout (ruling cli-taken 22): `uxoxo` beside djinterp's checkout
 # - the directory that holds djinterp's root - or `uxoxo/uxoxo-project`
 # there; then, for a directory of projects that keeps each project's
-# checkouts in a folder of its own, the same two a level up --
+# checkouts in a folder of its own, the same two a level up -
 # `frameworks/djinterp/release` beside `frameworks/uxoxo/uxoxo-project`, the
 # owner's layout: the first that holds inc/uxoxo/element.hpp. It is found
 # when the window is built, never when it runs: uxoxo is compiled into the

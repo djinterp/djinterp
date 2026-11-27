@@ -4,7 +4,7 @@
 * RE-EXPORT SHIM
 * --------------
 *   The comparison, pristine and diff surfaces this header used to define now
-* live on the vocabulary they describe --
+* live on the vocabulary they describe -
 * core/util/compress/compress_options.hpp - implemented over the kernel's knob
 * table rather than as a hand-written fifty-field walk.  What remains here is a
 * set of using-declarations, so that every existing `dt::` call site keeps

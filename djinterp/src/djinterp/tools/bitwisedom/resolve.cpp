@@ -2,7 +2,7 @@
 * djinterp [cpp][tools]                                              resolve.cpp
 *
 * Resolving a sheet: three passes over its rows.
-*   The first walks the tree and lays out what the tree alone decides --
+*   The first walks the tree and lays out what the tree alone decides -
 * each row's names, depth, visibility, format and colour. The second
 * computes values, recursing into what an expression or a field_value
 * depends on, with a stack of rows in progress so that a cycle is reported

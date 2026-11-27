@@ -4837,7 +4837,7 @@ void d_tests_arg_parser_y01(
 /**
  * @brief Y02: the switch on: a unique prefix for the name, its value the
  *        next argument or after `=`; a name given whole, though it begins
- *        another's; a prefix several names begin, refused naming them --
+ *        another's; a prefix several names begin, refused naming them -
  *        two, then three; and one that begins none, refused as before.
  *
  * @param[in,out] _run  the case's run.

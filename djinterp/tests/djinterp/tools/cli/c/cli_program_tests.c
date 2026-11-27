@@ -11,7 +11,7 @@
 * `open`, which ends with a file error; and on the root `-D NAME`, given
 * once for each name, and `--level=N`. SINGLE is a program of one command:
 * no version, its root's own work printing its files and whether `-n` was
-* given. VERSIONED, PARTIAL and SPARSE are COMMANDS told how it was built --
+* given. VERSIONED, PARTIAL and SPARSE are COMMANDS told how it was built -
 * wholly, and in part - for `--version --verbose`, whose lines are composed
 * where they name the program's file and the kit's own build. REPEATED is
 * COMMANDS with `pick`, whose option group holds `--kind` and which has the
@@ -2280,7 +2280,7 @@ size_t d_tests_cli_refusing_write(
 }
 
 /**
- * @brief Runs COMMANDS on a line, its output refusing what it is given --
+ * @brief Runs COMMANDS on a line, its output refusing what it is given -
  *        with a reason or without - and compares the status and the error
  *        output: what was asked for, not written, ends the run in trouble
  *        and says so.
@@ -2920,7 +2920,7 @@ bool d_tests_cli_taken_again(
 /*
 d_tests_cli_program_arguments
   Which arguments a program parses: those it is given, unless they are
-main's own - as many as the C runtime gave main, each the same text --
+main's own - as many as the C runtime gave main, each the same text -
 which on Windows are taken again from the wide command line, in UTF-8. A
 module's arguments, or a test's, are never main's: on Windows a list as
 long as the runtime's, its first word another, is parsed as given, and the
@@ -3212,7 +3212,7 @@ bool d_tests_cli_same_part(
 /**
  * @brief The kit's own build, as this unit's compiler describes its own:
  *        the same compiler, version, system, machine and type - the kit is
- *        compiled by the compiler that compiles the suite, and as it does --
+ *        compiled by the compiler that compiles the suite, and as it does -
  *        and a C level of its own, which need not be the suite's.
  *
  * @return whether it held.

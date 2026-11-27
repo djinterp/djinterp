@@ -50,7 +50,7 @@
 *   `entry::mtime == 0` used to mean "now".  It now means a pinned epoch
 * (1980-01-01, the earliest instant both tar and zip represent).  Reading the
 * clock makes two runs over identical entries produce different bytes, which
-* defeats the differential test that compares a C archive against a C++ one --
+* defeats the differential test that compares a C archive against a C++ one -
 * the reason this facade was re-based in the first place.  A caller who wants
 * the current time now passes it explicitly, which is also the only way to say
 * so unambiguously.

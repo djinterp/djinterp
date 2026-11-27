@@ -15,7 +15,7 @@
 * THE REMOVAL FAMILY, BY WHAT EACH REFUSES
 * ----------------------------------------
 *   remove() takes a file or an empty directory; remove_file() refuses a
-* directory. The refusal is the point of the narrower name, so it is tested --
+* directory. The refusal is the point of the narrower name, so it is tested -
 * and tested without pinning an errno, since the header says EISDIR or EPERM by
 * platform and asserting either one would make this suite fail on the other.
 *

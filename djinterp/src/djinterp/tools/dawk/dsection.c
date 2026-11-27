@@ -2,7 +2,7 @@
 * djinterp [c][tools]                                                 dsection.c
 *
 * Section-delimiter extension:
-*   A delimiter is a line comment's opening - `//`, or `#` in a CMake file --
+*   A delimiter is a line comment's opening - `//`, or `#` in a CMake file -
 * then optionally one space, then at least twenty of a single fill character,
 * `=` or `-`, and nothing else.  Twenty is the floor because a short run is a
 * comment that happens to contain dashes, and the cost of mistaking one for a

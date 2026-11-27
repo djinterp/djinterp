@@ -261,7 +261,7 @@ Naming, Sheet, Display and Console. A tool window shows the sheet in
 front.</p>
 <p>The sheets' <strong>tabs run along the top</strong>, from the left,
 as ImGui's own do. <strong>Options &gt; Environment</strong> - or
-<strong>The sheets' tabs</strong> in a tab's menu -- sets them over one
+<strong>The sheets' tabs</strong> in a tab's menu - sets them over one
 column instead: over <strong>the bits</strong>, as Visual Studio's code
 tabs sit over the code, the symbols column running up through the tab
 row to the window's top; over <strong>the symbols column</strong>; or
@@ -326,7 +326,7 @@ allows.</p>
 times; View has them too, and puts every window back at its actual size
 at once.</p>
 <p>The window <strong>opens where it was left</strong>: its workspaces,
-every sheet in them -- unsaved changes too - the layout of its windows,
+every sheet in them - unsaved changes too - the layout of its windows,
 their zoom and the tabs pinned. It keeps them in
 <code>session.json</code> beside its settings file, as long as
 <strong>Open where I left off</strong> is on, in the Options.</p>
@@ -428,7 +428,7 @@ sheet, a step to undo; so does the File menu.</p>
 <p>Its text is only read for its directives, as a preprocessor would, so
 <strong>what the preprocessor cannot read is underlined in red</strong>
 and does nothing - a <code>#define</code> that does not parse, an
-<code>#endif</code> with no <code>#if</code> -- and what it only
+<code>#endif</code> with no <code>#if</code> - and what it only
 assumed, in amber: an <code>#if</code> resting on a name nothing
 defines, read as taken. The mouse on an underlined line says what.
 <strong>Edit</strong> makes the window an editor of the whole text, the
@@ -439,7 +439,7 @@ alt="A definition file being edited: a #define that does not parse and a stray #
 <p>The main menu bar holds <strong>File</strong>, <strong>Edit</strong>,
 <strong>View</strong>, <strong>Window</strong> and
 <strong>Tools</strong> - the theme and colour scheme are View's
-<strong>Theme</strong> submenu -- then the list of workspaces, and
+<strong>Theme</strong> submenu - then the list of workspaces, and
 <strong>Help</strong> at the bar's right end: the keyboard shortcuts,
 and what bitwis(e)dom is. What the window last said is at the status
 bar's right end. <strong>Probe</strong> and <strong>Allocated</strong>
@@ -588,7 +588,7 @@ its range shown beside it:</p>
 </tbody>
 </table>
 <p>A number that does not fit is a warning, not an error: it still has
-bits -- the ones it wraps to - and they are shown. A literal may be
+bits - the ones it wraps to - and they are shown. A literal may be
 negative, and is then written as the number it is:
 <code>#define D_ONES (-1)</code>.</p>
 <h3 id="expressions">Expressions</h3>
@@ -750,7 +750,7 @@ or into the room below the rows to be pinned at the bottom again. A
 <strong>usage row in a group counts the group's rows</strong>, as a
 subtotal does: <em>allocated in Enables</em> counts Enables' bits alone.
 A right-click on one pins it, adds <strong>another</strong> of its kind
-beside it -- every probe row shows the one probe - or removes it; the
+beside it - every probe row shows the one probe - or removes it; the
 last of a kind is hidden instead, and keeps its place for when it is
 shown again. Where each is is the sheet's, saved with it, and every move
 a step to undo.</p>
@@ -768,7 +768,7 @@ column's heading</strong>, on the buttons over it, on a row and on the
 sheet, and on <strong>View &gt; Columns &gt; Sort rows by</strong>; the
 heading shows the key beside an arrow, up for first to last.
 <strong>Make it the sheet's own order</strong> puts the rows in the
-sheet in the order they are shown -- the header follows the sheet's
+sheet in the order they are shown - the header follows the sheet's
 order, which sorting alone leaves be. The sort is the sheet's, saved
 with it, and each choice a step to undo.</p>
 <h3 id="what-each-part-shows">What each part shows</h3>
@@ -960,7 +960,7 @@ Anywhere in the window, a label cut off by its column ends in
 field, a combo's choice, a check box's or a tree row's name past the
 panel's edge.</p>
 <p>The columns of every table - the inspector's, the issues', an
-operation's -- resize by their edges too, and the window remembers their
+operation's - resize by their edges too, and the window remembers their
 widths, the layout of its windows, the theme and the colour scheme, and
 the user's own preferences from one run to the next, in a settings file
 of the user's: <code>%APPDATA%\bitwisedom\bitwisedom.ini</code> on
@@ -1231,7 +1231,7 @@ class="sourceCode json"><code class="sourceCode json"><span id="cb1-1"><a href="
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">{</span> <span class="dt">&quot;name&quot;</span><span class="fu">:</span> <span class="st">&quot;MODE&quot;</span><span class="fu">,</span> <span class="dt">&quot;bits&quot;</span><span class="fu">:</span> <span class="st">&quot;4..6&quot;</span><span class="fu">,</span> <span class="dt">&quot;values&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;SLOW&quot;</span><span class="fu">:</span> <span class="dv">1</span><span class="fu">,</span> <span class="dt">&quot;FAST&quot;</span><span class="fu">:</span> <span class="dv">2</span> <span class="fu">}</span> <span class="fu">}</span><span class="ot">,</span></span>
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">{</span> <span class="dt">&quot;name&quot;</span><span class="fu">:</span> <span class="st">&quot;ALL&quot;</span><span class="fu">,</span> <span class="dt">&quot;expr&quot;</span><span class="fu">:</span> <span class="st">&quot;EN | MODE&quot;</span> <span class="fu">}</span> <span class="ot">]</span> <span class="fu">}</span></span></code></pre></div>
 <p>A key a row does not have is passed over and noted with where it was;
-a row that says two things, or nothing, is refused with its path --
+a row that says two things, or nothing, is refused with its path -
 <code>rows[1] (MODE): two definitions, "bit" and "bits": a row has one</code>.
 Written from a sheet and read back, it writes the same header.</p></li>
 <li><p><strong>An export</strong> (<code>*.export.json</code>, File &gt;
@@ -1441,7 +1441,7 @@ alt="win32_hresults: twenty facilities closed, WIN32 and DXGI open, E_ACCESSDENI
 build targets Windows, macOS, Linux or FreeBSD, each of that platform's
 examples is generated and compiled beside the system's own headers, and
 each value the system also defines is compared at compile time
-(<code>tests/platform/</code>) -- on Windows, all 1,376 HRESULTs and
+(<code>tests/platform/</code>) - on Windows, all 1,376 HRESULTs and
 their facilities among them. Where GCC or Clang targets x86,
 <code>x86_cpuid</code>'s flags are compared with
 <code>&lt;cpuid.h&gt;</code>'s masks, under every name either compiler

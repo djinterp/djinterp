@@ -1,5 +1,5 @@
 # =============================================================================
-# djinterp [test] --
+# djinterp [test] -
 # build/cmake/config/testing/djinterp/c/modules/db/CMakeLists.txt
 #
 #   Aggregate for c/modules/db's suites: recurses into each vendor's leaf

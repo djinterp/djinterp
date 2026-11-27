@@ -5,7 +5,7 @@
 *   The subscription layer: a registry rho is a table read as a family of
 * words indexed by kappa. This header declares the two folds the note
 * defines - dispatch (the inner fold of seq over the masked word, for one
-* occurrence) and run (the outer fold of dispatch over a homogeneous trace) --
+* occurrence) and run (the outer fold of dispatch over a homogeneous trace) -
 * together with their enriched results and the staging operation that
 * evaluates a static word once into a single closed step.
 *
@@ -77,7 +77,7 @@ TABLE OF CONTENTS
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
 // declares only where the build can spell one. Below it - ISO strict C++98
-// wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS --
+// wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS -
 // the header compiles to nothing (the owner's ruling of 2026.10.03 on round 3's
 // question 1, (a)).
 #if RE_STD_HAS_INT64
@@ -289,7 +289,7 @@ struct dj_dispatch_result d_event_registry_dispatch_occurrence(
 // d_event_registry_run
 //   function: folds dispatch over a homogeneous trace of `_key` occurrences.
 // The trace is a contiguous array of payload blocks - `_first` is the base,
-// `_stride` the distance between consecutive blocks, `_count` their number --
+// `_stride` the distance between consecutive blocks, `_count` their number -
 // which is the C spelling of the C++ [first, last) iterator pair.
 //   Each block is dispatched IN PLACE, so a handler taking a mutable payload
 // mutates the caller's array. That differs from the C++ face, which copied
@@ -401,7 +401,7 @@ int32_t d_event_word_run_one(
 // d_event_registry_run.
 //
 //   COHERENCE LAW: for a registry rho held fixed - no bind, unbind, enable,
-// or disable between the snapshot and the runs --
+// or disable between the snapshot and the runs -
 //
 //       d_event_registry_compile(&rho, k, &w);
 //       d_event_word_drive(&w, first, stride, n).occurrences

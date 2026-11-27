@@ -512,7 +512,7 @@ private:
 // as `error source(char* buffer, std::size_t capacity, std::size_t& size)`,
 // setting `size` to the bytes it wrote and 0 at the end of the data. The
 // trampolines below adapt either to the C client's callbacks. Each member
-// taking one has a `const` overload too, so a callback written in place --
+// taking one has a `const` overload too, so a callback written in place -
 // a temporary functor, or an unnamed lambda - binds as well as a named one.
 namespace internal {
 

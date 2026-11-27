@@ -140,7 +140,7 @@ using DDocAttributes = DContainerMetadata<std::string, std::string>;
     inline constexpr const char* doc_attr_indent     = "indent";
 
     // doc_attr_locator
-    //   key: a cross-reference target - a page number, an anchor, a URL --
+    //   key: a cross-reference target - a page number, an anchor, a URL -
     // carried by an entry (used by table_of_contents leaders).
     inline constexpr const char* doc_attr_locator    = "locator";
 

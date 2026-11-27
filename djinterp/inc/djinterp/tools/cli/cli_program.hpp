@@ -327,7 +327,7 @@ public:
 
     // where a run looks for modules first, and what it does with one of
     // another version: d_cli_program_set_plugin_path, which copies the list
-    // - empty for none, a want of memory leaving the setting as it was --
+    // - empty for none, a want of memory leaving the setting as it was -
     // and d_cli_program_set_plugin_versions; each overrides the build's
     // knob for the program's runs
     status plugin_path(
@@ -413,7 +413,7 @@ public:
     ) const;
 
     // the build: a line of the program's own, `KEY: VALUE`, after how the
-    // program was built in what `--version --verbose` says --
+    // program was built in what `--version --verbose` says -
     // d_cli_program_add_build, a want of memory kept as made() says
     status add_build(
         DCString _key,

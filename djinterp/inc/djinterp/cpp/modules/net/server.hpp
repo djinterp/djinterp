@@ -27,7 +27,7 @@
 *   PATCHED, NOT REBUILT. The owner's answer to the register's item 23 (C,
 * 2026.10.05): patch the header to compile. It had been built on a generic
 * net::server that was never written and on the HTTP reader retired with
-* the old client, and it included itself; it now carries what it needs --
+* the old client, and it included itself; it now carries what it needs -
 * the reader, the chunked decoder, an accept loop with a thread per
 * connection - and the execution-policy parameter, which only the missing
 * server gave meaning to, is gone. Decision 4 still rebuilds both servers:

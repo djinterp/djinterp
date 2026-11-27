@@ -28,7 +28,7 @@ bool tests_sort_monoid_run_default_construction()
     result.check(run.size() == 0);
     result.check(run.data().empty());
 
-    //   The comparator is present and usable even though the run is empty --
+    //   The comparator is present and usable even though the run is empty -
     // combine() reaches for the left operand's comparator, so an empty left
     // operand must still carry one.
     result.check(run.compare()(1, 2));

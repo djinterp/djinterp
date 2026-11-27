@@ -535,7 +535,7 @@ struct dj_test_event_payload
 //   NO CROSS-CHECK IS WIRED HERE, AND THAT IS DELIBERATE.  Tying the two sets
 // with a static assertion needs the preprocessor to know whether
 // event_common.h was included, and an enumerator cannot tell it that.  The
-// mechanism would be that header's include guard or a macro it defines --
+// mechanism would be that header's include guard or a macro it defines -
 // neither knowable from here, and guessing one is how a check ends up
 // asserting nothing.  It is owed, not written; see the log.
 //

@@ -327,7 +327,7 @@ bool d_arg_internal_is_split_point(
  *                         opener.
  * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY.
  *
- * A word that opens with a quote or a bracket: up to and with its closer --
+ * A word that opens with a quote or a bracket: up to and with its closer -
  * the rest of the text when it never closes - and the character after the
  * closer taken too when it is a split point or an opener, which would start a
  * sequence of its own.

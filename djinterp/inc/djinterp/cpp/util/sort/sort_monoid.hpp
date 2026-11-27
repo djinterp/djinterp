@@ -33,7 +33,7 @@
 *
 *   mempty, and so mconcat, needs a Compare that default-constructs: the
 * identity is the empty run, and it carries a default-constructed comparator.
-* std::less, std::greater and natural<T>() do; the algebra's adapters --
+* std::less, std::greater and natural<T>() do; the algebra's adapters -
 * reversed, by_key, then - do not, so a fold over runs ordered by one of
 * those starts from the first run with mappend rather than from mempty.
 *

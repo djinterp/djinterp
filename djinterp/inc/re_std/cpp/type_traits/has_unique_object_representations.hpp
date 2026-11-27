@@ -7,12 +7,12 @@
 * representation - no padding bytes, no redundant encodings.
 *
 *   THE PRACTICAL MEANING IS: MAY I HASH THIS BY ITS BYTES? If the answer
-* is true, hashing the object representation is sound. If it is false --
+* is true, hashing the object representation is sound. If it is false -
 * because of padding, or because the type is a float with a negative zero
 * - then two equal values can hash differently, which breaks every
 * hash-based container quietly and non-reproducibly.
 *
-*   BACK-PORT: std added this in C++17; re_std surfaces it from C++11 --
+*   BACK-PORT: std added this in C++17; re_std surfaces it from C++11 -
 * a six-year lead.
 *
 *   PORTABILITY:

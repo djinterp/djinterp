@@ -10,7 +10,7 @@
 *                                             their parity with the C
 *                                             module's dj_sort_order, and the
 *                                             C++98 shape
-*     sort_common_tests_order_comparator.cpp  internal::DOrderComparator --
+*     sort_common_tests_order_comparator.cpp  internal::DOrderComparator -
 *                                             the run-time direction flip,
 *                                             both branches, mixed operand
 *                                             types, a non-const comparator

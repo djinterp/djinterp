@@ -3,7 +3,7 @@
 *
 * Parsing arguments that arrive as text, declared in arg_parser.h (4.1.3, 4.2
 * and 4.3).
-*   CLI11's parse(string): a command line split by CLI11's own rules --
+*   CLI11's parse(string): a command line split by CLI11's own rules -
 * reading `:` as `=` for a root that takes Windows-style options - its
 * program's name, when it holds one, naming the root; wmain's arguments and
 * wide lines, converted to UTF-8 first; and CLI11's ensure_utf8, which
@@ -52,7 +52,7 @@
  * CLI11's split in parse(string) of what follows the program's name: into
  * the parser's pool by CLI11's rules, `:` read as `=` where the root takes
  * Windows-style options, each word's span after `_words`'s, to the length it
- * was made with; a malformed escape - the one text CLI11's rules refuse --
+ * was made with; a malformed escape - the one text CLI11's rules refuse -
  * recorded as CLI11's ParseError, in its words.
  */
 D_STATIC

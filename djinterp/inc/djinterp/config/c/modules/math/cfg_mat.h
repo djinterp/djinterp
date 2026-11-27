@@ -8,7 +8,7 @@
 * mattering or stop shrinking (S406); this knob bounds the steps, as
 * LAPACK's ITHRESH bounds dgerfsx's.
 *   The knob is of the value model: a count, validated below. It is
-* #ifndef-guarded, so a definition made before mat.h is first included --
+* #ifndef-guarded, so a definition made before mat.h is first included -
 * with -D, in cfg_custom.h, or in the including file - wins over the default
 * here.
 *

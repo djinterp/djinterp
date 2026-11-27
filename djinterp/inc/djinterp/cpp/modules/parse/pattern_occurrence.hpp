@@ -13,7 +13,7 @@
 * code (not just the scanner) can drain, fold, or pipe.
 *
 *   This is paradigm-level, not parse-level.  By the formal definition a
-* parser is P A = Σ* → maybe⟨A × Σ*⟩; an occurrence unfold is not a parser --
+* parser is P A = Σ* → maybe⟨A × Σ*⟩; an occurrence unfold is not a parser -
 * it is search-side machinery built on the producer protocol, operating on a
 * `pattern<>` (paradigm/pattern.hpp).  It was previously mis-filed under
 * djinterp::parse with a vestigial parse.hpp include it never used; it now

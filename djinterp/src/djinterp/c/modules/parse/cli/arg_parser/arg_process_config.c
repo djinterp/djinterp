@@ -6,7 +6,7 @@
 * expects no values takes its argument through it as a configuration item
 * does; then, with configuration files built in, its _parse_config and
 * _parse_single_config, each item handed to the option it names in the
-* command its sections name; and the configuration option's processing --
+* command its sections name; and the configuration option's processing -
 * the files it names read in the order its policy leaves them, an
 * environment variable's when none is given, its default when forced.
 *
@@ -269,7 +269,7 @@ int d_arg_internal_process_flag_refusal(
  * @return D_ARG_OK, or the error CLI11 throws, recorded.
  *
  * CLI11's _add_flag_like_result for an item with several inputs: within
- * what the option takes - or under a policy that takes or joins them all --
+ * what the option takes - or under a policy that takes or joins them all -
  * they are left for the caller; beyond it they are refused, unless the
  * option refuses flag overrides, when each is added that is one of its
  * values, and any other is CLI11's InvalidError - in its words, which its
@@ -1230,7 +1230,7 @@ int d_arg_internal_process_config_file(
  * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY, recorded.
  *
  * CLI11's fallback for a configuration option not given: its environment
- * variable's value, when the option has one and it is set, added as given --
+ * variable's value, when the option has one and it is set, added as given -
  * without the validation an ordinary option's value from the environment
  * goes through.
  */
@@ -1299,7 +1299,7 @@ int d_arg_internal_process_config_env(
  * @return how many files it names.
  *
  * How many files CLI11's as<std::vector<std::string>>() finds in the
- * configuration option once called back: its values, reduced or as given --
+ * configuration option once called back: its values, reduced or as given -
  * none for a lone `{}`, and only the `{}` of `{}` and a separator.
  */
 D_STATIC

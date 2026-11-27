@@ -9,7 +9,7 @@
 *   The node used to hold the container by value, which made metadata mandatory:
 * every translation unit that knew what a node was also had to know what a row
 * was, and the node's layout moved when the container's did.  The node now holds
-* a pointer that may be null, so the C-side dependency breaks completely --
+* a pointer that may be null, so the C-side dependency breaks completely -
 * test_object.h names this module only through an incomplete type and
 * test_object.c calls nothing in it.  That is the pointer's real payoff and it
 * is invisible in a diff, which is why it is written here.
@@ -40,7 +40,7 @@
 *
 *   The row grows from two members to five and, at the default key width, from
 * sixteen bytes to twenty-four.  That is the same trade test_object.h makes for
-* `status` in its own words - widening costs bytes and removes a question --
+* `status` in its own words - widening costs bytes and removes a question -
 * rather than a new principle.
 *
 * IT IS NOT A KNOB

@@ -248,7 +248,7 @@ void mysql_connection::clear_query_attributes()
 /*
 mysql_connection::add_settings_impl
   The refusals come first, before anything is asked of the server: a setting
-the program made and the layer cannot apply must not be dropped silently --
+the program made and the layer cannot apply must not be dropped silently -
 a TLS version or an authentication plugin that is not used is not a
 preference but a requirement unmet. Neither client speaks the X protocol or
 caches statements, so those two are refused here; each of the rest goes to

@@ -9,7 +9,7 @@
 *
 *     AN OPTION IS SHORTHAND FOR (lookup by key) + (set value in its column).
 *
-* So an option is not a container of a value. It is the COLUMN DESCRIPTOR --
+* So an option is not a container of a value. It is the COLUMN DESCRIPTOR -
 * the key, the value's declared type, and where that value sits in the set's
 * value block. The set owns the column; the option addresses it. This is why
 * `struct dj_option` carries an OFFSET and not a pointer, and why a set of ten
@@ -101,7 +101,7 @@ TABLE OF CONTENTS
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
 // declares only where the build can spell one. Below it - ISO strict C++98
-// wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS --
+// wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS -
 // the header compiles to nothing (the owner's ruling of 2026.10.03 on round 3's
 // question 1, (a)).
 #if RE_STD_HAS_INT64
@@ -187,7 +187,7 @@ const char* d_option_status_message(
 );
 
 // dj_option_result
-//   struct: the `result` carrier at this subframework's instantiation --
+//   struct: the `result` carrier at this subframework's instantiation -
 // `result<uint32_t, int32_t>`. Fallible operations return it BY VALUE; it is
 // eight bytes and costs nothing to pass.
 //   Declared through D_RESULT_DECLARE so it is the framework's own carrier
@@ -418,7 +418,7 @@ struct dj_option_carrier d_option_project_value(
 );
 
 // d_option_carrier_eq
-//   function: STRUCTURAL carrier comparison, exactly as the .tex defines it --
+//   function: STRUCTURAL carrier comparison, exactly as the .tex defines it -
 // `_|_ = _|_`, `_|_ != v` for every value v, and two values equal iff their
 // bytes agree under `_compare`.
 //

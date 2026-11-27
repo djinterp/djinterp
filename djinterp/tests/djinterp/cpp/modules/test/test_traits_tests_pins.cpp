@@ -197,7 +197,7 @@ bool tests_build_time_hazards()
 
     // *** MINE 1: count_holds does not short-circuit ***
     //
-    //   error: static assertion failed: count_holds instantiated this cell --
+    //   error: static assertion failed: count_holds instantiated this cell -
     //          which is exactly the point: it does not short-circuit
     //
     //   The same three types, the same trait, in the same order.  conjunction

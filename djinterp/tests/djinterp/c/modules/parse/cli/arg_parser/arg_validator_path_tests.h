@@ -4,7 +4,7 @@
 * The suite of the validators that ask the file system
 * (arg_validator_path.h): CLI11's existing-file, -directory and -path checks,
 * the nonexistent-path check, the file found on a default path, the
-* permission and size checks, the names whose answer is the system's own --
+* permission and size checks, the names whose answer is the system's own -
 * symbolic links, FIFOs and modes on POSIX, separators and case on Windows
 * - a name that is UTF-8, what cannot be made, what each completes as, and
 * the checks on options inside a parse.

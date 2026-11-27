@@ -8,7 +8,7 @@
 *   - what a path names, which has no width: exists, is_regular_file and
 *     is_directory, for a 5 GiB file and a 2040 time;
 *   - a directory's walk, walk and remove_all, over entries whose inode
-*     numbers need more than 32 bits where t_file_shim.c runs beneath --
+*     numbers need more than 32 bits where t_file_shim.c runs beneath -
 *     none of them asks for one;
 *   - file_status, file_size, file's position and space_info, at the width:
 *     at 64 they read past 4 GiB and 2038, and at 32 they fail with

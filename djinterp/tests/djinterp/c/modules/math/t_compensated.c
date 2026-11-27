@@ -6,7 +6,7 @@
 * sum and cross promise what Ogita, Rump and Oishi prove of Dot2 and Sum2:
 * the result is the correct rounding of a value within 4 n^2 u^2 S of the
 * exact sum, S the sum of the terms' magnitudes and u the unit of the pairs
-* the family sums in (2^-53 for float and double, 2^-P for long double) --
+* the family sums in (2^-53 for float and double, 2^-P for long double) -
 * so correctly rounded unless the exact sum lies within that of a midpoint.
 * Over 20,000 random cases per family and kernel, of 2 to 8 terms, a quarter
 * each with no cancellation, with the terms cancelling to half the

@@ -329,7 +329,7 @@ int64_t d_internal_stat_unix_time(
 
 /*
 d_internal_stat_native_link
-  A symbolic link or a junction, described as POSIX lstat describes a link --
+  A symbolic link or a junction, described as POSIX lstat describes a link -
 S_IFLNK, with the link's own times and link count - where _stat64 would
 follow it. Its size reads 0. Returns 1 for such a link, and 0 for anything
 else, which _stat64 then describes.
@@ -1227,7 +1227,7 @@ int d_internal_stat_path(
 
 /*
 d_file_stat64
-  Follows, because that is what stat() means and what callers expect --
+  Follows, because that is what stat() means and what callers expect -
 d_dir_exists on a link to a directory says yes. Whether it follows is
 D_INTERNAL_FILE_STAT_FOLLOW, so a build can make every query here stop at the
 link instead.
@@ -1439,7 +1439,7 @@ int d_file_mode_nofollow(
 /*
 d_file_access
   access(2), or the CRT's _access (d_internal_stat_access). A mode with any
-bit beyond F_OK, R_OK, W_OK and X_OK is refused here, as POSIX refuses it --
+bit beyond F_OK, R_OK, W_OK and X_OK is refused here, as POSIX refuses it -
 the CRT would take it to its invalid-parameter handler, which by default ends
 the process. A refusal is reported at info severity, because "no" is the
 answer this function exists to give.

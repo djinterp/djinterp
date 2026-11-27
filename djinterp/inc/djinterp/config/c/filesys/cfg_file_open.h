@@ -81,7 +81,7 @@ TABLE OF CONTENTS
 //   knob: route d_file_open_stream through Annex K's fopen_s where it exists.
 // Follows the subframework's D_CFG_FILE_PREFER_ANNEX_K. Worth knowing before
 // you leave this on: MSVC's fopen_s opens files with sharing denied, so a
-// second opener - including a tail -f, an editor, or your own test harness --
+// second opener - including a tail -f, an editor, or your own test harness -
 // is locked out. If that bites, turn this off and choose the sharing with
 // D_CFG_FILE_OPEN_SHARE; the two cannot be combined, since fopen_s takes no
 // sharing argument.

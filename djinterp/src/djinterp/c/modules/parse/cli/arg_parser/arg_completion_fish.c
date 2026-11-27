@@ -2,7 +2,7 @@
 * djinterp [c][parse]                                      arg_completion_fish.c
 *
 * The completion script for fish, declared in arg_internal.h (11.2.4).
-*   The script holds the model as global lists named after the program --
+*   The script holds the model as global lists named after the program -
 * each command's row, the subcommands' names and the options' names with
 * their keys, targets and descriptions, each option's row, the positionals'
 * keys and rows, the choices - which fish's `contains -i` searches by

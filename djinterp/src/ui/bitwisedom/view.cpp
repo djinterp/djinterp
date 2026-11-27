@@ -733,7 +733,7 @@ int scope_shows(
 /*
 display_items
   The menu of what a region of the grid shows: its digits, the names across
-its ranges and its colours, each checked where the region shows it all --
+its ranges and its colours, each checked where the region shows it all -
 "in part" where it shows it in places - and a press shows or hides it
 there; then each shown there and nowhere else; and the region as the rest
 of the grid shows it, its own rules taken back. Each is one
@@ -4053,7 +4053,7 @@ templates node_content(
 
 /*
 console_tab
-  The console: every action the user has taken, as the window heard it --
+  The console: every action the user has taken, as the window heard it -
 its name and what it carried, the sheet it was done in, and when - the
 latest first. An action done many times in a row - a drag, a slider, a
 name typed - is one line, with how many times. The list reads the actions

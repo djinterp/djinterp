@@ -19,7 +19,7 @@
 * lambda on C++11+ - so the surface is identical on every standard.
 *   SYMLINKS ARE NOT FOLLOWED. A directory walk that follows symlinks can loop
 * forever (a link pointing at an ancestor) or wander out of the tree entirely.
-* Both walk() and remove_all() see a symlink as a symlink and stop there --
+* Both walk() and remove_all() see a symlink as a symlink and stop there -
 * they never descend through it. This falls out naturally from d_type, which
 * reports an entry's OWN type without following, so a link-to-directory is a
 * link, not a directory; where d_type is absent, a no-follow mode query draws
@@ -86,7 +86,7 @@ NS_INTERNAL
      * @param[in]  _name  the entry's name.
      * @param[out] _ec    left as it was on success; on failure EINVAL for an
      *                    invalid operand, ENOMEM where the path cannot be
-     *                    allocated, and otherwise d_dir_entry_path's reason --
+     *                    allocated, and otherwise d_dir_entry_path's reason -
      *                    ENAMETOOLONG for a path past D_FILE_PATH_MAX.
      * @return the entry's path; invalid on failure.
      * @throws std::bad_alloc only when D_CFG_PATH_THROW is 1 and the result
@@ -375,7 +375,7 @@ NS_END  // internal
  *        a directory before its contents.
  *
  * @note Symbolic links are reported but never followed. The visitor is taken
- *       by value - which is what lets a temporary lambda be passed inline --
+ *       by value - which is what lets a temporary lambda be passed inline -
  *       but one copy is threaded through the whole recursion, so state it
  *       refers to (capture-by-reference on C++11+, a pointer member on C++98)
  *       accumulates across the walk.

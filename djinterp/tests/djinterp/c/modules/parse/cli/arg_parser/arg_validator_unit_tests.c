@@ -1183,7 +1183,7 @@ d_tests_arg_unit_others
   CLI11's AsNumberWithUnit over `double`, `short` and `int64_t`.
   Tests the following:
   - a floating-point product, and a factor that is a fraction or negative
-  - the product refused where CLI11's checked_multiply refuses it --
+  - the product refused where CLI11's checked_multiply refuses it -
     beyond `short`, beyond 64 bits, infinite - with "<number> multiplied
     by <unit> factor would cause number overflow. Use smaller value."
 */

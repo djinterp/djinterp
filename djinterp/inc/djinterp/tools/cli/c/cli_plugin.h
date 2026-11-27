@@ -16,7 +16,7 @@
 *   FINDING ONE. The module of command NAME of program PROGRAM is the file
 * `PROGRAM-NAME` with the platform's suffix (D_ENV_CLI_MODULE_SUFFIX), looked
 * for in the directories the program was told of at run time
-* (d_cli_program_set_plugin_path), then in those PROGRAM_PLUGIN_PATH lists --
+* (d_cli_program_set_plugin_path), then in those PROGRAM_PLUGIN_PATH lists -
 * the program's name upper-cased, each `-` an `_` - unless the build reads
 * no such variable (D_CFG_CLI_PLUGIN_VARIABLE), then in the build's own
 * (D_CFG_CLI_PLUGIN_SEARCH): by default the program's own directory, then
@@ -199,7 +199,7 @@ struct dj_cli_plugin_host
 // 1.2.3
 // dj_cli_plugin_run_fn
 //   type: a module's work: given the host and the arguments after the
-// command's name - `_argv[0]` the host's `command`, `_argv[_argc]` NULL --
+// command's name - `_argv[0]` the host's `command`, `_argv[_argc]` NULL -
 // it returns the status the program exits with (GRAMMAR.html, section 8).
 typedef int (*dj_cli_plugin_run_fn)(const struct dj_cli_plugin_host* _host,
                                    int                             _argc,

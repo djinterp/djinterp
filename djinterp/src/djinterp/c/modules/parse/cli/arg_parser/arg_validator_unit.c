@@ -51,7 +51,7 @@ struct dj_arg_internal_unit
 
 // dj_arg_internal_units
 //   struct: what AsNumberWithUnit keeps, all of it owned: the number's type,
-// CLI11's options, the units in the order CLI11's std::map keeps them --
+// CLI11's options, the units in the order CLI11's std::map keeps them -
 // by name, the lowercase names when units match without case - the name
 // help gives the unit, and the text the names are slices of.
 struct dj_arg_internal_units
@@ -1615,7 +1615,7 @@ struct dj_arg_validator d_arg_validator_as_number_with_unit(
  * @return `true` for a unit AsSizeValue's map holds; `false` otherwise.
  *
  * AsSizeValue's map without the map: `b` is 1; a prefix alone or with `b`
- * after it is its power of the base - 1000 with `_kb_is_1000`, else 1024 --
+ * after it is its power of the base - 1000 with `_kb_is_1000`, else 1024 -
  * and with `i` or `ib` after it its power of 1024. Case is folded, as
  * AsSizeValue matches units.
  */

@@ -672,7 +672,7 @@ int d_internal_sqlite_prepare_columns(
  *                            finalized here.
  * @param[in]     _hidden     whether rows carry a `hidden` column (6).
  * @param[in,out] _builder    receives the columns.
- * @return the last step's result - SQLITE_DONE when every row was read --
+ * @return the last step's result - SQLITE_DONE when every row was read -
  *         or SQLITE_NOMEM when a name or a copy could not be had.
  *
  * Rows are name (1), type (2), NOT NULL (3), the default's SQL (4) and the

@@ -938,7 +938,7 @@ namespace spherical_axes
 //   the callable top-level wrapper: an expression bound to a coordinate
 // system and a declared arity. Evaluable from a scalar pack, a std::array, a
 // std::tuple or a linalg::vector (the latter three explode into the pack), so
-// a coordinate point - the system's point_type, a linalg::vector --
+// a coordinate point - the system's point_type, a linalg::vector -
 // evaluates directly.
 template<typename System, typename Expr, std::size_t Arity>
 struct math_function

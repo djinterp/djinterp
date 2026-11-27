@@ -2,7 +2,7 @@
 * djinterp [c][parse]                                            arg_formatter.c
 *
 * Help formatters, declared in arg_formatter.h (3, 4.1 and 5.1).
-*   A formatter's lifetime, settings and labels - CLI11's FormatterBase --
+*   A formatter's lifetime, settings and labels - CLI11's FormatterBase -
 * and the formatter a command's help uses; the dispatch of each step to the
 * formatter's table, or to the default step when its entry is empty; and help
 * itself, CLI11's App::help, built whole into a buffer before a byte of it is

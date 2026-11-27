@@ -48,7 +48,7 @@ TABLE OF CONTENTS
 // 1.1    Binding
 //------------------------------------------------------------------------------
 // d_ext_c_accepts reports whether a path is C by its extension.
-// d_ext_c_build lexes a source as C at `_level` - zero for the newest --
+// d_ext_c_build lexes a source as C at `_level` - zero for the newest -
 // and builds its tree beneath `_parent`, or beneath a new `file` node when
 // `_parent` is D_DSS_NO_INDEX.  The source is borrowed for the call only.
 bool d_ext_c_accepts(

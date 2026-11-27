@@ -258,7 +258,7 @@ D_NODISCARD inline ::djinterp::DContentResolver make_report_resolver(
 //==============================================================================
 
 // render_report_layout
-//   function: layout_interpret.hpp's render_document for a DReportOp term --
+//   function: layout_interpret.hpp's render_document for a DReportOp term -
 // number it, collect its outline, emit it, and run the emission against
 // _renderer between begin_document and end_document. The template arguments
 // are named because an annotated term's atom type is never deduced: DLayoutDoc

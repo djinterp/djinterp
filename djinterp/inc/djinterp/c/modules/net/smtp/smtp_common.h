@@ -211,7 +211,7 @@ enum dj_net_error d_smtp_error_to_net(
  *
  * @note D_NET_OK is D_SMTP_OK; INVALID_ARGUMENT, OUT_OF_MEMORY, TIMED_OUT,
  *       and PROTOCOL are their namesakes; a stream that ended or a
- *       connection lost - CLOSED, CONNECTION_RESET, CONNECTION_ABORTED --
+ *       connection lost - CLOSED, CONNECTION_RESET, CONNECTION_ABORTED -
  *       is CLOSED; anything else is TRANSPORT. It is how what a session
  *       reads and writes is judged; opening a connection is judged apart,
  *       by d_smtp_client_connect.

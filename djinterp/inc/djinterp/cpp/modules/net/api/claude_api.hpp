@@ -1074,7 +1074,7 @@ public:
 private:
     // base_request
     //   function: builds a neutral net::request for a batch endpoint, applying
-    // the standard Anthropic auth/version headers, any default headers, and --
+    // the standard Anthropic auth/version headers, any default headers, and -
     // when a body is supplied - the JSON content type and body.
     D_NODISCARD request base_request(
         net::http_method::value _method,

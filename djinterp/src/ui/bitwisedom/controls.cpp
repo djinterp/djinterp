@@ -6,7 +6,7 @@
 * menu of what to add, or a split button whose face adds the kind it shows
 * - with the colour new rows take on its menu; the "Add child..." field at
 * the end of a group's or a range's rows in the tree; the rest of the menu
-* bar, which puts the Help menu at the bar's right end; and the docking --
+* bar, which puts the Help menu at the bar's right end; and the docking -
 * the dock space a workspace's windows dock in, and the windows themselves.
 *   The field's text is its own while it is typed - kept here, by the
 * field's ImGui ID, between frames, as uxoxo keeps an edit's draft - and

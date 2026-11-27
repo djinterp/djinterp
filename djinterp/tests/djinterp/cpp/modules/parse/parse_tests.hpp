@@ -130,7 +130,7 @@ namespace dt = ::djinterp::test;
 
 // pa_check_report
 //   function: prints a failing check and returns the condition unchanged.
-// Self-contained (printf only), so it lives OUTSIDE the fixture guard --
+// Self-contained (printf only), so it lives OUTSIDE the fixture guard -
 // it depends on nothing from the header under test.
 inline
 bool pa_check_report(

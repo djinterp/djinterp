@@ -303,7 +303,7 @@ allocation sweep is left out, as under <code>cl</code>, whose linker has
 no <code>--wrap</code>. The window's has those and its own five, 26: the
 window's suite, its Dear ImGui suite, and three runs of
 <code>vparse gui</code> - its help, its version, and a grammar it cannot
-read -- which find the module, <code>vparse-gui-win64.dll</code>, and
+read - which find the module, <code>vparse-gui-win64.dll</code>, and
 load it. <code>cl</code> has no C++11 to select, so the leaves leave
 that level out.</p>
 <p>The argument parser's C++ suites do not pass here (2026.10.27), and
@@ -349,7 +349,7 @@ library is libstdc++ over the MinGW-w64 runtime, not Microsoft's. That
 runtime is <code>msvcrt.dll</code>, where <code>cl</code>'s is the
 Universal CRT, so a unit that takes <code>cl</code>'s branches may call
 a function <code>msvcrt.dll</code> lacks: <code>ucrt.c</code> supplies
-each one met so far, to the Universal CRT's contract --
+each one met so far, to the Universal CRT's contract -
 <code>_dupenv_s</code>, which djinterp's argument parser reads the
 environment with. A flag that tells <code>cl</code> how to read, check
 or emit is taken for what it means to Clang or dropped. The first build

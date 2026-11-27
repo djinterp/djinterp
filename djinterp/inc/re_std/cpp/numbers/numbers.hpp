@@ -11,14 +11,14 @@
 *   THE C++14 FLOOR IS NOT NEGOTIABLE HERE:
 *   Nearly every re_std header reaches the C++11 floor. This one cannot,
 * because the INTERFACE is a variable template and variable templates
-* arrive in C++14. There is no back-port that preserves the spelling --
+* arrive in C++14. There is no back-port that preserves the spelling -
 * a struct-of-static-members would be a different API, so offering one
 * would mean inventing surface the standard does not have. The header
 * gates itself out below C++14 rather than pretend.
 *
 *   NON-FLOATING-POINT TYPES ARE REJECTED, NOT COERCED:
 *   [numbers.syn] leaves the primary template undefined and defines only
-* the floating-point specialisation, so pi_v<int> must be ill-formed --
+* the floating-point specialisation, so pi_v<int> must be ill-formed -
 * not silently 3. A variable template cannot hold a static_assert, so
 * the check is routed through internal::numbers_check, which gives a
 * readable diagnostic at the point of use.

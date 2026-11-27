@@ -53,7 +53,7 @@ namespace re_std
 //==============================================================================
 
 // hash<bitset<N>>
-//   class: mixes the set bits. Relies on bitset's trimming invariant --
+//   class: mixes the set bits. Relies on bitset's trimming invariant -
 // see the header note.
 template<std::size_t N>
 struct hash< bitset<N> >

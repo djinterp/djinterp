@@ -23,7 +23,7 @@
 # "file_tests.hpp"). The framework header the suite uses,
 # "djinterp/test/test_builder.hpp", is full-from-inc and needs no entry.
 #
-#   C++23. The file_expected.hpp section compiles to nothing below C++23 --
+#   C++23. The file_expected.hpp section compiles to nothing below C++23 -
 # it gates on __cpp_lib_expected, so nothing here needs changing to keep it
 # inert. To exercise it, raise the standard for this target:
 #

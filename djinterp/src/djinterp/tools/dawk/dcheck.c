@@ -1972,7 +1972,7 @@ int main(
         // A node's columns are measured once per pass, from the file as it
         // was read, so one line is never spliced twice in a pass.  Lines do
         // not share geometry, so repairs to different lines may proceed in
-        // the same pass.  `repaired_this_file` marks a *structural* edit --
+        // the same pass.  `repaired_this_file` marks a *structural* edit -
         // a deletion, which moves every later line, or a table, which
         // rewrites several - and either ends the file's pass.
         bool     repaired_this_file = false;

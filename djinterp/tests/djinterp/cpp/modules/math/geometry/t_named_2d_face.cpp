@@ -2,7 +2,7 @@
 * djinterp [cpp][math]                                       t_named_2d_face.cpp
 *
 *   Tests for geometry/named_2d.hpp, at every level from C++98, per family:
-* every named shape's known areas, perimeters, centroids and containment --
+* every named shape's known areas, perimeters, centroids and containment -
 * a unit circle, a 2-by-1 ellipse rotated a quarter turn, a rectangle, a
 * square, a right triangle, a regular hexagon, an annulus, a half-disc
 * sector and segment - and the traits.

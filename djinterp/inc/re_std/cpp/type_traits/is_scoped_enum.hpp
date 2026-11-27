@@ -2,7 +2,7 @@
 * djinterp [re_std]                                           is_scoped_enum.hpp
 *
 * is_scoped_enum trait header:
-*   is_scoped_enum<T>::value is true iff T is a scoped enumeration --
+*   is_scoped_enum<T>::value is true iff T is a scoped enumeration -
 * declared enum class or enum struct.
 *
 *   THE ONE TRAIT IN THIS GROUP THAT DOES NOT NEED AN INTRINSIC:

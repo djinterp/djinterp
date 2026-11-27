@@ -3,7 +3,7 @@
 *
 * Options' links to other things, declared in arg_option.h (sections 4.6
 * to 4.8).
-*   The options an option needs and excludes, the validators it runs --
+*   The options an option needs and excludes, the validators it runs -
 * CLI11's check, transform and each - and the callback and bound variable
 * its values are handed to.
 *

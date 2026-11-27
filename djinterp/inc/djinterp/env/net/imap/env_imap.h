@@ -265,7 +265,7 @@ TABLE OF CONTENTS
 //------------------------------------------------------------------------------
 // 3.2.1
 // D_ENV_IMAP_CURL_AVAILABLE
-//   feature: 1 when an IMAP backend over libcurl can be compiled here --
+//   feature: 1 when an IMAP backend over libcurl can be compiled here -
 // libcurl itself is usable (D_ENV_CURL_AVAILABLE) and its version carries the
 // IMAP protocol. This is the gate a libcurl IMAP module keys on.
 #ifndef D_ENV_IMAP_CURL_AVAILABLE

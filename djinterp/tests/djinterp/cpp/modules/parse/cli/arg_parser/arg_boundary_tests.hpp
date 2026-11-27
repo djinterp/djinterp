@@ -17,7 +17,7 @@
 * module's own: CLI11 has no status for a function to return, and lets
 * what one throws leave parse().
 *   The suite is a table of sections, defined in arg_boundary_tests.cpp
-* beside the sections themselves; without exceptions - -fno-exceptions --
+* beside the sections themselves; without exceptions - -fno-exceptions -
 * only the results' section is, and the filters' and the configuration
 * formats' sections are only where their knobs build them, so the table's
 * length is the number of sections this build has.

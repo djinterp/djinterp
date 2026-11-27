@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][parse]                                       expression_ops.hpp
 *
-*   The verbs over an expression term.  expression.hpp defined the noun --
+*   The verbs over an expression term.  expression.hpp defined the noun -
 * the term is mu<expr_layer>, and cata (recursion.hpp) already folds it.
 * This header supplies the operations every expression language reuses, all
 * of them one catamorphism or a walk over it, so no language re-derives the

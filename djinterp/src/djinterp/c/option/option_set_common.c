@@ -640,7 +640,7 @@ bool d_option_set_equal(
 {
     //   EQUALITY QUANTIFIES OVER THE UNION: same key set, then identical
     // options at every key. Given equal key sets, "identical on the overlap"
-    // and "identical everywhere" coincide, so agreement finishes the job --
+    // and "identical everywhere" coincide, so agreement finishes the job -
     // which is the .tex's own decomposition, not a shortcut.
     if (!d_option_set_key_equal(_lhs, _rhs))
     {

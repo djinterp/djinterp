@@ -130,7 +130,7 @@ void* d_test_metadata_get(
 {
     size_t i;
 
-    /*   A NULL CONTAINER READS AS EMPTY, so get() returns the miss string --
+    /*   A NULL CONTAINER READS AS EMPTY, so get() returns the miss string -
        the same answer an empty-but-bound container gives twenty lines below,
        and the same answer the delivered kernel gave.  revision.md 6's table
        briefly said a null return here; that entry was wrong on three counts

@@ -165,7 +165,7 @@ enum op_id
 
 // 2.1
 // token
-//   struct: one token: its class, its text as the command is to see it --
+//   struct: one token: its class, its text as the command is to see it -
 // quotes taken off, escapes read - and its span in the source; whether a
 // blank, or a line, came before it.
 struct token

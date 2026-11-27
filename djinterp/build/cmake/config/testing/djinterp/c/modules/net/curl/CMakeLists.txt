@@ -1,5 +1,5 @@
 # =============================================================================
-# djinterp [test] --
+# djinterp [test] -
 # build/cmake/config/testing/djinterp/c/modules/net/curl/CMakeLists.txt
 #
 #   Test leaf for the libcurl binding (c/modules/net/curl), in DTest's C

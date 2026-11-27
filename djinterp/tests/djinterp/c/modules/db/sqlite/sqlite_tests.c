@@ -4,7 +4,7 @@
 *   Conformance tests for djinterp's SQLite convenience layer: every
 * function in c/modules/db/sqlite/sqlite_*.h and c/modules/db/db_common.h, its
 * success paths, its documented failures and its argument checks, against
-* whatever SQLite it is linked with. Where the answer depends on the library --
+* whatever SQLite it is linked with. Where the answer depends on the library -
 * a feature 3.25.0 added, a refusal before 3.15.0 - the check asks the
 * library's version and expects the matching answer, so one suite passes on
 * every release from the floor, 3.7.17, onward.

@@ -266,7 +266,7 @@ typedef void (*fn_starttls_on_upgrade)(struct dj_starttls_session* _session,
 //   struct: how a session behaves. Obtain one from d_starttls_options_default
 // and change what differs; d_starttls_init reads every field once and keeps
 // only `tls`, which must outlive the session.
-//   `tls` is the TLS kernel context the upgrade makes its TLS session from --
+//   `tls` is the TLS kernel context the upgrade makes its TLS session from -
 // its engine, trust, identity, and version floor - for the session's own
 // role. `server_name` is the name a client sends as SNI and requires the
 // server's certificate to carry; it comes from the caller's configuration,
@@ -291,7 +291,7 @@ struct dj_starttls_options
 
 // 1.2.3
 // dj_starttls_session
-//   struct: one connection's STARTTLS state. The caller owns the storage --
+//   struct: one connection's STARTTLS state. The caller owns the storage -
 // usually as the first member of a protocol module's own session - and
 // treats every field as read-only: the functions below keep the buffer
 // indices and the state consistent with each other.
@@ -589,7 +589,7 @@ D_NODISCARD enum dj_starttls_error d_starttls_recv_line(
  * @brief Runs the client side of a STARTTLS exchange under the session's
  *        policy.
  *
- * @note `_offered` must reflect what the peer advertised in this session --
+ * @note `_offered` must reflect what the peer advertised in this session -
  *       its EHLO keywords, its CAPABILITY list - and an attacker controls
  *       that list; the policy is what makes a missing offer safe.
  *
@@ -765,7 +765,7 @@ enum dj_net_error d_starttls_error_to_net(
  *
  * @note D_NET_OK is D_STARTTLS_OK; INVALID_ARGUMENT, OUT_OF_MEMORY,
  *       TIMED_OUT, and PROTOCOL are their namesakes; a stream that ended or
- *       a connection lost - CLOSED, CONNECTION_RESET, CONNECTION_ABORTED --
+ *       a connection lost - CLOSED, CONNECTION_RESET, CONNECTION_ABORTED -
  *       is CLOSED; anything else is TRANSPORT. It is how the plaintext
  *       connection's errors are judged. Under TLS the TLS kernel judges
  *       them, and a connection that ends without close_notify is TRUNCATED.

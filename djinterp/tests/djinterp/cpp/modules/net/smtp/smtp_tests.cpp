@@ -264,7 +264,7 @@ NS_INTERNAL
 
     // start, finish
     //   function: a server with the recording handlers, listening and
-    // running - by default a plain one that allows AUTH in the clear --
+    // running - by default a plain one that allows AUTH in the clear -
     // then stopped, its loop joined, and the sessions it left counted.
     static
     bool start(

@@ -1132,7 +1132,7 @@ struct dj_arg_internal_parse_take
 
 /*
 d_arg_internal_parse_min
-  CLI11's min_num: the fewest values an option takes from the arguments --
+  CLI11's min_num: the fewest values an option takes from the arguments -
 its type's size, or fewer when it expects fewer items.
 */
 int d_arg_internal_parse_min(
@@ -1682,7 +1682,7 @@ int d_arg_internal_parse_values(
 /*
 d_arg_internal_parse_arg
   CLI11's _parse_arg: the argument split as recognized; an option of the
-command's that answers to the name - or one the further search finds --
+command's that answers to the name - or one the further search finds -
 takes it, with its values; otherwise the search has dealt with it.
 */
 int d_arg_internal_parse_arg(

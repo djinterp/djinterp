@@ -383,7 +383,7 @@ bool d_cli_internal_edit_value(
 }
 
 /**
- * @brief Whether a flag is on: given, and its last value true --
+ * @brief Whether a flag is on: given, and its last value true -
  *        `--dry-run=false` is off, as a flag bound to a `bool` reads it.
  *
  * @param[in] _flag  the flag; NULL reads as one not given.

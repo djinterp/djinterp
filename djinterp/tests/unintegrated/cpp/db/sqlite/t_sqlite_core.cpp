@@ -3,7 +3,7 @@
 *
 *   core/db's SQLite connection, sqlite_connection, over the SQLite layer:
 * the operations every vendor shares (t_db_core.hpp), on an in-memory
-* database, database_table among them, and what sqlite_connection adds --
+* database, database_table among them, and what sqlite_connection adds -
 * opening files, the journal, PRAGMAs, attached databases, the schema,
 * transaction modes, backups - with files in the directory it is given, and
 * what sqlite_table adds: attached databases, STRICT and WITHOUT ROWID

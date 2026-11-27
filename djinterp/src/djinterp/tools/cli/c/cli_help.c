@@ -1088,7 +1088,7 @@ d_internal_cli_help_name_of(
 
 /*
 d_internal_cli_help_flags
-  Flags as names: the one name of the whole value, where it has one --
+  Flags as names: the one name of the whole value, where it has one -
 `all`, `none` - and otherwise the names of each single bit it sets.
 */
 static void
@@ -1227,7 +1227,7 @@ d_internal_cli_help_names(
 /*
 d_internal_cli_help_sources
   `refuses`, the sources a setting refuses, by name; and `env`, the
-variables it is read from - the shared prefix's, then the program's --
+variables it is read from - the shared prefix's, then the program's -
 unless it refuses the environment.
 */
 static void

@@ -4420,7 +4420,7 @@ App answers.
   - get_options, whole and filtered; get_subcommands filtered; get_groups
   - parsed and count of each command; got_subcommand by handle and by
     name; count of an option; count_all; the subcommands used
-  - remaining, recursively, its size, and remaining_for_passthrough --
+  - remaining, recursively, its size, and remaining_for_passthrough -
     before a parse and after
 */
 bool d_tests_arg_cpp_command_listed()

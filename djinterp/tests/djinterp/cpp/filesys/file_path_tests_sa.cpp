@@ -824,7 +824,7 @@ struct dj_test_object* d_tests_path_compare(void)
 
 /*
 d_tests_path_value
-  Tests copy independence, swap, self-assignment, and - on C++11 and later --
+  Tests copy independence, swap, self-assignment, and - on C++11 and later -
 move.
   The move assertions are the tier rule made concrete: they are ADDED here,
 under #if D_MOVE_ENABLED, and they are ABSENT on C++98. The group is smaller
@@ -926,7 +926,7 @@ struct dj_test_object* d_tests_path_value(void)
 
 /*
 d_tests_path_failure
-  Tests that an invalid path is contagious, and - where the build throws --
+  Tests that an invalid path is contagious, and - where the build throws -
 that the throw is reserved for resource failures only.
   The throwing assertion is present only under #if D_INTERNAL_PATH_THROW. In a
 build with throwing off it is OMITTED, not faked: the group is smaller and the

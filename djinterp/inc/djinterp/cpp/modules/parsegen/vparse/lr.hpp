@@ -2,7 +2,7 @@
 * djinterp [cpp][parsegen]                                                lr.hpp
 *
 *   The LR (shift/reduce) operator family: its opcodes, its table format, and
-* its table-driven driver. It knows nothing about any particular grammar --
+* its table-driven driver. It knows nothing about any particular grammar -
 * token kinds and nonterminals are plain ints supplied by the table and by
 * whatever lexes the input.
 *   It is the second recognizer family under the same machine, which is what

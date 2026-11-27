@@ -1,5 +1,5 @@
 # =============================================================================
-# djinterp [test] --
+# djinterp [test] -
 # build/cmake/config/testing/djinterp/cpp/modules/net/http/CMakeLists.txt
 #
 #  Leaf for HTTP's C++ face (cpp/modules/net/http): two programs, each at

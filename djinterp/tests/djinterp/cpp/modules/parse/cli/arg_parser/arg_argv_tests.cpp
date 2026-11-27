@@ -223,7 +223,7 @@ const char WIDE[] =
 // DEPARTED
 //   constant: what the steps of d_tests_arg_cpp_argv_departures write: the
 // module's own, where the face departs from CLI11: CLI11's narrow() and
-// widen() throw std::range_error from std::wstring_convert --
+// widen() throw std::range_error from std::wstring_convert -
 // `wstring_convert::to_bytes` for an unpaired surrogate,
 // `wstring_convert::from_bytes` for UTF-8 that is not well-formed - or
 // std::runtime_error where the C++ library has no <codecvt>, where here an

@@ -3044,7 +3044,7 @@ the option compares names.
 bool d_tests_arg_suggest_options(void)
 {
     // expected
-    //   the transcripts of the two passes: with the parser's suggestions --
+    //   the transcripts of the two passes: with the parser's suggestions -
     // CLI11's own message where they are not built - and without them.
     const char* const expected[2] =
     {
@@ -4596,7 +4596,7 @@ subcommand compares names, and those never offered.
 bool d_tests_arg_suggest_commands(void)
 {
     // expected
-    //   the transcripts of the two passes: with the parser's suggestions --
+    //   the transcripts of the two passes: with the parser's suggestions -
     // CLI11's own message where they are not built - and without them.
     const char* const expected[2] =
     {
@@ -4914,7 +4914,7 @@ half the longer name, nearer than any other.
 bool d_tests_arg_suggest_distances(void)
 {
     // expected
-    //   the transcripts of the two passes: with the parser's suggestions --
+    //   the transcripts of the two passes: with the parser's suggestions -
     // CLI11's own message where they are not built - and without them.
     const char* const expected[2] =
     {
@@ -6570,7 +6570,7 @@ arguments; the ends of a parse other than its last.
 bool d_tests_arg_suggest_reach(void)
 {
     // expected
-    //   the transcripts of the two passes: with the parser's suggestions --
+    //   the transcripts of the two passes: with the parser's suggestions -
     // CLI11's own message where they are not built - and without them.
     const char* const expected[2] =
     {
@@ -6639,7 +6639,7 @@ size_t d_tests_arg_suggest_smaller(
 
 /**
  * @brief The optimal string alignment distance between two texts, by the
- *        whole table - Levenshtein's, with a swap of neighbours one edit --
+ *        whole table - Levenshtein's, with a swap of neighbours one edit -
  *        the reference d_arg_internal_edit_distance's band is held to.
  *
  * @param[in] _a  the first text, at most DISTANCE_LONGEST bytes.
@@ -6699,7 +6699,7 @@ size_t d_tests_arg_suggest_osa(
 
 /**
  * @brief Measures one pair within each of DISTANCE_LIMITS, as the band and
- *        as the whole table, which must agree: the distance, or the limit --
+ *        as the whole table, which must agree: the distance, or the limit -
  *        at most 8 - plus one when it is further.
  *
  * @param[in]     _a       the first text.

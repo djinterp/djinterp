@@ -2775,7 +2775,7 @@ void d_internal_pp_rebase(
 
 
 /**
- * @brief Records how each function's body ends - empty, or with `return` --
+ * @brief Records how each function's body ends - empty, or with `return` -
  *        once every body has been walked.
  *
  * @param[in,out] _b  the recognition, its walks done.

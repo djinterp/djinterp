@@ -627,7 +627,7 @@ struct dj_compress_options
 // 4.2    Layout assertions
 //------------------------------------------------------------------------------
 //   The Layout law: one declaration, size and offset asserted in both
-// dialects.  Because every knob is an int32_t, these are exact and portable --
+// dialects.  Because every knob is an int32_t, these are exact and portable -
 // they hold on every data model rather than only on LP64, so there is no tier
 // on which they have to be relaxed.
 //
@@ -683,7 +683,7 @@ D_STATIC_ASSERT(offsetof(struct dj_compress_options, gzip) ==
 //==============================================================================
 //   A dense index over the flat option set.  It exists so that comparison,
 // "is this pristine?", diff reporting, serialisation and CLI binding are each
-// ONE loop over fifty-one entries instead of fifty-one hand-written cases --
+// ONE loop over fifty-one entries instead of fifty-one hand-written cases -
 // the field-by-field walk test_compress_options.hpp records as re-derived by
 // hand at every boundary.  A diff is a fold over this table.
 //

@@ -4887,7 +4887,7 @@ static const char WRITE_LAYOUT[] =
 // DEPARTED_MOVED
 //   constant: what the cases of d_tests_arg_config_departed_moved come to,
 // the module's own (ISSUES 6): an option moved into an option group is the
-// group's, and each group writes its own - `moved=1`, then `moved2=2` --
+// group's, and each group writes its own - `moved=1`, then `moved2=2` -
 // with its description, here empty, heading what it writes when
 // descriptions are. CLI11 writes, for each command, the options whose
 // parent is that command, and a moved option keeps its old parent: --moved,
@@ -5338,7 +5338,7 @@ bool d_tests_arg_config_held(
 }
 
 /**
- * @brief Appends one part of an item - a section, its name or a value --
+ * @brief Appends one part of an item - a section, its name or a value -
  *        escaped as d_tests_arg_escape escapes it, and `|`, which separates
  *        the parts of a list, as the escape of its code, 7c.
  *

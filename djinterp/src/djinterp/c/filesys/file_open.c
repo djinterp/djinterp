@@ -831,7 +831,7 @@ int d_file_reopen_stream_s(
 
 /*
 d_file_open_stream_fd
-  The ISO C backend has no descriptors to adopt, so this cannot be emulated --
+  The ISO C backend has no descriptors to adopt, so this cannot be emulated -
 only reported, as ENOSYS.
 */
 FILE* d_file_open_stream_fd(

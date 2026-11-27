@@ -12,7 +12,7 @@
 *   In the vocabulary of template.hpp this is the template-source-sink schema
 * specialized to text: the DTextTemplate is the *template* t, a lookup is the
 * *source*, the produced string is the *sink*, and `interpolate(t)` is the
-* source-transformer F_t = F-hat(t).  (The types here are heterogeneous --
+* source-transformer F_t = F-hat(t).  (The types here are heterogeneous -
 * template, source and sink are distinct - so this does not instantiate
 * DTemplateSystem, which is the homogeneous-carrier case; it realizes the same
 * curry / evaluate factorization by hand.)

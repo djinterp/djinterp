@@ -139,7 +139,7 @@ struct dj_host_ninja;
 //                                   and $out shell-escaped unless raw; -1
 //                                   for a cycle
 //   ninja_nodes(g); ninja_node(g, n, field)
-//                                   path, in_edge - 0 for a source --
+//                                   path, in_edge - 0 for a source -
 //                                   out_edges, validation_edges, each an
 //                                   edge to a line
 //   ninja_find_node(g, path)        made canonical first; 0 for none

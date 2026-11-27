@@ -3,7 +3,7 @@
 *
 * Exercises `dmsvs_doc.h`: each change, with the text it leaves, to the byte;
 * handles that follow their elements across changes and name nothing once
-* theirs is gone; refusals that leave a document as it was; and saving --
+* theirs is gone; refusals that leave a document as it was; and saving -
 * the directories made, a file that holds the text already left alone, a
 * text refused for a path of another kind.
 *   With --fuzz, it edits every Visual Studio file under a directory at

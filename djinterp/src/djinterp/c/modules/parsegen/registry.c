@@ -196,7 +196,7 @@ int d_parsegen_registry_add(
     const struct dj_parsegen_stage* _stage
 )
 {
-    // reject a missing registry, a missing stage, and a stage with no name --
+    // reject a missing registry, a missing stage, and a stage with no name -
     // a nameless stage could never be found, named, or explained
     if ( (!_registry)     ||
          (!_stage)        ||

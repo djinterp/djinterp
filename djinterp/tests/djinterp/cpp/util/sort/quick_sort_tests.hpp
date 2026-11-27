@@ -8,7 +8,7 @@
 *   sections (one .cpp each):
 *     quick_sort_tests_traits.cpp     quick_sort_traits - the property block
 *                                     and the configured insertion threshold
-*     quick_sort_tests_median.cpp     internal::quick_sort_median_of_three --
+*     quick_sort_tests_median.cpp     internal::quick_sort_median_of_three -
 *                                     all six orderings of a distinct triple
 *     quick_sort_tests_partition.cpp  internal::quick_sort_partition - the
 *                                     Hoare convergence and its post-condition

@@ -183,14 +183,14 @@ public:
      *
      * @warning Read the SECURITY note in the banner before passing any
      *          command built from outside input.
-     * @note A process already held is reaped first - this waits for it --
+     * @note A process already held is reaped first - this waits for it -
      *       and its exit status is not kept; close() it first to read that.
      *
      * @param[in]  _command  the command line, handed to the shell unchanged.
      * @param[in]  _mode     "r" to read the command's standard output, or "w"
      *                       to write its standard input.
      * @param[out] _ec       cleared on success; EINVAL for no command or a
-     *                       mode d_pipe_open refuses, otherwise its reason --
+     *                       mode d_pipe_open refuses, otherwise its reason -
      *                       EILSEQ for a command that is not UTF-8 where the
      *                       build hands Windows UTF-16.
      * @return true when the command started.

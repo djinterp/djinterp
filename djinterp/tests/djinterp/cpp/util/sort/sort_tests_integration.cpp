@@ -17,8 +17,8 @@ NS_TESTING
 
 
 // every_form_agrees
-//   helper: sorts _source through all eighteen spellings the facade offers --
-// the six run-time selectors, the six tags and the six named entry points --
+//   helper: sorts _source through all eighteen spellings the facade offers -
+// the six run-time selectors, the six tags and the six named entry points -
 // and reports whether every result equals _reference.
 static
 bool every_form_agrees(
@@ -213,7 +213,7 @@ bool tests_sort_facade_comparator_algebra_end_to_end()
     ok = true;
 
     //   sort_common.hpp pulls in the functional comparator algebra, so a
-    // composed comparator must reach every layer the facade exports --
+    // composed comparator must reach every layer the facade exports -
     // the algorithms, the dispatch surface and the monoid - with no glue.
     data.push_back(5);
     data.push_back(1);

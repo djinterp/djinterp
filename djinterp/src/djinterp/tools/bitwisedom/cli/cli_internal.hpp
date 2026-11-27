@@ -16,7 +16,7 @@
 * and nothing written, unless `-f` says to write it anyway: the window can
 * undo a change, and a command line cannot.
 *   Every diagnostic about a sheet is placed at it - `uart.json: error:
-* UART_CR_EN: ...` - and one about a place in its text at that place --
+* UART_CR_EN: ...` - and one about a place in its text at that place -
 * `uart.json:3:7: error: ...` - as compilers place theirs.
 *
 *

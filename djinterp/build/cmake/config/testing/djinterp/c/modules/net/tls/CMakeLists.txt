@@ -1,5 +1,5 @@
 # =============================================================================
-# djinterp [test] --
+# djinterp [test] -
 # build/cmake/config/testing/djinterp/c/modules/net/tls/CMakeLists.txt
 #
 #   Test leaf for net's TLS engine (c/modules/net/tls), in DTest's C face, a

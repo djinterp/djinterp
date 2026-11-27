@@ -38,7 +38,7 @@ single expectation is correct under either grammar.
   D_FILE_PATH_OUT_SEP, not D_FILE_PATH_SEP: the latter is the PLATFORM's
 separator, which is what file_temp and file_dir want because they build paths
 for the running kernel. What is being predicted here is d_path_join's output,
-and on a Linux build with the Windows grammar selected those two disagree --
+and on a Linux build with the Windows grammar selected those two disagree -
 which is why eleven expectations in this file failed while the helper meant to
 prevent exactly that was already in place.
 
@@ -957,7 +957,7 @@ bool d_tests_file_path_absolute(struct dj_test_suite* _suite)
                      "Win32 accepts / too, so this build must");
 
     // THE one every hand-rolled path parser gets wrong. "C:x" means "x,
-    // relative to whatever the current directory on drive C happens to be" --
+    // relative to whatever the current directory on drive C happens to be" -
     // Win32 keeps a per-drive cursor. Only "C:\x" is anchored.
     D_TEST_CHECK_MSG(_suite,
                      "win_drive_relative",

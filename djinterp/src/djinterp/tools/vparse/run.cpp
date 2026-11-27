@@ -2,7 +2,7 @@
 * djinterp [cpp][tools]                                                  run.cpp
 *
 * Executing a run and describing what it did.
-*   Reading notation is done the way notation::parse_grammar does it --
+*   Reading notation is done the way notation::parse_grammar does it -
 * compile the meta-grammar, run it over the text under notation::read_limit,
 * fold the captures - but on a traced machine, so the grammar's own reading
 * can be inspected like any other run. A request's step limit is for the run

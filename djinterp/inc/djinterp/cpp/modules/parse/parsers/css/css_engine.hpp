@@ -9,7 +9,7 @@
 *   The engine compiles a parsed `css_stylesheet` into an indexed form:
 * every (rule, selector) pair is filed into a bucket keyed on the most
 * discriminating component of its rightmost compound.  At resolution
-* time the engine evaluates only the buckets relevant to the target --
+* time the engine evaluates only the buckets relevant to the target -
 * its id bucket, its class buckets, its type bucket, and the universal
 * bucket - avoiding a linear scan of every rule per target.
 *
@@ -68,7 +68,7 @@ NS_CSS
 // ================================================================
 
 // matched_declaration
-//   struct: an entry in a cascade-resolution candidate set --
+//   struct: an entry in a cascade-resolution candidate set -
 // one declaration that was found to apply to a target, paired
 // with the specificity of the matching selector and the
 // declaration's global source-order rank.
@@ -533,7 +533,7 @@ void css_engine::resolve(
 //   function: convenience wrapper that constructs a parser,
 // hands it the source, and returns the resulting stylesheet.
 // The returned parse_result is `ok` whenever the parser ran to
-// completion, even if individual rules were recovered from --
+// completion, even if individual rules were recovered from -
 // the parser is forgiving by design, matching real CSS.
 inline
 parse::parse_result<css_stylesheet> parse_stylesheet(

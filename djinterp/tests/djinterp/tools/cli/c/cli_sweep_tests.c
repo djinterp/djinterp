@@ -797,7 +797,7 @@ void d_tests_cli_sweep_keep(
 }
 
 // dj_tests_cli_sweep_make_fn
-//   type: a fixture: makes a program over a parser d_arg_parser_init made --
+//   type: a fixture: makes a program over a parser d_arg_parser_init made -
 // d_cli_program_init, then the program's own definitions - and returns
 // whether everything was made.
 typedef bool (*dj_tests_cli_sweep_make_fn)(struct dj_cli_program* _program,

@@ -572,7 +572,7 @@ int d_arg_internal_command_retired(
  *         otherwise, the refusal recorded as a definition error.
  *
  * The temporary App CLI11's retire_option adds the names to first: a root
- * of the same parser with CLI11's help flag, refusing what CLI11's would --
+ * of the same parser with CLI11's help flag, refusing what CLI11's would -
  * a flag's `{value}`, a non-standard short name, `-h` - and recording it.
  */
 D_STATIC

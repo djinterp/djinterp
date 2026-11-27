@@ -372,7 +372,7 @@ bool d_git_inflate(
 
 // 2.4    Repository
 //------------------------------------------------------------------------------
-// d_git_repo_fail says why something asked of a repository failed --
+// d_git_repo_fail says why something asked of a repository failed -
 // `_what`, then `_detail` after a colon when it is not NULL - and is
 // false.
 // d_git_repo_keep keeps a string the repository's settings hold, copied,

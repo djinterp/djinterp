@@ -1,5 +1,5 @@
 # =============================================================================
-# djinterp [test] --
+# djinterp [test] -
 # build/cmake/config/testing/djinterp/cpp/modules/net/sftp/CMakeLists.txt
 #
 #  Leaf for the SFTP client's C++ face (cpp/modules/net/sftp), at C++98

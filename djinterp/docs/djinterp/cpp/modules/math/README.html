@@ -1585,7 +1585,7 @@ dense kernels follow (S408, flagged).</p>
 <p><strong>Complex matrices compensated and refined; projections
 scaled.</strong> Chunk 50 (S409 to S413). <code>cmat.h</code>'s product
 of complex matrices, new as <code>d_cmat_multiply</code>, rounds each
-part of each entry once from Dot2's pair -- the real part's products re
+part of each entry once from Dot2's pair - the real part's products re
 re and -im im, the imaginary part's re im and im re, each exact as a
 pair - through an accumulator <code>vec.h</code> now keeps for callers
 whose terms are not arrays of one family; <code>d_cmat_solve</code>
@@ -1647,7 +1647,7 @@ table of 129 inverses of 1 + i/128 and their logarithms, so that log(x)
 doubles, which decides 99.93% of arguments; phase 2 in pairs; phase 3 in
 <code>exp_c</code>'s fixed point, within 2^-165.8. Each phase's bound is
 proven with Sollya and Gappa in each of three cases - e not 0; e = 0
-with L and log1p(r) partly cancelling; x near 1, where r = x - 1 -- and
+with L and log1p(r) partly cancelling; x near 1, where r = x - 1 - and
 each phase's test checked sound (S424). It cost 18.2 ns a call, against
 the C library's 3.9 and the long double kernel's 157 to 175, and is a
 constant expression from C++14 through all three phases; its speed was

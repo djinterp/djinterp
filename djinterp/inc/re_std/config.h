@@ -131,7 +131,7 @@ TABLE OF CONTENTS
 
 // 2.2.2
 // RE_STD_LANG_IS_CPP11_OR_HIGHER, ..._CPP14_..., ..._CPP17_..., ..._CPP20_...
-//   macro: 1 when compiling C++11 (C++14, C++17, C++20) or later, else 0 --
+//   macro: 1 when compiling C++11 (C++14, C++17, C++20) or later, else 0 -
 // in C too. As djinterp's D_ENV_LANG_IS_CPP*_OR_HIGHER.
 #ifndef RE_STD_LANG_IS_CPP11_OR_HIGHER
     #define RE_STD_LANG_IS_CPP11_OR_HIGHER                                     \

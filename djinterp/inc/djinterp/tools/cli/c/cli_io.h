@@ -132,7 +132,7 @@ D_CLI_API struct dj_pack_sink d_cli_sink_error(void);
 //------------------------------------------------------------------------------
 // 1.4.1
 // d_cli_is_terminal
-//   query: whether a standard stream, a dj_cli_stream value, is a terminal --
+//   query: whether a standard stream, a dj_cli_stream value, is a terminal -
 // a Windows console, or what isatty says elsewhere; false for any other
 // value, and everywhere D_ENV_CLI_CONSOLE is NONE. Does not fail.
 D_CLI_API bool d_cli_is_terminal(
@@ -225,7 +225,7 @@ D_CLI_API int d_cli_read_file(
  *       symbolic link is written where the link points, and the link stays;
  *       a link that leads nowhere is replaced by the file, and one that
  *       cannot be followed for another reason fails the write with it.
- *       A device, a pipe or a socket - `-o /dev/null`, `-o /dev/stdout` --
+ *       A device, a pipe or a socket - `-o /dev/null`, `-o /dev/stdout` -
  *       is opened and written to, as nothing can be renamed over it; that
  *       write is not whole-or-nothing, as none can be.
  *

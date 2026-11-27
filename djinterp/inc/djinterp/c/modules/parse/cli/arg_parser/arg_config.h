@@ -28,7 +28,7 @@
 *
 * OPTIONS
 * -------
-*   A format's characters - comment, array, value, quote and section marks --
+*   A format's characters - comment, array, value, quote and section marks -
 * its section and index to read, and its operations table, each NULL entry
 * CLI11's own.
 *

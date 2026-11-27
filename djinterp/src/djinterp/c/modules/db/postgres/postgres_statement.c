@@ -1092,7 +1092,7 @@ d_internal_postgres_send_phase(
  * @param[in,out] _statement  the statement.
  * @param[in]     _result     the result; freed, or kept.
  *
- * No exchange of a statement's can start a COPY - PREPARE takes none --
+ * No exchange of a statement's can start a COPY - PREPARE takes none -
  * but a COPY would hold the connection, so one is ended as everywhere.
  */
 static
@@ -1336,7 +1336,7 @@ int d_internal_postgres_drive(
  *
  * @param[in,out] _statement  the statement, a page filling.
  * @param[in]     _result     the result; freed.
- * @return true while the run goes on; false once this result ends it --
+ * @return true while the run goes on; false once this result ends it -
  *         the end of its rows, a command's result, a failure, memory, or a
  *         COPY - the outcome then in `_statement->failure`.
  */

@@ -83,7 +83,7 @@ int d_file_symlink(
  * @param[in]  _path     the symbolic link to read.
  * @param[out] _buf      receives the target text.
  * @param[in]  _bufsize  size of `_buf`, in bytes.
- * @return the number of bytes written, or -1 on failure with errno set --
+ * @return the number of bytes written, or -1 on failure with errno set -
  *         EINVAL when `_path` is not a symbolic link.
  */
 ssize_t d_file_readlink(

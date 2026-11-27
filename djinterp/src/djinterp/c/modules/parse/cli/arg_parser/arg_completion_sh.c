@@ -265,7 +265,7 @@ static const char* const WALK_LINES[] =
 
 // BASH_LINES
 //   constant: bash's own functions - the words, rejoined; their quoting
-// removed; what may come at the cursor; the reply as readline takes it --
+// removed; what may come at the cursor; the reply as readline takes it -
 // and the completion function itself.
 static const char* const BASH_LINES[] =
 {

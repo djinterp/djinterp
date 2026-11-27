@@ -274,7 +274,7 @@ bool d_arg_status_is_error(
 // 1.2.2
 // d_arg_status_name / d_arg_status_message / d_arg_status_exit_code
 //   pure lookups; none allocates or fails. The message is the one a status
-// carries when none was recorded - CLI11's default where CLI11 has one --
+// carries when none was recorded - CLI11's default where CLI11 has one -
 // as d_arg_error_message reads it. A status outside the enum is named and
 // described "Error" and exits with D_ARG_EXIT_BASE_CLASS.
 D_ARG_PARSER_API const char* d_arg_status_name(

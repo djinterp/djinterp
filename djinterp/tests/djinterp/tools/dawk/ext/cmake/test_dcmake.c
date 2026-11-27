@@ -4,7 +4,7 @@
 * Exercises `dcmake.h`: every form an argument takes, comments in every place
 * they may stand, values, line endings, the blocks and their pairing, every
 * refusal, with where it is reported, and the writers, each value read back.
-*   With --corpus, it reads every CMake file under a directory instead --
+*   With --corpus, it reads every CMake file under a directory instead -
 * CMakeLists.txt, *.cmake and *.cmake.in - and proves each reading whole:
 * every byte outside a record is space or a line ending, every record lies
 * in order within its parent, and every line and column is the one its

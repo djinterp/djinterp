@@ -12,7 +12,7 @@
 *
 *   THE MISSING OPERATION IS THE INTERESTING ONE:
 *   There is no `time_point + time_point`. Adding two positions is
-* meaningless - what would half past three plus half past four be? --
+* meaningless - what would half past three plus half past four be? -
 * and the standard does not define it, so neither does re_std. A time_point
 * is a point in an affine space, a duration is a vector in it, and the
 * operator set above is exactly what that structure allows.

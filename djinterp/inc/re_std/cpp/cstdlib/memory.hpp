@@ -16,7 +16,7 @@
 * interoperating with C APIs that hand ownership across the boundary.
 *
 *   aligned_alloc IS GATED, NOT ASSUMED:
-*   C++17 adopted it from C11, but MSVC's runtime has never provided it --
+*   C++17 adopted it from C11, but MSVC's runtime has never provided it -
 * its equivalent is _aligned_malloc, which must be released with
 * _aligned_free rather than free, so it is NOT a drop-in and is not
 * aliased to this name. Apple's libc gained it only in macOS 10.15.

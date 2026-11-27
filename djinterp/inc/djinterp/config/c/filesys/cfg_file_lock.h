@@ -70,12 +70,12 @@ TABLE OF CONTENTS
 
 // 1.1.2
 // D_CFG_FILE_LOCK_BACKEND_FLOCK
-//   constant: BSD flock(2). The lock belongs to the OPEN FILE DESCRIPTION --
+//   constant: BSD flock(2). The lock belongs to the OPEN FILE DESCRIPTION -
 // so it survives dup(), is shared by a fork()ed child, and is released only
 // when the last descriptor referring to that open is closed.
 //   Notably NOT per-process: two opens of the same file in one process take
 // two independent locks and can deadlock against each other.
-//   Historically unreliable over NFS, where it may be silently local-only --
+//   Historically unreliable over NFS, where it may be silently local-only -
 // which is to say, no lock at all with respect to the other machine.
 #define D_CFG_FILE_LOCK_BACKEND_FLOCK  1
 

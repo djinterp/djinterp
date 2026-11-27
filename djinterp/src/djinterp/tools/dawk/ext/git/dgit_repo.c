@@ -731,7 +731,7 @@ char* d_internal_common_of(
 /*
 d_internal_is_git_dir
   Whether a directory is a repository's, as git's is_git_directory proves
-one: a HEAD that reads as one, and objects - or GIT_OBJECT_DIRECTORY --
+one: a HEAD that reads as one, and objects - or GIT_OBJECT_DIRECTORY -
 and refs in its common directory.
 */
 static
@@ -1017,7 +1017,7 @@ bool d_internal_known_extension(
 /*
 d_internal_format_entry
   One setting of the repository's own configuration, as git's
-read_repository_format reads it: the format's version, its extensions --
+read_repository_format reads it: the format's version, its extensions -
 objectformat sha256, refstorage refused - core.bare and core.worktree.
 */
 static
@@ -3429,7 +3429,7 @@ void d_internal_refs_unique(
 
 /*
 d_internal_ref_peel
-  What a listed ref names: followed, and, when it names a tag, peeled --
+  What a listed ref names: followed, and, when it names a tag, peeled -
 packed-refs's peeled line for a packed ref, else the tag read.
 */
 static
@@ -5964,7 +5964,7 @@ int d_internal_compare_starts(
 
 /*
 d_internal_start
-  One revision a walk starts from: named, peeled to its commit, marked --
+  One revision a walk starts from: named, peeled to its commit, marked -
 uninteresting, its parents too, when it is excluded - and kept to be
 queued, once.
 */

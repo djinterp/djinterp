@@ -144,7 +144,7 @@ void reap(
     return;
 }
 
-// a connection whose reads fail as told - io_error::none ends the stream --
+// a connection whose reads fail as told - io_error::none ends the stream -
 // and whose writes all succeed; it counts its closes
 class failing : public net::connection
 {

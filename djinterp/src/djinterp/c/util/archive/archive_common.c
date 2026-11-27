@@ -2397,7 +2397,7 @@ size_t d_internal_pax_record_length(
 }
 
 // dj_internal_tar_plan
-//   struct: what the writer decides about one member before writing it --
+//   struct: what the writer decides about one member before writing it -
 // where its name sits in the ustar header, and which values the header cannot
 // hold and a pax record carries instead.
 struct dj_internal_tar_plan

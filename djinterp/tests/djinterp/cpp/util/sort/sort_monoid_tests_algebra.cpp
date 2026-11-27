@@ -156,7 +156,7 @@ bool tests_sort_monoid_identity_laws()
     std::size_t      size_index;
     std::size_t      length;
 
-    //   The two monoid laws - mempty <> x == x and x <> mempty == x --
+    //   The two monoid laws - mempty <> x == x and x <> mempty == x -
     // checked over the whole corpus rather than on one hand-picked run, so a
     // size- or shape-dependent regression cannot hide.
     for (size_index = 0; size_index < battery_size_count; ++size_index)

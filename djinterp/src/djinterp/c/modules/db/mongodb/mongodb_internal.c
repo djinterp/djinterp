@@ -446,7 +446,7 @@ size_t d_internal_mongodb_error_length(
  * @return the failure's result.
  *
  * A failure the server reported, or one the driver labelled
- * TransientTransactionError - a broken connection inside a transaction --
+ * TransientTransactionError - a broken connection inside a transaction -
  * is one the server's transaction did not survive.
  */
 static

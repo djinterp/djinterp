@@ -1,5 +1,5 @@
 # =============================================================================
-# djinterp [test] --
+# djinterp [test] -
 # build/cmake/config/testing/djinterp/cpp/modules/net/cpp_net_tests.cmake
 #
 #  The function net's C++ leaves make their programs with. A program is one

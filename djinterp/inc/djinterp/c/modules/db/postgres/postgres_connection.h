@@ -198,7 +198,7 @@ int d_postgres_backend_pid(
 // The connection is set up as the blocking forms set it up, and nothing after
 // the handshake waits: the layer's settings travel in the startup packet, as
 // they do for every connect. libpq keeps no connect_timeout in this mode, so
-// the layer keeps it, as the libpq in use keeps it in its blocking connect --
+// the layer keeps it, as the libpq in use keeps it in its blocking connect -
 // in whole seconds, and at least two, before libpq 17; to the microsecond
 // from it - but over the whole connect, where libpq gives each host and
 // address of a list a timeout of its own. A connection being made is
@@ -306,7 +306,7 @@ int d_postgres_connect_continue(
 // Reconnecting closes the connection and makes it again with the parameters it
 // was made with, as libpq's PQreset does: for a connection that was lost, or
 // one to start over on. Whatever the session held - prepared statements,
-// temporary tables, settings made with SET, a transaction, a run of rows --
+// temporary tables, settings made with SET, a transaction, a run of rows -
 // went with it; a statement the layer prepared must be prepared again.
 // _reconnect_start and _reconnect_continue make it without blocking, as 1.4
 // makes a connection, the deadline kept the same way; abandoning one under way
@@ -315,8 +315,8 @@ int d_postgres_connect_continue(
  * @brief Closes the connection and makes it again, waiting.
  *
  * @param[in] _db  the connection.
- * @return 0; 08001 when it cannot be made again, which leaves it lost --
- *         08006 to every call but another reconnect or a close --
+ * @return 0; 08001 when it cannot be made again, which leaves it lost -
+ *         08006 to every call but another reconnect or a close -
  *         d_postgres_error_message then saying why; or
  *         D_DB_INVALID_ARGUMENT for `NULL`.
  */

@@ -20,7 +20,7 @@
 * these functions is mangled rather than converted. Setting the locale is
 * the caller's job - and setlocale lives in <clocale>, priority 117.
 *
-*   MB_CUR_MAX is a macro (and on most runtimes not even a constant --
+*   MB_CUR_MAX is a macro (and on most runtimes not even a constant -
 * it expands to a function call reading the current locale), so it has no
 * re_std:: spelling. Including this header makes it available as
 * <cstdlib> does. Note it is the CURRENT locale's maximum, where

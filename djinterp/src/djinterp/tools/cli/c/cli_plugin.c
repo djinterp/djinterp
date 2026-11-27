@@ -300,7 +300,7 @@ int d_cli_internal_try_directory(
  *
  * @note A program's file may carry a tag after the program's name - a
  *       build's bin/ directory names bitwisedom `bitwisedom-linux64` and
- *       `bitwisedom-win64.exe`, so every platform's builds can share it --
+ *       `bitwisedom-win64.exe`, so every platform's builds can share it -
  *       and its modules carry the same tag: `bitwisedom-gui-linux64.so`. The
  *       tag is what follows the program's name and a `-` in the file's
  *       name, less `.exe` on Windows; a file named as the program has none.
@@ -1715,7 +1715,7 @@ int d_cli_internal_plugin_command(
 
 /*
 d_cli_program_add_plugin
-  A command whose arguments are all the module's: no options of its own --
+  A command whose arguments are all the module's: no options of its own -
 its help flag removed - none falling through from the root, and parsing
 stopping at the first argument, which is kept with the rest.
 */

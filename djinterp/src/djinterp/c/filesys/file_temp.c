@@ -387,7 +387,7 @@ d_file_temp_name
   "Does not currently exist" is a statement about the past by the time this
 returns, and nothing inside it can change that: the flaw is the interface,
 which separates naming from opening. Names are d_file_temp_create's, in the
-temporary directory (d_dir_entry_path), and each is tested for existence --
+temporary directory (d_dir_entry_path), and each is tested for existence -
 the answer already stale - for a bounded number of tries. No state is shared
 between calls, so concurrent callers race only for names, never in memory.
 */

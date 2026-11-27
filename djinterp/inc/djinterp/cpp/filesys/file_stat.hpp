@@ -567,7 +567,7 @@ NS_INTERNAL
      *
      * @note An absent file (ENOENT or ENOTDIR) is reported as type_not_found
      *       with NO error, because successfully learning a file is not there
-     *       is not a failure; any other errno - a permission problem, say --
+     *       is not a failure; any other errno - a permission problem, say -
      *       is a real error and yields type_none with `_ec` set. This mirrors
      *       what a std::filesystem status query does with its error_code.
      *

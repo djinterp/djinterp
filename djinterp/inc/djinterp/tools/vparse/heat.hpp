@@ -4,13 +4,13 @@
 * Where a run spent its work: the run as a djinterp::ui visit space.
 *   Each trace step happens at an input position, inside some rule's code. The
 * heat space counts those steps per (position, rule) cell over time, in a
-* ui::visit_source the heatmap lens draws; a second source counts arrivals --
+* ui::visit_source the heatmap lens draws; a second source counts arrivals -
 * the times the parser came to a cell from somewhere else - which is the
 * direct measure of re-parsing. Cells visited over and over are work a packrat
 * memo table would save.
 *   Columns are input positions, grouped into ranges when the input is long so
 * a run of any length fits; rows are rules, the start rule on top. The call
-* stack at any step is kept as parent links, so the derivation in progress --
+* stack at any step is kept as parent links, so the derivation in progress -
 * the trail drawn over the map - costs its depth to recover, not a replay.
 *
 *

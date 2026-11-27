@@ -76,7 +76,7 @@ namespace html {
 
 // DHtmlDefaultBackend
 //   struct: bundled in-memory backend for the HTML facades.
-// Reuses the XML default backend's storage types verbatim --
+// Reuses the XML default backend's storage types verbatim -
 // `xml::internal::DDefaultNode` and `xml::internal::DDefaultDocument` are
 // already perfect for HTML's tag/attribute/child/text shape, so
 // no parallel storage hierarchy is needed. Exposes BOTH the XML

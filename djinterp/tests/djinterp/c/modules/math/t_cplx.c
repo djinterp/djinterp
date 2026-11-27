@@ -3,7 +3,7 @@
 *
 *   Conformance harness for c/math/cplx.h, all three families and both forms.
 * First, against references: every function at the points of
-* math_tests_cplx_refs.h, and the five C99 has only for real arguments --
+* math_tests_cplx_refs.h, and the five C99 has only for real arguments -
 * exp2, log2, log10, log1p and expm1 - at those of
 * math_tests_cplx_five_refs.h, each exact in float, the values computed by
 * mpmath at 400 bits or as many more as each needs: each part
@@ -2050,7 +2050,7 @@ d_tests_wide(
 // d_tests_definitions
 //   G.6's functions by others, bit for bit: casin z = -i casinh(iz), catan
 // z = -i catanh(iz), ccos z = ccosh(iz), csin z = -i csinh(iz), ctan z = -i
-// ctanh(iz), at every pair of the special parts and of some finite ones --
+// ctanh(iz), at every pair of the special parts and of some finite ones -
 // a plain form evaluated wider than its type within its bound (d_tests_wide).
 static void
 d_tests_definitions(void)

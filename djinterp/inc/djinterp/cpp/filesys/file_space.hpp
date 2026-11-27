@@ -7,7 +7,7 @@
 *     capacity   - total bytes on the filesystem.
 *     free       - unallocated bytes, INCLUDING the reserve only root may use.
 *     available  - bytes THIS user may actually claim. This is the one to use.
-*   On a typical machine `free` and `available` differ by the root reserve --
+*   On a typical machine `free` and `available` differ by the root reserve -
 * often gigabytes. Deciding "will this write fit" from `free` is how an
 * unprivileged program convinces itself it has room it cannot touch, then
 * fails at write time. Unless you are root, read `available`.

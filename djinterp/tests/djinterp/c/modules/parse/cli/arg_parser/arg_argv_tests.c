@@ -4987,7 +4987,7 @@ bool d_tests_arg_argv_response_whole(
 }
 
 /**
- * @brief A file several times longer than the module reads at a time --
+ * @brief A file several times longer than the module reads at a time -
  *        LONG_WORDS numbered words, `w0000 w0001 ...` - read whole by each
  *        set of rules: every word in order, those across a read's end too.
  *
@@ -5859,7 +5859,7 @@ bool d_tests_arg_argv_wide_line(
 /**
  * @brief The wide lines parsed as the reference's V02 to V04: one past
  *        ASCII and past UTF-16's first range, an escape CLI11 refuses, and
- *        NUL bytes - U+0000, and one from an escape in double quotes --
+ *        NUL bytes - U+0000, and one from an escape in double quotes -
  *        each word holding them kept whole.
  *
  * @param[in,out] _out  the transcript.
@@ -6173,7 +6173,7 @@ bool d_tests_arg_argv_wide_untouched(
 
 /**
  * @brief main's arguments recovered in UTF-8 (d_arg_parser_ensure_utf8):
- *        tried with each count of arguments up to ENSURE_MAX, exactly one --
+ *        tried with each count of arguments up to ENSURE_MAX, exactly one -
  *        the process's own - is recovered where the system keeps the
  *        process's wide command line, as copies the parser keeps, ending in
  *        a NULL within their storage, each the runtime's own argument; for

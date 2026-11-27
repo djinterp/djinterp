@@ -12,7 +12,7 @@
 * their tables of operations, files and sinks, what is refused, and text
 * parsed as a file's given nothing to parse.
 *   Every expected transcript is CLI11's, from the configuration suite's
-* reference program, but the departures' - DEPARTED_READS, DEPARTED_MOVED --
+* reference program, but the departures' - DEPARTED_READS, DEPARTED_MOVED -
 * the module's own where it departs from CLI11, and the last sections',
 * which check what they hold in code.
 *

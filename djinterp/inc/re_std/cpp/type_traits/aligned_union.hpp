@@ -63,7 +63,7 @@ namespace re_std
         //          std::size_t values. Recursive structure: a 1-element
         //          base case and a 2+-element step that picks the
         //          larger of the first two and recurses on the rest.
-        //          The primary template is intentionally undefined --
+        //          The primary template is intentionally undefined -
         //          calling pack_max<> (empty pack) is a hard error
         //          flagging an ill-formed aligned_union with no types.
         template<std::size_t...>

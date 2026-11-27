@@ -91,7 +91,7 @@ TABLE OF CONTENTS
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
 // declares only where the build can spell one. Below it - ISO strict C++98
-// wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS --
+// wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS -
 // the header compiles to nothing (the owner's ruling of 2026.10.03 on round 3's
 // question 1, (a)).
 #if RE_STD_HAS_INT64
@@ -529,7 +529,7 @@ int d_event_table_reserve(
 #endif  // D_INTERNAL_EVENT_TABLE_ALLOC
 
 // d_event_table_footprint
-//   function: the table's total byte footprint including owned storage --
+//   function: the table's total byte footprint including owned storage -
 // the runtime `sizeof` that goals section 4 requires of every type.
 size_t d_event_table_footprint(
     const struct dj_event_table* _table

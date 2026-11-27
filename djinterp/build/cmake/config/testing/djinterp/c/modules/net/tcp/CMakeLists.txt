@@ -1,5 +1,5 @@
 # =============================================================================
-# djinterp [test] --
+# djinterp [test] -
 # build/cmake/config/testing/djinterp/c/modules/net/tcp/CMakeLists.txt
 #
 #   Test leaf for TCP (c/modules/net/tcp), in DTest's C face, a CTest test

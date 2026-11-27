@@ -45,7 +45,7 @@
 namespace djinterp {
 namespace testing {
 
-// - small shared predicates (inline: this header may be included widely) --
+// - small shared predicates (inline: this header may be included widely) -
 
 // contains
 //   whether _needle occurs in _hay.

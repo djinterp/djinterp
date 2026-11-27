@@ -2,9 +2,9 @@
 * djinterp [c/math]                                   math_tests_csolve_refs.h
 *
 *   The refined complex solve's references (S410), for t_compensated.c:
-* linear systems of complex numbers whose parts are each family's values --
+* linear systems of complex numbers whose parts are each family's values -
 * Hilbert matrices plus i times the next Hilbert matrix, rounded to the
-* family; random matrices; random matrices with rows scaled far apart --
+* family; random matrices; random matrices with rows scaled far apart -
 * each with the solution of the system as rounded, computed exactly, each
 * part rounded to the family, ties to even, and whether cond(A) u lies
 * below 2^-6 (cond Skeel's by |re| + |im|, || |A^-1| |A| ||, u 2^-P), where

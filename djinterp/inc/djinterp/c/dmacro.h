@@ -242,7 +242,7 @@ D_ENV_PP_VARIADIC_QUIET_BEGIN
 // =============================================================================
 // 0.   CONFIGURATION SYSTEM
 // =============================================================================
-//   The settings - the variadic limits, the variant, the family toggles --
+//   The settings - the variadic limits, the variant, the family toggles -
 // and their resolution live in config/c/util/cfg_dmacro.h, the one home the
 // config README gives them. Sections 0.1 to 0.6 are there; 0.7 is below.
 #include "../config/c/util/cfg_dmacro.h"  // D_DMACRO_VARG_MAX, D_DMACRO_VARIANT,

@@ -1,5 +1,5 @@
 # =============================================================================
-# djinterp [test] --
+# djinterp [test] -
 # build/cmake/config/testing/djinterp/c/modules/net/http/CMakeLists.txt
 #
 #   Test leaf for HTTP (c/modules/net/http), in DTest's C face, a CTest test

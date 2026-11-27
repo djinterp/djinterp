@@ -226,7 +226,7 @@ struct pair
     // -----------------------------------------------------------------
 
     // swap
-    //   function: member-wise swap with another pair. No noexcept --
+    //   function: member-wise swap with another pair. No noexcept -
     //   would need is_nothrow_swappable, which re_std does not yet
     //   provide.
     void swap(pair& _other)

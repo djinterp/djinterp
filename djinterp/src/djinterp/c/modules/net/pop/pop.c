@@ -1418,7 +1418,7 @@ void d_internal_pop_parse_resp_code(
 
 /*
 d_pop_response_parse
-  "+OK" must be tested before "+" - the continuation indicator is its prefix --
+  "+OK" must be tested before "+" - the continuation indicator is its prefix -
 and each indicator must be followed by SP or end of line, so "+OKAY" is not
 mistaken for "+OK".
 */

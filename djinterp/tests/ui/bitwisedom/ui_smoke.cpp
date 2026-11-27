@@ -17,7 +17,7 @@
 * edges and the ruler's boundaries resize; and code is pasted, copied,
 * dropped and imported - through a clipboard of the test's own, in memory,
 * never the system's, which another program may hold open on Windows. Every frame is checked for ImGui's own errors too:
-* the misuses a release build recovers from and a debug build asserts on --
+* the misuses a release build recovers from and a debug build asserts on -
 * and for vertices a GPU may draw as stray pixels: not a number, far past
 * the window, or outside the font atlas.
 *   And the window's own choices: the grid fills its width as the sheet
@@ -49,7 +49,7 @@
 * window of its own; workspaces added, switched, renamed and closed, a
 * sheet moved between them; the sheets arranged tabbed, in columns, rows
 * and a grid; each window zoomed as a browser's page is; the session kept
-* and opened again, as it was, in a second window; and the Options --
+* and opened again, as it was, in a second window; and the Options -
 * every page, its search, the settings files exported, applied, forgotten
 * and deleted.
 *
@@ -327,7 +327,7 @@ void key(
 }
 
 // press
-//   a key pressed and released with modifiers held - Ctrl, Shift, Alt --
+//   a key pressed and released with modifiers held - Ctrl, Shift, Alt -
 // as a chord names them.
 void press(
     app&          _window,
@@ -3152,7 +3152,7 @@ void the_next_run(
 /*
 the_options
   Every setting in one place: the Options open from Tools, their pages and
-their search; the window's own settings set there, and followed at once --
+their search; the window's own settings set there, and followed at once -
 the symbols tree in a window of its own, and merged again; and the
 settings files: exported, imported back over changes, forgotten, and
 deleted.

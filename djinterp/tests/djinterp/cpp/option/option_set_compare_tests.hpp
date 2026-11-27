@@ -132,24 +132,24 @@ struct extract_cmp_val<option<_Key, DCmpVal<_V>, _Rest...>>
 // II.  TEST DECLARATIONS
 // ===========================================================================
 
-// - I + II.  key lists + operations --
+// - I + II.  key lists + operations -
 bool keylist_key_list_size();
 bool keylist_option_set_keys();
 bool keylist_value_in_pack();
 bool keylist_subset();
 bool keylist_equal();
 
-// - III.  congruity --
+// - III.  congruity -
 bool congruity_key();
 bool congruity_type();
 bool congruity_type_stronger_than_key();
 
-// - IV.  value carriers --
+// - IV.  value carriers -
 bool carriers_value_absent();
 bool carriers_value_present();
 bool carriers_carrier_eq();
 
-// - V.  option_set_value_eq --
+// - V.  option_set_value_eq -
 bool value_eq_equal();
 bool value_eq_value_differs();
 bool value_eq_keys_differ();

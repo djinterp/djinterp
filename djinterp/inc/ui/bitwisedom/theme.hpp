@@ -76,7 +76,7 @@ bool is_light(
 // readable text - composite() lays a colour over an opaque ground, and
 // contrast() is WCAG's ratio of two opaque colours' luminances, from 1 (none)
 // to 21 (black on white). ink_on() is the text colour for a ground: _text
-// where it contrasts 4.5:1, else black or white, whichever contrasts more --
+// where it contrasts 4.5:1, else black or white, whichever contrasts more -
 // at least 4.5:1, on any ground. legible() is a row's colour as text on a
 // ground: the colour, moved toward the ink until it contrasts at least 3:1;
 // a row with no colour is _text. faint() is an ink at an alpha, as muted

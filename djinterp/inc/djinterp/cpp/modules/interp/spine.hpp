@@ -503,7 +503,7 @@ std::vector<std::string> from_argv(
 ///////////////////////////////////////////////////////////////////////////////
 
 // parsed_options
-//   class: the plain runtime representation of one command's arguments --
+//   class: the plain runtime representation of one command's arguments -
 // the flags it was given, its --key=value bindings, and its positional
 // operands.  Deliberately not the option subframework's option_set: no
 // schema, polarity, or algebra, just what the reader observed.  The

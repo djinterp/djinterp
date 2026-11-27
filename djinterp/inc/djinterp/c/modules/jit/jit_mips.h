@@ -51,7 +51,7 @@
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
 // declares only where the build can spell one. Below it - ISO strict C++98
-// wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS --
+// wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS -
 // the header compiles to nothing (the owner's ruling of 2026.10.03 on round 3's
 // question 1, (a)).
 #if RE_STD_HAS_INT64
@@ -149,7 +149,7 @@
 //   The primary opcode (bits 31-26) and, for opcode 0 (SPECIAL) and SPECIAL2,
 // the funct (bits 5-0). The emitters combine these internally; verified.
 
-// - primary opcodes (I-/J-type; opcode 0 is SPECIAL, 0x1C is SPECIAL2) --
+// - primary opcodes (I-/J-type; opcode 0 is SPECIAL, 0x1C is SPECIAL2) -
 
 #define D_JIT_MIPS_OP_SPECIAL   0x00
 #define D_JIT_MIPS_OP_REGIMM    0x01
@@ -182,7 +182,7 @@
 #define D_JIT_MIPS_OP_LD        0x37
 #define D_JIT_MIPS_OP_SD        0x3F
 
-// - SPECIAL (opcode 0) funct values --
+// - SPECIAL (opcode 0) funct values -
 
 #define D_JIT_MIPS_FN_SLL       0x00
 #define D_JIT_MIPS_FN_SRL       0x02
@@ -224,7 +224,7 @@
 #define D_JIT_MIPS_FN_DMULT     0x1C
 #define D_JIT_MIPS_FN_DMULTU    0x1D
 
-// - SPECIAL2 (opcode 0x1C) funct, and REGIMM (opcode 0x01) rt selectors --
+// - SPECIAL2 (opcode 0x1C) funct, and REGIMM (opcode 0x01) rt selectors -
 
 #define D_JIT_MIPS_FN_MUL     0x02  // SPECIAL2: mul rd, rs, rt
 #define D_JIT_MIPS_RT_BLTZ    0x00  // REGIMM rt: bltz

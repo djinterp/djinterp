@@ -8,7 +8,7 @@
 * CLI11's do, with `->`; its readers; and its results, read as text, as a
 * value of any type, or into a variable. A handle does not own its option:
 * the command that made it does, and the handle is valid while the option
-* is. A handle on no option - the one a definition that failed returns --
+* is. A handle on no option - the one a definition that failed returns -
 * is ignored by every call, as the C library ignores NULL, so a chain on a
 * failed definition is harmless, and the failure is the parser's definition
 * error, which its next parse reports.
@@ -254,7 +254,7 @@ public:
         Function _function
     );
 
-    // relations: CLI11's needs() and excludes(), by handle or by name --
+    // relations: CLI11's needs() and excludes(), by handle or by name -
     // from C++11, several at once - and their removal, which answers
     // whether there was one
     option needs(
@@ -294,7 +294,7 @@ public:
         const option& _other
     ) D_NOEXCEPT;
 
-    // validators: CLI11's check() and transform(), given a validator --
+    // validators: CLI11's check() and transform(), given a validator -
     // copied, or, from C++11, moved - or a function: check()'s judges a
     // copy of the value, as CLI11's std::string(const std::string&); a
     // transformation's returns the new value, as CLI11's
@@ -374,8 +374,8 @@ public:
      * @brief Sets the function the option's values are given to, as CLI11's
      *        callback_t.
      *
-     * @note The function is called with the values as a cli::DTextList --
-     *       or a std::vector<std::string>, to which the list converts --
+     * @note The function is called with the values as a cli::DTextList -
+     *       or a std::vector<std::string>, to which the list converts -
      *       after validation and the multi-option policy, and returns
      *       nothing, a cli::status, or a bool, false being CLI11's
      *       "Could not convert". A variable bound to the option is written

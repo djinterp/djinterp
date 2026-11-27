@@ -204,7 +204,7 @@ TABLE OF CONTENTS
 
 // 3.1.2
 // D_INTERNAL_FILE_DIR_TYPE_FROM_KERNEL
-//   resolved: 1 when d_type can be read straight from the platform's dirent --
+//   resolved: 1 when d_type can be read straight from the platform's dirent -
 // the free path.
 #if ( (D_CFG_IS_ON(D_CFG_FILE_DIR_FILL_TYPE)) &&                               \
       (D_CFG_IS_ON(D_CFG_FILE_HAS_DIRENT_TYPE)) &&                             \

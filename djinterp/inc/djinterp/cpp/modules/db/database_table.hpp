@@ -19,7 +19,7 @@
 * database it was read as (table_row), so a row the cache no longer holds is
 * deleted, a changed row is updated - its key too, in place, so that the
 * key's ON UPDATE rules apply, not its ON DELETE ones - a new row is
-* inserted, and no other row is touched. Without one it replaces the rows refresh() read --
+* inserted, and no other row is touched. Without one it replaces the rows refresh() read -
 * those the filter selected, or every row - and refuses rows read a page
 * at a time, which it could not name. Rows the cache never read are
 * inserted. A NULL in a column that refuses NULL, or in a key, is left out
@@ -755,7 +755,7 @@ NS_END  // internal
 // connection class (sqlite_connection, mariadb_connection, mysql_connection,
 // pg_connection, or another with the same members); the table holds a
 // pointer to it, which must outlive the table, and every exchange with the
-// database goes through it. The members that ask the C layers --
+// database goes through it. The members that ask the C layers -
 // fetch_schema's description of the columns, exists(), and those that
 // change the table - need a connection with a face (get_face()), which
 // every vendor with a layer has.

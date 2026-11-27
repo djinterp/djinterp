@@ -8,7 +8,7 @@
 * app's frame in the middle of the loop. The window is DPI-aware and the
 * interface is scaled to the monitor it opens on, unless `bitwisedom gui`
 * was given a scale; its size is the one asked, in points at that scale.
-* The events `bitwisedom gui` was given - the sheets named, each --do --
+* The events `bitwisedom gui` was given - the sheets named, each --do -
 * are posted before the first frame.
 *   The window keeps the user's settings file, at preferences_path() - the
 * layout of its windows, the tables' column widths and the user's own

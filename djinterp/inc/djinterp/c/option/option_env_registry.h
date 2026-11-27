@@ -17,7 +17,7 @@
 *     d_option_env_registry_import(d_option_env_registry(), "DJINTERP_");
 *     d_option_env_registry_take_option(d_option_env_registry(), argc, argv,
 *                                       &at, &result);   // --my_djin.x=1
-*   A machine made after its djin is registered - a second printer, say --
+*   A machine made after its djin is registered - a second printer, say -
 * makes its own frame a child of the djin's, and binds there what is its
 * alone.
 *
@@ -114,7 +114,7 @@ struct dj_option_env_registry*
         d_option_env_registry(void);
 
 /**
- * @brief Makes a registry of the caller's own - a test's, a sandbox's --
+ * @brief Makes a registry of the caller's own - a test's, a sandbox's -
  *        empty, its root named `_name`.
  *
  * @param[out] _registry  the registry.
@@ -333,7 +333,7 @@ int32_t d_option_env_registry_take_option(
 // 2.3    Did you mean
 //------------------------------------------------------------------------------
 /**
- * @brief The full name nearest one that names nothing: its failing part --
+ * @brief The full name nearest one that names nothing: its failing part -
  *        the djin, the scope, the variable - replaced by the nearest that
  *        exists, the rest kept.
  *

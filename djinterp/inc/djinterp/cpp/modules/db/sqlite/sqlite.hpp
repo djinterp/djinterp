@@ -1131,7 +1131,7 @@ namespace sqlite {
 // sqlite_connection
 //   class: a connection to an SQLite database, over the SQLite layer's face,
 // which it holds and which closes the connection when it goes. Opening it
-// opens the file database() names - open(path) names one and opens it --
+// opens the file database() names - open(path) names one and opens it -
 // with the open flags, VFS and settings sqlite_connect_config gives.
 // Parameters are written as SQLite writes them (`?`, `?NNN`, `:name`,
 // `@name`, `$name`), and a prepared statement binds by name too. Every
@@ -1207,7 +1207,7 @@ public:
      *
      * @param[in] _file_path  the file, in UTF-8; ":memory:" for a private
      *                        in-memory database.
-     * @throws as connect(): connection_exception, with SQLite's result --
+     * @throws as connect(): connection_exception, with SQLite's result -
      *         SQLITE_CANTOPEN for a path that cannot be opened.
      */
     void open(

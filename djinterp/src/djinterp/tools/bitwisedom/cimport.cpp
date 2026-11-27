@@ -286,7 +286,7 @@ line_kind classify_line(
 }
 
 // brief_text
-//   a comment block above a definition, as a note. A djinterp brief --
+//   a comment block above a definition, as a note. A djinterp brief -
 // the name, then "  category: text" - is read as one; numbered markers and
 // doxygen's tags are dropped.
 std::string brief_text(

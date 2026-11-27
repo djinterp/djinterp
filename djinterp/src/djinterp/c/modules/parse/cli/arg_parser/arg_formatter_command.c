@@ -195,7 +195,7 @@ int d_arg_format_description_default(
  * @param[in] _context  unused.
  * @return `true` for an option with a name; `false` for a positional.
  *
- * The filter make_usage's badge collects with: an option with a name --
+ * The filter make_usage's badge collects with: an option with a name -
  * hidden ones and the help flag among them.
  */
 D_STATIC
@@ -1059,7 +1059,7 @@ int d_arg_internal_help_indent(
  * @param[in]     _width    the width the label is right-aligned in.
  * @return D_ARG_OK, or the buffer's status.
  *
- * CLI11's format_aliases: "     aliases: " right-aligned in the width --
+ * CLI11's format_aliases: "     aliases: " right-aligned in the width -
  * setw without std::left - then the aliases joined by ", ", each with
  * fourteen spaces after every carriage return or line feed in it, as
  * fix_newlines inserts them, and a line feed.
@@ -1128,7 +1128,7 @@ int d_arg_internal_help_aliases(
  * @return D_ARG_OK, or the failure of the description's step or of the buffer.
  *
  * The description as make_help or make_expanded writes it: wrapped as a
- * paragraph behind the indent when paragraphs are on; otherwise as it is --
+ * paragraph behind the indent when paragraphs are on; otherwise as it is -
  * indented, and followed by a line feed, when expanded.
  */
 D_STATIC

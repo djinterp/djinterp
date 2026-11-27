@@ -2,7 +2,7 @@
 * djinterp [cpp][filesys]                                         file_tests.hpp
 *
 *   Unit tests for the djinterp C++ filesystem layer (core/filesys/file_*.hpp),
-* authored against the DTest framework's native C++ surface - test_builder --
+* authored against the DTest framework's native C++ surface - test_builder -
 * rather than the C ABI bridge the c/filesys suite uses. Same framework underneath;
 * this side simply speaks to it directly, which is what makes deferred
 * predicates and RAII-aware cases possible.

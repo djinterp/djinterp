@@ -45,7 +45,7 @@ is adding a row here and a builder beside it - nothing switches on kind.
 Parameter(s):
   _kind: a dj_parsegen_node_kind value.
 Return:
-  A pointer to the descriptor, or NULL for a kind this level does not name --
+  A pointer to the descriptor, or NULL for a kind this level does not name -
 including the range reserved for out-of-tree kinds.
 */
 const struct dj_parsegen_node_info* d_parsegen_kind_info(

@@ -1540,7 +1540,7 @@ DCssDetached<Backend> make_keyframes_rule(
 
 
 // make_keyframe
-//   function: returns a new freestanding keyframe, with its selector --
+//   function: returns a new freestanding keyframe, with its selector -
 // "from", "to", "50%", or several - for a @keyframes rule to adopt.
 template<typename Backend>
 inline

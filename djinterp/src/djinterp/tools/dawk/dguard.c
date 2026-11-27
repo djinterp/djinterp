@@ -274,7 +274,7 @@ uint32_t d_guard_build(
 
     // An #endif with no comment is an absent part with a known place to put
     // one.  The extension owns the syntax - it knows what a guard comment
-    // looks like, two spaces and `//` by this tree's measured convention --
+    // looks like, two spaces and `//` by this tree's measured convention -
     // and the sheet's derivation owns the value.
     if ((endif_line != 0) && (endif_symbol[0] == '\0'))
     {

@@ -3,7 +3,7 @@
 *
 * Writing configuration text, declared in arg_config.h (5.2.1).
 *   CLI11's ConfigBase::to_config, a C function for each of its helpers and
-* steps. A command's own configurable options are written group by group --
+* steps. A command's own configurable options are written group by group -
 * OPTIONS first, with the options of the empty group, then each other group
 * in the order its options first name it - each with the values its policy
 * keeps, or, when defaults are asked for and it has none, its default; the
@@ -548,7 +548,7 @@ int d_arg_internal_ini_value(
  * @param[in,out] _out     the buffer that gains them.
  * @return D_ARG_OK, or the buffer's status.
  *
- * CLI11's ini_join: the values as d_arg_internal_ini_value writes them --
+ * CLI11's ini_join: the values as d_arg_internal_ini_value writes them -
  * several between the array's brackets, where the format has them, each then
  * on one line - separated by the array separator and, unless it is
  * whitespace, a space.
@@ -668,7 +668,7 @@ bool d_arg_internal_ini_has_any(
  * @return D_ARG_OK, or the buffer's status.
  *
  * CLI11's clean_name_string, the name appended: one holding a key
- * character, a quote or a backslash, or in brackets, between single quotes --
+ * character, a quote or a backslash, or in brackets, between single quotes -
  * or, holding a single quote, between double quotes, escaped when it needs
  * it; any other as it is.
  */
@@ -1360,7 +1360,7 @@ int d_arg_internal_ini_flag(
  *
  * An option's line: a flag's value as its names read it back; the
  * description first, as a comment, when asked for - after a blank line,
- * unless it is the first text written; then the name, prefixed and cleaned --
+ * unless it is the first text written; then the name, prefixed and cleaned -
  * commented out, a default, when defaults are - the value delimiter, the
  * value and a line feed.
  */

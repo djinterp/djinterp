@@ -62,7 +62,7 @@ TABLE OF CONTENTS
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
 // declares only where the build can spell one. Below it - ISO strict C++98
-// wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS --
+// wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS -
 // the header compiles to nothing (the owner's ruling of 2026.10.03 on round 3's
 // question 1, (a)).
 #if defined(INT64_MAX)
@@ -157,7 +157,7 @@ D_EXTERN_C_BEGIN
  * @param[in]  _path  the file, in UTF-8; ":memory:" opens a private in-memory
  *                    database, and "" a private temporary one on disk.
  * @param[out] _db    receives the connection, or `NULL` on failure.
- * @return SQLITE_OK, or the SQLite result code of the failure --
+ * @return SQLITE_OK, or the SQLite result code of the failure -
  *         SQLITE_CANTOPEN for a path that cannot be opened - or
  *         SQLITE_MISUSE for a `NULL` argument.
  * @post On success the caller closes `*_db` with d_sqlite_close.
@@ -205,7 +205,7 @@ int d_sqlite_open_memory(
  * @param[in]  _vfs    the name of the VFS to open the file through; `NULL`
  *                     for the default.
  * @param[out] _db     receives the connection, or `NULL` on failure.
- * @return SQLITE_OK, or the SQLite result code of the failure --
+ * @return SQLITE_OK, or the SQLite result code of the failure -
  *         SQLITE_CANTOPEN for a path that cannot be opened, SQLITE_ERROR for
  *         a VFS of no such name; D_DB_UNSUPPORTED for a flag the library
  *         loaded is too old for (NOFOLLOW before 3.31.0); or SQLITE_MISUSE

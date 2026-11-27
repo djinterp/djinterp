@@ -65,7 +65,7 @@ namespace re_std
     //             Marked `inline` on C++17+ so all translation units
     //             share a single instance. On C++11/14 the variable
     //             has implicit internal linkage (per the const/constexpr
-    //             namespace-scope rule), giving each TU its own copy --
+    //             namespace-scope rule), giving each TU its own copy -
     //             functionally indistinguishable since in_place_t is
     //             stateless.
     #if RE_STD_LANG_IS_CPP17_OR_HIGHER

@@ -24,7 +24,7 @@
 * on standard iterators finds djinterp::sort by ordinary lookup and std::sort
 * by argument-dependent lookup, the two match equally well, and the call is
 * ambiguous in the caller's code.  Lookup that finds an object performs no
-* argument-dependent lookup at all, so djinterp::sort is a function object --
+* argument-dependent lookup at all, so djinterp::sort is a function object -
 * the remedy std::ranges::sort uses for the same collision - and the
 * algorithm goes in the first argument, as an execution policy does in
 * std::sort, rather than in a template argument an object cannot take.

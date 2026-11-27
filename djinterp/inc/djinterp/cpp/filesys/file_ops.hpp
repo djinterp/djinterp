@@ -150,7 +150,7 @@ bool remove_file(
  * @brief Renames or moves a file ATOMICALLY within a filesystem, OVERWRITING
  *        the destination if it exists (POSIX rename semantics).
  *
- * @note Atomic means `_to` is always either its old contents or `_from`'s --
+ * @note Atomic means `_to` is always either its old contents or `_from`'s -
  *       never a partial state, never momentarily missing - which is exactly
  *       what makes rename the tool for replacing a file safely. Across
  *       filesystems the platform may refuse (EXDEV) because it cannot promise

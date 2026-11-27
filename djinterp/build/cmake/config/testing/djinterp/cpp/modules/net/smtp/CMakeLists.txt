@@ -1,5 +1,5 @@
 # =============================================================================
-# djinterp [test] --
+# djinterp [test] -
 # build/cmake/config/testing/djinterp/cpp/modules/net/smtp/CMakeLists.txt
 #
 #  Leaf for SMTP's C++ facade (cpp/modules/net/smtp), at C++98 and C++20

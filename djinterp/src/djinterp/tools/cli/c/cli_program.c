@@ -1089,7 +1089,7 @@ int d_cli_internal_place(
 
 /**
  * @brief d_cli_usage_error's work, its arguments in a va_list: the locus,
- *        the command's place, the message, then the pointer to help --
+ *        the command's place, the message, then the pointer to help -
  *        composed whole and written once, or composed in a room of its own
  *        where there was no memory to compose it.
  *
@@ -3509,7 +3509,7 @@ void d_cli_internal_compiler_said(
 
 /**
  * @brief Appends how a program was built, a line for each part known:
- *        `compiler`, `language`, `system` - the system and the machine --
+ *        `compiler`, `language`, `system` - the system and the machine -
  *        and `build`; nothing for a program never told.
  *
  * @param[in]     _build  the program's build.

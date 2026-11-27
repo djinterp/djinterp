@@ -104,7 +104,7 @@ NS_TEST
 // DReportPalette
 //   struct: the document's colour vocabulary as "#RRGGBB" tokens.  Held as
 // data so a caller restyles without touching the composition below, and so a
-// dialect that cannot colour simply never reads it.  Empty means "no ground" --
+// dialect that cannot colour simply never reads it.  Empty means "no ground" -
 // a band with an empty fill renders as an ordinary heading.
 struct DReportPalette
 {

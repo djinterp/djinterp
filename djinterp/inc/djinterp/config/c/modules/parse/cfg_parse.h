@@ -601,7 +601,7 @@ TABLE OF CONTENTS
 // D_INTERNAL_PARSE_MACHINE_TRACE
 //   brief: 1 when the machine carries its trace hook. Computed from
 // D_CFG_PARSE_MACHINE_TRACE; read by machine.h. Changing it changes the layout
-// of struct dj_parse_machine, so it must agree across every translation unit --
+// of struct dj_parse_machine, so it must agree across every translation unit -
 // set it through the build, never per file.
 #if D_CFG_IS_ON(D_CFG_PARSE_MACHINE_TRACE)
 #   define D_INTERNAL_PARSE_MACHINE_TRACE   1

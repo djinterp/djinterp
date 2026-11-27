@@ -16,7 +16,7 @@
 * into projects, too, the same from either form.
 *   A condition is understood when it tests the configuration, the platform,
 * or both, the way Visual Studio writes it: `'$(Configuration)|$(Platform)'
-* =='Debug|x64'`. Any other condition - exists(...), a property's value --
+* =='Debug|x64'`. Any other condition - exists(...), a property's value -
 * is reported as such, for a caller to treat as it chooses.
 *   Every record of a solution says where it stands in the text, so a
 * change to one is a splice too: a project's lines or element, a folder's,
@@ -350,7 +350,7 @@ enum dj_msvs_condition d_msvs_condition_of(
     char*       _out_tested,
     size_t      _capacity
 );
-// d_msvs_config_matches is whether a configuration a condition tests --
+// d_msvs_config_matches is whether a configuration a condition tests -
 // "Debug|x64", "Debug|*", "*|x64" - holds for one a caller names,
 // "Debug|x64", comparing without case, as MSBuild does.
 bool d_msvs_config_matches(

@@ -15,7 +15,7 @@
 *
 *   JSON NOTE: request bodies are serialized by the small writer here (fully
 * controlled and correct). For responses, only a handful of scalar fields and
-* the concatenated assistant text are surfaced via a targeted string reader --
+* the concatenated assistant text are surfaced via a targeted string reader -
 * the complete JSON is always available as response.raw() for callers that want
 * to parse it with a full JSON library.
 *
@@ -263,7 +263,7 @@ NS_INTERNAL
 
         // value_int
         //   function: an integer, in decimal (std::to_string is C++11's).
-        // long, which every level has, holds what the API counts --
+        // long, which every level has, holds what the API counts -
         // max_tokens, top_k - so the writer needs no 64-bit type, which
         // ISO strict C++98 wherever int64_t is `long long`: a 32-bit target,
         // 64-bit Windows or macOS lacks.

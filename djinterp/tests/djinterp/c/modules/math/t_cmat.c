@@ -2,7 +2,7 @@
 * djinterp [c][math]                                                    t_cmat.c
 *
 *   Conformance harness for c/math/cmat.h, all three families and both forms
-* where a function has two. First, the systems of math_tests_cmat_refs.h --
+* where a function has two. First, the systems of math_tests_cmat_refs.h -
 * Gaussian-integer matrices whose solutions, inverses and determinants are
 * exact, from rationals - each family's determinant, solutions and inverse
 * within a bound of the exact ones, in epsilons times the order times the

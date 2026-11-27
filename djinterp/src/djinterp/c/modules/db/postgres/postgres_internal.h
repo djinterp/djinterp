@@ -18,7 +18,7 @@
 * quoted by libpq, for the connection's encoding; SQL the caller wrote is used
 * as written. What a database holds is read from pg_catalog, which, unlike
 * information_schema, shows every object whatever the user may do with it,
-* and every name in it is matched as the server's own name type reads it --
+* and every name in it is matched as the server's own name type reads it -
 * truncated, as the server truncates an identifier, to 63 bytes.
 *
 *
@@ -476,7 +476,7 @@ const char* d_internal_postgres_oid_name(
 /**
  * @brief Reads every row of a result into rows, and frees the result.
  *
- * @param[in]  _result  the result: rows - all of them, one, or a chunk --
+ * @param[in]  _result  the result: rows - all of them, one, or a chunk -
  *                      or a command's, which gives empty rows.
  * @param[out] _rows    receives the rows; written only on success.
  * @return 0, or 53200 when memory ran out.

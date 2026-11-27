@@ -104,7 +104,7 @@ KEEP_IN=( -Wl,--exclude-libs,ALL )
 LOADER=()
 CXX_STATIC=()
 
-# a Windows C++ suite is linked whole - libstdc++, libgcc, winpthreads --
+# a Windows C++ suite is linked whole - libstdc++, libgcc, winpthreads -
 # so that it runs where those DLLs are not, as under Wine they are not
 case "${TARGET}" in
     *mingw*|*windows*|*cygwin*|*msys*)

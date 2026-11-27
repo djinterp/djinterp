@@ -183,7 +183,7 @@ void d_fs_tests_sync(
  * VI.  file_sync  -  DURABILITY
  *
  *   These tests can verify that the calls SUCCEED. They cannot verify that
- * the data survives a power cut, which is what the module is actually for --
+ * the data survives a power cut, which is what the module is actually for -
  * that needs hardware nobody has in CI. So what is asserted is the contract's
  * shape: the calls work, they reject nonsense, and D_FILE_SYNC_REACHES_PLATTER
  * says which promise this build makes.

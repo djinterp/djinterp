@@ -1,9 +1,9 @@
 /*******************************************************************************
 * djinterp [cpp][tools]                                               plugin.cpp
 *
-* The window's module: what `vparse gui` loads (GRAMMAR.html, section 7) --
+* The window's module: what `vparse gui` loads (GRAMMAR.html, section 7) -
 * vparse's workbench, in a window.
-*   The module is a program of its own, made from the host that runs it --
+*   The module is a program of its own, made from the host that runs it -
 * its name, version, verbosity and colours vparse's - so that `vparse gui
 * --help` is the window's help, and what the window says, it says as vparse
 * does. Its operands are vparse's: a GRAMMAR and an INPUT, read as the
@@ -21,7 +21,7 @@
 * shows the frame. Which window that is - Win32 with Direct3D 11, or GLFW
 * with OpenGL 3 - is the build's choice (host.hpp).
 *   Nothing escapes the run function: the program's work is guarded by the
-* kit, and what is made before it - the options, the request they fill --
+* kit, and what is made before it - the options, the request they fill -
 * here.
 *   LEVELS. The workbench's floor is uxoxo's, C++17; below it this file is
 * empty rather than an error.
@@ -221,7 +221,7 @@ std::string size_problem(
 
 /*
 add_start
-  The operands, and the options that say what the window starts with --
+  The operands, and the options that say what the window starts with -
 spelled as the commands spell those they share with it.
 */
 void add_start(

@@ -2444,7 +2444,7 @@ value_form painter::shown_form() const
 /*
 painter::listed_value
   A row's value as the name column writes it, by value. As the header
-writes it, it is the value column's own text; otherwise every row alike --
+writes it, it is the value column's own text; otherwise every row alike -
 in hex, to the sheet's width; in decimal; in binary, from the nibble that
 holds its highest set bit; as a run shifted into place, from its lowest
 set bit - or, for a value in a field, the number the field holds shifted
@@ -6424,7 +6424,7 @@ void painter::keys()
     }
 
     // within
-    //   the cursor moved inside a range of more than one cell, by rows --
+    //   the cursor moved inside a range of more than one cell, by rows -
     // Enter - or by columns - Tab - on to the next column or row at the
     // range's edge, and from its last cell back to its first.
     auto within = [&](bool _by_rows,
@@ -7618,7 +7618,7 @@ grid_columns_seen grid_columns(
 /*
 grid_special
   What the last frame wrote for a special row, found by its id among the
-special rows: its name - "probe", "allocated", "allocated in" a group --
+special rows: its name - "probe", "allocated", "allocated in" a group -
 and its value: the probe's, or how many bits it counts allocated, "N of
 W".
 */

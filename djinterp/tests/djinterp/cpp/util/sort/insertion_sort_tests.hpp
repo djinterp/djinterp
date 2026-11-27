@@ -10,7 +10,7 @@
 *                                          - where a candidate lands, where
 *                                          it stops, and the pass over a
 *                                          sub-run
-*     insertion_sort_tests_apply.cpp       internal::insertion_sort_apply --
+*     insertion_sort_tests_apply.cpp       internal::insertion_sort_apply -
 *                                          the shift loop, the already-in-
 *                                          place fast path, and the exact
 *                                          comparison counts

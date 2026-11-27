@@ -1,5 +1,5 @@
 # =============================================================================
-# djinterp [test] --
+# djinterp [test] -
 # build/cmake/config/testing/djinterp/c/modules/net/codec/CMakeLists.txt
 #
 #   Test leaf for net's codecs (c/modules/net/codec), in DTest's C face, a

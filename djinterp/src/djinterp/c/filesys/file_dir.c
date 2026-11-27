@@ -1744,7 +1744,7 @@ char* d_internal_dir_hand_back(
 
 /*
 d_dir_create
-  mkdir, through d_internal_dir_mkdir. A missing parent is a failure here --
+  mkdir, through d_internal_dir_mkdir. A missing parent is a failure here -
 creating parents is d_dir_create_parents' job.
 */
 int d_dir_create(

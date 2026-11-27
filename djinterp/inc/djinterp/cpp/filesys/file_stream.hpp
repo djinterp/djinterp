@@ -9,7 +9,7 @@
 * and MOVABLE on C++11+. The move is ADDED on C++11 (D1), never substituted: a
 * C++98 caller constructs in place (`file f(p, "rb");`) and passes by
 * reference, and that same source compiles on C++11 unchanged. The copy
-* operations are deleted, not merely private-and-undefined-with-a-comment --
+* operations are deleted, not merely private-and-undefined-with-a-comment -
 * see D_DELETED_FN.
 *   D3, ERROR CHANNEL. Every operation reports through an `error& _ec`
 * out-parameter and a bool/size_t return - the return says whether it worked,
@@ -465,7 +465,7 @@ public:
     }
 
     /**
-     * @brief Pushes stdio's buffer to the OS; it does not reach the disk --
+     * @brief Pushes stdio's buffer to the OS; it does not reach the disk -
      *        see sync().
      *
      * @param[out] _ec  cleared on success; EBADF on a closed file, otherwise
@@ -500,7 +500,7 @@ public:
     // 1.5    Advisory locking
     //--------------------------------------------------------------------------
     //   Advisory: these locks bind only processes that ALSO call them. They do
-    // not stop a process that never locks from reading or writing the file --
+    // not stop a process that never locks from reading or writing the file -
     // that is what "advisory" means, and it is the only kind POSIX offers
     // portably. A lock is released by unlock() or when the file closes.
     //   The blocking forms wait for the lock; the try_ forms do not - they

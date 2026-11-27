@@ -522,7 +522,7 @@ namespace html {
 
 
 // is_html_dialect
-//   trait: true if `Type` exposes the HTML dialect surface --
+//   trait: true if `Type` exposes the HTML dialect surface -
 // specifically a `flag` member of type `DHtmlVersion`. Detects
 // both `DHtmlDialect<Flag>` instantiations and third-party
 // policy structs that follow the same convention.

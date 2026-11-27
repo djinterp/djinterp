@@ -15,7 +15,7 @@
 *   Two things this example is meant to prove, in running code:
 *
 *   1. The base functor F is built entirely from the poly_* vocabulary
-*      (polynomial.hpp) --
+*      (polynomial.hpp) -
 *
 *          list_base<A> =
 *              poly_sum< poly_unit<A>,
@@ -183,7 +183,7 @@ struct recursive_traits< ::djinterp::parse::example::digit_list, void>
 
 // corecursive_traits<digit_list>
 //   specialisation: the build-side structure map.  embed assembles
-// one vector from an F-layer whose children are already vectors --
+// one vector from an F-layer whose children are already vectors -
 // nil yields the empty vector, cons prepends the head to the tail.
 template<>
 struct corecursive_traits< ::djinterp::parse::example::digit_list, void>

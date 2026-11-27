@@ -140,7 +140,7 @@ TABLE OF CONTENTS
     D_CFG_NORM(D_CFG_EVENT_QUEUE)
 
 // D_INTERNAL_EVENT_QUEUE_ALLOC
-//   brief: 1 when the allocating queue constructor should be declared --
+//   brief: 1 when the allocating queue constructor should be declared -
 // queue on, and allocation available. The fixed form survives either way.
 #if D_CFG_IS_ON(D_CFG_EVENT_QUEUE) && D_CFG_IS_ON(D_CFG_EVENT_TABLE_ALLOC)
 #   define D_INTERNAL_EVENT_QUEUE_ALLOC 1

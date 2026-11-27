@@ -65,7 +65,7 @@ TABLE OF CONTENTS
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
 // declares only where the build can spell one. Below it - ISO strict C++98
-// wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS --
+// wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS -
 // the header compiles to nothing (the owner's ruling of 2026.10.03 on round 3's
 // question 1, (a)).
 #if defined(INT64_MAX)
@@ -268,7 +268,7 @@ int d_mariadb_connect(
  * @param[in]  _settings  the settings; may be `NULL` when `_count` is 0.
  * @param[in]  _count     how many settings there are.
  * @param[out] _db        receives the handle; `NULL` on failure.
- * @param[out] _message   receives the reason when no connection is made --
+ * @param[out] _message   receives the reason when no connection is made -
  *                        the client's own words ("Access denied for user
  *                        'app'@'localhost' (using password: YES)"), which
  *                        the error number alone cannot give once the failed

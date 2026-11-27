@@ -78,7 +78,7 @@ bool tests_sort_dispatch_tag_properties()
     result.check(DHeapSortTag::is_in_place);
     result.check(!DHeapSortTag::is_adaptive);
 
-    //   Merge sort is the only algorithm in the set that is not in place --
+    //   Merge sort is the only algorithm in the set that is not in place -
     // it is the one that allocates a buffer.
     result.check(!DMergeSortTag::is_in_place);
     result.check(DBubbleSortTag::is_in_place &&

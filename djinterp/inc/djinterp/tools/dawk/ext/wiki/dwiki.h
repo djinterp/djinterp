@@ -314,7 +314,7 @@ struct dj_wiki_link
 // dj_wiki_template
 //   struct: one of MediaWiki's double or triple braces.  `start` and `end`
 //   bound it; its name is `name_start` to `name_end`, past the prefixes
-//   MediaWiki takes off it - `safesubst:`, `msgnw:`, `msg:`, `raw:` --
+//   MediaWiki takes off it - `safesubst:`, `msgnw:`, `msg:`, `raw:` -
 //   and `name` that name as MediaWiki reads it, trimmed, its comments
 //   gone; a function's name is what is before its `:`.  Its arguments are
 //   `argument_count` from `first_argument`: a parser function's first is

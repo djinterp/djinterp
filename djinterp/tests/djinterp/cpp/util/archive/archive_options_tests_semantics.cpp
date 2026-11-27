@@ -298,7 +298,7 @@ bool tests_comparator_detects_format_fields()
 
 /*
 tests_comparator_detects_codec_fields
-  Verifies the shared comparator reaches every field of the embedded codec --
+  Verifies the shared comparator reaches every field of the embedded codec -
 the generic level plus all six per-codec blocks (49 advanced knobs).  This is
 the part most easily left half-written, so every field is walked.
   Tests the following:

@@ -1,5 +1,5 @@
 # =============================================================================
-# djinterp [test] --
+# djinterp [test] -
 # build/cmake/config/testing/djinterp/c/modules/net/sftp/CMakeLists.txt
 #
 #   Test leaf for net's SFTP client (c/modules/net/sftp), in DTest's C

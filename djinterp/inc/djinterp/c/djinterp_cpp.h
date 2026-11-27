@@ -365,7 +365,7 @@ TABLE OF CONTENTS
 // 2.1.8
 // D_CONSTEXPR_REQ
 //   qualifier: `constexpr` from C++11 in every build - the testing switch
-// that strips D_CONSTEXPR (D_CFG_TESTING_STRIP_CONSTEXPR) leaves it alone --
+// that strips D_CONSTEXPR (D_CFG_TESTING_STRIP_CONSTEXPR) leaves it alone -
 // and `inline` below C++11. Only for a function a constant expression needs (a
 // template argument, a static assertion, an array bound); everything else
 // uses D_CONSTEXPR, so testing builds still run it at run time. The owner's

@@ -40,7 +40,7 @@
 *                       ends - false for SQLite, which steps a statement while
 *                       the connection runs others
 *     busy_code         static constexpr int, where holds_connection: the
-*                       layer's result for a call the run would refuse --
+*                       layer's result for a call the run would refuse -
 *                       2014 for MariaDB and MySQL, 08000 packed for
 *                       PostgreSQL
 *     cancel            static, where holds_connection: asks the server to
@@ -49,7 +49,7 @@
 *                       operations that do not block
 *   prepared_statement's execute_query_async, execute_update_async and
 * execute_async are its operations that do not block (database_async.hpp):
-* over the face's execute_start and its continuations where it has them --
+* over the face's execute_start and its continuations where it has them -
 * MariaDB's client and libpq; libmysqlclient answers D_DB_UNSUPPORTED - and
 * done as they start where it does not, as SQLite's. Each holds the
 * connection while under way, and the statement's values with it.

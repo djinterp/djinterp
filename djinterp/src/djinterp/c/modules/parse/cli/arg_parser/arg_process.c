@@ -1066,7 +1066,7 @@ int d_arg_internal_process_join_step(
  * @return D_ARG_OK, or the buffer's status.
  *
  * The end of CLI11's list for an option requirement: a comma, then the
- * display names of the command's enabled option groups, joined as before --
+ * display names of the command's enabled option groups, joined as before -
  * nothing at all when it has none.
  */
 D_STATIC

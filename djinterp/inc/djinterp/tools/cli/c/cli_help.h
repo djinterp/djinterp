@@ -13,7 +13,7 @@
 * kind, default, knob, choices and range, and the environment variables it
 * is read from; the variables the kit reads besides; the prefixes those
 * variables begin with; and what each exit status means. A program adds
-* members of its own - its djins, the names it keeps, a page's sections --
+* members of its own - its djins, the names it keeps, a page's sections -
 * through a hook, after the kit's.
 *   The JSON is written through a small writer of the kit's, which a hook
 * writes its members with: pretty, two spaces an indent, each member and
@@ -106,7 +106,7 @@ D_EXTERN_C_BEGIN
 //   struct: a JSON writer over a buffer. `out` is where the text goes;
 // `status` D_ARG_OK until a write fails, after which every call does
 // nothing; `depth` how many containers are open; `open[k]` the k-th's
-// bracket, '{' or '[', and `count[k]` how many values it holds so far --
+// bracket, '{' or '[', and `count[k]` how many values it holds so far -
 // `count[0]` the values written outside any, at most one; `named` whether a
 // member's name was just written, so that its value follows it on its line.
 //   Public-payload layout: read any field; change one only through the calls

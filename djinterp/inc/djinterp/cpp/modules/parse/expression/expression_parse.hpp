@@ -4,7 +4,7 @@
 *   The inverse of the renderer: text (already lexed into tokens) into an
 * expression term, with operator precedence resolved from the very same
 * operator_signature.  Parsing an operator grammar is precedence climbing (a
-* Pratt parse), and precedence climbing cannot be a fixed combinator tree --
+* Pratt parse), and precedence climbing cannot be a fixed combinator tree -
 * its levels are *runtime* data read from the signature, not structure known
 * at compile time - so it is written directly over parser.hpp's cursor and
 * result (parse_state / parse_result), the one cluster file that draws on the

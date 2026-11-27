@@ -414,7 +414,7 @@ struct dj_curl_sink
 //     status       the outcome.
 //     code         libcurl's own code for it, 0 for success; see
 //                  d_curl_code_message.
-//     http_status  the last response's status code, 0 if none arrived --
+//     http_status  the last response's status code, 0 if none arrived -
 //                  set even when the transfer then failed, as when a sink
 //                  ended it.
 //     http_version the HTTP version the last response came in;

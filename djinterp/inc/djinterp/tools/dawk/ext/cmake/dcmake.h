@@ -3,7 +3,7 @@
 *
 * The CMake language, read without loss.
 *   Enough of cmake-language(7) to say what a CMake file holds and to change
-* it in place: every command invocation, with its name and its arguments --
+* it in place: every command invocation, with its name and its arguments -
 * unquoted, quoted and bracket, the legacy unquoted forms included - every
 * comment, line or bracket, and the blocks the commands make: if, foreach,
 * while, function, macro and block, each paired with the command that ends it.

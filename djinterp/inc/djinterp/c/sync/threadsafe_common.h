@@ -5,7 +5,7 @@
 *   Composes primitives from datomic.h and dmutex.h into higher-level
 * synchronization building blocks usable from both C and C++.
 *
-*   Neither datomic.h nor dmutex.h individually provides a spinlock --
+*   Neither datomic.h nor dmutex.h individually provides a spinlock -
 * datomic.h has the atomic flag primitive, dmutex.h has full mutexes.
 * This header bridges the gap with an inline spinlock that compiles
 * down to a single atomic test-and-set in the spin loop: zero

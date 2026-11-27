@@ -5,7 +5,7 @@
 * names are the standard streams; the standard sinks; whether a stream is a
 * terminal, and how wide; whether text written to it should be coloured, as
 * `--color`, NO_COLOR and TERM decide; reading a file whole, standard input
-* among them, its bytes as they are; writing a file whole or not at all --
+* among them, its bytes as they are; writing a file whole or not at all -
 * a new one, one replaced with its permissions kept, one a symbolic link
 * leads to, a device and a FIFO written to, a directory refused, standard
 * output - and nothing left behind; and every call given nothing.

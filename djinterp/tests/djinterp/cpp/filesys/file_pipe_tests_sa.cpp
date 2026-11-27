@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][filesys]                                 file_pipe_tests_sa.cpp
 *
-*   Unit tests for djinterp::process (inc/djinterp/cpp/filesys/file_pipe.hpp) --
+*   Unit tests for djinterp::process (inc/djinterp/cpp/filesys/file_pipe.hpp) -
 * the popen-model pipe to a shell-run command. One file for the class, sibling
 * to the other suites, same harness and same three rules.
 *

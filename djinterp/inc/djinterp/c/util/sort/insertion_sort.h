@@ -10,7 +10,7 @@
 * so a concurrent driver, or a small-range fallback inside quicksort, shares
 * the placement and the sweep rather than restating them.
 *
-*   ONE SWEEP, NOT MANY.  Insertion and bubble move elements the same way --
+*   ONE SWEEP, NOT MANY.  Insertion and bubble move elements the same way -
 * one place at a time, between adjacent neighbours - and differ in when they
 * stop.  Bubble sweeps until a sweep exchanges nothing; insertion sweeps once,
 * because each step leaves the prefix fully ordered rather than only pushing

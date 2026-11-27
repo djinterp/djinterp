@@ -3,7 +3,7 @@
 *
 * Private helpers shared by the command-line kit's C sources.
 *   What the kit asks of the operating system - terminals, the standard
-* streams, the environment, the program's own file and loadable modules --
+* streams, the environment, the program's own file and loadable modules -
 * answered in cli_system.c, the one source that includes a system header;
 * then the text the other sources share: words in lower case, and the
 * wrapping help and diagnostics are written with; and what `--version

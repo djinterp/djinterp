@@ -589,7 +589,7 @@ int d_cli_internal_write_output(
  *                      written.
  * @return 0; or the reason the name could not be asked what it is, or a
  *         link could not be followed, for any reason but that there is
- *         nothing there or it leads nowhere - memory, permission, a loop --
+ *         nothing there or it leads nowhere - memory, permission, a loop -
  *         so that a link is never replaced by a file for want of a few
  *         bytes.
  */

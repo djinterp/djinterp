@@ -32,7 +32,7 @@
 * "cpp_features.key_width=40" - is seen only there, ahead of the frame's
 * unscoped binding.
 *
-*   EVERY BINDING SAYS WHERE IT CAME FROM. A binding is made from a source --
+*   EVERY BINDING SAYS WHERE IT CAME FROM. A binding is made from a source -
 * the program, a file, the process's environment, the command line, or an
 * override - and a frame keeps one binding per source. The value in force is
 * the one with the highest standing; among equals, the innermost frame's,

@@ -100,7 +100,7 @@ namespace internal
     // compile.
     //
     //   WHY A FUNCTION AND NOT A BARE `throw` AT EACH CALL SITE:
-    //   value() is constexpr and its body is a conditional expression --
+    //   value() is constexpr and its body is a conditional expression -
     //     return engaged ? m_value : (throw_bad_optional_access(), m_value)
     //   - and a throw-expression is not usable as an operand there before
     //   C++14. Routing through a function call keeps the expression valid

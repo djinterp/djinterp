@@ -329,7 +329,7 @@ struct has_language_access
 
 
 // has_info_string_method
-//   trait: true if `Type` exposes `info_string()` const --
+//   trait: true if `Type` exposes `info_string()` const -
 // the full info string after the opening fence (which may
 // contain language plus additional metadata).
 template<typename Type, typename = void>
@@ -459,7 +459,7 @@ struct has_child_count_method<Type, void_t<
 
 
 // has_inlines_method
-//   trait: true if `Type` exposes `inlines()` const --
+//   trait: true if `Type` exposes `inlines()` const -
 // inline-holder blocks (paragraphs, headings, table cells)
 // expose this in addition to or instead of `children()`.
 template<typename Type, typename = void>
@@ -471,7 +471,7 @@ struct has_inlines_method<Type, void_t<
 
 
 // has_blocks_method
-//   trait: true if `Type` exposes `blocks()` const --
+//   trait: true if `Type` exposes `blocks()` const -
 // block-holder containers (document, blockquote, list_item)
 // expose this in addition to or instead of `children()`.
 template<typename Type, typename = void>

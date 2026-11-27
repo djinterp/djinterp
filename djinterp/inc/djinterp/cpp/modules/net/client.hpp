@@ -175,7 +175,7 @@ D_NODISCARD inline bool is_retryable(
 //   struct: controls connect_with_retry. `max_attempts` is the total number of
 // tries (>= 1; 0 is treated as 1). Between failed attempts the driver sleeps
 // `initial_delay_ms`, growing it by `backoff_multiplier` each round and capping
-// it at `max_delay_ms` (0 = uncapped). The default performs a SINGLE attempt --
+// it at `max_delay_ms` (0 = uncapped). The default performs a SINGLE attempt -
 // opt into retries explicitly.
 struct retry_policy
 {

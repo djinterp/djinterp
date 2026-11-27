@@ -31,7 +31,7 @@
 * one.
 *
 * LEVELS:
-*   Everything compiles from C++98. Operations are constexpr from C++14 --
+*   Everything compiles from C++98. Operations are constexpr from C++14 -
 * the norm too, on the C core's correctly rounded root - built from an array
 * of Rows * Cols entries at every level, from std::array from C++11.
 *

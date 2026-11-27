@@ -503,7 +503,7 @@ class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb2-1"><a href="#c
 <span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> program<span class="op">.</span>run<span class="op">(</span>argc<span class="op">,</span> argv<span class="op">);</span></span>
 <span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
 <p>A command's work is any function object - a function, a functor, a
-lambda -- called as <code>work(program, command)</code>, returning an
+lambda - called as <code>work(program, command)</code>, returning an
 <code>int</code> or an <code>exit_status</code>. The program keeps a
 copy and frees it with itself. The work runs behind the face's guard: an
 exception it lets out is said as the program's error - its

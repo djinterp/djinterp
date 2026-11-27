@@ -805,7 +805,7 @@ int d_internal_postgres_connected(
 /*
 d_internal_postgres_deadline
   The deadline for a connection being made, from the connect_timeout libpq
-settled for it - the caller's, its environment's or the layer's default --
+settled for it - the caller's, its environment's or the layer's default -
 read as libpq reads it: an integer, surrounded by spaces or not; 0 or less
 for none; and, counted in whole seconds before libpq 17, at least two, since
 the seconds round. Text that is no integer is refused, as libpq 12 and later

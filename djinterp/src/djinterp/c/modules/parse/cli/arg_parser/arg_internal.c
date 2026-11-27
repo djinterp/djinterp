@@ -1540,7 +1540,7 @@ bool d_arg_internal_real_read_into(
 
 /*
 d_arg_internal_read_real
-  Builds strto*'s input on the stack when it fits, on the heap otherwise --
+  Builds strto*'s input on the stack when it fits, on the heap otherwise -
 the only allocation, for a number written with hundreds of digits - and
 requires strto* to read all of it. The number lands in scratch storage
 first, so a failed conversion leaves `_out` untouched.

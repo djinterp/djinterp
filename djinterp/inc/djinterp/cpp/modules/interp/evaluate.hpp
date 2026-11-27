@@ -44,7 +44,7 @@
 * HOW TO USE
 * ----------
 *   Add each command to a `commands` table, a name and a function; read a
-* script (language.hpp); then evaluate it with the table and an input --
+* script (language.hpp); then evaluate it with the table and an input -
 * nothing, or the text standard input gave the program.
 *
 * OPTIONS

@@ -16,7 +16,7 @@
 * going back within a pass. To walk again, call rewind() (or open a fresh
 * directory). "." and ".." are skipped, as a C++ directory walk is expected
 * to.
-*   TWO WAYS IN, ONE ENGINE. read(entry, ec) is the error-code-primary form --
+*   TWO WAYS IN, ONE ENGINE. read(entry, ec) is the error-code-primary form -
 * it returns false at the end OR on a read error, with _ec clear on a clean end
 * and set on a real one, so a mid-walk failure is never silently an "end". The
 * range-for is the ergonomic form built on the same read: because operator++
@@ -176,7 +176,7 @@ public:
     }
 
     /**
-     * @brief Reports the type in DFileKind's vocabulary - file_status's too --
+     * @brief Reports the type in DFileKind's vocabulary - file_status's too -
      *        for callers already speaking it.
      *
      * @note An unreported d_type maps to type_none, meaning "readdir did not
@@ -529,7 +529,7 @@ public:
     // 3.3    Range protocol
     //--------------------------------------------------------------------------
     /**
-     * @brief Reads the first entry from the current position - single pass --
+     * @brief Reads the first entry from the current position - single pass -
      *        and returns a cursor at it.
      *
      * @note A read error during iteration ends the loop; last_error() reports

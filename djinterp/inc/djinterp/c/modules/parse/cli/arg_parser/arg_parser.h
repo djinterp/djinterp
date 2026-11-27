@@ -11,7 +11,7 @@
 * `&parser->command` is the root wherever a command is wanted, and the C++
 * face derives from it without adding to it.
 *   A parse returns a dj_arg_status. D_ARG_OK means the program goes on; any
-* other status goes to d_arg_parser_exit, which writes what it calls for --
+* other status goes to d_arg_parser_exit, which writes what it calls for -
 * help, a version, a completion script, a failure message - and returns the
 * code to end the process with. D_ARG_PARSE does both for main, as
 * CLI11_PARSE does.
@@ -457,7 +457,7 @@ D_ARG_PARSER_API int d_arg_parser_parse_wide(
  * @brief Parses a wide command line; CLI11's parse(std::wstring,
  *        program_name_included).
  *
- * @note The line is converted to UTF-8, as d_arg_utf8_from_wide converts --
+ * @note The line is converted to UTF-8, as d_arg_utf8_from_wide converts -
  *       U+0000 a NUL byte - then parsed as d_arg_parser_parse_line parses
  *       it.
  *
@@ -852,7 +852,7 @@ D_ARG_PARSER_API void d_arg_parser_set_response_files(
 // mean '--verbose' for '--verbse'?" - the one name nearest by optimal string
 // alignment distance (Damerau-Levenshtein's, a swap of neighbours one edit),
 // within D_INTERNAL_ARG_PARSER_SUGGESTION_DISTANCE edits and no more than
-// half the longer name, among those the command and its option groups --
+// half the longer name, among those the command and its option groups -
 // and, for a subcommand's name, the parents its subcommands fall through
 // to - and the subcommands the parse used would have taken; hidden and
 // disabled ones are never named, nor is anything for an argument that is
@@ -928,13 +928,13 @@ D_ARG_PARSER_API void d_arg_parser_set_abbreviations(
  * @note An argument is offered where the parse reads it as a long option
  *       (`--name` or `--name=value`) that no option the search for it
  *       reaches has by name - the command's own, its option groups', and,
- *       as it falls through, its parents', each by its own name rules --
+ *       as it falls through, its parents', each by its own name rules -
  *       and that CLI11's dot notation gives no subcommand's option. It is
  *       offered before abbreviations (d_arg_parser_set_abbreviations), so a
  *       prefix of another option's name is offered first, and before an
  *       argument nothing takes is reported, kept, or suggested for. Those
  *       steps follow as before when the hook returns 0.
- * @note It is never offered an argument the parse reads as a positional --
+ * @note It is never offered an argument the parse reads as a positional -
  *       anything after the `--` that ends a command's options - nor a
  *       value an option takes, nor one a prefix command keeps: where the
  *       search for it would end - in the command, or in the parent it falls

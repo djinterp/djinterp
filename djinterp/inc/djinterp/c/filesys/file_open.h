@@ -43,7 +43,7 @@ D_EXTERN_C_BEGIN
 //==============================================================================
 // Each open applies the build's policy to the mode: a 'b' when
 // D_CFG_FILE_OPEN_BINARY_DEFAULT is set and the caller named neither 'b' nor
-// 't' - nor an encoding (",ccs=UTF-8"), which only a text stream may have --
+// 't' - nor an encoding (",ccs=UTF-8"), which only a text stream may have -
 // and the platform's close-on-exec flag when D_CFG_FILE_OPEN_CLOEXEC is set,
 // both placed before any encoding. An explicit choice in the caller's mode is
 // never overruled. With D_CFG_FILE_WIDE_PATHS a path is UTF-8 on Windows as

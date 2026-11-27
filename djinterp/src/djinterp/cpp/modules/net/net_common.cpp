@@ -2,7 +2,7 @@
 * djinterp [cpp][net]                                             net_common.cpp
 *
 * The out-of-line members of net_common.hpp: the C++ connection interface's
-* destructor, so its vtable has one home, and the two bridges to C --
+* destructor, so its vtable has one home, and the two bridges to C -
 * c_connection's operations and c_connection_adapter's thunks and table.
 *   Everything else in net_common.hpp is inline or a template, and stays
 * there.

@@ -1195,7 +1195,7 @@ S1 to S39) stand.</p>
 <ul>
 <li><strong>S40. <code>sqrt_settle_digits</code> decides the last bit by
 the residual G = S M - R^2 + R - 1, taken in the low digits - P + 9 bits
-or more -- modulo a power of 2.</strong> Its sign survives there because
+or more - modulo a power of 2.</strong> Its sign survives there because
 the loops keep R within four steps of the root, and
 <code>t_elementary</code> checks the settle over all of that reach. The
 other way, the two midpoints' squares at full width and moved by 8R a
@@ -8061,7 +8061,7 @@ asks for one (S266). Taken.</p>
 <p><strong>S343. On the real axis, where the value is real - every x for
 <code>exp2</code> and <code>expm1</code>, x positive for
 <code>log2</code> and <code>log10</code>, x past -1 for
-<code>log1p</code> -- each of the five, in both forms and every family,
+<code>log1p</code> - each of the five, in both forms and every family,
 is that family's real function in the same form, the <code>_c</code>
 form's <code>_c</code> and the plain form's plain, with y's zero; and on
 the axes elsewhere the kernel takes the real function of |x| or |y| for
@@ -8194,7 +8194,7 @@ are done. The text below is <code>decisions_c43.md</code>, which
 <p><strong>S348. A matrix keeps a complex element as it is, as S239
 keeps a real one: where every element is a float, a double, a long
 double or a complex number of such parts, densely, in the widest one's
-type, as complex numbers -- math::complex<T>, the C core's struct, row
+type, as complex numbers - math::complex<T>, the C core's struct, row
 by row - where any element is complex, a real element x then held as x +
 0i, as S273 rules; where any element is exact or boxed, an exact complex
 number among them, as values, each of its own kind.
@@ -8491,7 +8491,7 @@ outstanding decisions of S1 to S368 come first, by group and urgency
 <p><strong>S357. Step 24 (3f, quaternions) is made in three chunks, as
 S324 made step 23: chunk 44, the C core's quaternions grown as S276
 rules, and both C++ faces taking each; chunk 45, the kind in the
-language as S275 rules -- <code>jm</code>, <code>km</code>,
+language as S275 rules - <code>jm</code>, <code>km</code>,
 <code>quat(w, x, y, z)</code>, <code>parts</code> and the functions,
 dense as the C core's array and exact as values - with S277's order of
 factors and its right quotient; chunk 46, matrices of quaternions with
@@ -10875,7 +10875,7 @@ constant expression, and from C++14 where
 evaluation - and <code>D_MATH_RUN_TIME()</code> guards each call. The
 four exact products the generator writes take it - <code>vec.h</code>'s,
 <code>cplx.h</code>'s for each family, <code>elementary.h</code>'s long
-double product and float square, and <code>dd.h</code>'s (S417) -- and
+double product and float square, and <code>dd.h</code>'s (S417) - and
 no error-free transform anywhere takes a product that is not exact.
 Every generated header opens with clang's
 <code>#pragma float_control(push)</code> and
@@ -10925,7 +10925,7 @@ taken. Ruled 2026.11.16: as recommended (decision 7, B).</li>
 </blockquote>
 <p><strong>S415. The double family's contract (ruling 2, A): one result,
 the correctly rounded one, on every platform, under the ruling's eight
-rules -- no long double inside; no C library calls; no fused
+rules - no long double inside; no C library calls; no fused
 multiply-add made by the compiler that changes a result, with a start-up
 self-test that says if one did; plain double arithmetic, so no x87; no
 dependence on a C library at all (wasm32); correctly rounded; within 2
@@ -11573,7 +11573,7 @@ microsecond.</li>
 <blockquote>
 <p><strong>Review.</strong> Taken: for, the language's dense solutions
 what the faces give, each part correctly rounded where the system is
-well conditioned -- every entry of 20,000 random 4 by 4 systems, where
+well conditioned - every entry of 20,000 random 4 by 4 systems, where
 the unrefined elimination rounded 23% correctly - with one kernel for
 the language and <code>la::solve</code>, so that one answer holds across
 them; a singular matrix a pole as before. Against: about nine times the
@@ -11585,7 +11585,7 @@ it. Recommended: as taken. Ruled 2026.11.16 (decision 8, B).</p>
 </blockquote>
 <p><strong>S429. <code>rotquat(R)</code> is the quaternion of the
 rotation nearest R, as ruled (9b, C): where R's elements are exact and R
-is exactly a rotation's matrix -- R^T R = I and det(R) = 1 in exact
+is exactly a rotation's matrix - R^T R = I and det(R) = 1 in exact
 arithmetic - Shepperd's method as before, exact where the root of its
 largest candidate is rational and otherwise <code>quat.h</code>'s
 <code>from_matrix3</code> in long double (S391); every other R, dense or
@@ -11773,7 +11773,7 @@ never halved and e is raised by an integer test; m inv is exact as a
 pair by Dekker's product with m alone split, the inverse whole where its
 split would leave it so, or by a fused multiply-add where the target has
 one; and every positive normal x is taken in one test, x &gt;= DBL_MIN
-and x &lt;= DBL_MAX, the rest -- NaN, infinities, zeros, negatives,
+and x &lt;= DBL_MAX, the rest - NaN, infinities, zeros, negatives,
 subnormals, the last lifted by 2^54 as before - after it; log(1) is +0
 as the phases give it, with no test of its own.</strong> Every bound
 chunk 52 proved holds again (S424): |r| below 2^-8 at every i, at most

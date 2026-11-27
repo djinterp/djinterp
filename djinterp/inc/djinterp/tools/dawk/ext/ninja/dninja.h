@@ -2,7 +2,7 @@
 * djinterp [c][tools]                                                   dninja.h
 *
 * The Ninja build language, read without loss.
-*   A file of Ninja's - a build.ninja, a rules.ninja, any file it includes --
+*   A file of Ninja's - a build.ninja, a rules.ninja, any file it includes -
 * read as ninja's own lexer and parser read it: every statement, a variable,
 * a rule, a build, a pool, a default, an include or a subninja, each with
 * its name, its paths in their sections, and the bindings indented beneath

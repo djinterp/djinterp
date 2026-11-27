@@ -59,7 +59,7 @@ TABLE OF CONTENTS
 //------------------------------------------------------------------------------
 // 1.1.1
 // D_CFG_FILE_DESC_CLOEXEC
-//   knob: keep every descriptor d_file_open makes from a child process --
+//   knob: keep every descriptor d_file_open makes from a child process -
 // O_CLOEXEC on POSIX; on Windows the CRT's _O_NOINHERIT, so the handle is not
 // inherited by a process created with handles passed on. Follows the
 // subframework's D_CFG_FILE_CLOEXEC_DEFAULT.
@@ -74,7 +74,7 @@ TABLE OF CONTENTS
 
 // 1.1.2
 // D_CFG_FILE_DESC_BINARY
-//   knob: add O_BINARY on Windows unless the caller named a text mode --
+//   knob: add O_BINARY on Windows unless the caller named a text mode -
 // O_TEXT, or the CRT's wide and UTF-8 ones.
 //   On by default, and this one is close to non-negotiable at the descriptor
 // level: a text-mode descriptor translates "\n" to "\r\n" on write and back on
@@ -107,7 +107,7 @@ TABLE OF CONTENTS
 // 1.2.1
 // D_CFG_FILE_DESC_DUP_CLOEXEC
 //   knob: make d_file_dup_fd produce a close-on-exec descriptor
-// (F_DUPFD_CLOEXEC); on Windows, one whose handle a child does not inherit --
+// (F_DUPFD_CLOEXEC); on Windows, one whose handle a child does not inherit -
 // except a console's, which Windows before 8 cannot change.
 //   Follows D_CFG_FILE_DESC_CLOEXEC, and note it must be asked for
 // separately: POSIX specifies that dup() and dup2() explicitly CLEAR the

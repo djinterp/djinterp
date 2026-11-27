@@ -1505,7 +1505,7 @@ bool d_internal_db_rows_blob(
 /*
 d_internal_db_rows_finish
   The block holds the columns, then the values at the offset their alignment
-requires - which on a 32-bit target need not follow the columns directly --
+requires - which on a 32-bit target need not follow the columns directly -
 and then the text. It starts with the columns, so d_db_rows_free releases it
 through `columns`. Rows without columns allocate nothing.
 */

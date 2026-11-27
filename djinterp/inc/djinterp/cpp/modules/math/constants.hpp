@@ -398,7 +398,7 @@ public:
 // 2.2    ratio_to_rational
 //------------------------------------------------------------------------------
 // ratio_to_rational
-//   type: a ratio - std::ratio, re_std::ratio, anything with num and den --
+//   type: a ratio - std::ratio, re_std::ratio, anything with num and den -
 // as a rational.
 template<typename Ratio>
 using ratio_to_rational = rational<Ratio::num, Ratio::den>;

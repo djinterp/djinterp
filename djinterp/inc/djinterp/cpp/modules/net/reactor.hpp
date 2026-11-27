@@ -279,7 +279,7 @@ NS_END  // internal
 // interest set and a callback; run()/run_once() wait and dispatch the callbacks
 // for ready descriptors. A single reactor instance is driven from one thread;
 // stop() (and the internal wake) are thread-safe. Callbacks may add, modify, or
-// remove registrations during dispatch - including removing their own fd --
+// remove registrations during dispatch - including removing their own fd -
 // because entry erasure is deferred until the current dispatch completes, so a
 // callback is never destroyed while it runs. Non-copyable, non-movable.
 class reactor

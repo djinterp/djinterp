@@ -154,7 +154,7 @@ bool d_internal_tls_openssl_out_of_memory(void)
 /*
 d_internal_tls_openssl_missing_certificate
   Whether the library failed because the peer withheld a certificate the
-plan requires. The alert sent for that differs by version --
+plan requires. The alert sent for that differs by version -
 certificate_required in TLS 1.3, handshake_failure in TLS 1.2 - so it is
 recognized by the library's reason instead, which every fork shares.
 */

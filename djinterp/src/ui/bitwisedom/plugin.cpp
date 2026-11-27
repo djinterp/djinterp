@@ -2,7 +2,7 @@
 * djinterp [cpp][tools]                                               plugin.cpp
 *
 * The window's module: what `bitwisedom gui` loads (GRAMMAR.html, section 7).
-*   The module is a program of its own, made from the host that runs it --
+*   The module is a program of its own, made from the host that runs it -
 * its name, version, verbosity and colours bitwisedom's - so that
 * `bitwisedom gui --help` is the window's help, and what the window says, it
 * says as bitwisedom does. Its operands are SHEETs, every one handed to the
@@ -27,7 +27,7 @@
 * from a shortcut, not a terminal it shares - is let go before the window
 * opens, so that no empty console stands behind it.
 *   Nothing escapes the run function: the program's work is guarded by the
-* kit, and what is made before it - the options, the request they fill --
+* kit, and what is made before it - the options, the request they fill -
 * here.
 *
 *
@@ -94,7 +94,7 @@ const char* const TESTING = "Testing";
 const long SIZE_LARGEST = 32767L;
 
 // SCALE_LEAST / SCALE_MOST
-//   constants: the display scales the window may be asked to draw at --
+//   constants: the display scales the window may be asked to draw at -
 // beyond them its fonts are too small to make or too large to hold.
 const double SCALE_LEAST = 0.25;
 const double SCALE_MOST  = 8.0;

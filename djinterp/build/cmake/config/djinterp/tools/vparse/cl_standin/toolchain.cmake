@@ -56,7 +56,7 @@ set(ENV{PKG_CONFIG_PATH}   "")
 set(CMAKE_USER_MAKE_RULES_OVERRIDE "${CMAKE_CURRENT_LIST_DIR}/override.cmake")
 
 # CMake's checks link, through the script link, as cl's own do: a check that
-# asks whether something links is answered as cl's linker would answer it --
+# asks whether something links is answered as cl's linker would answer it -
 # the argument parser's leaf asks whether the linker wraps malloc, and with
 # no --wrap leaves its sweep out, as it does under cl
 

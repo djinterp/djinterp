@@ -109,7 +109,7 @@ namespace linalg
 NS_INTERNAL
 
     // solve_requires_float
-    //   struct: the solvers' requirement - float, double or long double --
+    //   struct: the solvers' requirement - float, double or long double -
     // asserted at class scope, once for every solver that names it.
     template<typename T>
     struct solve_requires_float

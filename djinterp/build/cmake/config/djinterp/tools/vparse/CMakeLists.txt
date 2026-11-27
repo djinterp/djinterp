@@ -3,7 +3,7 @@
 #
 # vparse, built as one of djinterp's tools: the library in parsegen/vparse
 # with its suites, and its program `vparse`, the command line, with theirs.
-# Its window, the workbench on uxoxo and Dear ImGui, is outside djinterp --
+# Its window, the workbench on uxoxo and Dear ImGui, is outside djinterp -
 # its sources in inc/ui, src/ui and tests/ui, its build in build/cmake/config/ui/vparse,
 # which builds this one within it and makes the module `vparse gui` loads
 # (GRAMMAR.html, section 7) - so nothing here needs uxoxo.
@@ -101,7 +101,7 @@ set(VPARSE_VERSION_TEXT "${PROJECT_VERSION}" CACHE INTERNAL
 # the model: what both programs stand on
 #-------------------------------------------------------------------------------
 # vparse_version(<target>)
-#   Gives a program's units the build's version, which --version prints --
+#   Gives a program's units the build's version, which --version prints -
 # and a module's, which its program holds to its own.
 function(vparse_version _target)
     target_compile_definitions(${_target} PRIVATE

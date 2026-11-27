@@ -54,7 +54,7 @@
 * layer's prototypes and scripts/db_face/mongodb_face.hpp.in, and keep the C
 * functions' contracts, in the headers each part names; those written by
 * hand in the template - the ones that connect, adopt, close or hand over
-* the handle, a cursor or a stream, and the transaction mode's beginning --
+* the handle, a cursor or a stream, and the transaction mode's beginning -
 * carry their own. Edit the template, not this file.
 *
 *
@@ -365,7 +365,7 @@ private:
 //------------------------------------------------------------------------------
 // 1.2.1
 // mongodb_change_stream
-//   class: a change stream - the layer's struct dj_mongodb_change_stream --
+//   class: a change stream - the layer's struct dj_mongodb_change_stream -
 // owned: closed when the object goes. Made empty, and filled by
 // face::mongodb's watch_collection, watch_database and watch_deployment;
 // every function of mongodb_cursor.h that takes a stream is a member, the

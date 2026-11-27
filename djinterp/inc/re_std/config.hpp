@@ -9,7 +9,7 @@
 * djinterp's can never collide, and each answers exactly as its djinterp
 * counterpart did, so a build that included both before sees no difference.
 *   The language-neutral half - the level tests, the compiler, the
-* fixed-width-integer headers, the long long gate, and the ISO strict knob --
+* fixed-width-integer headers, the long long gate, and the ISO strict knob -
 * is config.h, which C reads too (dstdint.h does); this header includes it
 * and adds what only C++ needs. Every value is pre-definable: #define it
 * before the first re_std include to override detection. The two knobs

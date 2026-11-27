@@ -90,7 +90,7 @@ stops at the first one it does not. Stopping on "does not strictly precede"
 rather than "strictly follows" is what makes the family stable: an equivalent
 element halts the scan, so the candidate settles after it rather than in front
 of it.
-  The candidate is read in place during the scan - nothing has moved yet --
+  The candidate is read in place during the scan - nothing has moved yet -
 so no element is lifted until a destination is known, and an element already in
 order is never touched at all. That early test is what gives ordered input its
 O(n) best case.

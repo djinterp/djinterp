@@ -579,7 +579,7 @@ struct dj_option_result d_env_printer_declare(
 //------------------------------------------------------------------------------
 //   The frame "env_printer": the printer's variables and the sections' scopes,
 // declared once for the whole program, and the bindings every printer made in
-// it reads. In a registry its variables are settings by full name --
+// it reads. In a registry its variables are settings by full name -
 // "env_printer.style", "env_printer.cpp_features.key_width" - that a file,
 // the environment and the command line bind, each from its source. It is
 // written by one thread at a time, as the registry is: configure it before
@@ -1501,7 +1501,7 @@ d_env_report_here(void)
  *       often keeps one of its own.
  *
  * @param[in,out] _os      the stream.
- * @param[in]     _script  statements, as d_env_printer_load reads them --
+ * @param[in]     _script  statements, as d_env_printer_load reads them -
  *                         "style=json; sections=all" - or null for the
  *                         defaults.
  * @return as d_env_printer_print(); 0 as well for a script that fails, which

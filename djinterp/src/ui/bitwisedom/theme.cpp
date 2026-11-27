@@ -2,7 +2,7 @@
 * djinterp [cpp][tools]                                                theme.cpp
 *
 * Dear ImGui's look, by theme and scheme.
-*   Each theme starts from one of ImGui's own and replaces the surfaces --
+*   Each theme starts from one of ImGui's own and replaces the surfaces -
 * the scheme's - and the accent; the metrics - rounding, padding, spacing
 * - are the same in every theme.
 *   Readable text is measured as WCAG measures it: a colour's relative

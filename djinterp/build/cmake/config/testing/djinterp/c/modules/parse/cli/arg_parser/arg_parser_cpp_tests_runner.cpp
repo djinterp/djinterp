@@ -52,7 +52,7 @@ struct suite
 //   constant: every C++ suite this build has, in the order they run: each
 // part of the face after the parts it builds on, then the functions the C
 // library calls back, then CLI11's examples end to end. A suite of a part a
-// knob leaves out, or below its language level - the examples are C++11 --
+// knob leaves out, or below its language level - the examples are C++11 -
 // is not compiled, and is not here.
 const suite SUITES[] =
 {

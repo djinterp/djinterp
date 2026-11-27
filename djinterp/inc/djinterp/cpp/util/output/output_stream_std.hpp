@@ -23,7 +23,7 @@
 *
 *   A std::string IS A TRANSPORT, NOT A WINDOW. Writing in place into a
 * std::string means resizing it first, which zero-fills what it adds, so each
-* byte would be written twice anyway - once by resize, once by the stream --
+* byte would be written twice anyway - once by resize, once by the stream -
 * and the string would be unsafe to read between flushes. Appending from the
 * stream's buffer costs the same and leaves the string the caller's: give the
 * stream a buffer (DBufferedOutputStream) and the string grows once per buffer.

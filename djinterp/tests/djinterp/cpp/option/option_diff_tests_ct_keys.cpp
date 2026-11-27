@@ -283,7 +283,7 @@ using kl = ::djinterp::DKeyList<_Keys...>;
             return ok;
         } });
 
-    // ---- A.I internals : key_list_filter_dispatch (both _Want branches) --
+    // ---- A.I internals : key_list_filter_dispatch (both _Want branches) -
 
     block.tests.push_back({
         "internal_filter_keep_present",

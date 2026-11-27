@@ -2,7 +2,7 @@
 * djinterp [re_std]                                        span_range_traits.hpp
 *
 * forwarding header:
-*   span's opt-in to the ranges customisation points --
+*   span's opt-in to the ranges customisation points -
 * enable_borrowed_range<span<T, E>> and enable_view<span<T, E>>, both true
 * - is defined once, in re_std/cpp/span/span_range_opt_in.hpp, whose banner
 * explains why it is a header of its own. This file held a second copy,

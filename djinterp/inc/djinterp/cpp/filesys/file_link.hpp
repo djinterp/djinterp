@@ -120,7 +120,7 @@ NS_INTERNAL
      * @note d_file_readlink truncates without saying so, as readlink(2)
      *       does, so a text that fills the buffer may have been cut short; it
      *       is read again into twice the room. A link's text may well be
-     *       longer than D_FILE_PATH_MAX - Windows keeps up to 16 KiB of it --
+     *       longer than D_FILE_PATH_MAX - Windows keeps up to 16 KiB of it -
      *       but past 64 KiB only a filesystem that fills every buffer it is
      *       given remains, and that is ENAMETOOLONG.
      *

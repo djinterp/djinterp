@@ -1,5 +1,5 @@
 # =============================================================================
-# djinterp [test] --
+# djinterp [test] -
 # build/cmake/config/testing/djinterp/cpp/modules/net/ftp/CMakeLists.txt
 #
 #  Leaf for the FTP and FTPS clients' C++ faces (cpp/modules/net/ftp and

@@ -20,7 +20,7 @@
 *     std::vector<std::string>; a text result fills a text, which keeps SQL
 *     NULL apart from '', or a std::string, which cannot;
 *   - scope: transaction and savepoint guards, which roll back what was not
-*     committed or released when the scope is left, however it is left --
+*     committed or released when the scope is left, however it is left -
 *     a savepoint where the database has them, as MongoDB does not.
 *   The C99 layer is the floor, and the face costs nothing over it: a face is
 * its handle, a list or rows their C struct, text its pointer (section 6
@@ -228,7 +228,7 @@ TABLE OF CONTENTS
 // 1.1.7
 // D_INTERNAL_DB_FACE_NODISCARD_GUARD
 //   attribute: [[nodiscard]] from C++17, on the guards' classes and their
-// constructors, so that a guard made and dropped in one expression --
+// constructors, so that a guard made and dropped in one expression -
 // face::transaction<F>{db};, which begins and ends at once - is warned of
 // (C++20 gives a constructor the attribute, and the compilers give it from
 // C++17, as a defect report; GCC reads it on the constructor, Clang on
@@ -256,7 +256,7 @@ TABLE OF CONTENTS
 
 // 64-bit floor: the layers' query headers need a 64-bit integer type, which
 // dstdint.h declares only where the build can spell one. Below it - ISO
-// strict C++98 where long is narrower: 32-bit targets, and 64-bit Windows --
+// strict C++98 where long is narrower: 32-bit targets, and 64-bit Windows -
 // the face compiles to nothing, as the layers do.
 #if defined(INT64_MAX)
 
@@ -338,7 +338,7 @@ private:
 // A layer's `f` form takes its values through C's `...`, which carries
 // numbers, unscoped enumerations and pointers, and nothing with a
 // constructor. From C++11 the face offers the `f` forms as variadic
-// templates, and refuses at compile time any argument `...` cannot carry --
+// templates, and refuses at compile time any argument `...` cannot carry -
 // a std::string above all, which passes as its c_str(). From C++20 a
 // literal format is checked as well (2.4).
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER

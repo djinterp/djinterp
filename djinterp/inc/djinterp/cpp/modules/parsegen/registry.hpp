@@ -165,7 +165,7 @@ public:
     }
 
     // missing
-    //   accessor: the capabilities another set requires that this lacks --
+    //   accessor: the capabilities another set requires that this lacks -
     // what a diagnostic prints rather than merely that something did not fit.
     constexpr
     DFeatureSet missing(

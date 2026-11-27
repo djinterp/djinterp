@@ -19,7 +19,7 @@
 *
 * HOW TO USE
 * ----------
-*   Bind an option to a variable with the descriptor of its type --
+*   Bind an option to a variable with the descriptor of its type -
 * d_arg_type_builtin, given a dj_arg_builtin value - or make a descriptor of
 * your own for another type, with its help name, its item counts and its two
 * conversions; section 2's conversions read text as the built-in descriptors do.

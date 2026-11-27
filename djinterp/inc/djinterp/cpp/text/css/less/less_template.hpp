@@ -10,7 +10,7 @@
 *   STORAGE MODEL:
 *   For the default backend, the storage type is the CSS default
 * node (`css::internal::DCssDefaultNode`). Less extension state
-* fits into the same fields the CSS / Sass backends already use --
+* fits into the same fields the CSS / Sass backends already use -
 * variable name stored in `property` (with `@` prefix), variable
 * value in `value`, mixin parameters in `prelude`, guard clause
 * appended to `prelude`, import options in `prelude`, etc.
@@ -337,7 +337,7 @@ public:
     }
 
     // arguments
-    //   function: alias of `parameters()` for mixin calls --
+    //   function: alias of `parameters()` for mixin calls -
     // the syntactic form is identical.
     DLessString arguments() const
     {

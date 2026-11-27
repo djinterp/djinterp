@@ -334,7 +334,7 @@ TABLE OF CONTENTS
 
 // 4.1.2
 // D_FILE_PATH_OUT_SEP / D_FILE_PATH_OUT_SEP_STR
-//   constant: the separator this build EMITS, in char and string form --
+//   constant: the separator this build EMITS, in char and string form -
 // D_CFG_FILE_PATH_OUT_SEP, whose default is the GRAMMAR's own separator.
 //   Distinct from D_FILE_PATH_SEP, which is the PLATFORM's separator and is
 // what file_temp and file_dir want because they build paths for the running

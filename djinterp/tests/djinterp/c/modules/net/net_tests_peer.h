@@ -204,7 +204,7 @@ bool d_tests_net_peer_sent(
 //   struct: the toy engine's record: what it is told to do, and what was
 // asked of it. Its client sends D_TESTS_NET_TOY_HELLO and expects
 // D_TESTS_NET_TOY_REPLY; its server the reverse. A client's peer presents a
-// certificate for `cert_name` - D_TESTS_NET_TOY_SERVER_NAME when NULL --
+// certificate for `cert_name` - D_TESTS_NET_TOY_SERVER_NAME when NULL -
 // whose chain the toy reports as `verdict`, D_TLS_VERIFY_FLAG_NONE for a
 // sound one; a server's peer presents none. With `alerts` set, its sessions
 // report the two alerts it names, D_TLS_ALERT_NONE for either one not sent.

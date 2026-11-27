@@ -36,7 +36,7 @@
 *   With the argument "exhaustive" it checks every float, all 2^32 patterns
 * (its count wants a 64-bit long). Compiled as C++, it checks the overloads;
 * from C++14, that all six functions are constant expressions, for every
-* family, with the bits they have at run time. It needs no 64-bit integer --
+* family, with the bits they have at run time. It needs no 64-bit integer -
 * its random numbers come from math_tests_random.h, the same in every build
 * - so that ISO-strict C++98 on a 32-bit target, where dj_math_umax has 32
 * bits, builds it too.

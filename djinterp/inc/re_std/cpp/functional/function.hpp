@@ -557,7 +557,7 @@ swap(function<Ret(Args...)>& _a, function<Ret(Args...)>& _b) noexcept
     _a.swap(_b);
 }
 
-// ---- null comparisons (deprecated in std since C++20, kept for parity) --
+// ---- null comparisons (deprecated in std since C++20, kept for parity) -
 
 template<typename Ret, typename... Args>
 bool

@@ -3,7 +3,7 @@
 #
 # The flags this build gives the code it owns, and the few it gives the code
 # it only compiles.
-#   bitwisedom_apply_compiler_defaults() is for this project's own sources --
+#   bitwisedom_apply_compiler_defaults() is for this project's own sources -
 # the library, the command line, the window and the tests - and with OWN holds
 # them to the style guide's whole baseline: -Wall -Wextra -Wshadow
 # -Wcast-qual -Wconversion under -pedantic-errors and -Werror=undef, and

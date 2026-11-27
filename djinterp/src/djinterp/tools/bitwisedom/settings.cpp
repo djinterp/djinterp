@@ -6,7 +6,7 @@
 * reaches the field in a sheet. One reach serves both directions: reading
 * takes the field, writing assigns it, so the two cannot disagree on which
 * field a path names. A setting whose value is not one field - the symbols
-* column's, which is three; the array words, which are a power of two --
+* column's, which is three; the array words, which are a power of two -
 * has its own read and write.
 *   As text, a number is read and written with the C library's
 * locale-independent conversions, std::from_chars and std::to_chars, where

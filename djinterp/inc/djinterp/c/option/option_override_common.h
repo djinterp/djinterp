@@ -94,7 +94,7 @@ TABLE OF CONTENTS
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
 // declares only where the build can spell one. Below it - ISO strict C++98
-// wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS --
+// wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS -
 // the header compiles to nothing (the owner's ruling of 2026.10.03 on round 3's
 // question 1, (a)).
 #if RE_STD_HAS_INT64
@@ -338,7 +338,7 @@ bool d_option_set_commutes(
 //       (A (+) B)[k] = B[k] if k in K(B), else A[k]
 //
 //   The other policies are not `(+)`. They are engine configurations that
-// answer a different question - keep the base, drop extensions, reject them --
+// answer a different question - keep the base, drop extensions, reject them -
 // and none of them is claimed to satisfy the laws in section V, which are
 // stated for `(+)` alone. A conformance test must therefore instantiate the
 // monoid laws against `d_option_policy_replace` and not against the engine in
@@ -350,7 +350,7 @@ bool d_option_set_commutes(
 // representation, which is what a line-by-line diff needs.
 //   It is NOT part of the answer. An option set is a set; a permutation of
 // this result denotes the same object and the .tex's equality says so. Where a
-// comparison must not see the representation, canonicalise first --
+// comparison must not see the representation, canonicalise first -
 // `d_option_set_canon` is the parity law's `canon` and exists for exactly
 // this.
 //
@@ -382,7 +382,7 @@ struct dj_option_result d_option_set_merge(
 );
 
 // d_option_set_compose
-//   function: left fold of `_count` deltas into `_base` under one policy --
+//   function: left fold of `_count` deltas into `_base` under one policy -
 // the C++ `with_options_t` / `compose_options_t` family lowered.
 //   Composition IS repeated override, so this is a loop and not a second
 // engine. It needs one scratch set because each step's output is the next

@@ -2,7 +2,7 @@
 * djinterp [c][event]                                             t_event_core.c
 *
 *   Conformance harness for the tier-0 event core: every contract the five
-* event_*_common.h headers state, checked against their implementations --
+* event_*_common.h headers state, checked against their implementations -
 * the monoid laws (including that consume leaves its right operand
 * uninvoked), the table's word order under slot reuse and rehashing, the
 * three-way mask results, merge, dispatch and its snapshot semantics, run,

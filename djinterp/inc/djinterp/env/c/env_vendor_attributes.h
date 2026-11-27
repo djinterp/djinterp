@@ -651,7 +651,7 @@ TABLE OF CONTENTS
 //     2. No-op fallback, MSVC included.
 //
 //   note: MSVC has no weak linkage. Its nearest spelling, selectany, compiles
-// only on data with external linkage - D_WEAK on a function failed there --
+// only on data with external linkage - D_WEAK on a function failed there -
 // and means "any one of several identical definitions", not "a strong one
 // wins". So on MSVC D_WEAK is empty, as for an unknown compiler, and a
 // replaced default shows up, if at all, as a duplicate symbol at link time

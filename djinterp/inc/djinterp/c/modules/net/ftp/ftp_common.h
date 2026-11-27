@@ -223,7 +223,7 @@ enum dj_net_error d_ftp_error_to_net(
  *
  * D_NET_OK is D_FTP_OK; INVALID_ARGUMENT, OUT_OF_MEMORY and TIMED_OUT are their
  * namesakes; a stream that ended or was lost - CLOSED, CONNECTION_RESET,
- * CONNECTION_ABORTED - is CLOSED; an address that names no host --
+ * CONNECTION_ABORTED - is CLOSED; an address that names no host -
  * ADDRESS_INVALID, ADDRESS_UNAVAILABLE, HOST_NOT_FOUND, HOST_UNREACHABLE - is
  * RESOLVE; a connection refused - CONNECTION_REFUSED, NETWORK_DOWN,
  * ACCESS_DENIED - is CONNECT, and so is UNSUPPORTED, a build with no socket

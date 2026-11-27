@@ -1,5 +1,5 @@
 # =============================================================================
-# djinterp [test] --
+# djinterp [test] -
 # build/cmake/config/testing/djinterp/cpp/modules/net/tcp/CMakeLists.txt
 #
 #  Leaf for TCP's C++ face (cpp/modules/net/tcp), at C++98 and C++20

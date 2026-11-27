@@ -326,7 +326,7 @@ struct mariadb_layer
      * @param[in] _db         the connection the call ran on; may be `NULL`.
      * @param[in] _operation  the operation's name.
      * @param[in] _result     the call's result.
-     * @return the server's name, the operation, the connection's message --
+     * @return the server's name, the operation, the connection's message -
      *         the result's own, for a result of the layer's - the result,
      *         and an SQLSTATE that says more than the number.
      * @throws std::bad_alloc when memory runs out.
@@ -1442,7 +1442,7 @@ mysql_common_connection::reset_connection
   The reset is checked for first, so that one the server or the client
 lacks changes nothing; the statements prepared on the connection are closed
 next, while the server still has them, and the layer resets the session and
-sets it up as its connect did - the init command, the character set --
+sets it up as its connect did - the init command, the character set -
 after which the leaf's set-up runs, as after a connect.
 */
 template<typename      Derived,

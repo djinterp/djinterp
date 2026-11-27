@@ -540,7 +540,7 @@ struct dj_tests_cli_edit_write
 // WRITES
 //   constant: A's writes - back; to `-o`'s file; to standard output; a dry
 // run; standard input to standard output; at `-v`; a file that cannot be
-// written, for a directory not there and for a directory - then B's --
+// written, for a directory not there and for a directory - then B's -
 // standard output; back with `-i`; to `-o`'s file; a dry run.
 static const struct dj_tests_cli_edit_write WRITES[] =
 {

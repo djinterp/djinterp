@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [c][net]                                            ssh_known_hosts.c
 *
-*   Definitions for ssh_known_hosts.h: matching lines against a host --
+*   Definitions for ssh_known_hosts.h: matching lines against a host -
 * glob patterns, negation, [host]:port names, hashed entries, and
 * markers - and recording new ones.
 *

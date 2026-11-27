@@ -20,7 +20,7 @@
 * is_steady becomes FALSE, because on that platform the guarantee is
 * genuinely not being met.
 *
-*   Reporting false is the whole design decision here. The alternative --
+*   Reporting false is the whole design decision here. The alternative -
 * claiming steadiness while silently reading a clock that jumps - would
 * let a caller's `assert(end >= start)` hold in testing and fail in
 * production during a leap-second smear. A caller can test is_steady and

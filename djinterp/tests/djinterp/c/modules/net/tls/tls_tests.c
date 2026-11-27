@@ -2,7 +2,7 @@
 * djinterp [c][net]                                                  tls_tests.c
 *
 * The section of net's TLS suite, in DTest's C face: every test, in the
-* order run, each a test of its own in module tls, once the run's world --
+* order run, each a test of its own in module tls, once the run's world -
 * an engine and certificates - is open.
 *
 *

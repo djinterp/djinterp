@@ -3,7 +3,7 @@
 *
 * Implementation of mongodb_document.h.
 *   Each function is the driver's own CRUD call - insert_one, find_with_opts,
-* update_one, count_documents, find_and_modify_with_opts, a bulk operation --
+* update_one, count_documents, find_and_modify_with_opts, a bulk operation -
 * on a collection the driver hands out from the handle's client, so that
 * reads follow the client's read concern and read preference and writes its
 * write concern, as the drivers' CRUD specification has them; the layer

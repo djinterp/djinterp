@@ -1552,7 +1552,7 @@ int d_internal_postgres_query_bool(
 
 /*
 d_internal_postgres_vchanges
-  The statement's command tag carries its count - INSERT 0 3, UPDATE 2 --
+  The statement's command tag carries its count - INSERT 0 3, UPDATE 2 -
 which PQcmdTuples isolates; a statement that counts nothing has "".
 */
 int d_internal_postgres_vchanges(
@@ -1875,7 +1875,7 @@ int d_internal_postgres_collect_rows(
 
 /*
 d_internal_postgres_holds_rows
-  Whether a result's status is one of rows - all of them, one, or a chunk --
+  Whether a result's status is one of rows - all of them, one, or a chunk -
 rather than a command's, which has no columns.
 */
 static

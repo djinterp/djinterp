@@ -240,7 +240,7 @@ struct DCoreTable
 };
 
 // DAlmostTable
-//   fixture: the core interface minus clear(), so is_event_table is false --
+//   fixture: the core interface minus clear(), so is_event_table is false -
 // confirming the composite requires every core operation.
 struct DAlmostTable
 {

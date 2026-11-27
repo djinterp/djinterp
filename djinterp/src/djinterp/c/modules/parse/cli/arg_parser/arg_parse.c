@@ -150,7 +150,7 @@ size_t d_arg_internal_parse_left(
 /*
 d_arg_internal_parse_push_built
   An argument CLI11 builds and pushes back - "-" with what followed a
-short name, or "--" with a name and, when there is a value, "=" with it --
+short name, or "--" with a name and, when there is a value, "=" with it -
 written once into storage the pool then keeps, and its span pushed.
 */
 int d_arg_internal_parse_push_built(
@@ -233,7 +233,7 @@ int d_arg_internal_parse_resume(
 
 /*
 d_arg_internal_parse_begin
-  What every parse starts with: CLI11's clear() of a root parsed before --
+  What every parse starts with: CLI11's clear() of a root parsed before -
 so values added before the first parse stay, as CLI11 keeps them - then
 the last parse's storage and program name, the values borrowing from the
 storage being gone first; then the start every call that parses makes.
@@ -503,7 +503,7 @@ int d_arg_internal_parse_stack_args(
 d_arg_internal_parse_words
   Words whose bytes the parser's pool keeps onto the stack, the last first,
 as CLI11 reverses its vector - from `_first` on, which no caller gives past
-the words: a line stacks all of its, wmain's arguments all but the name --
+the words: a line stacks all of its, wmain's arguments all but the name -
 then the response files.
 */
 int d_arg_internal_parse_words(
@@ -1016,7 +1016,7 @@ bool d_arg_internal_parse_valid_subcommand(
  * @param[in] _rest     what follows the first character.
  * @return `true` for a number no option answers to; `false` otherwise.
  *
- * CLI11's test in _recognize of a short argument that reads as a number --
+ * CLI11's test in _recognize of a short argument that reads as a number -
  * a digit after the dash, or a dot and then a digit - which is a positional
  * unless an option answers to the dash and that first character.
  */
@@ -1055,7 +1055,7 @@ bool d_arg_internal_parse_numeric(
  *                        number no option claims.
  * @return `true` when it has an option form; `false` otherwise.
  *
- * The option forms of CLI11's _recognize, in its order: long; short --
+ * The option forms of CLI11's _recognize, in its order: long; short -
  * unless it reads as a number no option claims, which makes it a positional;
  * Windows-style where the command takes it. Whether the argument has one of
  * them, `_class` receiving which.

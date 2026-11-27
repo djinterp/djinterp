@@ -132,7 +132,7 @@ private:
 //------------------------------------------------------------------------------
 // 1.2.1
 // DConfigItem
-//   class: an item a format builds as it reads - CLI11's ConfigItem, made --
+//   class: an item a format builds as it reads - CLI11's ConfigItem, made -
 // owning its copies until a list adopts it (DConfigItems::adopt), which
 // leaves it empty. Each setting copies its text and returns
 // status_code::ok, or out_of_memory with the item as it was. Not copied.

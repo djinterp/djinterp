@@ -401,7 +401,7 @@ int d_arg_internal_command_config_default(
 
 /*
 d_arg_command_set_config
-  CLI11's set_config: the old option removed; for a name, a new one --
+  CLI11's set_config: the old option removed; for a name, a new one -
 required only when asked, as CLI11 only ever sets it, with its default
 file, not configurable, and taking its files last first. An option whose
 default could not be kept is removed again.

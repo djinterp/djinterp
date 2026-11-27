@@ -1,5 +1,5 @@
 # =============================================================================
-# djinterp [test] --
+# djinterp [test] -
 # build/cmake/config/testing/djinterp/cpp/modules/net/api/CMakeLists.txt
 #
 #  Leaf for net's Claude API client (cpp/modules/net/api), at C++98 and

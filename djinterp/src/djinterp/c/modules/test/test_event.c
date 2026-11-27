@@ -78,7 +78,7 @@ d_test_event_table_[D_TEST_EVENT_KIND_COUNT] =
 
 /*   THE DOMAIN COLUMN IS GONE with the slots it described.  `arity` stays
    because the C++ face asserts each tag's std::tuple_size against the matching
-   D_TEST_EVENT_ARITY_ macro, and this is the runtime half of that same claim --
+   D_TEST_EVENT_ARITY_ macro, and this is the runtime half of that same claim -
    the one pair of mechanisms the payload change did not cost.
 
      The table is still indexed by kind, so the row order IS the enumerator

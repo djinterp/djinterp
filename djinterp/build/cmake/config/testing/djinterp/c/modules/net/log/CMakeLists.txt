@@ -1,5 +1,5 @@
 # =============================================================================
-# djinterp [test] --
+# djinterp [test] -
 # build/cmake/config/testing/djinterp/c/modules/net/log/CMakeLists.txt
 #
 #   Test leaf for net's codes for the log (c/modules/net/net_log.h), in

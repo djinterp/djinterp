@@ -1,5 +1,5 @@
 # =============================================================================
-# djinterp [test] --
+# djinterp [test] -
 # build/cmake/config/testing/djinterp/c/util/dregex/CMakeLists.txt
 #
 #   Test leaf for c/util/dregex, in DTest's C face, two CTest tests with

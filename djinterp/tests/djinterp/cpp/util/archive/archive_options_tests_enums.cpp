@@ -173,7 +173,7 @@ bool tests_enum_wire_values()
 tests_enum_plain_not_scoped
   Verifies the enums are plain (unscoped) enums, as the C++98-C++23
 portability promise requires.  A scoped enum (enum class) would not convert
-implicitly to int, so the implicit conversions below would not compile --
+implicitly to int, so the implicit conversions below would not compile -
 this test is as much a compile-time assertion as a run-time one.
   Tests the following:
   - an enumerator converts implicitly to int without a cast

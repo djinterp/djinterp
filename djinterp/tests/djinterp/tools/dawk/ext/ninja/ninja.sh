@@ -6,7 +6,7 @@
 # Each case runs dawk over a file written here and compares what it prints,
 # its status, and, when it writes, the bytes it wrote. Where ninja is
 # installed, ninja_tool.awk then answers as ninja does - what each tool
-# writes, its status, and the first line it writes to standard error --
+# writes, its status, and the first line it writes to standard error -
 # over every manifest in cases/, a CR LF one made here, and, where cmake is
 # installed too, a build CMake generates for Ninja; NINJA names another
 # ninja to answer as besides. The documents' own check follows: every Ninja

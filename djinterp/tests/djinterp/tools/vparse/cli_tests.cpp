@@ -3,7 +3,7 @@
 *
 * The command line's suite: `vparse`, run in-process, its every subcommand
 * and its every way of refusing, the measures over many inputs among them.
-*   cli::run() takes its streams, so each case runs the whole command line --
+*   cli::run() takes its streams, so each case runs the whole command line -
 * the kit, the argument parser, the subcommand, the model - over arguments
 * made here, with a file standing in for the standard input, and reads back
 * what it wrote and how it ended. Nothing runs a process, and nothing needs a

@@ -434,7 +434,7 @@ public:
 
         // the per-cell overrides: the canvas asks (row, col) as it paints, and
         // this answers from the hint bags buffered alongside the text.  The
-        // call happens inside table() below, so capturing `this` is safe --
+        // call happens inside table() below, so capturing `this` is safe -
         // clear_table only runs after it returns.
         _opts.cells =
             [this](std::size_t _r, std::size_t _c) -> DCellFormat

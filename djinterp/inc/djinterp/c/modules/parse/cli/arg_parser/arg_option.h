@@ -374,7 +374,7 @@ D_EXTERN_C_BEGIN
  * @note With no form, the first long name with `--`, else the first short
  *       name with `-`, else the positional name. D_ARG_NAME_POSITIONAL
  *       writes the positional name. D_ARG_NAME_ALL writes every name joined
- *       by commas - the positional name only when asked for or alone --
+ *       by commas - the positional name only when asked for or alone -
  *       and, for an option expecting no values, each flag name's value as
  *       `{value}` unless D_ARG_NAME_NO_FLAG_VALUES. An option in the empty
  *       group, hidden from help, writes nothing.
@@ -724,7 +724,7 @@ D_ARG_PARSER_API int d_arg_option_set_default_value(
  * @param[in,out] _option  the option.
  * @param[in]     _type    the value's type.
  * @param[in]     _value   the value, read as `_type` reads one.
- * @return D_ARG_OK; the status of the type's writing --
+ * @return D_ARG_OK; the status of the type's writing -
  *         D_ARG_ERROR_UNSUPPORTED for a type that writes no value,
  *         D_ARG_ERROR_OUT_OF_MEMORY for text that could not be built - or
  *         of d_arg_option_set_default_value; D_ARG_ERROR_BAD_ARGUMENT for a
@@ -1231,7 +1231,7 @@ D_ARG_PARSER_API int d_arg_option_run_callback(
  * @note With no input (or `{}`), a flag-like option gives `true`, or the
  *       name's own value; any other option gives its default text, or the
  *       name's value. With an input, a name whose value is `false` inverts
- *       the input - `true` for 1, `false` for -1, the negation otherwise --
+ *       the input - `true` for 1, `false` for -1, the negation otherwise -
  *       and any other gives the input.
  *
  * @param[in]     _option  the option.

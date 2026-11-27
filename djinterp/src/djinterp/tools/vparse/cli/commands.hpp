@@ -336,7 +336,7 @@ namespace subcommand
 // subcommand::check
 //   handler: reads GRAMMAR and judges it, as the session does; prints, when
 // the grammar was accepted, its rules and the size of its program, and says
-// why, as an error, when it was not. PASSED when accepted, NOT_ACCEPTED --
+// why, as an error, when it was not. PASSED when accepted, NOT_ACCEPTED -
 // its answer, no - otherwise.
 int check(
     const check_command& _command,

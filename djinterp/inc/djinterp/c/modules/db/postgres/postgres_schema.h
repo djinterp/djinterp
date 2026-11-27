@@ -92,7 +92,7 @@ TABLE OF CONTENTS
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
 // declares only where the build can spell one. Below it - ISO strict C++98
-// wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS --
+// wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS -
 // the header compiles to nothing (the owner's ruling of 2026.10.03 on round 3's
 // question 1, (a)).
 #if defined(INT64_MAX)
@@ -481,7 +481,7 @@ int d_postgres_has_view_s(
 // already taken by any relation a success, whatever it is; D_POSTGRES_REPLACE
 // replaces a view of the name, as CREATE OR REPLACE VIEW does, which the
 // server allows only when the new query keeps the old columns, adding any
-// new ones after them. The two flags exclude each other. Dropping --
+// new ones after them. The two flags exclude each other. Dropping -
 // D_DB_IF_EXISTS makes a missing one a success, and D_POSTGRES_CASCADE drops
 // the views that use it. Each returns 0, the SQLSTATE of a failure (42P07,
 // the name is taken; 42P01, no such view), 53200, or D_DB_INVALID_ARGUMENT.
@@ -616,7 +616,7 @@ int d_postgres_has_sequence_s(
 //------------------------------------------------------------------------------
 // creating - CREATE SEQUENCE without options: a bigint counting up by 1 from
 // 1; other options are SQL's, through d_postgres_exec. D_DB_IF_NOT_EXISTS
-// makes a name already taken by any relation a success. Dropping --
+// makes a name already taken by any relation a success. Dropping -
 // D_DB_IF_EXISTS makes a missing one a success, and D_POSTGRES_CASCADE drops
 // the defaults that use it. Each returns 0, the SQLSTATE of a failure (42P07,
 // the name is taken; 42P01, no such sequence; 2BP01, an identity column owns
@@ -658,7 +658,7 @@ int d_postgres_next_value(
     const char*     _sequence,
     int64_t*        _value
 ) D_NOTHROW;
-// the value nextval() last handed out in the session, from any sequence --
+// the value nextval() last handed out in the session, from any sequence -
 // an identity or serial column's included - as lastval() reads it; written
 // only on success. 0; D_DB_NOT_FOUND before the session's first; the
 // SQLSTATE of a failure, 25P02 in a failed transaction; or

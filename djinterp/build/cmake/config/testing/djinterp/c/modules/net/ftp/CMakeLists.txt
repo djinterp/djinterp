@@ -1,5 +1,5 @@
 # =============================================================================
-# djinterp [test] --
+# djinterp [test] -
 # build/cmake/config/testing/djinterp/c/modules/net/ftp/CMakeLists.txt
 #
 #   Test leaf for net's FTP client (c/modules/net/ftp), in DTest's C face, a

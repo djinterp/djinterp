@@ -1,5 +1,5 @@
 # =============================================================================
-# djinterp [test] --
+# djinterp [test] -
 # build/cmake/config/testing/djinterp/c/modules/net/smtp/CMakeLists.txt
 #
 #   Test leaf for SMTP (c/modules/net/smtp), in DTest's C face, a CTest test

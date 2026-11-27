@@ -25,7 +25,7 @@
 * results.
 *   connect, connect_string and connect_with replace the connection only when
 * they succeed; a failure leaves the face as it was, and puts libpq's reason
-* in the text, where one is given. Their forms that do not block --
+* in the text, where one is given. Their forms that do not block -
 * connect_start and its kin - replace it with the connection being made
 * when they answer D_DB_WAIT, and connect_continue goes on with the
 * connection held, which the face holds no more once it fails. A member

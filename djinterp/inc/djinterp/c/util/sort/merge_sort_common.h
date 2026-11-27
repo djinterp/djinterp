@@ -34,7 +34,7 @@
 * the right run does not precede the last element of the left, every element of
 * the left run belongs before every element of the right, and the merge is a
 * single block copy.  One comparison replaces a whole span of them, so a range
-* that arrives ordered costs O(n) comparisons in total instead of O(n log n) --
+* that arrives ordered costs O(n) comparisons in total instead of O(n log n) -
 * and in the erased C path, where every comparison is an indirect call, that is
 * the difference between the algorithms.  The copies still happen, so the pass
 * count is unchanged.

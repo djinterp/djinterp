@@ -12,7 +12,7 @@
 *     (b << 1).to_ulong();
 *
 *   WHAT IS DELIBERATELY MISSING, AND WHY:
-*   std::bitset has three members that traffic in std::string --
+*   std::bitset has three members that traffic in std::string -
 * the string constructor, to_string, and the stream operators. re_std
 * has no <string>, so those cannot be provided without either pulling
 * in a dependency that does not exist or inventing a substitute API.

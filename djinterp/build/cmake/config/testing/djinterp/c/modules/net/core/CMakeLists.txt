@@ -1,5 +1,5 @@
 # =============================================================================
-# djinterp [test] --
+# djinterp [test] -
 # build/cmake/config/testing/djinterp/c/modules/net/core/CMakeLists.txt
 #
 #   Test leaf for net's core (c/modules/net: net_common, net_memory and the

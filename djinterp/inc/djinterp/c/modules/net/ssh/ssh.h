@@ -23,7 +23,7 @@
 * by opening channels on an authenticated dj_ssh_session: an exec module
 * runs "exec"; an SFTP module builds its packets with dj_ssh_writer and
 * speaks them over the "sftp" subsystem.
-*   The session runs over a connected stream socket the caller supplies --
+*   The session runs over a connected stream socket the caller supplies -
 * the one transport every SSH library accepts. Every call blocks, and a
 * session and its channels belong to one thread at a time.
 *   Requires cfg_ssh.h, and through it env_ssh.h; the digests and base64

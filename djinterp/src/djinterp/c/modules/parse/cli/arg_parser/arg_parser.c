@@ -539,7 +539,7 @@ void d_arg_parser_release(
 
 /*
 d_arg_parser_clear
-  CLI11's clear() on the root, then the last parse's error and storage --
+  CLI11's clear() on the root, then the last parse's error and storage -
 the program's name and the arguments kept for the setting hook among it:
 the values that borrowed from the storage are gone first.
 */

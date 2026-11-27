@@ -2,8 +2,8 @@
 * djinterp [c][tools]                                                dgit_text.h
 *
 * Git's text files, read without loss.
-*   Three kinds of file, each read as git reads it: the ignore files --
-* .gitignore, info/exclude, core.excludesFile; the attribute files --
+*   Three kinds of file, each read as git reads it: the ignore files -
+* .gitignore, info/exclude, core.excludesFile; the attribute files -
 * .gitattributes, info/attributes, core.attributesFile; and the files written
 * in git's configuration syntax - a repository's config, a user's
 * .gitconfig, .gitmodules. A file is read into records, each with its place
@@ -156,7 +156,7 @@ enum dj_git_text_state
 //------------------------------------------------------------------------------
 // 1.3.1
 // dj_git_text_line
-//   struct: one line: `start` to `end`, its ending - `\n`, or `\r\n` --
+//   struct: one line: `start` to `end`, its ending - `\n`, or `\r\n` -
 //   not among them, and `next` past its ending, where the next begins.
 //   `pattern` is the pattern or macro a line is; `section` the section a
 //   configuration's line heads or is within; `entry` the entry a line
@@ -224,7 +224,7 @@ struct dj_git_text_attribute
 //   `name_start` to `name_end`; a subsection's text between its quotes,
 //   escapes and all, `sub_start` to `sub_end`, D_GIT_TEXT_NONE without.
 //   `prefix` is what the keys of its entries begin with, at an offset into
-//   the strings: the name in lower case, then a dot and the subsection --
+//   the strings: the name in lower case, then a dot and the subsection -
 //   unescaped, as written, or, in the old form [section.sub] that `legacy`
 //   says, in lower case.  Its entries are `entry_count` from
 //   `first_entry`.

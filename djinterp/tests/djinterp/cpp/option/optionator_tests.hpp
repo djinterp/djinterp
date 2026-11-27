@@ -324,7 +324,7 @@ NS_END  // testing
 NS_END  // djinterp
 
 
-// ---- configures<> adapters (specialized in djinterp, over the testing tags) --
+// ---- configures<> adapters (specialized in djinterp, over the testing tags) -
 //   Fixtures, like the tags they specialize over: normal face only.
 #if ( D_ENV_LANG_IS_CPP17_OR_HIGHER && \
       !defined(DTEST_SPEC_MODE) )

@@ -196,7 +196,7 @@ void take_drop(
 
 /*
 open_window
-  GLFW, then the window and its GL context, CONTEXT_MAJOR.CONTEXT_MINOR --
+  GLFW, then the window and its GL context, CONTEXT_MAJOR.CONTEXT_MINOR -
 core and forward-compatible on macOS - `_glsl` the shaders' version to
 match; hidden for a screenshot. NULL, GLFW let go, when either fails.
 */
@@ -358,7 +358,7 @@ int photograph(
 
 /*
 run_frames
-  The app, its events posted, and its frames until the window is closed --
+  The app, its events posted, and its frames until the window is closed -
 by the user, by the app quitting, or by the screenshot, the last frame. The
 app's session and settings are kept unless a screenshot is taken.
 */

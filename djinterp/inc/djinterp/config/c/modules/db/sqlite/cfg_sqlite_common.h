@@ -111,7 +111,7 @@ TABLE OF CONTENTS
 //------------------------------------------------------------------------------
 // 1.2.1
 // D_CFG_SQLITE_LOAD_EXTENSION
-//   knob: whether the layer calls SQLite's extension loading --
+//   knob: whether the layer calls SQLite's extension loading -
 // sqlite3_load_extension and sqlite3_enable_load_extension - (1), or answers
 // D_DB_UNSUPPORTED for it (0). Defaults to 0 on Apple's platforms, whose
 // system SQLite has neither function, in its library or its header, and to 1

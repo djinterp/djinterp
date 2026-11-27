@@ -204,7 +204,7 @@ D_WO_DETECT(wo_has_end,    std::declval<_T&>().end());
 D_WO_DETECT(wo_has_cbegin, std::declval<const _T&>().cbegin());
 D_WO_DETECT(wo_has_cend,   std::declval<const _T&>().cend());
 
-// - the append surface, which must be PRESENT where the container has it --
+// - the append surface, which must be PRESENT where the container has it -
 D_WO_DETECT(wo_has_push_back,
     std::declval<_T&>().push_back(std::declval<typename _T::value_type>()));
 D_WO_DETECT(wo_has_emplace_back,

@@ -1117,7 +1117,7 @@ private:
 //   class: a net::connector that connects the transport with its own
 // connector, then runs TLS over it as a client of its context, which
 // verifies by default: the server's chain against the system's trust
-// anchors, and the server's name - the endpoint's host, or the name set --
+// anchors, and the server's name - the endpoint's host, or the name set -
 // against its certificate. The handshake runs at connect, so a certificate
 // or verification failure is the connect's error. Templated on the
 // transport connector (TCP by default).

@@ -132,7 +132,7 @@ TABLE OF CONTENTS
 
 #if !defined(FLT_HAS_SUBNORM) && defined(__FLT_HAS_DENORM__)
     // FLT_HAS_SUBNORM
-    //   constant: 1 if float supports subnormals, 0 if not. Never -1 --
+    //   constant: 1 if float supports subnormals, 0 if not. Never -1 -
     // see the header comment.
     #define FLT_HAS_SUBNORM     __FLT_HAS_DENORM__
 #endif

@@ -4817,7 +4817,7 @@ size_t d_internal_check_domain(
 
 /*
 d_internal_link_end
-  Where a bare link ends: before `<`, and before what trails it --
+  Where a bare link ends: before `<`, and before what trails it -
 punctuation, a `)` with no `(` to match, a reference's `;`.
 */
 static

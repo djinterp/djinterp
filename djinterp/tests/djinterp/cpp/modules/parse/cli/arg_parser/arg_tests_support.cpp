@@ -688,7 +688,7 @@ int run::parse_as_main(
 }
 
 /**
- * @brief Parses the arguments set through D_ARG_PARSE, whose ending --
+ * @brief Parses the arguments set through D_ARG_PARSE, whose ending -
  *        help, a version, a failure message - goes to the run's strings,
  *        and writes the code and what the parse added to them.
  *

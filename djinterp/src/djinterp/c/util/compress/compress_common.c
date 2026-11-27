@@ -1502,7 +1502,7 @@ it as a gap.
   The zlib check is not a magic number but a validity rule: the first byte's
 low nibble must be 8 (the DEFLATE method), the window field must be in range,
 and the two-byte header must be a multiple of 31.  That is as strong as a zlib
-header gets, and it is why a raw DEFLATE stream can occasionally satisfy it --
+header gets, and it is why a raw DEFLATE stream can occasionally satisfy it -
 which is exactly why d_codec_detect tries zlib last.
 
 Parameter(s):
@@ -3597,7 +3597,7 @@ d_compress_bound
   An upper bound on the compressed size of an input of _in_size bytes.
 
   Cheap and always safe: it exceeds the true output even for incompressible
-input, which is the case that makes compressed output LARGER than its input --
+input, which is the case that makes compressed output LARGER than its input -
 the case a caller who sizes a buffer from the input length alone gets wrong.
 A caller who needs the EXACT size measures instead and pays a full pass
 knowingly.

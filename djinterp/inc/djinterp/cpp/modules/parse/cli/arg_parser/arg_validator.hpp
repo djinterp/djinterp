@@ -19,7 +19,7 @@
 * case - range(), is_member(), existing_file() - each returning the C
 * library's validator. Those of arg_validator_extra.h and
 * arg_validator_path.h exist with their knobs,
-* D_INTERNAL_ARG_PARSER_EXTRA_VALIDATORS and _PATH_VALIDATORS. A filter --
+* D_INTERNAL_ARG_PARSER_EXTRA_VALIDATORS and _PATH_VALIDATORS. A filter -
 * ignore_case, ignore_underscore, ignore_space, or a function of the caller's
 * - is a cli::filter, so that is_member(set, cli::ignore_case) reads as
 * CLI11's IsMember does; filters exist with the extra validators, as the C
@@ -500,7 +500,7 @@ D_STATIC_ASSERT( (sizeof(filter) == sizeof(::dj_arg_filter)),
 //==============================================================================
 // Each returns the C library's validator, whose contract (arg_validator.h,
 // arg_validator_extra.h, arg_validator_path.h) says what it accepts,
-// rewrites, rejects with and is described as. A construction that fails --
+// rewrites, rejects with and is described as. A construction that fails -
 // a bad argument, a copy refused - returns a failed validator, which an
 // option records as a definition error.
 
@@ -608,7 +608,7 @@ validator is_member(
 
 // 3.2.5
 // transformer / checked_transformer
-//   functions: CLI11's Transformer and CheckedTransformer over a mapping --
+//   functions: CLI11's Transformer and CheckedTransformer over a mapping -
 // a container of pairs, std::map among them, or, from C++11, a braced list
 // of std::pair<std::string, std::string> - and up to three filters. Keys
 // compare as is_member's elements do; each key and value is written as
@@ -1032,7 +1032,7 @@ NS_INTERNAL
     // 4.4.5
     // failed_validator
     //   function: a validator that failed with a status, for a set whose
-    //   members could not be written: the C library's failed validator --
+    //   members could not be written: the C library's failed validator -
     //   which owns nothing - carrying the status.
     validator failed_validator(
         const cli::status& _status
@@ -2033,7 +2033,7 @@ validator valid_ipv4()
 }
 
 // is_member
-//   Each element's member - a pair's first, any other element whole --
+//   Each element's member - a pair's first, any other element whole -
 // written as text, then the C constructor over the texts, the member type's
 // descriptor to compare as, and the filters combined.
 template<typename Container>
@@ -2871,7 +2871,7 @@ std::string internal::run_validator(
 }
 
 // internal::name_enumeration
-//   The description worked out, its first word - the name of the type --
+//   The description worked out, its first word - the name of the type -
 // replaced.
 inline
 void internal::name_enumeration(

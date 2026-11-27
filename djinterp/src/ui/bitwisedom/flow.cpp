@@ -2,7 +2,7 @@
 * djinterp [cpp][tools]                                                 flow.cpp
 *
 * The flow view: where an operation sends the sheet's bits.
-*   Two strips, one bit to a cell: the distribution before the operation --
+*   Two strips, one bit to a cell: the distribution before the operation -
 * how many allocations claim each bit - above, and after it below. For an
 * operation that only moves bits, a curve joins each bit of the targets to
 * the bit it lands on, in the colour of the symbol it belongs to - or the

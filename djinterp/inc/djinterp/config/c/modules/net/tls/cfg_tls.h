@@ -113,7 +113,7 @@ TABLE OF CONTENTS
 //==============================================================================
 // 2.  ENGINES
 //==============================================================================
-// Which engines - the derived modules binding the kernel to a TLS library --
+// Which engines - the derived modules binding the kernel to a TLS library -
 // are built. Each defaults to what env_ssl.h detected; forcing one on where
 // the environment cannot support it is an error in section 3.
 

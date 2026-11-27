@@ -8,7 +8,7 @@
 *     minmax(init_list)       -> pair<T, T>        (C++11+ only)
 *
 *   each with a comparator overload. The two-argument form returns
-* pair(b, a) when b compares less than a, and pair(a, b) otherwise --
+* pair(b, a) when b compares less than a, and pair(a, b) otherwise -
 * so on a TIE the arguments come back in the order given.
 *
 *   PORTABILITY:

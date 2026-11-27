@@ -222,7 +222,7 @@ struct has_parameters_access
 
 
 // has_arguments_method
-//   trait: true if `Type` exposes `arguments()` const --
+//   trait: true if `Type` exposes `arguments()` const -
 // the argument list of a mixin call.
 template<typename Type, typename = void>
 struct has_arguments_method : std::false_type {};
@@ -296,7 +296,7 @@ struct has_is_guarded_method<Type, void_t<
 //==============================================================================
 
 // has_extend_target_method
-//   trait: true if `Type` exposes `extend_target()` const --
+//   trait: true if `Type` exposes `extend_target()` const -
 // the selector being extended.
 template<typename Type, typename = void>
 struct has_extend_target_method : std::false_type {};
@@ -307,7 +307,7 @@ struct has_extend_target_method<Type, void_t<
 
 
 // has_extend_all_method
-//   trait: true if `Type` exposes `extend_all()` const --
+//   trait: true if `Type` exposes `extend_all()` const -
 // the `all` keyword on an :extend pseudo (`:extend(target all)`).
 template<typename Type, typename = void>
 struct has_extend_all_method : std::false_type {};
@@ -322,7 +322,7 @@ struct has_extend_all_method<Type, void_t<
 //==============================================================================
 
 // has_import_url_method
-//   trait: true if `Type` exposes `import_url()` const --
+//   trait: true if `Type` exposes `import_url()` const -
 // the URL string in `@import 'path'`.
 template<typename Type, typename = void>
 struct has_import_url_method : std::false_type {};
@@ -333,7 +333,7 @@ struct has_import_url_method<Type, void_t<
 
 
 // has_import_options_method
-//   trait: true if `Type` exposes `import_options()` const --
+//   trait: true if `Type` exposes `import_options()` const -
 // the bitmask of Less import-option keywords (reference,
 // inline, css, less, once, multiple, optional).
 template<typename Type, typename = void>
@@ -345,7 +345,7 @@ struct has_import_options_method<Type, void_t<
 
 
 // has_plugin_url_method
-//   trait: true if `Type` exposes `plugin_url()` const --
+//   trait: true if `Type` exposes `plugin_url()` const -
 // the URL on `@plugin 'name'`.
 template<typename Type, typename = void>
 struct has_plugin_url_method : std::false_type {};
@@ -360,7 +360,7 @@ struct has_plugin_url_method<Type, void_t<
 //==============================================================================
 
 // has_namespace_path_method
-//   trait: true if `Type` exposes `namespace_path()` const --
+//   trait: true if `Type` exposes `namespace_path()` const -
 // the chain of identifiers in `#ns > .mixin`.
 template<typename Type, typename = void>
 struct has_namespace_path_method : std::false_type {};

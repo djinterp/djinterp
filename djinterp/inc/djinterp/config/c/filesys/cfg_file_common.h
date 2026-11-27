@@ -530,7 +530,7 @@ TABLE OF CONTENTS
 // what caught five of these.
 //   And a gate names its platforms through the families in 1.9.0, never
 // through D_ENV_PLATFORM_*: env names one platform per build, and iOS, the
-// BSDs and Android each fall outside the one a gate would think to name --
+// BSDs and Android each fall outside the one a gate would think to name -
 // which is how iOS and Android came to build every module on the ISO C
 // backend, and how two gates came to test a D_ENV_PLATFORM_BSD that env has
 // never defined.
@@ -850,7 +850,7 @@ TABLE OF CONTENTS
 // Windows has always had it; the BSDs and macOS expose st_birthtime; Linux
 // only through statx(2), and only on filesystems that store it.
 //   dj_stat_t.st_changed carries ctime everywhere; a creation timestamp, where
-// one exists, is a separate concern and does not get silently substituted --
+// one exists, is a separate concern and does not get silently substituted -
 // that conflation is exactly what the old st_ctime field name encouraged.
 //   st_birthtime is <sys/stat.h>'s, so the Apple and BSD terms need the POSIX
 // API, as 1.9's invariant says.
@@ -1127,7 +1127,7 @@ TABLE OF CONTENTS
 // not a parameter check and always runs: EEXIST from a non-overwrite rename,
 // ENOSYS from an unsupported backend, ERANGE from a buffer too small, "source
 // is not a regular file". Folding left every one of those returning -1 with
-// errno untouched, so a caller could see the failure but not what it was --
+// errno untouched, so a caller could see the failure but not what it was -
 // and the knob's own description promises the opposite, that the failure mode
 // stays "indistinguishable from the native one".
 //   There is no dead code to remove either way: where SET_ERR is reached only

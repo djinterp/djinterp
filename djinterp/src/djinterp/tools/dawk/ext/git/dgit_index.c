@@ -1289,7 +1289,7 @@ bool d_git_repo_ignored(
 /*
 d_internal_attribute_source
   The tree attributes are read from in place of the work tree, as git's
-compute_default_attr_source picks it: GIT_ATTR_SOURCE's, attr.tree's or --
+compute_default_attr_source picks it: GIT_ATTR_SOURCE's, attr.tree's or -
 for a bare repository - HEAD's, the last two passed over when they name
 no tree; picked once. False, said, for a GIT_ATTR_SOURCE that names none.
 */
@@ -1337,7 +1337,7 @@ bool d_internal_attribute_source(
 
 /*
 d_internal_attribute_scopes
-  The scopes of an attribute lookup, lowest first: the system's file --
+  The scopes of an attribute lookup, lowest first: the system's file -
 unless GIT_ATTR_NOSYSTEM - the user's, each directory's down to the
 path's, and info/attributes.
 */
@@ -2374,7 +2374,7 @@ d_internal_stat_compare
 them - the times in seconds, the size, and, unless core.checkStat is
 minimal, the inode and owner; the change time unless core.trustctime is
 false. An entry that matches still needs its content asked when it is
-racily clean - changed in the second the index was written, or after --
+racily clean - changed in the second the index was written, or after -
 or smudged: of no size, but not of the empty blob.
 */
 static enum dj_internal_stat

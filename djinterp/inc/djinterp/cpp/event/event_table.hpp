@@ -108,7 +108,7 @@ NS_INTERNAL
     // handler map. Each instantiation of this function template has its own
     // static variable whose address serves as a globally unique per-type
     // token. The injection's only obligation (soundness of erasure) is that
-    // an erased payload is touched only by code selected by its own key --
+    // an erased payload is touched only by code selected by its own key -
     // which holds because bind and dispatch both key by this same kappa.
     template<typename Event>
     std::size_t type_key()

@@ -27,7 +27,7 @@
 * arguments (the double nearest a multiple of pi/2 among them) and at the
 * arguments whose long double result lands on a double's rounding midpoint.
 *
-*   sqrt_settle_digits, the root's last bit settled in digits of 16 bits --
+*   sqrt_settle_digits, the root's last bit settled in digits of 16 bits -
 * sqrt_c's for a double where dj_math_umax has 32 bits - is called directly,
 * so that every build checks it: the library's root from Newton's root and
 * from a place and two either side, at every sixteenth float in [1, 4), and

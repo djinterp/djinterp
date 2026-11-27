@@ -93,7 +93,7 @@ struct dj_host_wiki;
 //                                  heading
 //   wiki_find_section(p, name[, after])
 //                                  the first after `after` whose title,
-//                                  anchor or path - titles apart by `/` --
+//                                  anchor or path - titles apart by `/` -
 //                                  is the name; 0 for none
 //   wiki_set_body(p, i, text)      its own text, past its heading
 //   wiki_set_section(p, i, text)   all of it, heading and subsections

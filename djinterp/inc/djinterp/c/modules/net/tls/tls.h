@@ -887,7 +887,7 @@ enum dj_tls_sniff_result d_tls_sniff(
 //==============================================================================
 // Library-independent certificate handling: PEM framing (RFC 7468) and its
 // base64 body, SHA-256 fingerprints of DER certificates, and where the
-// platform keeps its trusted authorities. Libraries that take only DER --
+// platform keeps its trusted authorities. Libraries that take only DER -
 // the OS-provided ones among them - get it from PEM here, and fingerprints
 // are computed by the kernel from the DER an engine hands it, so pins and
 // displayed fingerprints mean the same thing under every engine. The
@@ -1244,7 +1244,7 @@ enum dj_tls_error d_tls_config_plan(
 //       the engine until drained. The kernel drains before every step.
 //     - On failure, an engine queues the alert it sends, if any, for the
 //       kernel to deliver, and reports it through describe.
-//     - An engine enforces the plan it was given at context creation --
+//     - An engine enforces the plan it was given at context creation -
 //       versions, chain verification, certificate requests, ALPN - inside
 //       the handshake, where a failure can alert the peer. The kernel checks
 //       the outcome again afterwards, and checks names and pins itself.
@@ -1406,7 +1406,7 @@ typedef enum dj_tls_error (*dj_tls_engine_write_fn)(void*       _session,
 // 9.2.10
 // dj_tls_engine_describe_fn
 //   function pointer: fills the engine's part of a dj_tls_info (see 9.1.2)
-// with what the session knows so far. The kernel resets the record first --
+// with what the session knows so far. The kernel resets the record first -
 // version NONE, no alerts, verify NOT_PERFORMED - so fields the engine
 // cannot tell may be left alone. The verify bits are the chain result alone:
 // NONE if the chain validated, NOT_PERFORMED if it was not checked.

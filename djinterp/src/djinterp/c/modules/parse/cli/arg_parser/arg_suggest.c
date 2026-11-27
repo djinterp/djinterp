@@ -9,7 +9,7 @@
 * soon as a row has nothing within it. The name an unexpected argument most
 * likely meant: among the options the command would have matched for `-x`,
 * `--name` or `/name` - its own and its option groups' - or among the
-* subcommands it would have taken for anything not starting with a dash --
+* subcommands it would have taken for anything not starting with a dash -
 * its own, its option groups', and, with subcommand fallthrough, its
 * parents' - and those of the commands the parse went on to, the one
 * nearest, when no other is as near; compared as the option or subcommand
@@ -528,7 +528,7 @@ void d_arg_internal_suggest_option(
  * @param[in,out] _search   the search.
  * @param[in]     _command  the command.
  *
- * The options a command matches: its own, and its enabled option groups' --
+ * The options a command matches: its own, and its enabled option groups' -
  * not their parents again. Never its parents': a command that falls through
  * hands an option it does not know to its fallthrough parent, so the command
  * an option is reported by never falls through.

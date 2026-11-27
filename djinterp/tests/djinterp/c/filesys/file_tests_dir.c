@@ -345,7 +345,7 @@ void d_fs_tests_dir_realpath(
                                       sizeof(resolved)) == resolved);
     D_FS_CHECK(_suite, d_path_is_absolute(resolved) != 0);
 
-    //   NOT gated on validation: a NULL buffer here is a documented MODE --
+    //   NOT gated on validation: a NULL buffer here is a documented MODE -
     // "allocate the result for me" - not a rejected parameter. It behaves the
     // same whether or not the build checks its arguments, so gating it removed
     // a case that was never about validation and, worse, left the free() below
@@ -452,7 +452,7 @@ bool d_tests_file_mkdir(struct dj_test_suite* _suite)
                      d_dir_exists(nested),
                      "...all the way down");
 
-    // "ensure this exists" is satisfied by something that already exists --
+    // "ensure this exists" is satisfied by something that already exists -
     // that IS the difference from mkdir
     D_TEST_CHECK_MSG(_suite,
                      "existing_ok",

@@ -88,7 +88,7 @@ int d_sqlite_has_database_s(
  * @param[in] _name  the name to attach it as; SQL then reaches its objects as
  *                   name.object.
  * @return SQLITE_OK, or the SQLite result code of the failure - among them
- *         SQLITE_ERROR for a name already in use, or too many attached --
+ *         SQLITE_ERROR for a name already in use, or too many attached -
  *         or SQLITE_MISUSE for a `NULL` argument or an empty name.
  */
 int d_sqlite_attach_database(

@@ -5,7 +5,7 @@
 *   CLI11's ConfigBase::from_config, a C function for each of its helpers and
 * steps, over the text a line at a time as getline reads it: lines shorter
 * than three characters, comment lines and `"""` comment blocks skipped; a
-* `[section]` header - `[[...]]` too, and with a comment after it --
+* `[section]` header - `[[...]]` too, and with a comment after it -
 * closing the section before it and opening the sections it names, as `--`
 * and `++` items; then each `name = value` line split where CLI11 splits it,
 * quotes and comments considered, its value a `'''` or `"""` string that
@@ -395,7 +395,7 @@ bool d_arg_internal_config_ml_escaped(
  *
  * CLI11's find_ml_close: the length of a multiline value's content before
  * the three quotes that close it - unescaped for `"`, with up to two more
- * quotes belonging to the content, and only blanks or a comment after them --
+ * quotes belonging to the content, and only blanks or a comment after them -
  * or NPOS when the line does not close it.
  */
 D_STATIC
@@ -1131,7 +1131,7 @@ int d_arg_internal_config_unquote(
 // or an INI format's do; the lines, the items and the error; the section
 // under way and the one before it, each a span of the text or "default",
 // the occurrences of a section met again in a row, and whether an item has
-// entered the section asked for; and what is reused from line to line --
+// entered the section asked for; and what is reused from line to line -
 // the value built over lines, a buffer for whatever a step transforms, and
 // the values found on a line.
 struct dj_arg_internal_config_reader

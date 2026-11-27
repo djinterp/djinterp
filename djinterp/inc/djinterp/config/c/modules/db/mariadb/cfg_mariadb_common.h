@@ -94,7 +94,7 @@ TABLE OF CONTENTS
 // 1.1.1
 // D_CFG_MARIADB
 //   knob: build the layer over a client library (1) or as stubs (0).
-// Defaults to 1 where the client's mysql.h can be found where env looks --
+// Defaults to 1 where the client's mysql.h can be found where env looks -
 // at D_CFG_ENV_MARIADB_C_PATH when the build names one, else as <mysql.h>,
 // <mariadb/mysql.h> or <mysql/mysql.h> - and to 0 where it cannot; to 1
 // where the preprocessor has no __has_include to look with. A path the build

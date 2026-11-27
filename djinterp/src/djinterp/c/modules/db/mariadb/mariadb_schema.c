@@ -129,7 +129,7 @@ bool d_internal_mariadb_listed(
  * @param[in]     _db      the connection, for its quoting.
  * @param[in,out] _sql     the definition so far.
  * @param[in]     _column  the column.
- * @param[in]     _keyed   whether the column is a key - primary or unique --
+ * @param[in]     _keyed   whether the column is a key - primary or unique -
  *                         which an unbounded type cannot be.
  * @return as d_internal_db_format; BAD for NONE without type_sql, or a type
  *         outside enum dj_db_type, which leaves the buffer to the caller.

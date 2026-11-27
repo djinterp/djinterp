@@ -21,7 +21,7 @@
 * that must not block calls d_postgres_consume_input when the socket is
 * readable and d_postgres_next_result only when d_postgres_is_busy says a
 * result is ready. Until the last result is read nothing more can be sent,
-* and a call that runs SQL meanwhile is 08000, the results left to read --
+* and a call that runs SQL meanwhile is 08000, the results left to read -
 * libpq would wait for them and discard them unseen, as it would a
 * statement's rows read a few at a time (postgres_statement.h 3.3), which
 * hold the connection the same way. d_postgres_set_chunked_rows has the rows
@@ -106,7 +106,7 @@ TABLE OF CONTENTS
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
 // declares only where the build can spell one. Below it - ISO strict C++98
-// wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS --
+// wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS -
 // the header compiles to nothing (the owner's ruling of 2026.10.03 on round 3's
 // question 1, (a)).
 #if defined(INT64_MAX)

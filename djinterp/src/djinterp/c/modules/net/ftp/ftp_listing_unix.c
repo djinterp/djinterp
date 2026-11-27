@@ -46,7 +46,7 @@ struct dj_ftp_internal_date
 };
 
 // dj_ftp_internal_columns
-//   struct: the fields between a Unix line's permissions and its date --
+//   struct: the fields between a Unix line's permissions and its date -
 // links, owner, group, and a device's two numbers, six at most - and
 // where the date ended.
 struct dj_ftp_internal_columns
@@ -137,7 +137,7 @@ d_ftp_internal_unix_type(
 d_ftp_internal_unix_bits
   File-local: reads the nine permission characters, three per class, into
 mode bits. Each position has its own alphabet: r, w, x, s, and t grant the
-permission itself, and s, S, t, and T set their class's special bit --
+permission itself, and s, S, t, and T set their class's special bit -
 setuid, setgid, or sticky - as does l, setgid as mandatory locking.
 */
 D_STATIC

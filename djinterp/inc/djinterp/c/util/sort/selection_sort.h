@@ -7,7 +7,7 @@
 * the sorted prefix extends by exactly one element per step.
 *
 *   The driver is one call.  Everything it does is in selection_sort_common.h,
-* so a concurrent driver - which parallelises the SCAN rather than the sort --
+* so a concurrent driver - which parallelises the SCAN rather than the sort -
 * shares the search and the sweep rather than restating them.
 *
 *   CHOOSE IT FOR THE WRITES, NEVER FOR THE COMPARISONS.  It always performs

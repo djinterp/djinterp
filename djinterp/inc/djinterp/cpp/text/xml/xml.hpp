@@ -1135,7 +1135,7 @@ struct has_make_document_method<Type, void_t<
 
 
 // is_xml_backend_complete
-//   trait: true if Type exposes the full backend protocol --
+//   trait: true if Type exposes the full backend protocol -
 // every nested type alias and a make_document factory. Stronger
 // than `is_xml_backend` (which only checks for the backend_tag).
 template<typename Type>

@@ -1,5 +1,5 @@
 # =============================================================================
-# djinterp [test] --
+# djinterp [test] -
 # build/cmake/config/testing/djinterp/cpp/modules/net/tls/CMakeLists.txt
 #
 #  Leaf for TLS's C++ face (cpp/modules/net/tls), at C++98 and C++20

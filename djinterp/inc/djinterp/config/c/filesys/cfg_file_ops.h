@@ -75,7 +75,7 @@ TABLE OF CONTENTS
 
 // 1.1.2
 // D_CFG_FILE_OPS_COPY_NATIVE
-//   knob: hand a whole-file copy to the platform's own engine --
+//   knob: hand a whole-file copy to the platform's own engine -
 // copy_file_range(2) on Linux, fcopyfile(3) on macOS - instead of shuttling
 // bytes through user space. Windows has none here, so there it changes
 // nothing.

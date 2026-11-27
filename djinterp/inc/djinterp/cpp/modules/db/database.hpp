@@ -3540,7 +3540,7 @@ std::string value_to_string(
  *       or `0x`; `date`, `datetime` and `timestamp` a point in time,
  *       `YYYY-MM-DD`, then optionally ` HH:MM:SS` or `THH:MM:SS`, a
  *       fraction, and `Z` or an offset (`+00`, `+05:30`, `-0800`), UTC when
- *       there is none, a date alone being its midnight; every other type --
+ *       there is none, a date alone being its midnight; every other type -
  *       decimal, string, time, json, xml, uuid, array, custom - the text as
  *       it is, so that an exact decimal stays exact.
  *

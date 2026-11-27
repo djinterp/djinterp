@@ -19,14 +19,14 @@
 # preprocessor expands its macros, which language rules its templates are
 # held to. Every unit that includes djinterp's headers is given the same
 # ones - this project's, djinterp's, uxoxo's (READS_DJINTERP), djinterp's
-# test leaves, and the unit configure compiles to learn whether uxoxo fits --
+# test leaves, and the unit configure compiles to learn whether uxoxo fits -
 # so a header is not read one way where it is probed and another where it is
 # built. They are the VPARSE_CL_READS lists below; Dear ImGui, which includes
 # none of djinterp, is given the character set alone.
 #
 #   LEVELS. djinterp's C floor is C99, and the foundation and the argument
 # parser are built at it. Its C++ faces and the in-tree vparse have a module
-# floor of C++11. VPARSE_CXX_STANDARD picks the level they are built at --
+# floor of C++11. VPARSE_CXX_STANDARD picks the level they are built at -
 # any of 11, 14, 17, 20 or 23 - and defaults to 20, the level the framework
 # targets. VPARSE_TOOL_CXX_STANDARD does the same for the tool's model and
 # its command line, whose floor is C++17 (std::filesystem, djinterp's ui);
@@ -288,7 +288,7 @@ function(vparse_apply_compiler_defaults _target)
     # under GCC or Clang
     #---------------------------------------------------------------------------
     # the diagnostics djinterp's own ladder builds with - a construct the
-    # level lacks is an error, and so is an #if on a macro nobody defined --
+    # level lacks is an error, and so is an #if on a macro nobody defined -
     # with the usual warnings beside them
     target_compile_options(${_target} ${_scope}
         -Wall -Wextra -Wshadow -Wcast-qual

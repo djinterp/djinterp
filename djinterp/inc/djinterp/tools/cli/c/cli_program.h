@@ -23,7 +23,7 @@
 * the parser reports, whatever CLI11's code for it, is 2.
 *   THE VERSION. `--version` prints `PROGRAM VERSION`; with `-v`, before it
 * or after, the build follows, a `KEY: VALUE` line each (GRAMMAR.html, section
-* 6): the program's file - and, in a module's program, the module's --
+* 6): the program's file - and, in a module's program, the module's -
 * and where each command that is a module would load it from; how the
 * program was built, as d_cli_program_set_build was told (D_CLI_BUILD_INIT);
 * lines of the program's own (d_cli_program_add_build); and how the kit
@@ -760,7 +760,7 @@ D_CLI_API bool d_cli_program_colour(
 // d_cli_command_path
 /**
  * @brief Writes a command's full name, as a user types it: the root's
- *        name, then each command's down to it, a space apart --
+ *        name, then each command's down to it, a space apart -
  *        `bitwisedom gen`.
  *
  * @param[in]     _command  the command.
@@ -794,7 +794,7 @@ D_CLI_API void d_cli_program_set_build(
  *        says, after how the program was built: `KEY: VALUE`.
  *
  * @note The lines are said in the order they were added; a module's window
- *       adds the libraries it draws with, say. The kit's own keys --
+ *       adds the libraries it draws with, say. The kit's own keys -
  *       `program`, `module`, `compiler`, `language`, `system`, `build` and
  *       `kit` - are best left to it.
  *

@@ -2,7 +2,7 @@
 * djinterp [c][parse]                                      arg_completion_pwsh.c
 *
 * The completion script for PowerShell, declared in arg_internal.h (11.2.4).
-*   The script runs in a block of its own, whose variables hold the model --
+*   The script runs in a block of its own, whose variables hold the model -
 * each command's row, the subcommands' and the options' names with their
 * commands, targets and descriptions, each option's row, the positionals'
 * keys and rows, the choices - and turn it into dictionaries that compare
@@ -52,7 +52,7 @@ static const char KIND_LETTERS[] = "-cfdn";
 static const uint32_t REPLACEMENT = 0xFFFDu;
 
 // PWSH_LINES
-//   constant: the block's own part: the dictionaries, then the completer --
+//   constant: the block's own part: the dictionaries, then the completer -
 // whose functions keep the walk's state in the hash table $s: cmd and cf,
 // the command reached and its switches; opt, need and room, the option
 // whose values the words are among, the values it still needs and how many

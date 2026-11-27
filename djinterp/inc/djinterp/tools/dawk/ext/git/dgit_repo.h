@@ -225,7 +225,7 @@ struct dj_git_tag
 
 // 1.3.7
 // dj_git_tree_entry
-//   struct: one entry of a tree: its mode, octal as git writes it --
+//   struct: one entry of a tree: its mode, octal as git writes it -
 //   100644, 100755, 120000, 040000, 160000 - its name, borrowed, and
 //   its object.
 struct dj_git_tree_entry
@@ -588,7 +588,7 @@ bool d_git_repo_refs(
 void d_git_refs_release(
     struct dj_git_refs* _refs
 );
-// d_git_repo_symbolic gives the ref a symbolic ref names, not followed --
+// d_git_repo_symbolic gives the ref a symbolic ref names, not followed -
 // HEAD's branch, even one with no commit yet - allocated; NULL for a ref
 // that is not symbolic.
 char* d_git_repo_symbolic(
@@ -602,7 +602,7 @@ char* d_git_repo_symbolic(
  * @brief Names an object as git rev-parse names one.
  *
  * @note A name in hex, whole or a prefix of four digits or more that is
- *       one object's alone; a ref, as rev-parse's rules complete one --
+ *       one object's alone; a ref, as rev-parse's rules complete one -
  *       name, refs/name, refs/tags/name, refs/heads/name,
  *       refs/remotes/name, refs/remotes/name/HEAD; `@` for HEAD; a ref's
  *       reflog, ref@{n}, and the current branch's, @{n}; the branch the

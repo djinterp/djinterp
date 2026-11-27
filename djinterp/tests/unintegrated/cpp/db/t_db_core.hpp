@@ -1717,7 +1717,7 @@ unsigned wait(
 /*
 drive
   An operation started, where it was not, and driven to its end, as a
-program's loop would: its result, or its failure thrown. Without sockets --
+program's loop would: its result, or its failure thrown. Without sockets -
 SQLite - every operation is done as it starts.
 */
 template<typename Result>
@@ -1822,7 +1822,7 @@ unsigned long session_id(
 await_running
   Whether the server runs the dialect's long query on the session of _db,
 asked every 20 milliseconds for five seconds on a connection of _make's: a
-cancel the server receives before it has begun a statement is lost --
+cancel the server receives before it has begun a statement is lost -
 MariaDB discards a KILL QUERY that comes between statements - so the check
 of cancel() waits until the statement runs, as mariadb_tests.c's does.
 */
@@ -2001,7 +2001,7 @@ async_operations
   The operations that do not block (database_async.hpp), driven as a
 program's loop drives them. `_make` makes a connection to the harness's
 database, and `_refused` one the database refuses, neither connected;
-`_statements_wait` is whether a prepared statement's operations work --
+`_statements_wait` is whether a prepared statement's operations work -
 false for libmysqlclient, whose are D_DB_UNSUPPORTED.
   Tests the following:
   - an operation does nothing before start(); resume() before it, result()

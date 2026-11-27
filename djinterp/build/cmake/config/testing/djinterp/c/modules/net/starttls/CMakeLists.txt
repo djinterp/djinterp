@@ -1,5 +1,5 @@
 # =============================================================================
-# djinterp [test] --
+# djinterp [test] -
 # build/cmake/config/testing/djinterp/c/modules/net/starttls/CMakeLists.txt
 #
 #   Test leaf for STARTTLS (c/modules/net/starttls), in DTest's C face, a

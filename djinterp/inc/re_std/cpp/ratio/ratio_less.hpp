@@ -91,7 +91,7 @@ namespace internal
 
     // ratio_less_step
     //   trait: one step of the walk. Recurse is computed by the caller
-    // so that exactly one of these two specialisations is instantiated --
+    // so that exactly one of these two specialisations is instantiated -
     // a ternary would instantiate both arms and never terminate.
     template<intmax_t N1, intmax_t D1,
              intmax_t N2, intmax_t D2,

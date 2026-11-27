@@ -403,7 +403,7 @@ own code, and a test's override, set it (option_env's decision 69):</p>
 <p>The row is still declared, so <code>get</code>, <code>describe</code>
 and <code>--help</code> show the setting, and say why a value was
 refused. A program whose builder trusts one of those sources - a file in
-<code>/etc</code> that only an administrator writes -- defines its own
+<code>/etc</code> that only an administrator writes - defines its own
 <code>D_OPTION_ENV_REFUSES_CALLER</code> before including
 <code>option_env.h</code>. No run-time option relaxes a refusal: it
 could be set from the very sources it guards.</p>

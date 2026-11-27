@@ -1274,7 +1274,7 @@ d_option_env_set_scopes(
 /*
 d_option_env_set_parent
   A frame with children is refused: their ids are built on its depth. The
-frame's own bindings go - their ids may name the old chain's variables --
+frame's own bindings go - their ids may name the old chain's variables -
 and its generation is set above the old chain's sum, so every sum read from
 the new chain is above any a cache could hold.
 */
@@ -3205,7 +3205,7 @@ d_internal_option_env_read_int(
  * @param[out] _value  the value.
  * @return 1, or 0 for text that is not one, or one that overflows.
  *
- * The text is held to C's alphabet - digits, a sign, '.', an exponent --
+ * The text is held to C's alphabet - digits, a sign, '.', an exponent -
  * or to inf, infinity and nan, so a locale's own form ("1,5") is refused, and
  * then copied with the locale's decimal point in place of '.' for strtod.
  */

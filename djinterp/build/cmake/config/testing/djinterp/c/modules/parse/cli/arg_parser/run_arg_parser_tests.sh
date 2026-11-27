@@ -15,7 +15,7 @@
 # allocation refused in turn, at the C floor. A level the compiler cannot
 # select is left out, and said so; so are the C++ suites when there is no
 # C++ compiler, and the sweep when the linker cannot wrap.
-#   A suite is a table of sections, and a section is what a knob removes --
+#   A suite is a table of sections, and a section is what a knob removes -
 # or a language level, or exceptions turned off - so the number run
 # differs by configuration, by design. Each run in the default
 # configuration must print the count expected_sections.txt gives its build:
@@ -131,7 +131,7 @@ if ! command -v "${CXX}" >/dev/null 2>&1; then
     cxx_found=0
 fi
 
-# a Windows C++ suite is linked whole - libstdc++, libgcc, winpthreads --
+# a Windows C++ suite is linked whole - libstdc++, libgcc, winpthreads -
 # so that it runs where those DLLs are not, as under Wine they are not
 CXX_STATIC=()
 
@@ -340,7 +340,7 @@ run_suites()
 }
 
 # run_cxx_suites <level> <out directory> [flags...]
-#   Builds the C++ suites at one C++ level against the library in <out> --
+#   Builds the C++ suites at one C++ level against the library in <out> -
 # the C++98 floor in strict ISO - and runs them, leaving `totals` and
 # `details` as run_suites does. The flags are the knob's, or the switch
 # that turns exceptions off. Returns as run_suites does.

@@ -8,11 +8,11 @@
 * locking; if that is what you need, this module cannot supply it.
 *   Except that on Windows the lock IS enforced, by Windows: while one handle
 * holds an exclusive lock, every other handle's reads and writes of the file
-* fail - another process's, and this one's through a second descriptor --
+* fail - another process's, and this one's through a second descriptor -
 * and while any handle holds a shared lock nobody may write, its holder
 * included. Code that writes through a descriptor it has share-locked, or
 * through a second one while it holds a lock, works on POSIX and fails there.
-*   The semantics depend on the backend, and they are not interchangeable --
+*   The semantics depend on the backend, and they are not interchangeable -
 * see cfg_file_lock.h. In short: flock's lock lives on the open file
 * description, fcntl's lives on the process and is dropped when ANY descriptor
 * to the file closes. Query with D_FILE_LOCK_IS_PER_DESCRIPTION.

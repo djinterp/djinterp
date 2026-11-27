@@ -538,7 +538,7 @@ struct DDriveResult
 // be (convertible to) the event's payload tuple; it is copied per occurrence.
 //
 // COHERENCE LAW: for a registry rho held fixed (no bind/unbind/enable/disable
-// between the snapshot and the runs), the fused and erased paths agree --
+// between the snapshot and the runs), the fused and erased paths agree -
 //
 //     auto step = dispatcher.compile<E>();
 //     drive(step, first, last).occurrences     == run<E>(first, last).occurrences

@@ -30,7 +30,7 @@ bool tests_sort_common_include_guard()
 #endif
 
 #ifdef DJINTERP_UTIL_SORT_HPP
-    //   Reaching sort_common.hpp - here through insertion_sort.hpp too --
+    //   Reaching sort_common.hpp - here through insertion_sort.hpp too -
     // must not drag in the facade.  The two guards differ by one word, and a
     // collision would silently blank one of the headers.
     result.check(false);

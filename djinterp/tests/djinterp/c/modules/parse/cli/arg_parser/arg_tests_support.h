@@ -310,7 +310,7 @@ struct dj_arg_option* d_tests_arg_watch_option(
 // 2.2.2
 // d_tests_arg_watch_all
 //   registration: d_tests_arg_watch_option for an option that is also made
-// to keep every value it is given - CLI11's MultiOptionPolicy::TakeAll --
+// to keep every value it is given - CLI11's MultiOptionPolicy::TakeAll -
 // as the checks against CLI11 made the options they gave several values,
 // so that none of them is an error.
 struct dj_arg_option* d_tests_arg_watch_all(
@@ -539,7 +539,7 @@ bool d_tests_arg_cases(
 // 2.4.2
 // d_tests_arg_steps
 /**
- * @brief Runs a table of steps - cases that each write their own lines --
+ * @brief Runs a table of steps - cases that each write their own lines -
  *        and compares what they wrote with the transcript expected.
  *
  * @note Each case is given a run of its own and the run's root, and writes

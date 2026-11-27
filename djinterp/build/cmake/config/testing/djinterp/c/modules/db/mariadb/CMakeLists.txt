@@ -1,5 +1,5 @@
 # =============================================================================
-# djinterp [test] --
+# djinterp [test] -
 # build/cmake/config/testing/djinterp/c/modules/db/mariadb/CMakeLists.txt
 #
 #   Test leaf for c/modules/db/mariadb's suites, in DTest's C face

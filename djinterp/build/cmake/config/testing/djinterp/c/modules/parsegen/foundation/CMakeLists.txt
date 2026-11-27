@@ -96,7 +96,7 @@ set(_tests "${DJINTERP_FOUNDATION_ROOT}/tests/djinterp")
 # the diagnostics the CI ladder builds with.
 #   Under a cl-style driver (MSVC, clang-cl) that is /utf-8 and nothing more:
 # the sources are UTF-8 with no byte-order mark, which cl reads in the system
-# code page unless told, and the ladder's flags mean other things there --
+# code page unless told, and the ladder's flags mean other things there -
 # /Wall is every warning the compiler has - so those builds otherwise keep
 # their defaults. Under GCC and Clang it is the ladder's flags, with the
 # usual warnings beside them, unless DJINTERP_FOUNDATION_STRICT is off.

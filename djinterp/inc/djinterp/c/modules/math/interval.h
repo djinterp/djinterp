@@ -917,7 +917,7 @@ d_interval_imax_normalize_discrete(
 //==============================================================================
 // 3.  THE UNSIGNED FAMILY
 //==============================================================================
-// The same kernels over dj_math_umax. A difference that would be negative --
+// The same kernels over dj_math_umax. A difference that would be negative -
 // only in an empty interval, or for a value below one - is taken as the
 // signed family takes it, so the two families agree wherever both can hold
 // the interval.

@@ -21,7 +21,7 @@
 *     An earlier banner argued the opposite for the event id, and it is worth
 * saying why it was superseded rather than letting it look like an oversight.
 * It read: left as size_t rather than pinned, "because pinning it would change
-* the existing surface for a benefit the parity oracle already provides" --
+* the existing surface for a benefit the parity oracle already provides" -
 * d_test_observe_size records a width, so a data-model difference shows up as a
 * visible diff. True, but it makes the parity harness responsible for catching
 * a layout that dconfig 6.2 says must not vary in the first place. Observing a
@@ -257,7 +257,7 @@ D_STATIC_ASSERT(( (sizeof(dj_test_status) == 1) ||
                 "dj_test_status: width must be 1, 2, 4 or 8 bytes");
 
 //   NO RANGE ASSERTION, AND THAT IS DELIBERATE RATHER THAN AN OMISSION.  The
-// obvious third check - that the chosen type can hold D_TEST_STATUS_ERROR --
+// obvious third check - that the chosen type can hold D_TEST_STATUS_ERROR -
 // cannot fail: the two assertions above already force a SIGNED type of 1, 2, 4
 // or 8 bytes, and the narrowest of those still reaches 127 against a value set
 // that stops at 4.  An assertion that cannot fire reads like a guarantee and

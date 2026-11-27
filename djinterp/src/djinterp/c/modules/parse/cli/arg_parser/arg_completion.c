@@ -581,7 +581,7 @@ int d_arg_internal_complete_count(
  * @param[in]     _shown   whether help shows the option.
  * @return D_ARG_OK, or the failure of listing the choices.
  *
- * An option record's counts and kind: the values a name of it takes --
+ * An option record's counts and kind: the values a name of it takes -
  * CLI11's min_num and max_num - and as a positional; then, for one that
  * takes values, how they complete: as its choices, if its validators list
  * any, or as d_arg_internal_complete_value_kind says - or, for one help

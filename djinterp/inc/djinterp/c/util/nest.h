@@ -101,7 +101,7 @@
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
 // declares only where the build can spell one. Below it - ISO strict C++98
-// wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS --
+// wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS -
 // the header compiles to nothing (the owner's ruling of 2026.10.03 on round 3's
 // question 1, (a)).
 #if RE_STD_HAS_INT64
@@ -143,7 +143,7 @@ D_EXTERN_C_BEGIN
 
 // D_NEST_KIND_RESOLVER
 //   constant: the neighbour is computed. The function comes from the node's
-// own field when the link has a non-zero width, and from the view otherwise --
+// own field when the link has a non-zero width, and from the view otherwise -
 // one kind, two sources, disambiguated by whether there is a field to read.
 #define D_NEST_KIND_RESOLVER            ((uint16_t)5u)
 

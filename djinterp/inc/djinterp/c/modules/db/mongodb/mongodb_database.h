@@ -6,7 +6,7 @@
 * last: there is no empty database, nothing to create one with, and no
 * d_mongodb_create_database. A write to a collection of a database that is
 * not there makes both. Existence and the list are the server's
-* listDatabases, nameOnly, which lists the databases the user may read --
+* listDatabases, nameOnly, which lists the databases the user may read -
 * all of them for a user with the right to list them.
 *   The current database is the handle's: the one a NULL database means in
 * every function. A handle starts with the database its options or its

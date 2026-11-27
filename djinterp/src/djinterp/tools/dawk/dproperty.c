@@ -256,7 +256,7 @@ bool d_internal_guard_name(
 
 /*
 d_internal_format_of
-  Returns the pattern string of a `format:` declaration's function argument --
+  Returns the pattern string of a `format:` declaration's function argument -
 the "YYYY.MM.DD" in `format: date("YYYY.MM.DD")` - or NULL.
 */
 static
@@ -337,7 +337,7 @@ bool d_internal_format_matches_at(
 d_property_format_extract
   Finds the first run of a node's text that matches a `format:` pattern and
 copies it out.  This is the format repair: a value that contains a valid date
-alongside something else - `date: 2026.03.25` under a `created:` label --
+alongside something else - `date: 2026.03.25` under a `created:` label -
 keeps the date and loses the rest.  It is derivable without a human, which is
 the test every repair has to pass, and it fails closed: no match, no repair.
 */
@@ -585,7 +585,7 @@ d_property_evaluate
 This is the engine's one evaluator, and every driver - dcheck, the lint
 driver, the extension tests - goes through it, so a sheet means the same
 thing wherever it runs (docs/dss-evaluation.md).  `violation` fails on every
-present node it is applied to.  Modifiers - severity, initial, immutable --
+present node it is applied to.  Modifiers - severity, initial, immutable -
 are not claims about a node and report as unevaluated, as does a property
 whose derivation source is missing, rather than silently passing.
 */

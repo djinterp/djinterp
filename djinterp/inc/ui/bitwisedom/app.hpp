@@ -6,7 +6,7 @@
 *   Each frame draws the realized interface and collects the events it
 * posts; after the frame the events are applied, in order, by apply(). The
 * interface is realized again only when the document in front, or the
-* window around the documents, has changed since it was last realized --
+* window around the documents, has changed since it was last realized -
 * their versions say when - so an idle frame costs a draw and nothing more.
 *   An edit to a sheet goes through edit(): the sheet as it was is kept for
 * undo under the edit's merge key, the change is made, and the sheet is
@@ -26,7 +26,7 @@
 * window keeps its own preferences there beside them; and session_path(),
 * where the window keeps its workspaces and documents - unsaved changes
 * too - so that it opens where it was left. The window reads both before
-* the first frame and writes them as they change and when it closes --
+* the first frame and writes them as they change and when it closes -
 * itself, rather than through ImGui's IniFilename, so that a value ImGui
 * could not read back is never kept.
 *   The dialogs - Save As, the definition files to import, closing a sheet

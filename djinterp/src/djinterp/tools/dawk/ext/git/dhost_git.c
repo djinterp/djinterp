@@ -40,7 +40,7 @@
 //------------------------------------------------------------------------------
 // 1.1.1
 // d_internal_slot
-//   struct: what a handle names: a file, a repository, or - closed --
+//   struct: what a handle names: a file, a repository, or - closed -
 //   neither.
 struct dj_internal_slot
 {
@@ -587,7 +587,7 @@ bool d_internal_changed(
 
 /*
 d_internal_record
-  The file a handle names and the index, from 0, of one of its records --
+  The file a handle names and the index, from 0, of one of its records -
 `_count` of them - an argument names from 1; NULL, git_error() saying
 why, for no file or no such record.
 */
@@ -3201,7 +3201,7 @@ char* d_internal_config_path(
 
 /*
 git_config_file(r[, scope])
-  The file git config --scope writes - local, worktree, global, system --
+  The file git config --scope writes - local, worktree, global, system -
 to open and change.
 */
 static

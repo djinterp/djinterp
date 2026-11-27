@@ -11,7 +11,7 @@
 * `hash<optional<T>>`, etc.) ship alongside those modules.
 *
 *   The standard says the hash for an integer is "implementation
-* defined". re_std uses identity casts to `size_t` for integral types --
+* defined". re_std uses identity casts to `size_t` for integral types -
 * this is the same choice libstdc++/libc++ make for short keys - and
 * a `reinterpret_cast`-based cast for pointers. For floating-point,
 * the bytes are read into a `size_t` so that distinct bit patterns

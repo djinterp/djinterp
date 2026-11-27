@@ -5,7 +5,7 @@
 *   A vendor layer reads names, column descriptions or rows one row at a
 * time, not knowing how many will come. It adds each to a builder, which keeps
 * the text in one growing buffer and the records in another, and finishing
-* packs both into the single allocation db_common.h promises its callers --
+* packs both into the single allocation db_common.h promises its callers -
 * the arrays first, the strings after them - so that one free releases
 * everything.
 *   Offsets, not pointers, are kept while building: the text buffer moves each

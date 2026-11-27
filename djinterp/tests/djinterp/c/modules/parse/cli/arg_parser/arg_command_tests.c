@@ -1320,7 +1320,7 @@ static const size_t VERSION_STEP_COUNT =
     sizeof(VERSION_STEPS) / sizeof(VERSION_STEPS[0]);
 
 // DEPARTED_TRIGGERS
-//   constant: a trigger enabling a and b: a removed, then t and b parsed --
+//   constant: a trigger enabling a and b: a removed, then t and b parsed -
 // the trigger enables what is left of its list - then the trigger itself
 // removed, and b parsed alone, which stays disabled by default. CLI11's
 // TriggerOn keeps its targets in a lambda that a removal does not reach,
@@ -1964,7 +1964,7 @@ typedef void (*dj_tests_arg_command_case_fn)(
 
 /**
  * @brief Runs cases of a transcript, each in a parser of its own; what a
- *        case's run wrote - the reports of its parses, and its notes --
+ *        case's run wrote - the reports of its parses, and its notes -
  *        follows the lines the case wrote itself.
  *
  * @param[in,out] _out    the transcript.
@@ -5428,7 +5428,7 @@ alias(), ignore_case() and ignore_underscore() give and refuse them.
     or one holding a newline with IncorrectConstruction; the root's alias
     checked against nothing; aliases written after the name
   - ignore_case and ignore_underscore refused where they would make a
-    subcommand's name match a sibling's - or the root's one of its own --
+    subcommand's name match a sibling's - or the root's one of its own -
     the switch left off; turning one off never refused
   - aliases cleared and given again; a subcommand renamed to nothing becomes
     nameless, written as an option group, and its old name finds nothing

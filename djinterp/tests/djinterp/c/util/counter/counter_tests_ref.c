@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [c][utility]                                      counter_tests_ref.c
 *
-* The counter suite, block "ref": counter.h's interface over any counter --
+* The counter suite, block "ref": counter.h's interface over any counter -
 * struct dj_counter_vtable, struct dj_counter_ref and the d_counter_ref_*
 * functions - on each of the three kinds, and across them.
 *

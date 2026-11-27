@@ -1,5 +1,5 @@
 # =============================================================================
-# djinterp [test] --
+# djinterp [test] -
 # build/cmake/config/testing/djinterp/c/modules/net/imap/CMakeLists.txt
 #
 #   Test leaf for IMAP4rev1 (c/modules/net/imap), in DTest's C face, a CTest

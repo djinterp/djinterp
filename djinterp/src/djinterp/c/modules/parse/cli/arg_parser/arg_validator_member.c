@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [c][parse]                                     arg_validator_member.c
 *
-* CLI11's sets and mappings - IsMember, Transformer and CheckedTransformer --
+* CLI11's sets and mappings - IsMember, Transformer and CheckedTransformer -
 * declared in arg_validator_extra.h (2).
 *   A set keeps its members, or a mapping its pairs, as slices of one text it
 * owns, with the filter it compares through. A value is filtered as the set
@@ -1167,7 +1167,7 @@ bool d_arg_internal_member_is_target(
  *         stopped the search, or the buffer's.
  *
  * CLI11's CheckedTransformer: a value matching a pair's key becomes the
- * pair's value; one equal, as text, to a pair's value stands; any other --
+ * pair's value; one equal, as text, to a pair's value stands; any other -
  * one that does not convert to the type among it - is rejected with "Check
  * <value> value in {...} OR {...} FAILED"; a failure stops the validation
  * with its status.

@@ -302,7 +302,7 @@ enum dj_pop_error
 // net.h gives with it; an unknown value is D_NET_ERROR_UNKNOWN.
 // d_pop_error_from_net gives the error a connection's dj_net_error is here,
 // by net.h's rules the other way: D_NET_OK is D_POP_OK; WOULD_BLOCK and
-// INVALID_ARGUMENT are their namesakes; a stream that ended or was lost --
+// INVALID_ARGUMENT are their namesakes; a stream that ended or was lost -
 // CLOSED, CONNECTION_RESET, CONNECTION_ABORTED - is CLOSED; anything else,
 // an unknown value included, is TRANSPORT.
 const char* d_pop_error_string(
