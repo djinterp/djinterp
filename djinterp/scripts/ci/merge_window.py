@@ -8,9 +8,11 @@
 # state because the tree changed them after the lane's base, the line
 # endings, and the deletions a zip cannot carry. With --gates it then builds
 # the result in a scratch checkout and runs the checks over it: the ladder
-# and the style over what it changed, the fixed-width includes, the roots'
-# growth, the version, and no lane named in a line the window adds or in a
-# commit message; with --apply it writes the result into the tree,
+# and the style over what it changed, the fixed-width includes, the C
+# runtime's calls MSVC refuses, single hyphens in prose, each folder's kinds
+# of file, the roots' growth, the version, and no lane named in a line the
+# window adds or in a commit message; with --apply it writes the result into
+# the tree,
 # and with --commit it commits each zip as its own commit, with its lane's
 # message.
 #   A lane zip holds whole files, at their paths under the tree's root
@@ -60,7 +62,7 @@
 # path:      /scripts/ci/merge_window.py
 # link(s):   TBA
 # author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.05
-#                                                            revised: 2026.11.23
+#                                                            revised: 2026.11.26
 #*******************************************************************************
 import argparse
 import os
@@ -486,8 +488,9 @@ def gates(written, head, messages=()):
         # the punch list the window's result has (or, failing that, this
         # tree's): the ladder and the style over the changed files, the
         # fixed-width includes, the C runtime's calls MSVC refuses, single
-        # hyphens in prose, the roots' growth, the version, and the lines the
-        # window adds and its messages, which name no lane
+        # hyphens in prose, each folder's kinds of file, the roots' growth,
+        # the version, and the lines the window adds and its messages, which
+        # name no lane
         here = os.path.dirname(os.path.abspath(__file__))
 
         def known(name):
@@ -522,6 +525,7 @@ def gates(written, head, messages=()):
              own('check_crt_calls.py') and
              own('check_crt_calls.py') + known('crt_known.txt')),
             ('single hyphens in prose', own('check_hyphens.py')),
+            ('each folder\'s kinds of file', own('check_file_kinds.py')),
             ('the roots only grow',
              script('check_root_growth.py') + ['--base', 'HEAD']),
             ('the version', script('check_version.py')),

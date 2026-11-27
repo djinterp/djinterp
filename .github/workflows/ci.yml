@@ -1,14 +1,14 @@
 # djinterp - .github/workflows/ci.yml
 #
 #   On every push to main and every pull request: the merge window's gates
-# over what the push or the request changed (the ladder and the style over
-# the changed files, the fixed-width includes, the C runtime's calls MSVC
-# refuses, single hyphens in prose, the roots' growth, the version, and no
-# lane named in an added line or a commit message), then a build and the
-# tests that need no server, with GCC, Clang and MSVC; and, with GCC and
-# Clang, the suites labelled needs-server against real servers: PostgreSQL
-# and MariaDB as service containers, MongoDB's replica set and standalone
-# server started by scripts/ci/mongodb_up.sh.
+# over what the push or the request changed (the ladder and the style over the
+# changed files, the fixed-width includes, the C runtime's calls MSVC refuses,
+# single hyphens in prose, each folder's kinds of file, the roots' growth, the
+# version, and no lane named in an added line or a commit message), then a
+# build and the tests that need no server, with GCC, Clang and MSVC; and, with
+# GCC and Clang, the suites labelled needs-server against real servers:
+# PostgreSQL and MariaDB as service containers, MongoDB's replica set and
+# standalone server started by scripts/ci/mongodb_up.sh.
 #   One run says every failure it can: each gate runs whatever an earlier gate
 # found, the build keeps going past a unit that fails, and the tests run over
 # whatever was built (a test whose program didn't build fails as not run).
@@ -88,6 +88,10 @@ jobs:
       - name: single hyphens in prose
         if: ${{ !cancelled() && steps.base.outcome == 'success' }}
         run: python3 -I scripts/ci/check_hyphens.py
+
+      - name: each folder's kinds of file
+        if: ${{ !cancelled() && steps.base.outcome == 'success' }}
+        run: python3 -I scripts/ci/check_file_kinds.py
 
       - name: the roots only grow
         if: ${{ !cancelled() && steps.base.outcome == 'success' }}
