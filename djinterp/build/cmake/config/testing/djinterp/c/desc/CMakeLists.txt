@@ -9,20 +9,16 @@
 #       machines; and the describers of memory's, filesys's and DTest's
 #       types. They link desc's three units, option_env's, and the
 #       stream's template unit (the runtime has the stream itself), beside
-#       DTest's C face; and the describers' units, with memory's arena
-#       and pool, which its tests describe and which are in no library
-#       yet. A test build's D_TESTING turns on D_CFG_MEM_STATS, which lays
-#       memory's types out otherwise than a plain build does, so
-#       everything that reads them is compiled here, as memory's own leaf
-#       compiles them: the describers' units rather than
-#       djinterp_c_desc_of, and memory's common and source units, which
-#       the runtime has in a plain build (the suite checks that the
-#       describers agree with it, d_desc_of_mem_agrees and its kin).
+#       DTest's C face; and the describers' units. Memory's units, arena
+#       and pool among them, are the runtime's, whose layout knobs are the
+#       whole build's (ruled 2026.11.26), so the describers and the
+#       runtime lay memory's types out alike; the suite checks that they
+#       agree (d_desc_of_mem_agrees and its kin).
 #
 #
 # path:      /build/cmake/config/testing/djinterp/c/desc/CMakeLists.txt
 # author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.12
-#                                                            revised: 2026.11.23
+#                                                            revised: 2026.11.26
 # =============================================================================
 
 set(_tests_dir "${DJINTERP_TESTS_ROOT}/djinterp/c/desc")
@@ -52,9 +48,5 @@ djinterp_add_test_executable(c_desc_tests
         "${_desc}/of/mem_desc.c"
         "${_desc}/of/filesys_desc.c"
         "${_desc}/of/test_desc.c"
-        "${DJINTERP_SRC_ROOT}/djinterp/c/memory/mem_common.c"
-        "${DJINTERP_SRC_ROOT}/djinterp/c/memory/mem_source.c"
-        "${DJINTERP_SRC_ROOT}/djinterp/c/memory/arena.c"
-        "${DJINTERP_SRC_ROOT}/djinterp/c/memory/pool.c"
         "${_dtest}"
     INCLUDES  "${_tests_dir}")

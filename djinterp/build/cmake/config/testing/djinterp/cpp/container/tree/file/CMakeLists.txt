@@ -3,7 +3,8 @@
 #
 #    Test leaf for container/tree/file/ (header-only), the tree floor's file
 # half: the runner in this directory, the section translation units globbed
-# from the tests tree, and memory/pool.c, which the nodes' pool calls. Where a MinGW-w64 cross-compiler is installed
+# from the tests tree; the runtime has memory/pool.c, which the nodes' pool
+# calls. Where a MinGW-w64 cross-compiler is installed
 # (and the host is not Windows), it also registers two compile-only checks,
 # at C++17 and C++20, of file_tree_windows_probe.cpp, which compiles the
 # Windows scanner's and populator's native code.
@@ -19,7 +20,6 @@ djinterp_add_test_executable(file_tree_tests
     SOURCES
         "${CMAKE_CURRENT_SOURCE_DIR}/file_tree_tests_runner.cpp"
         ${_sections}
-        "${DJINTERP_SRC_ROOT}/djinterp/c/memory/pool.c"
     INCLUDES
         "${_tests_dir}")
 

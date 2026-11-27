@@ -136,7 +136,7 @@ jobs:
           CXX: ${{ matrix.cxx }}
         run: >
           cmake -S build/cmake/config -B "$RUNNER_TEMP/build"
-          -DCMAKE_BUILD_TYPE=Debug
+          -DCMAKE_BUILD_TYPE=Debug -DDJINTERP_MEM_TALLY=ON
 
       - name: build
         env:
@@ -210,7 +210,7 @@ jobs:
           CXX: ${{ matrix.cxx }}
         run: >
           cmake -S build/cmake/config -B "$RUNNER_TEMP/build"
-          -DCMAKE_BUILD_TYPE=Debug
+          -DCMAKE_BUILD_TYPE=Debug -DDJINTERP_MEM_TALLY=ON
 
       - name: build the suites that need a server
         run: |

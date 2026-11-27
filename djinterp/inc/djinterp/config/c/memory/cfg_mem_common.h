@@ -119,12 +119,16 @@ TABLE OF CONTENTS
 // D_CFG_MEM_PRESET_DEBUG
 //   brief: 1 selects the diagnostic profile - accounting with peak tracking,
 // poisoning on both edges, redzones, double-free detection, and strict
-// argument checking. This is what D_CFG_TESTING turns on by default; the knob
-// exists so a release build can be given the same treatment without also
-// taking every other testing-mode change in the framework.
+// argument checking. D_CFG_TESTING turns it on by default, but only for the
+// knobs that move no field: poisoning and strict arguments. A test unit's
+// flag must not lay memory's types out otherwise than the runtime it links,
+// so the tally, its peaks and the redzones follow the build instead (ruled
+// 2026.11.26): set them, or this knob, for the whole build, the runtime
+// included. Set explicitly to 1, the knob turns on all of them.
 #ifndef D_CFG_MEM_PRESET_DEBUG
 #   if D_CFG_IS_ON(D_CFG_TESTING)
 #       define D_CFG_MEM_PRESET_DEBUG 1
+#       define D_INTERNAL_MEM_PRESET_FROM_TESTING 1
 #   else
 #       define D_CFG_MEM_PRESET_DEBUG 0
 #   endif
@@ -154,17 +158,20 @@ TABLE OF CONTENTS
 #endif  // D_CFG_MEM_PRESET_MINIMAL
 
 #if D_CFG_IS_ON(D_CFG_MEM_PRESET_DEBUG)
-#   ifndef D_CFG_MEM_STATS
-#       define D_CFG_MEM_STATS 1
-#   endif
-#   ifndef D_CFG_MEM_STATS_PEAK
-#       define D_CFG_MEM_STATS_PEAK 1
+#   ifndef D_INTERNAL_MEM_PRESET_FROM_TESTING
+        // the field knobs: only for a preset the whole build chose
+#       ifndef D_CFG_MEM_STATS
+#           define D_CFG_MEM_STATS 1
+#       endif
+#       ifndef D_CFG_MEM_STATS_PEAK
+#           define D_CFG_MEM_STATS_PEAK 1
+#       endif
+#       ifndef D_CFG_MEM_REDZONE
+#           define D_CFG_MEM_REDZONE 1
+#       endif
 #   endif
 #   ifndef D_CFG_MEM_POISON
 #       define D_CFG_MEM_POISON 1
-#   endif
-#   ifndef D_CFG_MEM_REDZONE
-#       define D_CFG_MEM_REDZONE 1
 #   endif
 #endif  // D_CFG_MEM_PRESET_DEBUG
 
@@ -258,14 +265,13 @@ TABLE OF CONTENTS
 // D_CFG_MEM_STATS
 //   brief: 1 embeds struct dj_mem_stats in every allocator and maintains it.
 // This is a FIELD knob: off, the block is absent and the update calls compile
-// to nothing, so an arena loses six counters. Follows D_CFG_TESTING, because
-// accounting is a diagnostic and a release build should not pay for one it
-// never reads.
+// to nothing, so an arena loses six counters. Off by default, testing or not:
+// a field knob is the build's, set for every unit and the runtime alike
+// (djinterp's CMake option DJINTERP_MEM_TALLY), since a release build should
+// not pay for a diagnostic it never reads.
 #ifndef D_CFG_MEM_STATS
 #   ifdef D_CFG_MEM_ALL
 #       define D_CFG_MEM_STATS D_CFG_MEM_ALL
-#   elif D_CFG_IS_ON(D_CFG_TESTING)
-#       define D_CFG_MEM_STATS 1
 #   else
 #       define D_CFG_MEM_STATS 0
 #   endif

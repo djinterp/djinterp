@@ -7,6 +7,15 @@
 # and event kinds of the counter and the timer, dtime, string_fn and the
 # memory functions string_fn calls (ruled 2026.11.17). Their atomic and mutex
 # kinds are djinterp_c_sync's (sync.cmake).
+#   It holds memory's four units, arena and pool among them, so that no leaf
+# compiles its own. Memory's layout knobs are set here for the whole build,
+# PUBLIC: every unit that links the runtime lays memory's types out as the
+# runtime does, test or not (ruled 2026.11.26). DJINTERP_MEM_TALLY turns on
+# the tally and its peaks (D_CFG_MEM_STATS, D_CFG_MEM_STATS_PEAK), as CI's
+# builds do; DJINTERP_MEM_REDZONE the guard bands (D_CFG_MEM_REDZONE).
+#   A leaf that needs another value of a knob builds what reads it
+# itself, as the parse log's does; one that defines a knob that moves no
+# field, as ostream_format_null's does, may compile memory's source again.
 # =============================================================================
 
 add_library(djinterp_c_runtime STATIC
@@ -35,6 +44,10 @@ add_library(djinterp_c_runtime STATIC
     # both need only libc
     "${DJINTERP_SRC_ROOT}/djinterp/c/memory/mem_source.c"
     "${DJINTERP_SRC_ROOT}/djinterp/c/memory/mem_common.c"
+    # memory's arena and pool, which desc's describers, the C++ faces and the
+    # file tree's nodes call: here, so that no leaf compiles them itself
+    "${DJINTERP_SRC_ROOT}/djinterp/c/memory/arena.c"
+    "${DJINTERP_SRC_ROOT}/djinterp/c/memory/pool.c"
     # the language root's time and string functions, and the memory
     # functions the string functions call (d_memcpy)
     "${DJINTERP_SRC_ROOT}/djinterp/c/dtime.c"
@@ -95,6 +108,33 @@ endif()
 target_include_directories(djinterp_c_runtime PUBLIC
     "${DJINTERP_INC_ROOT}"
 )
+
+# ---------------------------------------------------------------------------
+# Memory's layout knobs, one value for the whole build. Each moves a field of
+# memory's public types (the tally's block, its peaks) or the bytes a request
+# takes (the guard bands), so a unit that disagreed with the runtime would
+# read the runtime's arenas, pools and sources laid out otherwise. PUBLIC, so
+# a test unit's D_TESTING cannot change them.
+option(DJINTERP_MEM_TALLY
+       "memory's tally and its peaks in every allocator, for the whole build"
+       OFF)
+option(DJINTERP_MEM_REDZONE
+       "memory's guard bands around every block, for the whole build"
+       OFF)
+if (DJINTERP_MEM_TALLY)
+    set(_djinterp_mem_tally 1)
+else()
+    set(_djinterp_mem_tally 0)
+endif()
+if (DJINTERP_MEM_REDZONE)
+    set(_djinterp_mem_redzone 1)
+else()
+    set(_djinterp_mem_redzone 0)
+endif()
+target_compile_definitions(djinterp_c_runtime PUBLIC
+    D_CFG_MEM_STATS=${_djinterp_mem_tally}
+    D_CFG_MEM_STATS_PEAK=${_djinterp_mem_tally}
+    D_CFG_MEM_REDZONE=${_djinterp_mem_redzone})
 
 target_compile_features(djinterp_c_runtime PRIVATE c_std_17)
 

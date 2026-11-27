@@ -135,8 +135,13 @@ tests_memory_arena_growth()
     D_TEST_REQUIRE(a.region_count() > 1);
     D_TEST_REQUIRE( (blocks[0][199] == 0) && (blocks[31][0] == 31) );
     stats = a.stats();
+#if (D_INTERNAL_MEM_STATS == 1)
     D_TEST_REQUIRE(stats.bytes_reserved >= 32 * 200);
     D_TEST_REQUIRE(stats.acquire_count == 32);
+#else
+    // a build without the tally (DJINTERP_MEM_TALLY off): a zeroed block
+    D_TEST_REQUIRE(stats.acquire_count == 0);
+#endif  // D_INTERNAL_MEM_STATS
 
     a.reset();
     D_TEST_REQUIRE(a.used() == 0);

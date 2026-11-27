@@ -5,6 +5,12 @@
 # DTest's C face: the runner in this directory, the section translation units
 # globbed from the tests tree, the four C kernels the faces wrap, and DTest's
 # C face, which djinterp_c_runtime does not yet carry.
+#   The kernels are compiled here, though the runtime has them, for the
+# checks a test build turns on in them: a mark from another arena refused, a
+# slot released twice caught. Those knobs move no field; the layout knobs are
+# the whole build's, set on the runtime (ruled 2026.11.26), so these copies
+# and the runtime lay memory's types out alike. The tally's checks run where
+# DJINTERP_MEM_TALLY is on, as in CI.
 #
 # author(s): Samuel 'teer' Neal-Blim                            date: 2026.11.11
 # =============================================================================
