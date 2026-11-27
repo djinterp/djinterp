@@ -5,7 +5,8 @@
 # program. Needs libc only, and libm where the platform keeps it apart.
 #   Besides env, the root and the stream it always held, it holds the plain
 # and event kinds of the counter and the timer, dtime, string_fn and the
-# memory functions string_fn calls (ruled 2026.11.17). Their atomic and mutex
+# memory functions string_fn calls (ruled 2026.11.17), and dstdlib, the
+# environment's portable form (ruled 2026.11.22). Their atomic and mutex
 # kinds are djinterp_c_sync's (sync.cmake).
 #   It holds memory's four units, arena and pool among them, so that no leaf
 # compiles its own. Memory's layout knobs are set here for the whole build,
@@ -52,6 +53,9 @@ add_library(djinterp_c_runtime STATIC
     # functions the string functions call (d_memcpy)
     "${DJINTERP_SRC_ROOT}/djinterp/c/dtime.c"
     "${DJINTERP_SRC_ROOT}/djinterp/c/string_fn.c"
+    # the environment, read and set the same on every platform (dstdlib.h),
+    # which any unit may need in place of getenv
+    "${DJINTERP_SRC_ROOT}/djinterp/c/dstdlib.c"
     "${DJINTERP_SRC_ROOT}/djinterp/c/memory/dmemory.c"
     # the counter and the timer, plain and event kinds: libc only
     "${DJINTERP_SRC_ROOT}/djinterp/c/util/counter/counter.c"

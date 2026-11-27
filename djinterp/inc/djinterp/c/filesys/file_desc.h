@@ -1,7 +1,8 @@
 /*******************************************************************************
 * djinterp [c][filesys]                                              file_desc.h
 *
-* Descriptor lifecycle - getting one, copying one, giving one back.
+* Descriptor lifecycle - getting one, copying one, giving one back - and
+* whether one is a terminal.
 *   This module owns descriptors, not the bytes that move through them; those
 * are file_io. So a program handed a descriptor by its parent, which only ever
 * reads it, links file_io and never this.
@@ -14,7 +15,7 @@
 * path:      /inc/djinterp/c/filesys/file_desc.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.15
-*                                                            revised: 2026.10.19
+*                                                            revised: 2026.11.26
 *******************************************************************************/
 
 /*
@@ -25,6 +26,7 @@ TABLE OF CONTENTS
     1.  Acquisition
     2.  Duplication
     3.  Release
+    4.  Terminals
 */
 
 #ifndef DJINTERP_C_FILESYS_FILE_DESC_H
@@ -140,6 +142,34 @@ int d_file_dup2_fd(
 int d_file_close_fd(
     int _fd
 );
+
+// 1.4    Terminals
+//------------------------------------------------------------------------------
+/**
+ * @brief Says whether a descriptor is a terminal (POSIX isatty equivalent).
+ *
+ * @note On Windows a terminal is a console. The NUL device and a serial
+ *       port, which the CRT's _isatty calls character devices, are not, and
+ *       neither is a pipe, mintty's included.
+ *
+ * @param[in] _fd  an open descriptor.
+ * @return 1 when it is a terminal, 0 when it is not, or -1 on failure with
+ *         errno set: EBADF for a descriptor that is not open.
+ */
+int d_file_is_terminal(
+    int _fd
+);
+/**
+ * @brief Says whether a stream is a terminal.
+ *
+ * @param[in] _stream  an open stream.
+ * @return as d_file_is_terminal() for the stream's descriptor; -1 with EINVAL
+ *         for a NULL stream, and with EBADF for a stream with no descriptor.
+ */
+int d_file_is_terminal_stream(
+    FILE* _stream
+);
+
 
 
 D_EXTERN_C_END

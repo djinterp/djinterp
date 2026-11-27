@@ -9,9 +9,11 @@
 #   The calls are the runtime's "unsafe" ones (fopen, getenv, sprintf,
 # strcpy, strerror, localtime and their kin) and the POSIX names MSVC wants
 # underscored (open, close, fileno, strdup, unlink and their kin). Each has
-# a portable form in the tree: filesys's file and directory calls, string_fn's
-# d_strcpy_s and kin, dio's d_snprintf and d_sscanf, dtime's d_localtime and
-# kin, or snprintf, which MSVC accepts.
+# a portable form in the tree: filesys's file and directory calls, and its
+# d_file_is_terminal for isatty; string_fn's d_strcpy_s and kin; dio's
+# d_snprintf and d_sscanf; dtime's d_localtime and kin; dstdlib's
+# d_getenv_copy and d_getenv_dup for getenv, d_setenv and d_unsetenv for
+# putenv; or snprintf, which MSVC accepts.
 #   A call MSVC never compiles is allowed: in a branch of #if, #ifdef or
 # #ifndef that excludes MSVC (on _MSC_VER, D_ENV_COMPILER_MSVC_FAMILY or
 # D_ENV_CRT_MSVC) or Windows (_WIN32, _WIN64, D_ENV_IS_OS_WINDOWS), or that
@@ -43,7 +45,7 @@
 # path:      /scripts/ci/check_crt_calls.py
 # link(s):   TBA
 # author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.23
-#                                                            revised: 2026.11.23
+#                                                            revised: 2026.11.26
 #*******************************************************************************
 import argparse
 import os
@@ -89,6 +91,7 @@ EXEMPT = {
     'src/djinterp/c/dstring.c',
     'src/djinterp/c/dio.c',
     'src/djinterp/c/dtime.c',
+    'src/djinterp/c/dstdlib.c',
 }
 EXEMPT_DIRS = (
     'src/djinterp/c/filesys/',

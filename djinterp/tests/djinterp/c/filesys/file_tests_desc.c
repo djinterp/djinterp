@@ -12,7 +12,7 @@
 * path:      /tests/djinterp/c/filesys/file_tests_desc.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.21
-*                                                            revised: 2026.11.06
+*                                                            revised: 2026.11.26
 *******************************************************************************/
 
 // std
@@ -58,6 +58,16 @@ void d_fs_tests_desc_stdc(
     d_test_suite_test(_suite, "d_file_close_fd -> -1, ENOSYS");
     errno = 0;
     D_FS_CHECK(_suite, d_file_close_fd(0) == -1);
+    D_FS_CHECK(_suite, errno == ENOSYS);
+
+    d_test_suite_test(_suite, "d_file_is_terminal -> -1, ENOSYS");
+    errno = 0;
+    D_FS_CHECK(_suite, d_file_is_terminal(0) == -1);
+    D_FS_CHECK(_suite, errno == ENOSYS);
+
+    d_test_suite_test(_suite, "d_file_is_terminal_stream -> -1, ENOSYS");
+    errno = 0;
+    D_FS_CHECK(_suite, d_file_is_terminal_stream(stdin) == -1);
     D_FS_CHECK(_suite, errno == ENOSYS);
 }
 

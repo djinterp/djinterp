@@ -114,6 +114,8 @@ bool d_tests_dfile_read_write(struct dj_test_suite* _suite);
 
 bool d_tests_dfile_open(struct dj_test_suite* _suite);
 
+bool d_tests_dfile_is_terminal(struct dj_test_suite* _suite);
+
 bool d_tests_dfile_descriptor_operations_all(struct dj_test_suite* _suite);
 
 // VI. file synchronization tests

@@ -15,7 +15,7 @@
 * path:      /src/djinterp/c/filesys/file_desc.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.15
-*                                                            revised: 2026.10.20
+*                                                            revised: 2026.11.26
 *******************************************************************************/
 #include "../../../../inc/djinterp/c/filesys/file_desc.h"  // corresponding header
 // std
@@ -292,6 +292,31 @@ int d_internal_desc_close(
     return _close(_fd);
 }
 
+/*
+d_internal_desc_terminal
+  A console: a character device whose handle has a console mode. The CRT's
+_isatty answers for any character device, NUL and the serial ports too.
+*/
+static
+int d_internal_desc_terminal(
+    int _fd
+)
+{
+    const HANDLE handle = (HANDLE)_get_osfhandle(_fd);
+    DWORD        mode   = 0;
+
+    if (handle == INVALID_HANDLE_VALUE)
+    {
+        D_INTERNAL_FILE_SET_ERR(EBADF);
+
+        return -1;
+    }
+
+    return ( (GetFileType(handle) == FILE_TYPE_CHAR) &&
+             (GetConsoleMode(handle,
+                             &mode)) ) ? 1 : 0;
+}
+
 #else
 
 /*
@@ -423,6 +448,34 @@ int d_internal_desc_close(
     return close(_fd);
 }
 
+/*
+d_internal_desc_terminal
+  POSIX isatty, whose 0 sets errno: EBADF is a failure, and any other reason
+(ENOTTY, or EINVAL where a system says so) is only "not a terminal", with
+errno as it was.
+*/
+static
+int d_internal_desc_terminal(
+    int _fd
+)
+{
+    const int kept = errno;
+
+    if (isatty(_fd))
+    {
+        return 1;
+    }
+
+    if (errno == EBADF)
+    {
+        return -1;
+    }
+
+    errno = kept;
+
+    return 0;
+}
+
 #endif  // D_CFG_FILE_HAS_WIN32
 
 #endif  // !D_FILE_BACKEND_IS_STDC
@@ -466,6 +519,40 @@ int d_file_descriptor_stream(
 
     D_INTERNAL_FILE_FAIL(ENOSYS,
                          "d_file_descriptor_stream",
+                         NULL,
+                         "no descriptors on the ISO C backend",
+                         -1);
+}
+
+/*
+d_file_is_terminal
+  The ISO C backend has no descriptors, so this only reports ENOSYS.
+*/
+int d_file_is_terminal(
+    int _fd
+)
+{
+    (void)_fd;
+
+    D_INTERNAL_FILE_FAIL(ENOSYS,
+                         "d_file_is_terminal",
+                         NULL,
+                         "no descriptors on the ISO C backend",
+                         -1);
+}
+
+/*
+d_file_is_terminal_stream
+  The ISO C backend has no descriptors, so this only reports ENOSYS.
+*/
+int d_file_is_terminal_stream(
+    FILE* _stream
+)
+{
+    (void)_stream;
+
+    D_INTERNAL_FILE_FAIL(ENOSYS,
+                         "d_file_is_terminal_stream",
                          NULL,
                          "no descriptors on the ISO C backend",
                          -1);
@@ -720,6 +807,40 @@ int d_file_close_fd(
     }
 
     return result;
+}
+
+/*
+d_file_is_terminal
+  A question, not a change: nothing about the descriptor is touched, and a
+descriptor that is not a terminal is no failure (d_internal_desc_terminal).
+*/
+int d_file_is_terminal(
+    int _fd
+)
+{
+    // parameter validation
+    D_INTERNAL_FILE_REQUIRE(_fd >= 0,
+                            EBADF,
+                            "d_file_is_terminal",
+                            NULL,
+                            "descriptor is negative",
+                            -1);
+
+    return d_internal_desc_terminal(_fd);
+}
+
+/*
+d_file_is_terminal_stream
+  The stream's descriptor, asked as d_file_is_terminal asks one: a stream
+with none fails as d_file_descriptor_stream does.
+*/
+int d_file_is_terminal_stream(
+    FILE* _stream
+)
+{
+    const int fd = d_file_descriptor_stream(_stream);
+
+    return (fd < 0) ? -1 : d_internal_desc_terminal(fd);
 }
 
 #endif  // D_FILE_BACKEND_IS_STDC

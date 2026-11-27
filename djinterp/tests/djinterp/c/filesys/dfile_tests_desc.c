@@ -1,13 +1,14 @@
 /*******************************************************************************
 * djinterp [c][filesys]                                       dfile_tests_desc.c
 *
-*   Tests for file descriptor operations (fileno, dup, dup2, read, write).
+*   Tests for file descriptor operations (fileno, dup, dup2, read, write,
+* isatty).
 *
 *
 * path:      /tests/djinterp/c/filesys/dfile_tests_desc.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.12.25
-*                                                            revised: 2026.11.06
+*                                                            revised: 2026.11.26
 *******************************************************************************/
 // djinterp
 #include "./dfile_tests.h"
@@ -441,6 +442,111 @@ bool d_tests_dfile_open(struct dj_test_suite* _suite)
 
 
 /*
+d_tests_dfile_is_terminal
+  Tests d_file_is_terminal and d_file_is_terminal_stream. A test run's own
+standard streams may be terminals or not, so only what is never one is
+asked about, and what fails.
+  Tests the following:
+  - a regular file's descriptor and stream are not terminals: 0
+  - a negative descriptor fails: -1, EBADF
+  - a closed descriptor fails: -1, EBADF (POSIX alone: the Microsoft
+    runtime stops a program that passes one)
+  - a NULL stream fails: -1, EINVAL
+  - errno is as it was after an answer of 0
+*/
+bool d_tests_dfile_is_terminal(struct dj_test_suite* _suite)
+{
+    char  path_buf[D_INTERNAL_TEST_PATH_BUF_SIZE];
+    FILE* file;
+    int   fd;
+    bool  test_file_fd;
+    bool  test_file_stream;
+    bool  test_errno_kept;
+    bool  test_negative;
+    bool  test_closed;
+    bool  test_null_stream;
+
+    // setup
+    d_tests_dfile_get_test_path(path_buf,
+                               sizeof(path_buf),
+                               D_TEST_DFILE_TEST_FILENAME);
+
+    // test 1: a regular file is no terminal, and errno stays as it was
+    file             = d_file_open_stream(path_buf, "r");
+    test_file_fd     = false;
+    test_file_stream = false;
+    test_errno_kept  = false;
+
+    if (file)
+    {
+        fd           = d_file_descriptor_stream(file);
+        errno        = 0;
+        test_file_fd = ( (fd >= 0) &&
+                         (d_file_is_terminal(fd) == 0) );
+        test_errno_kept  = (errno == 0);
+        test_file_stream = (d_file_is_terminal_stream(file) == 0);
+        fclose(file);
+    }
+
+    // test 2: a negative descriptor
+    errno         = 0;
+    test_negative = ( (d_file_is_terminal(-1) == -1) &&
+                      (errno == EBADF) );
+
+    // test 3: a descriptor that was closed
+#if defined(_WIN32)
+    test_closed = true;
+#else
+    fd          = d_file_open(path_buf, O_RDONLY);
+    test_closed = false;
+
+    if (fd >= 0)
+    {
+        (void)d_file_close_fd(fd);
+        errno       = 0;
+        test_closed = ( (d_file_is_terminal(fd) == -1) &&
+                        (errno == EBADF) );
+    }
+#endif  // _WIN32
+
+    // test 4: a NULL stream
+    errno            = 0;
+    test_null_stream = ( (d_file_is_terminal_stream(NULL) == -1) &&
+                         (errno == EINVAL) );
+
+    // build result tree
+    d_test_suite_test(_suite, "d_file_is_terminal");
+
+    D_TEST_CHECK_MSG(_suite,
+                     "file_fd",
+                     test_file_fd,
+                     "a regular file's descriptor is not a terminal");
+    D_TEST_CHECK_MSG(_suite,
+                     "errno_kept",
+                     test_errno_kept,
+                     "an answer of 0 leaves errno as it was");
+    D_TEST_CHECK_MSG(_suite,
+                     "file_stream",
+                     test_file_stream,
+                     "a regular file's stream is not a terminal");
+    D_TEST_CHECK_MSG(_suite,
+                     "negative",
+                     test_negative,
+                     "a negative descriptor fails with EBADF");
+    D_TEST_CHECK_MSG(_suite,
+                     "closed",
+                     test_closed,
+                     "a closed descriptor fails with EBADF");
+    D_TEST_CHECK_MSG(_suite,
+                     "null_stream",
+                     test_null_stream,
+                     "a NULL stream fails with EINVAL");
+
+    return true;
+}
+
+
+/*
 d_tests_dfile_descriptor_operations_all
   Runs all file descriptor operation tests.
   Tests the following:
@@ -450,6 +556,7 @@ d_tests_dfile_descriptor_operations_all
   - d_file_close_fd
   - d_file_read_fd/d_file_write_fd
   - d_file_open
+  - d_file_is_terminal and d_file_is_terminal_stream
 */
 bool d_tests_dfile_descriptor_operations_all(struct dj_test_suite* _suite)
 {
@@ -461,6 +568,7 @@ bool d_tests_dfile_descriptor_operations_all(struct dj_test_suite* _suite)
     d_tests_dfile_close(_suite);
     d_tests_dfile_read_write(_suite);
     d_tests_dfile_open(_suite);
+    d_tests_dfile_is_terminal(_suite);
 
     return true;
 }
