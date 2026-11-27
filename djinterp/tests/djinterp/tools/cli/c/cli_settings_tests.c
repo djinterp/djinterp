@@ -185,7 +185,7 @@ bool d_tests_cli_settings_home(
     }
 
     (void)snprintf(home + strlen(home), 32u, "/cli_settings_home_%ld",
-                   (long)__STDC_VERSION__);
+                   (long)D_ENV_LANG_C_STANDARD);
     (void)snprintf(folder, sizeof(folder), "%s/djinterp", home);
 
     if ( (!d_tests_cli_setenv("XDG_CONFIG_HOME", home)) ||
@@ -1445,7 +1445,7 @@ bool d_tests_cli_settings_hook_response(void)
         static const char TEXT[] = "--cli.plugin_strict_version=false\n";
 
         (void)snprintf(path, sizeof(path), "%s/cli_settings_rf_%ld", folder,
-                       (long)__STDC_VERSION__);
+                       (long)D_ENV_LANG_C_STANDARD);
         (void)snprintf(line, sizeof(line), "prog '@%s' show a", path);
         held = d_tests_cli_file_write(path, TEXT, sizeof(TEXT) - 1u);
     }

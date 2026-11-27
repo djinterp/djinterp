@@ -1427,6 +1427,7 @@ bool d_tests_cli_kit_case(
 
 // KIT_HELP
 //   constant: KIT's help, its usage under the host's command.
+#if (D_INTERNAL_CLI_FORMATTER == 1)
 static const char KIT_HELP[] =
     "Usage: prog kit [OPTION]... NAME\n"
     "Say hello from a module.\n"
@@ -1449,6 +1450,29 @@ static const char KIT_HELP[] =
     "  1  if it did, and the answer is no\n"
     "  2  if there was trouble: the command line, a file, or the "
     "program\n";
+#else
+// Where the kit's formatter is not built (D_CFG_CLI_FORMATTER 0), the
+// argument parser lays the help out itself, and this is its layout.
+static const char KIT_HELP[] =
+    "say hello from a module\n"
+    "\n"
+    "\n"
+    "prog kit [OPTIONS] NAME\n"
+    "\n"
+    "\n"
+    "POSITIONALS:\n"
+    "  NAME REQUIRED               who to say hello to\n"
+    "\n"
+    "OPTIONS:\n"
+    "  -h,     --help              display this help and exit\n"
+    "          --version           output version information and exit\n"
+    "  -q,     --quiet             say nothing but errors\n"
+    "  -v,     --verbose           say more; twice, more again\n"
+    "          --color{always} WHEN \n"
+    "                              colour diagnostics: auto (the default), "
+    "always or never\n"
+    "          --shout             say it in capitals\n";
+#endif
 
 // KIT_HELP_PARSER
 //   constant: KIT's help through STYLED: the argument parser's own layout,
@@ -1500,6 +1524,7 @@ static const char KIT_HELP_PARSER_RESPONDING[] =
     "  @FILE                       read more arguments from FILE, in its "
     "place\n";
 
+#if (D_INTERNAL_CLI_FORMATTER == 1)
 static const char KIT_HELP_RESPONDING[] =
     "Usage: prog kit [OPTION]... NAME\n"
     "Say hello from a module.\n"
@@ -1523,6 +1548,31 @@ static const char KIT_HELP_RESPONDING[] =
     "  1  if it did, and the answer is no\n"
     "  2  if there was trouble: the command line, a file, or the "
     "program\n";
+#else
+// Where the kit's formatter is not built (D_CFG_CLI_FORMATTER 0), the
+// argument parser lays the help out itself, and this is its layout.
+static const char KIT_HELP_RESPONDING[] =
+    "say hello from a module\n"
+    "\n"
+    "\n"
+    "prog kit [OPTIONS] NAME\n"
+    "\n"
+    "\n"
+    "POSITIONALS:\n"
+    "  NAME REQUIRED               who to say hello to\n"
+    "\n"
+    "OPTIONS:\n"
+    "  -h,     --help              display this help and exit\n"
+    "          --version           output version information and exit\n"
+    "  -q,     --quiet             say nothing but errors\n"
+    "  -v,     --verbose           say more; twice, more again\n"
+    "          --color{always} WHEN \n"
+    "                              colour diagnostics: auto (the default), "
+    "always or never\n"
+    "          --shout             say it in capitals\n"
+    "  @FILE                       read more arguments from FILE, in its "
+    "place\n";
+#endif
 #endif
 
 // KIT_BUILD

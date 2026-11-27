@@ -19,7 +19,7 @@
 * path:      /build/cmake/config/testing/djinterp/tools/cli/cli_c_sweep_runner.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.23
-*                                                            revised: 2026.11.18
+*                                                            revised: 2026.11.27
 *******************************************************************************/
 // std
 #include <stddef.h>  // size_t
@@ -50,17 +50,21 @@ int main(
         sizeof(blocks) / sizeof(blocks[0])
     };
     const struct dj_test_module_spec* const modules[] = { &module };
+    char*                                   words[D_TESTS_CLI_RUNNER_MAX + 1];
+    int                                     count     = 0;
     const char* const                       probes    =
-        d_tests_cli_take_modules(&_argc,
-                                 _argv);
+        d_tests_cli_take_modules(_argc,
+                                 _argv,
+                                 words,
+                                 &count);
 
     // nothing coloured unless a case asks; the probe modules' directory
     (void)d_tests_cli_setenv("NO_COLOR",
                              "1");
     d_tests_cli_sweep_modules(probes);
 
-    return d_test_run_modules(_argc,
-                              _argv,
+    return d_test_run_modules(count,
+                              words,
                               "djinterp command-line kit: allocation sweep",
                               modules,
                               1u);

@@ -14,7 +14,7 @@
 * path:      /tests/djinterp/tools/cli/cli_tests.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.23
-*                                                            revised: 2026.11.04
+*                                                            revised: 2026.11.27
 *******************************************************************************/
 #include "./cli_tests.hpp"  // corresponding header
 // std
@@ -356,8 +356,13 @@ bool d_tests_cli_cpp_halves()
                                                      exit_status))    &&
                               (exit_status == D_CLI_EXIT_OK)          &&
                               (starts(out.str(),
-                                      "Usage: prog [OPTION]... COMMAND "
-                                      "[ARGUMENT]...\n"))             &&
+                                      D_TESTS_CLI_LAID(
+                                          "Usage: prog [OPTION]... COMMAND "
+                                          "[ARGUMENT]...\n",
+                                          "a probe of the kit's face\n"
+                                          "\n"
+                                          "\n"
+                                          "prog [OPTIONS] [SUBCOMMAND]\n"))) &&
                               (err.str().empty()),
                               "H02",
                               "help asked: the run ends, help on the "
@@ -716,8 +721,13 @@ bool d_tests_cli_cpp_module_side()
                               (module.verbosity() == 2)               &&
                               (!module.coloured(kit::stream::error))   &&
                               (starts(out,
-                                      "Usage: prog gui [OPTION]...\n"
-                                      "A module's program.\n"))       &&
+                                      D_TESTS_CLI_LAID(
+                                          "Usage: prog gui [OPTION]...\n"
+                                          "A module's program.\n",
+                                          "a module's program\n"
+                                          "\n"
+                                          "\n"
+                                          "prog gui [OPTIONS]\n")))     &&
                               (err.empty()),
                               "M01",
                               "a module's program, from its host");

@@ -26,7 +26,7 @@
 * path:      /tests/djinterp/tools/cli/c/cli_program_tests.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.23
-*                                                            revised: 2026.11.25
+*                                                            revised: 2026.11.27
 *******************************************************************************/
 #include "./cli_program_tests.h"  // corresponding header
 // std
@@ -34,7 +34,7 @@
 #include <stdarg.h>   // va_list, va_start, va_end
 #include <stdbool.h>  // bool
 #include <stddef.h>   // size_t, NULL
-#include <stdio.h>    // snprintf
+#include <stdio.h>    // snprintf, fprintf, stderr
 #include <stdlib.h>   // __argc and __argv on Windows
 #include <string.h>   // strcmp, strerror, strstr, strlen
 // djinterp
@@ -633,6 +633,7 @@ bool d_tests_cli_make_single(
 
 // HELP_ROOT
 //   constant: COMMANDS' root help.
+#if (D_INTERNAL_CLI_FORMATTER == 1)
 static const char HELP_ROOT[] =
     "Usage: prog [OPTION]... COMMAND [ARGUMENT]...\n"
     "A probe of the kit.\n"
@@ -659,9 +660,41 @@ static const char HELP_ROOT[] =
     "  0  if it did what was asked, and the answer, if one was asked, is yes\n"
     "  1  if it did, and the answer is no\n"
     "  2  if there was trouble: the command line, a file, or the program\n";
+#else
+// Where the kit's formatter is not built (D_CFG_CLI_FORMATTER 0), the
+// argument parser lays the help out itself, and this is its layout.
+static const char HELP_ROOT[] =
+    "a probe of the kit\n"
+    "\n"
+    "\n"
+    "prog [OPTIONS] [SUBCOMMAND]\n"
+    "\n"
+    "\n"
+    "OPTIONS:\n"
+    "  -h,     --help              display this help and exit\n"
+    "          --version           output version information and exit\n"
+    "  -q,     --quiet             say nothing but errors\n"
+    "  -v,     --verbose           say more; twice, more again\n"
+    "          --color{always} WHEN \n"
+    "                              colour diagnostics: auto (the default), "
+    "always or\n"
+    "                              never\n"
+    "  -D,     --define NAME ...   define NAME for every command\n"
+    "          --level N [3]       how far to go\n"
+    "\n"
+    "SUBCOMMANDS:\n"
+    "  show                        list what a sheet holds\n"
+    "  check                       report a sheet's issues\n"
+    "  group                       hold commands of its own\n"
+    "  fail                        end with a usage error of its own\n"
+    "  open                        read a file\n"
+    "  help                        display help for a command\n"
+    D_TESTS_CLI_COMPLETION_WIDE;
+#endif
 
 // HELP_SHOW
 //   constant: `show`'s help.
+#if (D_INTERNAL_CLI_FORMATTER == 1)
 static const char HELP_SHOW[] =
     "Usage: prog show [OPTION]... SHEET\n"
     "List what a sheet holds.\n"
@@ -680,9 +713,37 @@ static const char HELP_SHOW[] =
     "      --color[=WHEN]  colour diagnostics: auto (the default), always or never\n"
     "  -D, --define=NAME   define NAME for every command\n"
     "      --level=N       how far to go (default: 3)\n";
+#else
+// Where the kit's formatter is not built (D_CFG_CLI_FORMATTER 0), the
+// argument parser lays the help out itself, and this is its layout.
+static const char HELP_SHOW[] =
+    "list what a sheet holds\n"
+    "\n"
+    "\n"
+    "prog show [OPTIONS] SHEET\n"
+    "\n"
+    "\n"
+    "POSITIONALS:\n"
+    "  SHEET REQUIRED              the sheet to list\n"
+    "\n"
+    "OPTIONS:\n"
+    "  -h,     --help              display this help and exit\n"
+    "  -o,     --out FILE          write the list to FILE\n"
+    "          --all               every row, hidden ones too\n"
+    "          --version           output version information and exit\n"
+    "  -q,     --quiet             say nothing but errors\n"
+    "  -v,     --verbose           say more; twice, more again\n"
+    "          --color{always} WHEN \n"
+    "                              colour diagnostics: auto (the default), "
+    "always or\n"
+    "                              never\n"
+    "  -D,     --define NAME ...   define NAME for every command\n"
+    "          --level N [3]       how far to go\n";
+#endif
 
 // HELP_ONE
 //   constant: `group one`'s help.
+#if (D_INTERNAL_CLI_FORMATTER == 1)
 static const char HELP_ONE[] =
     "Usage: prog group one [OPTION]...\n"
     "The group's first command.\n"
@@ -696,9 +757,32 @@ static const char HELP_ONE[] =
     "      --color[=WHEN]  colour diagnostics: auto (the default), always or never\n"
     "  -D, --define=NAME   define NAME for every command\n"
     "      --level=N       how far to go (default: 3)\n";
+#else
+// Where the kit's formatter is not built (D_CFG_CLI_FORMATTER 0), the
+// argument parser lays the help out itself, and this is its layout.
+static const char HELP_ONE[] =
+    "the group's first command\n"
+    "\n"
+    "\n"
+    "prog group one [OPTIONS]\n"
+    "\n"
+    "\n"
+    "OPTIONS:\n"
+    "  -h,     --help              display this help and exit\n"
+    "          --version           output version information and exit\n"
+    "  -q,     --quiet             say nothing but errors\n"
+    "  -v,     --verbose           say more; twice, more again\n"
+    "          --color{always} WHEN \n"
+    "                              colour diagnostics: auto (the default), "
+    "always or\n"
+    "                              never\n"
+    "  -D,     --define NAME ...   define NAME for every command\n"
+    "          --level N [3]       how far to go\n";
+#endif
 
 // HELP_HELP
 //   constant: `help`'s help.
+#if (D_INTERNAL_CLI_FORMATTER == 1)
 static const char HELP_HELP[] =
     "Usage: prog help [OPTION]... [COMMAND]...\n"
     "Display help for a command.\n"
@@ -716,9 +800,37 @@ static const char HELP_HELP[] =
     "      --color[=WHEN]   colour diagnostics: auto (the default), always or never\n"
     "  -D, --define=NAME    define NAME for every command\n"
     "      --level=N        how far to go (default: 3)\n";
+#else
+// Where the kit's formatter is not built (D_CFG_CLI_FORMATTER 0), the
+// argument parser lays the help out itself, and this is its layout.
+static const char HELP_HELP[] =
+    "display help for a command\n"
+    "\n"
+    "\n"
+    "prog help [OPTIONS] [COMMAND(0x)]\n"
+    "\n"
+    "\n"
+    "POSITIONALS:\n"
+    "  COMMAND                     the command, and its subcommand\n"
+    "\n"
+    "OPTIONS:\n"
+    "  -h,     --help              display this help and exit\n"
+    "          --format FORMAT     the format help is written in: text or "
+    "json\n"
+    "          --version           output version information and exit\n"
+    "  -q,     --quiet             say nothing but errors\n"
+    "  -v,     --verbose           say more; twice, more again\n"
+    "          --color{always} WHEN \n"
+    "                              colour diagnostics: auto (the default), "
+    "always or\n"
+    "                              never\n"
+    "  -D,     --define NAME ...   define NAME for every command\n"
+    "          --level N [3]       how far to go\n";
+#endif
 
 // HELP_SINGLE
 //   constant: SINGLE's help.
+#if (D_INTERNAL_CLI_FORMATTER == 1)
 static const char HELP_SINGLE[] =
     "Usage: prog [OPTION]... [FILE]...\n"
     "A probe of the kit.\n"
@@ -737,6 +849,29 @@ static const char HELP_SINGLE[] =
     "  0  if it did what was asked, and the answer, if one was asked, is yes\n"
     "  1  if it did, and the answer is no\n"
     "  2  if there was trouble: the command line, a file, or the program\n";
+#else
+// Where the kit's formatter is not built (D_CFG_CLI_FORMATTER 0), the
+// argument parser lays the help out itself, and this is its layout.
+static const char HELP_SINGLE[] =
+    "a probe of the kit\n"
+    "\n"
+    "\n"
+    "prog [OPTIONS] [FILE...]\n"
+    "\n"
+    "\n"
+    "POSITIONALS:\n"
+    "  FILE ...                    the files to read\n"
+    "\n"
+    "OPTIONS:\n"
+    "  -h,     --help              display this help and exit\n"
+    "  -q,     --quiet             say nothing but errors\n"
+    "  -v,     --verbose           say more; twice, more again\n"
+    "          --color{always} WHEN \n"
+    "                              colour diagnostics: auto (the default), "
+    "always or\n"
+    "                              never\n"
+    "  -n,     --dry-run           say what would be done, and do nothing\n";
+#endif
 
 // ENDINGS
 //   constant: what d_tests_cli_program_endings's command lines come to.
@@ -830,10 +965,15 @@ static const struct dj_tests_cli_case COMMANDS[] =
       "" },
     { "C09", "prog group", 2,
       "",
-      "prog: error: group: a command is required\n"
-      "Usage: prog group [OPTION]... COMMAND [ARGUMENT]...\n"
-      "Commands: one, two\n"
-      "Try 'prog group --help' for more information.\n" },
+      D_TESTS_CLI_LAID(
+          "prog: error: group: a command is required\n"
+          "Usage: prog group [OPTION]... COMMAND [ARGUMENT]...\n"
+          "Commands: one, two\n"
+          "Try 'prog group --help' for more information.\n",
+          "prog: error: group: a command is required\n"
+          "Usage: prog group [OPTIONS] [SUBCOMMAND]\n"
+          "Commands: one, two\n"
+          "Try 'prog group --help' for more information.\n") },
     { "C10", "prog group one", 0,
       "prog group one\n",
       "" },
@@ -842,10 +982,17 @@ static const struct dj_tests_cli_case COMMANDS[] =
       "" },
     { "C12", "prog", 2,
       "",
-      "prog: error: a command is required\n"
-      "Usage: prog [OPTION]... COMMAND [ARGUMENT]...\n"
-      "Commands: show, check, group, fail, open, help" D_TESTS_CLI_COMPLETION_NAMED "\n"
-      "Try 'prog --help' for more information.\n" },
+      D_TESTS_CLI_LAID(
+          "prog: error: a command is required\n"
+          "Usage: prog [OPTION]... COMMAND [ARGUMENT]...\n"
+          "Commands: show, check, group, fail, open, help"
+          D_TESTS_CLI_COMPLETION_NAMED "\n"
+          "Try 'prog --help' for more information.\n",
+          "prog: error: a command is required\n"
+          "Usage: prog [OPTIONS] [SUBCOMMAND]\n"
+          "Commands: show, check, group, fail, open, help"
+          D_TESTS_CLI_COMPLETION_NAMED "\n"
+          "Try 'prog --help' for more information.\n") },
     { "C13", "prog fail", 2,
       "",
       "prog: error: fail: --x: 'abc' is not a number\n"
@@ -1273,10 +1420,17 @@ static const struct dj_tests_cli_case REPEATS[] =
       "" },
     { "T13", "prog -v --level=2 --level=5", 2,
       "",
-      "prog: error: a command is required\n"
-      "Usage: prog [OPTION]... COMMAND [ARGUMENT]...\n"
-      "Commands: show, check, group, fail, open, pick, help" D_TESTS_CLI_COMPLETION_NAMED "\n"
-      "Try 'prog --help' for more information.\n" }
+      D_TESTS_CLI_LAID(
+          "prog: error: a command is required\n"
+          "Usage: prog [OPTION]... COMMAND [ARGUMENT]...\n"
+          "Commands: show, check, group, fail, open, pick, help"
+          D_TESTS_CLI_COMPLETION_NAMED "\n"
+          "Try 'prog --help' for more information.\n",
+          "prog: error: a command is required\n"
+          "Usage: prog [OPTIONS] [SUBCOMMAND]\n"
+          "Commands: show, check, group, fail, open, pick, help"
+          D_TESTS_CLI_COMPLETION_NAMED "\n"
+          "Try 'prog --help' for more information.\n") }
 };
 
 /**
@@ -1404,10 +1558,17 @@ static const struct dj_tests_cli_case PLAIN[] =
       "Try 'prog --help' for more information.\n" },
     { "Q04", "prog", 2,
       "",
-      "prog: a command is required\n"
-      "Usage: prog [OPTION]... COMMAND [ARGUMENT]...\n"
-      "Commands: show, check, group, fail, open, help" D_TESTS_CLI_COMPLETION_NAMED "\n"
-      "Try 'prog --help' for more information.\n" },
+      D_TESTS_CLI_LAID(
+          "prog: a command is required\n"
+          "Usage: prog [OPTION]... COMMAND [ARGUMENT]...\n"
+          "Commands: show, check, group, fail, open, help"
+          D_TESTS_CLI_COMPLETION_NAMED "\n"
+          "Try 'prog --help' for more information.\n",
+          "prog: a command is required\n"
+          "Usage: prog [OPTIONS] [SUBCOMMAND]\n"
+          "Commands: show, check, group, fail, open, help"
+          D_TESTS_CLI_COMPLETION_NAMED "\n"
+          "Try 'prog --help' for more information.\n") },
     { "Q05", "prog --color=always frob", 2,
       "",
       "\033[1mprog:\033[0m 'frob' is not a command\n"
@@ -1432,10 +1593,15 @@ static const struct dj_tests_cli_case PLAIN[] =
       "Try 'prog --help' for more information.\n" },
     { "Q11", "prog group", 2,
       "",
-      "prog: group: a command is required\n"
-      "Usage: prog group [OPTION]... COMMAND [ARGUMENT]...\n"
-      "Commands: one, two\n"
-      "Try 'prog group --help' for more information.\n" },
+      D_TESTS_CLI_LAID(
+          "prog: group: a command is required\n"
+          "Usage: prog group [OPTION]... COMMAND [ARGUMENT]...\n"
+          "Commands: one, two\n"
+          "Try 'prog group --help' for more information.\n",
+          "prog: group: a command is required\n"
+          "Usage: prog group [OPTIONS] [SUBCOMMAND]\n"
+          "Commands: one, two\n"
+          "Try 'prog group --help' for more information.\n") },
     { "Q12", "prog --help", 0,
       HELP_ROOT,
       "" }
@@ -1622,6 +1788,7 @@ static const struct dj_tests_cli_case LAYOUT[] =
 // version where the parser reads response files. HELP_SHOW_RESPONDING and
 // HELP_ONE_RESPONDING: a command's, `@FILE` after its Global options.
 #if (D_INTERNAL_ARG_PARSER_RESPONSE_FILES == 1)
+#if (D_INTERNAL_CLI_FORMATTER == 1)
 static const char HELP_RESPONDING[] =
     "Usage: prog [OPTION]... COMMAND [ARGUMENT]...\n"
     "A probe of the kit.\n"
@@ -1649,6 +1816,40 @@ static const char HELP_RESPONDING[] =
     "  0  if it did what was asked, and the answer, if one was asked, is yes\n"
     "  1  if it did, and the answer is no\n"
     "  2  if there was trouble: the command line, a file, or the program\n";
+#else
+// Where the kit's formatter is not built (D_CFG_CLI_FORMATTER 0), the
+// argument parser lays the help out itself, and this is its layout.
+static const char HELP_RESPONDING[] =
+    "a probe of the kit\n"
+    "\n"
+    "\n"
+    "prog [OPTIONS] [SUBCOMMAND]\n"
+    "\n"
+    "\n"
+    "OPTIONS:\n"
+    "  -h,     --help              display this help and exit\n"
+    "          --version           output version information and exit\n"
+    "  -q,     --quiet             say nothing but errors\n"
+    "  -v,     --verbose           say more; twice, more again\n"
+    "          --color{always} WHEN \n"
+    "                              colour diagnostics: auto (the default), "
+    "always or\n"
+    "                              never\n"
+    "  -D,     --define NAME ...   define NAME for every command\n"
+    "          --level N [3]       how far to go\n"
+    "  @FILE                       read more arguments from FILE, in its "
+    "place\n"
+    "\n"
+    "SUBCOMMANDS:\n"
+    "  show                        list what a sheet holds\n"
+    "  check                       report a sheet's issues\n"
+    "  group                       hold commands of its own\n"
+    "  fail                        end with a usage error of its own\n"
+    "  open                        read a file\n"
+    "  help                        display help for a command\n"
+    D_TESTS_CLI_COMPLETION_WIDE;
+#endif
+#if (D_INTERNAL_CLI_FORMATTER == 1)
 static const char HELP_SHOW_RESPONDING[] =
     "Usage: prog show [OPTION]... SHEET\n"
     "List what a sheet holds.\n"
@@ -1669,6 +1870,36 @@ static const char HELP_SHOW_RESPONDING[] =
     "  -D, --define=NAME   define NAME for every command\n"
     "      --level=N       how far to go (default: 3)\n"
     "  @FILE               read more arguments from FILE, in its place\n";
+#else
+// Where the kit's formatter is not built (D_CFG_CLI_FORMATTER 0), the
+// argument parser lays the help out itself, and this is its layout.
+static const char HELP_SHOW_RESPONDING[] =
+    "list what a sheet holds\n"
+    "\n"
+    "\n"
+    "prog show [OPTIONS] SHEET\n"
+    "\n"
+    "\n"
+    "POSITIONALS:\n"
+    "  SHEET REQUIRED              the sheet to list\n"
+    "\n"
+    "OPTIONS:\n"
+    "  -h,     --help              display this help and exit\n"
+    "  -o,     --out FILE          write the list to FILE\n"
+    "          --all               every row, hidden ones too\n"
+    "          --version           output version information and exit\n"
+    "  -q,     --quiet             say nothing but errors\n"
+    "  -v,     --verbose           say more; twice, more again\n"
+    "          --color{always} WHEN \n"
+    "                              colour diagnostics: auto (the default), "
+    "always or\n"
+    "                              never\n"
+    "  -D,     --define NAME ...   define NAME for every command\n"
+    "          --level N [3]       how far to go\n"
+    "  @FILE                       read more arguments from FILE, in its "
+    "place\n";
+#endif
+#if (D_INTERNAL_CLI_FORMATTER == 1)
 static const char HELP_ONE_RESPONDING[] =
     "Usage: prog group one [OPTION]...\n"
     "The group's first command.\n"
@@ -1684,6 +1915,30 @@ static const char HELP_ONE_RESPONDING[] =
     "  -D, --define=NAME   define NAME for every command\n"
     "      --level=N       how far to go (default: 3)\n"
     "  @FILE               read more arguments from FILE, in its place\n";
+#else
+// Where the kit's formatter is not built (D_CFG_CLI_FORMATTER 0), the
+// argument parser lays the help out itself, and this is its layout.
+static const char HELP_ONE_RESPONDING[] =
+    "the group's first command\n"
+    "\n"
+    "\n"
+    "prog group one [OPTIONS]\n"
+    "\n"
+    "\n"
+    "OPTIONS:\n"
+    "  -h,     --help              display this help and exit\n"
+    "          --version           output version information and exit\n"
+    "  -q,     --quiet             say nothing but errors\n"
+    "  -v,     --verbose           say more; twice, more again\n"
+    "          --color{always} WHEN \n"
+    "                              colour diagnostics: auto (the default), "
+    "always or\n"
+    "                              never\n"
+    "  -D,     --define NAME ...   define NAME for every command\n"
+    "          --level N [3]       how far to go\n"
+    "  @FILE                       read more arguments from FILE, in its "
+    "place\n";
+#endif
 #else
     #define HELP_RESPONDING      HELP_ROOT
     #define HELP_SHOW_RESPONDING HELP_SHOW
@@ -2917,6 +3172,48 @@ bool d_tests_cli_taken_again(
     return made;
 }
 
+#if ( (D_ENV_IS_OS_WINDOWS(D_ENV_OS_ID)) &&                                    \
+      (D_INTERNAL_ARG_PARSER_WIDE_ARGV == 1) )
+
+/**
+ * @brief How many of main's own arguments the parser alone takes again
+ *        from the wide command line, asked directly: what the kit's run
+ *        depends on, apart from its telling main's arguments from others.
+ *
+ * @return the count of the list taken again; 0 when the parser left
+ *         `__argv` as it is, or the program could not be made.
+ */
+static
+size_t d_tests_cli_parser_takes_again(void)
+{
+    struct dj_arg_buffer  out   = D_ARG_BUFFER_INIT;
+    struct dj_arg_buffer  err   = D_ARG_BUFFER_INIT;
+    struct dj_cli_program program;
+    struct dj_arg_parser  parser;
+    size_t                count = 0u;
+
+    if (d_tests_cli_start(&program,
+                          &parser,
+                          d_tests_cli_make_single,
+                          &out,
+                          &err))
+    {
+        char** const taken = d_arg_parser_ensure_utf8(&parser,
+                                                      __argv);
+
+        count = (taken != __argv) ? parser.utf8_argv.count : 0u;
+        d_tests_cli_finish(&program,
+                           &parser);
+    }
+
+    d_arg_buffer_release(&out);
+    d_arg_buffer_release(&err);
+
+    return count;
+}
+
+#endif  // Windows, the wide command line
+
 /*
 d_tests_cli_program_arguments
   Which arguments a program parses: those it is given, unless they are
@@ -2924,7 +3221,11 @@ main's own - as many as the C runtime gave main, each the same text -
 which on Windows are taken again from the wide command line, in UTF-8. A
 module's arguments, or a test's, are never main's: on Windows a list as
 long as the runtime's, its first word another, is parsed as given, and the
-runtime's own list is taken again; elsewhere nothing is.
+runtime's own list is taken again, where the build takes the wide line
+(D_CFG_ARG_PARSER_WIDE_ARGV); elsewhere nothing is. The parser is asked
+alone too, so that a failure says whose part failed: the parser's taking
+the line again, or the kit's telling main's arguments from others; the
+counts are written to standard error when either fails.
 */
 bool d_tests_cli_program_arguments(void)
 {
@@ -2960,6 +3261,17 @@ bool d_tests_cli_program_arguments(void)
                "A02",
                "a list as long as main's, another first word: as given") &&
            held;
+#endif
+
+#if ( (D_ENV_IS_OS_WINDOWS(D_ENV_OS_ID)) &&                                    \
+      (D_INTERNAL_ARG_PARSER_WIDE_ARGV == 1) )
+    const size_t alone = d_tests_cli_parser_takes_again();
+    const bool   own   = D_TESTS_CLI_CHECK(
+                             (alone == (size_t)__argc),
+                             "A04",
+                             "the parser alone takes main's arguments "
+                             "again");
+
     held = D_TESTS_CLI_CHECK(
                (d_tests_cli_taken_again(__argc,
                                         (const char* const*)__argv,
@@ -2967,6 +3279,19 @@ bool d_tests_cli_program_arguments(void)
                (again == (size_t)__argc),
                "A03",
                "main's own arguments, taken again") && held;
+
+    if ( (!own) ||
+         (again != (size_t)__argc) )
+    {
+        (void)fprintf(stderr,
+                      "[A03] main has %d arguments; the program took %lu "
+                      "again, the parser alone %lu\n",
+                      __argc,
+                      (unsigned long)again,
+                      (unsigned long)alone);
+    }
+
+    held = own && held;
 #endif
 
     return held;

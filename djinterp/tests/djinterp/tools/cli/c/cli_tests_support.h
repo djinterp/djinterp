@@ -46,7 +46,7 @@
 * path:      /tests/djinterp/tools/cli/c/cli_tests_support.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.23
-*                                                            revised: 2026.11.25
+*                                                            revised: 2026.11.27
 *******************************************************************************/
 
 /*
@@ -59,6 +59,7 @@ TABLE OF CONTENTS
          2.  D_TESTS_CLI_LINE_MAX
          3.  D_TESTS_CLI_WIDTH
          4.  D_TESTS_CLI_NAME_MAX
+         5.  D_TESTS_CLI_RUNNER_MAX
     2.  Command lines
          1.  dj_tests_cli_words
     3.  Cases
@@ -68,6 +69,8 @@ TABLE OF CONTENTS
          1.  D_TESTS_CLI_COMPLETION_ROW
          2.  D_TESTS_CLI_COMPLETION_WIDE
          3.  D_TESTS_CLI_COMPLETION_NAMED
+    5.  The kit's formatter
+         1.  D_TESTS_CLI_LAID
 2.  OPERATIONS
     ----------
     1.  Command lines
@@ -113,6 +116,7 @@ TABLE OF CONTENTS
 #include "../../../../../inc/djinterp/c/modules/parse/cli/arg_parser/arg_command.h"  // dj_arg_command
 #include "../../../../../inc/djinterp/c/modules/parse/cli/arg_parser/arg_common.h"  // dj_arg_buffer
 #include "../../../../../inc/djinterp/c/modules/parse/cli/arg_parser/arg_parser.h"  // dj_arg_parser
+#include "../../../../../inc/djinterp/config/tools/cli/cfg_cli.h"  // D_INTERNAL_CLI_FORMATTER
 #include "../../../../../inc/djinterp/config/c/modules/parse/cli/arg_parser/cfg_arg_parser.h"  // D_INTERNAL_ARG_PARSER_COMPLETION
 #include "../../../../../inc/djinterp/tools/cli/c/cli_program.h"  // dj_cli_program
 
@@ -145,6 +149,12 @@ TABLE OF CONTENTS
 //   constant: the room a text check's name, `[tag] what`, is written into;
 // a longer one is cut.
 #define D_TESTS_CLI_NAME_MAX  128
+
+// 1.1.5
+// D_TESTS_CLI_RUNNER_MAX
+//   constant: the most arguments a runner hands DTest; more are not handed
+// on, and the runner says so.
+#define D_TESTS_CLI_RUNNER_MAX 64
 
 // 1.2    Command lines
 //------------------------------------------------------------------------------
@@ -206,6 +216,19 @@ struct dj_tests_cli_case
     #define D_TESTS_CLI_COMPLETION_ROW   ""
     #define D_TESTS_CLI_COMPLETION_WIDE  ""
     #define D_TESTS_CLI_COMPLETION_NAMED ""
+#endif
+
+// 1.5    The kit's formatter
+//------------------------------------------------------------------------------
+// 1.5.1
+// D_TESTS_CLI_LAID
+//   macro: a case's expected text where help or a usage line is laid out:
+// `_kit` where the kit's formatter is built (D_CFG_CLI_FORMATTER), `_parser`
+// where the argument parser lays it out alone.
+#if (D_INTERNAL_CLI_FORMATTER == 1)
+    #define D_TESTS_CLI_LAID(_kit, _parser) _kit
+#else
+    #define D_TESTS_CLI_LAID(_kit, _parser) _parser
 #endif
 
 
@@ -479,19 +502,28 @@ void d_tests_cli_kit_line(
 // d_tests_cli_take_modules
 /**
  * @brief Takes the probe modules' directory off a runner's command line,
- *        so that what is left is DTest's (d_test_run_modules).
+ *        so that what is left is DTest's (d_test_run_modules), in a copy:
+ *        main's own list is left as the C runtime gave it.
  *
- * @param[in,out] _argc  the argument count; one less when a directory is
- *                       taken.
- * @param[in,out] _argv  the arguments: the first after the program's name,
- *                       when it does not begin with `-`, is the directory,
- *                       and those after it move down one, the NULL after
- *                       the last with them.
+ * @note With MSVC, main's `argv` is the runtime's `__argv` itself, and the
+ *       kit tells main's own arguments by comparing a list with it, as the
+ *       program suite's A03 checks: a runner that moved them down would
+ *       make main's list look like another's.
+ *
+ * @param[in]  _argc   main's argument count.
+ * @param[in]  _argv   main's arguments, left as they are: the first after
+ *                     the program's name, when it does not begin with `-`,
+ *                     is the directory.
+ * @param[out] _words  receives the others, in order, and a NULL after the
+ *                     last: room for D_TESTS_CLI_RUNNER_MAX + 1.
+ * @param[out] _count  receives how many.
  * @return the directory, or NULL when none was given.
  */
 const char* d_tests_cli_take_modules(
-    int*   _argc,
-    char** _argv
+    int          _argc,
+    char* const* _argv,
+    char**       _words,
+    int*         _count
 );
 
 D_EXTERN_C_END

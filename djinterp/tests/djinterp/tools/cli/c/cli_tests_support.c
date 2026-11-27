@@ -14,7 +14,7 @@
 * path:      /tests/djinterp/tools/cli/c/cli_tests_support.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.23
-*                                                            revised: 2026.11.18
+*                                                            revised: 2026.11.27
 *******************************************************************************/
 #include "./cli_tests_support.h"  // corresponding header
 // std
@@ -22,7 +22,7 @@
 #include <stdarg.h>   // va_list, va_start, va_end
 #include <stdbool.h>  // bool
 #include <stddef.h>   // size_t
-#include <stdio.h>    // printf, fopen, fread, ferror, snprintf, vsnprintf
+#include <stdio.h>    // fopen, fread, ferror; printf and its kin
 #include <stdlib.h>   // getenv, setenv, unsetenv, _putenv, realloc, free
 #include <string.h>   // memcmp, memset, strlen
 // djinterp
@@ -1039,32 +1039,57 @@ void d_tests_cli_kit_line(
 
 /*
 d_tests_cli_take_modules
-  The first argument, when it is no option, taken; the rest moved down.
+  The first argument, when it is no option, taken; the others copied into
+`_words`, main's own list left as it was.
 */
 const char* d_tests_cli_take_modules(
-    int*   _argc,
-    char** _argv
+    int          _argc,
+    char* const* _argv,
+    char**       _words,
+    int*         _count
 )
 {
     const char* directory = NULL;
+    int         count     = 0;
 
-    if ( (_argc == NULL) ||
-         (_argv == NULL) ||
-         (*_argc < 2) ||
-         (_argv[1] == NULL) ||
-         (_argv[1][0] == '-') )
+    if ( (_words == NULL) ||
+         (_count == NULL) )
     {
         return NULL;
     }
 
-    directory = _argv[1];
-
-    for (int index = 1; index < *_argc; ++index)
+    if ( (_argv != NULL) &&
+         (_argc >= 2) &&
+         (_argv[1] != NULL) &&
+         (_argv[1][0] != '-') )
     {
-        _argv[index] = _argv[index + 1];
+        directory = _argv[1];
     }
 
-    --*_argc;
+    for (int index = 0;
+         (_argv != NULL) && (index < _argc) && (_argv[index] != NULL);
+         ++index)
+    {
+        if ( (index == 1) &&
+             (directory != NULL) )
+        {
+            continue;
+        }
+
+        if (count == D_TESTS_CLI_RUNNER_MAX)
+        {
+            (void)fprintf(stderr,
+                          "only the first %d arguments are read\n",
+                          D_TESTS_CLI_RUNNER_MAX);
+
+            break;
+        }
+
+        _words[count++] = _argv[index];
+    }
+
+    _words[count] = NULL;
+    *_count       = count;
 
     return directory;
 }
