@@ -124,11 +124,14 @@ function(_djinterp_apply_common _target)
             UNICODE
         )
 
+        # /Zc:__cplusplus: without it cl gives __cplusplus as 199711 at
+        # every level, misleading any code that reads it
         target_compile_options(${_target} PRIVATE
             /W3
             /sdl
             /permissive-
             /Zc:preprocessor
+            $<$<COMPILE_LANGUAGE:CXX>:/Zc:__cplusplus>
         )
 
         # Release-only optimizations (mirror WholeProgramOptimization +
@@ -273,6 +276,15 @@ function(djinterp_add_test_executable _target)
     # Debug and Release reports never land in the same folder.
     set_target_properties(${_target} PROPERTIES
         VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${_target}>")
+
+    # ---- no dialogs under MSVC ---------------------------------------------
+    #   A test that fails in the C runtime (an assertion, an invalid
+    # parameter, a heap check, abort, a crash) writes to stderr and ends,
+    # rather than showing a dialog that holds the run until CTest stops it.
+    if (MSVC)
+        target_sources(${_target} PRIVATE
+            "${DJINTERP_TESTS_ROOT}/djinterp/msvc_no_dialog.cpp")
+    endif()
 
     # CTest registration: enables `ctest -R <target>` from the build dir
     if (BUILD_TESTING)

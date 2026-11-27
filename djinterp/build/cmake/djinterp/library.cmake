@@ -56,7 +56,8 @@ function(djinterp_add_library _target)
     if (MSVC)
         target_compile_definitions(${_target} PRIVATE _UNICODE UNICODE)
         target_compile_options(${_target} PRIVATE
-            /W3 /sdl /permissive- /Zc:preprocessor)
+            /W3 /sdl /permissive- /Zc:preprocessor
+            $<$<COMPILE_LANGUAGE:CXX>:/Zc:__cplusplus>)
     endif()
 
 endfunction()
