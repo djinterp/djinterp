@@ -3,9 +3,11 @@
 # djinterp [ci]                                                check_hyphens.py
 #
 # The owner's rule for dashes in prose: in every file of the tree, a dash
-# is one hyphen with a space each side, never two hyphens. Prose is a C or
+# is one hyphen with a space each side, never two hyphens; at a line's end,
+# where the sentence goes on below, one hyphen after a space. Prose is a C or
 # C++ comment, a document (a .md file, or a .txt under docs/, outside its
-# fenced code and code spans), and a # comment of CMake, Python, shell,
+# fenced code and code spans; an .html page, outside its pre, code, script
+# and style elements and its tags), and a # comment of CMake, Python, shell,
 # YAML and PowerShell files. Strings and code are not prose: a program's
 # messages and a command's "--" are left alone, as is data a test or a tool
 # reads byte for byte (fixtures, expected output, corpora) and the punch
@@ -24,7 +26,9 @@
 #            --list     with --write, each file turned and its count
 #            --tree DIR the tree to check (default: the one this script
 #                       is in)
-#   paths:   files or folders under the tree's root; default the whole tree
+#   paths:   files or folders under the tree's root (or absolute paths
+#            inside it); default the whole tree. A file named is checked
+#            as a walk of its folder would check it
 #   exit:    0 when no prose holds a double hyphen (or --write turned them
 #            all); 1 otherwise
 #
@@ -32,7 +36,7 @@
 # path:      /scripts/ci/check_hyphens.py
 # link(s):   TBA
 # author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.23
-#                                                            revised: 2026.11.23
+#                                                            revised: 2026.11.26
 #*******************************************************************************
 import argparse
 import os
@@ -42,6 +46,7 @@ import sys
 
 C_EXT = ('.h', '.c', '.hpp', '.cpp', '.inl', '.ipp', '.tpp', '.inc')
 DOC_EXT = ('.md',)
+HTML_EXT = ('.html', '.htm')
 DOC_TXT_DIRS = ('docs/',)
 # data a test or a tool reads byte for byte, not prose
 DATA_PARTS = ('/fixtures/', '/fixture/', '/expected/', '/golden/', '/corpus/',
@@ -54,8 +59,18 @@ SKIP_FILES = ('scripts/ci/style_known.txt', 'scripts/ci/ladder_known.txt',
               'scripts/ci/stdint_known.txt', 'scripts/ci/crt_known.txt')
 
 
+# a dash of two hyphens at a line's end, after a word: 'word --'
+LINE_END = re.compile(r'(?<=[^\s-]) --(?=\r?$)', re.M)
+
+
 def fix(text):
-    return text.replace(' -- ', ' - ')
+    return LINE_END.sub(' -', text.replace(' -- ', ' - '))
+
+
+def dashes(text):
+    """How many two-hyphen dashes a text holds, mid-line and at a line's
+    end, prose or not."""
+    return text.count(' -- ') + len(LINE_END.findall(text))
 
 
 def c_comments(text):
@@ -120,6 +135,23 @@ def markdown(text):
     return '\n'.join(out)
 
 
+HTML_CODE = re.compile(r'(<(pre|code|script|style)\b[^>]*>.*?</\2\s*>|<[^>]*>)',
+                       re.S | re.I)
+
+
+def html_prose(text):
+    """An HTML page with the double hyphens of its prose turned: text
+    outside its tags and its pre, code, script and style elements."""
+    out = []
+    last = 0
+    for m in HTML_CODE.finditer(text):
+        out.append(fix(text[last:m.start()]))
+        out.append(m.group(0))
+        last = m.end()
+    out.append(fix(text[last:]))
+    return ''.join(out)
+
+
 def hash_comments(text):
     """A script or CMake file with the double hyphens of its # comments
     turned:
@@ -179,8 +211,21 @@ def main():
     lines = 0
     left = 0
     refused = []
+    walks = []
     for root in roots:
-        for folder, dirs, names in os.walk(os.path.join(tree, root)):
+        path = os.path.abspath(os.path.join(tree, root))
+        if os.path.relpath(path, tree).startswith('..'):
+            print('check_hyphens: %s is outside the tree' % root)
+            return 2
+        if os.path.isfile(path):
+            walks.append([(os.path.dirname(path), [], [os.path.basename(path)])])
+        elif os.path.isdir(path):
+            walks.append(os.walk(path))
+        else:
+            print('check_hyphens: no such file or folder: %s' % root)
+            return 2
+    for walk in walks:
+        for folder, dirs, names in walk:
             rel_folder = os.path.relpath(folder, tree).replace(os.sep, '/')
             dirs[:] = sorted(d for d in dirs if d not in ('.git', '__pycache__'))
             for name in sorted(names):
@@ -195,16 +240,18 @@ def main():
                 elif name.endswith(DOC_EXT) or (name.endswith('.txt') and
                                                 rel.startswith(DOC_TXT_DIRS)):
                     kind = 'doc'
+                elif name.endswith(HTML_EXT):
+                    kind = 'html'
                 else:
                     continue
                 raw = open(path, 'rb').read()
-                if b' -- ' not in raw:
+                if b' --' not in raw:
                     continue
                 try:
                     text = raw.decode('utf-8')
                 except UnicodeDecodeError:
                     continue
-                new = {'c': c_comments, 'doc': markdown,
+                new = {'c': c_comments, 'doc': markdown, 'html': html_prose,
                        'hash': hash_comments}[kind](text)
                 if write and kind == 'c' and new != text and \
                         not options.no_tokens:
@@ -214,12 +261,12 @@ def main():
                         refused.append(rel)
                         continue
                 if new != text:
-                    count = text.count(' -- ') - new.count(' -- ')
+                    count = dashes(text) - dashes(new)
                     lines += count
                     changed.append((rel, count))
                     if write:
                         open(path, 'wb').write(new.encode('utf-8'))
-                left += new.count(' -- ')
+                left += dashes(new)
     if write:
         print('check_hyphens: %d turned in %d files; %d files refused by the '
               'token check' % (lines, len(changed), len(refused)))
