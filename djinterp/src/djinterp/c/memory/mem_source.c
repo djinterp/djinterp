@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [c][memory]                                              mem_source.c
 *
-*   Implementation unit for mem_source.h. Carries the four built-in sources --
+*   Implementation unit for mem_source.h. Carries the four built-in sources -
 * system, null, buffer and counting - their operation tables, and the generic
 * protocol operations every allocator calls through, including the
 * allocate/copy/release emulation that makes the reallocate slot optional.
@@ -36,7 +36,7 @@ d_internal_mem_system_needs_aligned_path
   Reports whether a request needs more than malloc guarantees.
   This is the branch that keeps the common case free: malloc already returns
 memory suitable for any fundamental type, so a request at or below that
-alignment takes plain malloc and pays none of the over-alignment machinery --
+alignment takes plain malloc and pays none of the over-alignment machinery -
 no size rounding, no stored raw pointer, no second free routine.
 
 Parameter(s):
@@ -1354,7 +1354,7 @@ void d_mem_source_release_block(
 d_mem_source_reallocate
   Resizes a block, in place where the source can and by copying where it
 cannot.
-  THE EMULATION IS THE POINT. A source that leaves its reallocate slot null --
+  THE EMULATION IS THE POINT. A source that leaves its reallocate slot null -
 or a build that removed the slot entirely - still supports resizing, because
 allocate, memcpy and release compose into it. That is what lets
 D_CFG_MEM_SOURCE_REALLOC be a knob about a copy rather than about a

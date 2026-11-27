@@ -32,7 +32,7 @@
 
 // D_INTERNAL_ARENA_LEAD
 //   macro (internal): the bytes reserved BEFORE a payload for its leading
-// guard band. Defers to mem_common's kernel, which owns the rounding rule --
+// guard band. Defers to mem_common's kernel, which owns the rounding rule -
 // the pool needs the identical answer, and two copies of it disagreed once.
 #define D_INTERNAL_ARENA_LEAD(_align)   d_mem_redzone_lead(_align)
 
@@ -333,7 +333,7 @@ dj_mem_size, or D_MEM_ERR_EXHAUSTED when this arena may not grow, when its
 budget forbids it, or when the upstream refused.
   NOTE that an arena which may not grow reports EXHAUSTED rather than
 UNSUPPORTED. The caller asked for an allocation, not for growth, and "there is
-no more room" is exhaustion however the room came to run out --
+no more room" is exhaustion however the room came to run out -
 D_MEM_ERR_UNSUPPORTED is reserved for an OPERATION the configuration forbids,
 such as releasing an individual block back to an arena.
 */
@@ -831,7 +831,7 @@ void d_arena_trim(
 d_arena_release
   Returns every region to the upstream source and leaves the arena in its
 initialized-but-empty state, ready to be used again.
-  A region that came from the caller (d_arena_init_buffer) is NOT released --
+  A region that came from the caller (d_arena_init_buffer) is NOT released -
 it was never the source's to take back.
 
 Parameter(s):

@@ -284,7 +284,7 @@ struct is_memory_resource
 ///                      IV.   CONCEPTS                                     ///
 ///////////////////////////////////////////////////////////////////////////////
 //   A thin face over the traits above, and nothing more. Dropping them where
-// concepts are unavailable changes what is CHECKED, never what is computed --
+// concepts are unavailable changes what is CHECKED, never what is computed -
 // which is why D_CFG_MEM_USE_CONCEPTS can be turned off on a tier that has
 // them without any behaviour moving.
 

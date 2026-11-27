@@ -392,7 +392,7 @@ public:
     }
 
     // deallocate
-    //   operation: nothing, except when the range is the most recent one --
+    //   operation: nothing, except when the range is the most recent one -
     // the same pop-back an arena offers, and for the same reason: it is one
     // comparison rather than a data structure.
     D_INLINE
@@ -468,7 +468,7 @@ private:
 // therefore be instantiated over std::allocator<T> and behave exactly as a
 // standard container would.
 //
-//   NOT POINTER-STABLE, because a general allocator makes no such promise --
+//   NOT POINTER-STABLE, because a general allocator makes no such promise -
 // and a container reading this constant will correctly decline to hand out
 // interior pointers across a reallocation.
 template<typename Alloc>

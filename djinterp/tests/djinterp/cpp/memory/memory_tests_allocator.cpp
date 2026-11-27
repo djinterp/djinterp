@@ -17,6 +17,7 @@
 #include <list>
 #include <map>
 #include <memory>
+#include <new>          // std::bad_array_new_length
 #include <type_traits>
 #include <vector>
 
@@ -106,6 +107,59 @@ tests_memory_allocator_pool()
     *one = 42;
     ints.deallocate(one,
                     1);
+    D_TEST_REQUIRE(nodes.size() == 0);
+
+    return true;
+}
+
+/*
+tests_memory_allocator_pool_first_node
+  What configures the pool: the first single node, nothing else.
+  Tests the following:
+  - an array, allocated first, comes from the source and leaves the pool
+    unconfigured (until 2026.11.25 it configured the pool to the array's
+    size, so the nodes after it all missed the pool)
+  - the first single object then configures the pool to its own size
+  - a count past max_size() throws std::bad_array_new_length and configures
+    nothing
+*/
+bool
+tests_memory_allocator_pool_first_node()
+{
+    DNodePool               nodes;
+    DPoolAllocator<double>  allocator(nodes);
+    double*                 array  = nullptr;
+    double*                 single = nullptr;
+    bool                    threw  = false;
+
+    try
+    {
+        (void)allocator.allocate(allocator.max_size() + 1);
+    }
+    catch (const std::bad_array_new_length&)
+    {
+        threw = true;
+    }
+
+    D_TEST_REQUIRE(threw);
+    D_TEST_REQUIRE(!nodes.is_configured());
+
+    array = allocator.allocate(16);
+    D_TEST_REQUIRE(array != nullptr);
+    D_TEST_REQUIRE(!nodes.is_configured());
+    D_TEST_REQUIRE(nodes.size() == 0);
+
+    single = allocator.allocate(1);
+    D_TEST_REQUIRE(single != nullptr);
+    D_TEST_REQUIRE(nodes.is_configured());
+    D_TEST_REQUIRE(nodes.slot_size() >= sizeof(double));
+    D_TEST_REQUIRE(nodes.slot_size() < (16 * sizeof(double)));
+    D_TEST_REQUIRE(nodes.size() == 1);
+
+    allocator.deallocate(single,
+                         1);
+    allocator.deallocate(array,
+                         16);
     D_TEST_REQUIRE(nodes.size() == 0);
 
     return true;

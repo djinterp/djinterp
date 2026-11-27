@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [c][memory]                                              mem_common.c
 *
-*   Implementation unit for mem_common.h. Carries the out-of-line vocabulary --
+*   Implementation unit for mem_common.h. Carries the out-of-line vocabulary -
 * block views, checked arithmetic, slot geometry, accounting, the hardening
 * fills and the status names - and re-declares the header's `inline` kernels
 * so exactly one external definition of each is emitted for the compiled C

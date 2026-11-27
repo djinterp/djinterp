@@ -74,7 +74,7 @@ NS_DJINTERP
 
 // DMemorySource
 //   class: a byte source. Derives from the C struct and adds NO members, so
-// it IS a dj_mem_source and may be passed to any C entry point by slicing --
+// it IS a dj_mem_source and may be passed to any C entry point by slicing -
 // which is not a hazard here but the mechanism, since the base carries all the
 // state and the derived part carries none.
 //   What it adds is that a default-constructed one is the well-defined UNSET

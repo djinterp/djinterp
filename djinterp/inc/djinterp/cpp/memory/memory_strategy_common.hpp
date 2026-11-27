@@ -365,7 +365,7 @@ struct is_byte_strategy
 };
 
 // is_element_strategy
-//   trait: true when a strategy vends storage already shaped for a type --
+//   trait: true when a strategy vends storage already shaped for a type -
 // the shape a pool-backed or allocator-backed strategy takes.
 template<typename Type>
 struct is_element_strategy

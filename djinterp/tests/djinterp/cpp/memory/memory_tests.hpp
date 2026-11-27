@@ -205,6 +205,9 @@ bool
 tests_memory_allocator_pool();
 
 bool
+tests_memory_allocator_pool_first_node();
+
+bool
 tests_memory_allocator_pool_containers();
 
 bool
@@ -339,6 +342,9 @@ static const struct dj_test_case_spec memory_tests_allocator_rows[] =
     { "tests_memory_allocator_pool",
       "pool_allocator: its typedefs, rebinding, allocation and equality",
       &tests_memory_allocator_pool },
+    { "tests_memory_allocator_pool_first_node",
+      "the first single node configures the pool; an array never does",
+      &tests_memory_allocator_pool_first_node },
     { "tests_memory_allocator_pool_containers",
       "std::list and std::map run on a pool_allocator",
       &tests_memory_allocator_pool_containers },

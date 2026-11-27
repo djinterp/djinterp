@@ -24,7 +24,7 @@
 /*   Memory-strategy conformance harness.
  *   The compile-time half is already done: memory_strategy.hpp asserts every
  * strategy against the contract at its point of definition, so this file
- * compiling at all proves the classification. What remains is behavioural --
+ * compiling at all proves the classification. What remains is behavioural -
  * that a container written ONCE against the contract really does work over
  * all four strategies, and that the descriptive constants tell the truth
  * about what each one does.

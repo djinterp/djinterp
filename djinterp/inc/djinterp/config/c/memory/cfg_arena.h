@@ -350,7 +350,7 @@ TABLE OF CONTENTS
 
 // D_INTERNAL_ARENA_GROWTH_RUNTIME
 //   brief: 1 when the growth policy is a per-instance field. Forced off when
-// chaining is off, since an arena that never grows has no policy to carry --
+// chaining is off, since an arena that never grows has no policy to carry -
 // which is the one place these two knobs interact, resolved here so arena.c
 // never tests both.
 #if D_CFG_IS_ON(D_CFG_ARENA_CHAIN) && D_CFG_IS_ON(D_CFG_ARENA_GROWTH_RUNTIME)

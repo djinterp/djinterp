@@ -61,7 +61,7 @@
 d_pool_align_for
   Computes the alignment a pool's slots will actually carry, given a requested
 alignment and a release policy.
-  Exposed rather than internal because a caller sizing a buffer for a pool --
+  Exposed rather than internal because a caller sizing a buffer for a pool -
 or a C++ wrapper asserting that it adds nothing - needs the answer before any
 pool exists.
 

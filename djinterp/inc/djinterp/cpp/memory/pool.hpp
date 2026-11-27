@@ -303,7 +303,7 @@ private:
 
     // d_internal_clear
     //   helper: leaves a moved-from pool in a state that is safe to destroy
-    // and safe to reuse. Re-initializing through the kernel is deliberate --
+    // and safe to reuse. Re-initializing through the kernel is deliberate -
     // zeroing the struct by hand here would be this file deciding what the
     // empty state is, which is the kernel's business.
     static D_INLINE

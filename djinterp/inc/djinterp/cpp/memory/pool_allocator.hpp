@@ -16,7 +16,7 @@
 *
 * WHICH ADAPTER FOR WHICH CONTAINER:
 *
-*   DPoolAllocator   fixed-size nodes, so it fits the NODE-BASED containers --
+*   DPoolAllocator   fixed-size nodes, so it fits the NODE-BASED containers -
 *                    std::list, std::forward_list, std::set, std::map,
 *                    std::unordered_* - where nearly every allocation is one
 *                    node and every node is the same size. This is the pairing
@@ -47,7 +47,7 @@
 * path:      /inc/djinterp/cpp/memory/pool_allocator.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.08.13
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.11.25
 *******************************************************************************/
 
 /*
@@ -76,7 +76,9 @@ II.   DArenaAllocator<T>
 
 // std
 #include <cstddef>
+#include <memory>       // the standard library's own allocations
 #include <new>
+#include <type_traits>  // std::false_type, std::true_type
 // djinterp
 #include "../djinterp.hpp"
 #include "./mem_common.hpp"
@@ -177,6 +179,21 @@ public:
         return ::d_mem_source_allocate(&m_source, _bytes, _align);
     }
 
+    // acquire_unpooled
+    //   operation: storage for _bytes bytes at _align from the upstream
+    // source, never from the pool and without configuring it: for a request
+    // that is not one of the container's nodes (an array, or the standard
+    // library's own bookkeeping), so that it cannot fix the slot geometry.
+    // release() returns it to the source.
+    D_INLINE
+    void* acquire_unpooled(
+        DMemSize _bytes,
+        DMemSize _align
+    )
+    {
+        return ::d_mem_source_allocate(&m_source, _bytes, _align);
+    }
+
     // release
     //   operation: returns storage to wherever it came from. The pool is
     // asked whether the pointer is one of its slots, which is exact rather
@@ -274,6 +291,27 @@ private:
 };
 
 
+NS_INTERNAL
+
+    // pool_allocator_bookkeeping
+    //   trait: whether a container allocates Type for its own bookkeeping,
+    // not as one of its nodes, so that DPoolAllocator sends it to the
+    // fallback and lets the nodes configure the pool. MSVC's standard
+    // library, with its iterator debugging on (its Debug default), allocates
+    // a std::_Container_proxy through the container's allocator before the
+    // first node.
+    template<typename Type>
+    struct pool_allocator_bookkeeping : std::false_type
+    {};
+
+#if defined(_MSVC_STL_VERSION)
+    template<>
+    struct pool_allocator_bookkeeping<std::_Container_proxy> : std::true_type
+    {};
+#endif  // _MSVC_STL_VERSION
+
+NS_END
+
 // DPoolAllocator
 //   class: an Allocator over a DNodePool, for node-based containers.
 //   Every rebound copy shares the same DNodePool, which is what makes this
@@ -336,17 +374,31 @@ public:
     {}
 
     // allocate
-    //   operation: storage for _count objects. A single object comes from the
-    // pool; anything else goes to the pool's fallback source, since pool
-    // slots are individually recycled and are not guaranteed adjacent.
+    //   operation: storage for _count objects. A single node comes from the
+    // pool, and the first one configures it; anything else (an array, or the
+    // standard library's bookkeeping) goes to the pool's fallback source
+    // without configuring it, since pool slots are individually recycled and
+    // are not guaranteed adjacent. A _count past max_size() throws
+    // std::bad_array_new_length, as std::allocator does.
     D_INLINE
     pointer allocate(
         size_type _count
     )
     {
-        void* storage = m_pool->acquire(
-            static_cast<DMemSize>(_count * sizeof(Type)),
-            align_of<Type>::value);
+        void* storage;
+
+        if (_count > max_size())
+        {
+            throw std::bad_array_new_length();
+        }
+
+        storage = ( (_count == 1) &&
+                    (!internal::pool_allocator_bookkeeping<Type>::value) )
+            ? m_pool->acquire(static_cast<DMemSize>(sizeof(Type)),
+                              align_of<Type>::value)
+            : m_pool->acquire_unpooled(
+                  static_cast<DMemSize>(_count * sizeof(Type)),
+                  align_of<Type>::value);
 
         if (!storage)
         {

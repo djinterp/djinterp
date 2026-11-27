@@ -420,7 +420,7 @@ dj_mem_size d_mem_align_accept(
 //   kernel: _value rounded up to the next multiple of _align, which MUST be a
 // power of two. UNCHECKED: when _value is within _align-1 of D_MEM_SIZE_MAX
 // the sum wraps and the result is smaller than _value. Use it only where the
-// magnitude is already known to be bounded - a slot size, a header size --
+// magnitude is already known to be bounded - a slot size, a header size -
 // and use d_mem_align_up_checked everywhere a caller's number is involved.
 D_MEM_FN
 dj_mem_size d_mem_align_up(
