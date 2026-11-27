@@ -95,6 +95,17 @@
 *                                                            revised: 2026.09.20
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  THE ROW AND THE CONTAINER
+    -------------------------
+2.  LAYOUT ASSERTION
+    ----------------
+3.  OPERATIONS
+    ----------
+*/
+
 #ifndef DJINTERP_C_TEST_METADATA_H
 #define DJINTERP_C_TEST_METADATA_H 1
 
@@ -149,9 +160,9 @@
 D_EXTERN_C_BEGIN
 
 
-// =============================================================================
-// I.   THE ROW AND THE CONTAINER
-// =============================================================================
+//==============================================================================
+// 1.  THE ROW AND THE CONTAINER
+//==============================================================================
 
 // dj_test_kv
 //   struct: one metadata row.  Both halves are BORROWED - the key is
@@ -231,9 +242,9 @@ struct dj_test_metadata
 // reads as empty.
 
 
-// =============================================================================
-// II.  LAYOUT ASSERTION
-// =============================================================================
+//==============================================================================
+// 2.  LAYOUT ASSERTION
+//==============================================================================
 //   Moved here with the struct it describes.  The container is pointer-bearing
 // and is asserted for ORDER only.
 
@@ -242,9 +253,9 @@ D_STATIC_ASSERT(offsetof(struct dj_test_metadata, count) >
                 "dj_test_metadata: count must follow rows");
 
 
-// =============================================================================
-// III. OPERATIONS
-// =============================================================================
+//==============================================================================
+// 3.  OPERATIONS
+//==============================================================================
 
 //   set() replaces an existing key in place rather than appending a second
 // row, so lookup stays unambiguous under a linear scan; the previous value is
