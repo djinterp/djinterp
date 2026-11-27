@@ -14,18 +14,15 @@ set(_tests_dir "${DJINTERP_TESTS_ROOT}/djinterp/c")
 
 file(GLOB _sections CONFIGURE_DEPENDS "${_tests_dir}/dio_tests*.c")
 
-# The sections open their files through c/filesys.
-file(GLOB _filesys CONFIGURE_DEPENDS
-     "${DJINTERP_SRC_ROOT}/djinterp/c/filesys/*.c")
-
 djinterp_add_test_executable(c_dio_tests
     SOURCES
         "${CMAKE_CURRENT_SOURCE_DIR}/dio_tests_runner.c"
         ${_sections}
         "${DJINTERP_SRC_ROOT}/djinterp/c/dio.c"
-        ${_filesys}
         "${DJINTERP_SRC_ROOT}/djinterp/c/string_fn.c"
         "${DJINTERP_SRC_ROOT}/djinterp/c/memory/dmemory.c"
         "${DJINTERP_SRC_ROOT}/djinterp/c/modules/test/test_suite.c"
     INCLUDES
-        "${_tests_dir}")
+        "${_tests_dir}"
+    LIBRARIES
+        djinterp_c_filesys)

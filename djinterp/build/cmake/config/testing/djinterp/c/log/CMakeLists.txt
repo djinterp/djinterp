@@ -7,9 +7,9 @@
 #     - c_log_tests: the log's levels, codes, settings, records, writers and
 #       times. They link the log's two units, desc's machines and units,
 #       option_env's, the stream's console, file and template units with
-#       the filesys units it calls (as the stream's own leaf links them),
-#       and c/sync's mutex (the runtime has the stream itself), beside
-#       DTest's C face.
+#       c/filesys's library, which the file unit calls (as the stream's
+#       own leaf links it), and c/sync's mutex (the runtime has the stream
+#       itself), beside DTest's C face.
 #
 #
 # path:      /build/cmake/config/testing/djinterp/c/log/CMakeLists.txt
@@ -39,16 +39,10 @@ djinterp_add_test_executable(c_log_tests
         "${_c}/option/option_common.c"
         "${_c}/util/ostream/ostream_console.c"
         "${_c}/util/ostream/ostream_file.c"
-        "${_c}/filesys/file_open.c"
-        "${_c}/filesys/file_common.c"
-        "${_c}/filesys/file_desc.c"
-        "${_c}/filesys/file_io.c"
-        "${_c}/filesys/file_path.c"
-        "${_c}/filesys/file_seek.c"
-        "${_c}/filesys/file_stat.c"
         "${_c}/text/ostream_template.c"
         "${_c}/sync/dmutex.c"
         "${_dtest}"
-    INCLUDES  "${_tests_dir}")
+    INCLUDES  "${_tests_dir}"
+    LIBRARIES djinterp_c_filesys)
 
 target_link_libraries(c_log_tests PRIVATE Threads::Threads)

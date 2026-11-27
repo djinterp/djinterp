@@ -34,15 +34,9 @@ djinterp_add_test_executable(c_db_log_tests
         "${_c}/option/option_common.c"
         "${_c}/util/ostream/ostream_console.c"
         "${_c}/util/ostream/ostream_file.c"
-        "${_c}/filesys/file_open.c"
-        "${_c}/filesys/file_common.c"
-        "${_c}/filesys/file_desc.c"
-        "${_c}/filesys/file_io.c"
-        "${_c}/filesys/file_path.c"
-        "${_c}/filesys/file_seek.c"
-        "${_c}/filesys/file_stat.c"
         "${_c}/text/ostream_template.c"
         "${_c}/sync/dmutex.c"
         "${_dtest}"
-    INCLUDES  "${_tests_dir}")
+    INCLUDES  "${_tests_dir}"
+    LIBRARIES djinterp_c_filesys)
 target_link_libraries(c_db_log_tests PRIVATE Threads::Threads)
