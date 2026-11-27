@@ -12,8 +12,8 @@
 #       CMake's PostgreSQL package (libpq) is found. The server is read from
 #       the environment (DJINTERP_TEST_POSTGRES_HOST, _PORT, _USER, _PASSWORD,
 #       _DATABASE); without one to reach, its first test fails and says how to
-#       name one. It carries the label needs-server, which CI's run on a push
-#       leaves out (ctest --label-exclude needs-server).
+#       name one. It carries the label needs-server: CI's build job leaves it
+#       out, and its servers job runs it against PostgreSQL.
 #     - c_postgres_sizes_tests: the sizes postgres_connection.c computes for
 #       its allocations, each given a count too large, made beside
 #       c_postgres_tests. It includes the unit, which no other source here

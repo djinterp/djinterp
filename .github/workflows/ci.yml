@@ -5,7 +5,10 @@
 # the changed files, the fixed-width includes, the C runtime's calls MSVC
 # refuses, single hyphens in prose, the roots' growth, the version, and no
 # lane named in an added line or a commit message), then a build and the
-# tests that need no server, with GCC, Clang and MSVC.
+# tests that need no server, with GCC, Clang and MSVC; and, with GCC and
+# Clang, the suites labelled needs-server against real servers: PostgreSQL
+# and MariaDB as service containers, MongoDB's replica set and standalone
+# server started by scripts/ci/mongodb_up.sh.
 #   One run says every failure it can: each gate runs whatever an earlier gate
 # found, the build keeps going past a unit that fails, and the tests run over
 # whatever was built (a test whose program didn't build fails as not run).
@@ -147,4 +150,80 @@ jobs:
         run: >
           ctest --test-dir "$RUNNER_TEMP/build" -C Debug
           --label-exclude needs-server --output-on-failure --parallel 4
+          --timeout 600
+
+  servers:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: gcc,   cc: gcc,   cxx: g++ }
+          - { name: clang, cc: clang, cxx: clang++ }
+    name: servers (${{ matrix.name }})
+    runs-on: ubuntu-24.04
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: djinterp
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s --health-timeout 5s --health-retries 30
+      mariadb:
+        image: mariadb:10.11
+        env:
+          MARIADB_ROOT_PASSWORD: djinterp
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd "healthcheck.sh --connect --innodb_initialized"
+          --health-interval 5s --health-timeout 5s --health-retries 30
+    env:
+      DJINTERP_TEST_POSTGRES_HOST: 127.0.0.1
+      DJINTERP_TEST_POSTGRES_PORT: 5432
+      DJINTERP_TEST_POSTGRES_USER: postgres
+      DJINTERP_TEST_POSTGRES_PASSWORD: djinterp
+      DJINTERP_TEST_POSTGRES_DATABASE: postgres
+      DJINTERP_TEST_MARIADB_HOST: 127.0.0.1
+      DJINTERP_TEST_MARIADB_PORT: 3306
+      DJINTERP_TEST_MARIADB_USER: root
+      DJINTERP_TEST_MARIADB_PASSWORD: djinterp
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: the clients and the outside libraries
+        working-directory: .
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libpq-dev libmariadb-dev libmongoc-dev \
+                                  libbson-dev libssl-dev zlib1g-dev
+
+      - name: MongoDB, a replica set and a standalone server
+        run: bash scripts/ci/mongodb_up.sh 8.0 >> "$GITHUB_ENV"
+
+      - name: configure
+        id: configure
+        env:
+          CC: ${{ matrix.cc }}
+          CXX: ${{ matrix.cxx }}
+        run: >
+          cmake -S build/cmake/config -B "$RUNNER_TEMP/build"
+          -DCMAKE_BUILD_TYPE=Debug
+
+      - name: build the suites that need a server
+        run: |
+          targets=$(ctest --test-dir "$RUNNER_TEMP/build" -N -L needs-server |
+                    sed -n 's/^ *Test *#[0-9]*: *//p')
+          echo "$targets"
+          test -n "$targets"
+          cmake --build "$RUNNER_TEMP/build" --config Debug --parallel 4 \
+                --target $targets
+
+      - name: test against the servers
+        if: ${{ !cancelled() && steps.configure.outcome == 'success' }}
+        run: >
+          ctest --test-dir "$RUNNER_TEMP/build" -C Debug
+          --label-regex needs-server --output-on-failure --parallel 2
           --timeout 600

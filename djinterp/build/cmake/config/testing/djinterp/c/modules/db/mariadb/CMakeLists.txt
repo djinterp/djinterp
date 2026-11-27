@@ -11,8 +11,8 @@
 #       where pkg-config finds libmariadb, or else mysqlclient. The server is
 #       read from the environment (DJINTERP_TEST_MARIADB_HOST, _PORT, _USER,
 #       _PASSWORD, _SOCKET); without one to reach, its first test fails and
-#       says how to name one. It carries the label needs-server, which CI's
-#       run on a push leaves out (ctest --label-exclude needs-server).
+#       says how to name one. It carries the label needs-server: CI's build
+#       job leaves it out, and its servers job runs it against MariaDB.
 #     - c_mariadb_sizes_tests: the size mariadb_query.c computes for a
 #       query's attribute names, given a count too large, made beside
 #       c_mariadb_tests; skipped over a client without query attributes. It

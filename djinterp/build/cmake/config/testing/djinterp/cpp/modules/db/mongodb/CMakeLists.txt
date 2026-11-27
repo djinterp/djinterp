@@ -54,7 +54,8 @@ djinterp_add_test_executable(mongodb_core_tests
     LIBRARIES ${_client} Threads::Threads)
 
 # it needs a deployment: labelled needs-server, which a run without one leaves
-# out (ctest -LE needs-server, as CI's test step does)
+# out (ctest -LE needs-server, as CI's build job does); CI's servers job
+# runs it against one
 if (BUILD_TESTING)
     set_property(TEST mongodb_core_tests APPEND PROPERTY LABELS needs-server)
 endif()

@@ -16,8 +16,8 @@
 #       the environment (DJINTERP_TEST_MONGODB_URI, which carries the
 #       password, and DJINTERP_TEST_MONGODB_STANDALONE_URI); without one to
 #       reach, its first test fails and says how to name one. It carries the
-#       label needs-server, which CI's run on a push leaves out (ctest
-#       --label-exclude needs-server).
+#       label needs-server: CI's build job leaves it out, and its servers job
+#       runs it against MongoDB.
 # The C layer is C99. core/db's harnesses over it stay in
 # cpp/modules/db/mongodb.
 #
