@@ -9,6 +9,13 @@
 # it sends it. It reads only what a change adds, so what the tree already
 # holds never fails it, and a line a change only moves (one it removes from a
 # file it deletes or edits) is not added; --all reports the whole tree.
+#   Nor is a name a change only carries into new words around it: a document
+# made HTML from its Markdown, or a paragraph wrapped again, has new lines and
+# the old text. A finding in an added line is carried when the words a
+# reader sees beside it, three on one side, stand with it in what the change
+# removes (a file it deletes, whole, or the lines it takes out of a file it
+# edits). The words are the letters and digits a reader sees: an HTML
+# file's tags, a Markdown link's target and an entity are not read.
 #   It refuses, in a line it reads:
 #     a lane named: "lane F", "lanes B and E", "Lane-C", "LaneF", "the wasm
 #       lane", "lane math"; and a message's subject that starts with a
@@ -43,7 +50,7 @@
 # path:      /scripts/ci/check_lane_names.py
 # link(s):   TBA
 # author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.20
-#                                                            revised: 2026.11.23
+#                                                            revised: 2026.11.26
 #*******************************************************************************
 import argparse
 import difflib
@@ -78,6 +85,13 @@ NAMES = ('CMakeLists.txt', 'Makefile', 'README', '.gitattributes',
          '.gitignore', 'LICENSE')
 SKIP = ('scripts/ci/check_lane_names.py',)
 SUBJECT = re.compile(r"^\s*[A-H]\s*:")
+TAG = re.compile(r"<!--.*?-->|</?[A-Za-z][A-Za-z0-9-]*(?:\s[^<>]*)?/?>", re.S)
+LINK = re.compile(r"\]\([^()\s]*\)")
+ENTITY = re.compile(r"&(?:#[0-9]+|#[xX][0-9A-Fa-f]+|[A-Za-z][A-Za-z0-9]*);")
+WORD = re.compile(r"[A-Za-z0-9]+")
+# the words beside a finding, on one side, that must stand with it in what a
+# change removes for it to be carried
+CONTEXT = 3
 
 
 def never_id(text, line):
@@ -111,9 +125,37 @@ def lines_of(data):
     return data.decode('utf-8', 'replace').replace('\r\n', '\n').split('\n')
 
 
-def added(old, new, removed=None):
+def seen(path, text):
+    """text with what a reader does not see - an HTML file's tags, a Markdown
+    link's target, an entity - made spaces; its newlines stay, so a word
+    keeps its line"""
+    def blank(match):
+        return re.sub(r"[^\n]", " ", match.group(0))
+    if path.endswith(('.html', '.htm')):
+        text = TAG.sub(blank, text)
+    if path.endswith('.md'):
+        text = LINK.sub(blank, text)
+    return ENTITY.sub(blank, text)
+
+
+def words(path, lines):
+    """the (line number, word) of each word lines show a reader"""
+    out = []
+    for number, line in enumerate(seen(path, '\n'.join(lines)).split('\n'),
+                                  1):
+        out += [(number, word) for word in WORD.findall(line)]
+    return out
+
+
+def run_of(path, lines):
+    """lines' words as one string, each word between spaces"""
+    return ' ' + ' '.join(w for _, w in words(path, lines)) + ' '
+
+
+def added(old, new, removed=None, corpus=None, path=''):
     """The (number, text) of each line in new that old lacks; the text of
-    each line old has and new lacks goes into removed, a set."""
+    each line old has and new lacks goes into removed, a set, and the words
+    of each run of them into corpus, a list."""
     out = []
     matcher = difflib.SequenceMatcher(None, old, new, autojunk=False)
     for tag, i1, i2, j1, j2 in matcher.get_opcodes():
@@ -121,7 +163,38 @@ def added(old, new, removed=None):
             out += [(j + 1, new[j]) for j in range(j1, j2)]
         if removed is not None and tag in ('replace', 'delete'):
             removed.update(old[i].strip() for i in range(i1, i2))
+        if corpus is not None and tag in ('replace', 'delete'):
+            corpus.append(run_of(path, old[i1:i2]))
     return out
+
+
+def carried(stream, number, found, cursor, corpus):
+    """whether found, on line number of the file whose words are stream,
+    stands with the words beside it in corpus; cursor holds, per line, the
+    index of the word after the last finding placed on it"""
+    mine = [i for i, (n, _) in enumerate(stream) if n == number]
+    target = WORD.findall(found)
+    if not mine or not target:
+        return False
+    start = cursor.get(number, mine[0])
+    for i in range(start, mine[-1] + 1):
+        if [w for _, w in stream[i:i + len(target)]] == target:
+            cursor[number] = i + len(target)
+            break
+    else:
+        return False
+    plain = [w for _, w in stream]
+    left = plain[max(0, i - CONTEXT):i]
+    right = plain[i + len(target):i + len(target) + CONTEXT]
+    runs = []
+    if len(left) == CONTEXT:
+        runs.append(left + target)
+    if len(right) == CONTEXT:
+        runs.append(target + right)
+    if not runs:
+        runs.append(left + target + right)
+    return any(' ' + ' '.join(run) + ' ' in text
+               for run in runs for text in corpus)
 
 
 def git(tree, *arguments):
@@ -162,13 +235,21 @@ def main():
     hits = []
     pending = []    # files' added lines, read once every removed line is known
     removed = set()
+    corpus = []     # the words of what the change removes, a run a string
 
-    def read(where, numbered, moved=False):
+    def read(where, numbered, moved=False, path='', lines=None):
         if moved:
-            pending.append((where, list(numbered)))
+            pending.append((where, list(numbered), path, lines))
             return
+        cursor = {}
+        stream = None
         for number, text in numbered:
             for found in findings(text):
+                if lines is not None:
+                    if stream is None:
+                        stream = words(path, lines)
+                    if carried(stream, number, found, cursor, corpus):
+                        continue
                 hits.append((where, number, found, text.strip()))
 
     for name in options.message:
@@ -186,8 +267,9 @@ def main():
                 if path.startswith('djinterp/'):
                     path = path[len('djinterp/'):]
                 if path:
-                    removed.update(l.strip() for l in
-                                   head_copy(tree, prefix, path))
+                    old = head_copy(tree, prefix, path)
+                    removed.update(l.strip() for l in old)
+                    corpus.append(run_of(path, old))
 
     for name in options.zip:
         with zipfile.ZipFile(name) as archive:
@@ -203,9 +285,10 @@ def main():
                     path = path[len('djinterp/'):]
                 if not is_text(path):
                     continue
+                lines = lines_of(archive.read(info))
                 read(name + ':' + path,
-                     added(head_copy(tree, prefix, path),
-                           lines_of(archive.read(info)), removed), True)
+                     added(head_copy(tree, prefix, path), lines, removed,
+                           corpus, path), True, path, lines)
 
     if options.base:
         # without rename detection, a moved file is a deletion and an
@@ -217,10 +300,11 @@ def main():
                         '--diff-filter=D', options.base, '--',
                         '.').decode().split():
             try:
-                removed.update(l.strip() for l in lines_of(
-                    git(tree, 'show', options.base + ':' + full)))
+                old = lines_of(git(tree, 'show', options.base + ':' + full))
             except subprocess.CalledProcessError:
-                pass
+                continue
+            removed.update(l.strip() for l in old)
+            corpus.append(run_of(full, old))
         new = git(tree, 'ls-files', '--others', '--exclude-standard',
                   '--', '.').decode().split()
         for full in sorted(set(changed + [prefix + n for n in new])):
@@ -235,10 +319,13 @@ def main():
             except subprocess.CalledProcessError:
                 old = []
             with open(disk, 'rb') as handle:
-                read(path, added(old, lines_of(handle.read()), removed), True)
+                lines = lines_of(handle.read())
+            read(path, added(old, lines, removed, corpus, path), True, path,
+                 lines)
 
-    for where, numbered in pending:
-        read(where, [(n, t) for n, t in numbered if t.strip() not in removed])
+    for where, numbered, path, lines in pending:
+        read(where, [(n, t) for n, t in numbered if t.strip() not in removed],
+             False, path, lines)
 
     if options.all:
         for path in git(tree, 'ls-files', '--', '.').decode().split('\n'):
